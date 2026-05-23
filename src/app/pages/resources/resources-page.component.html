@@ -1,0 +1,26 @@
+<section class="space-y-5">
+  <div>
+    <h2 class="text-xl font-bold tracking-tight text-slate-900">Resources</h2>
+    <p class="text-sm text-slate-600 mt-1">ข้อมูลจาก Master Table: DrinkType</p>
+  </div>
+
+  @if (loading()) {
+    <div class="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600">กำลังโหลดข้อมูล...</div>
+  } @else if (error()) {
+    <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{{ error() }}</div>
+  } @else {
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      @for (item of resources(); track item.id) {
+        <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <p class="text-xs font-medium uppercase tracking-wide text-indigo-600">Drink Type</p>
+          <h3 class="mt-2 text-lg font-semibold text-slate-900">{{ item.name }}</h3>
+          <p class="mt-1 text-sm text-slate-500">ราคา: {{ item.price }} บาท</p>
+          <p class="text-sm text-slate-500">คอมมิชชั่น: {{ item.commissionRate * 100 }}%</p>
+        </article>
+      }
+    </div>
+  }
+
+  <p class="text-xs text-slate-500">ทั้งหมด {{ total() }} รายการ</p>
+</section>
+
