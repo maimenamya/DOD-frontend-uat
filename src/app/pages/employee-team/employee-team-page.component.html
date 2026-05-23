@@ -1,0 +1,176 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">{{ config.title }}</h1>
+      <p class="app-page-subtitle">{{ config.subtitle }}</p>
+    </div>
+    @if (canManage()) {
+      <button type="button" (click)="openCreateForm()" class="app-btn-primary">
+        + Add member
+      </button>
+    }
+  </div>
+
+  @if (success()) {
+    <div class="app-alert-success">{{ success() }}</div>
+  }
+
+  @if (error()) {
+    <div class="app-alert-error">{{ error() }}</div>
+  }
+
+  @if (showCreateForm() && canManage()) {
+    <section class="app-card">
+      <div class="app-modal-header">
+        <h2 class="app-card-title">Add team member</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeCreateForm()">Close</button>
+      </div>
+      <form class="app-form-grid" [formGroup]="createForm" (ngSubmit)="submitCreate()">
+        <div class="app-form-group">
+          <label class="app-label">Employee ID</label>
+          <input type="text" formControlName="employeeId" class="app-input" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">Full name</label>
+          <input type="text" formControlName="name" class="app-input" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">Password</label>
+          <input type="password" formControlName="password" class="app-input" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">Nickname</label>
+          <input type="text" formControlName="nickname" class="app-input" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">Email (optional)</label>
+          <input type="email" formControlName="email" class="app-input" />
+        </div>
+        @if (config.team === 'managers') {
+          <div class="app-form-group">
+            <label class="app-label">Role</label>
+            <app-custom-dropdown
+              formControlName="roleId"
+              [options]="roleDropdownOptions()"
+              placeholder="Select role"
+            />
+          </div>
+        }
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeCreateForm()">Cancel</button>
+          <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+            {{ submitting() ? 'Saving...' : 'Save' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+
+  @if (editingEmployee(); as emp) {
+    <div class="app-modal-overlay" role="dialog">
+      <div class="app-modal">
+        <div class="app-modal-header">
+          <h2 class="app-modal-title">Edit member</h2>
+          <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
+        </div>
+        <p class="app-page-subtitle app-page-subtitle-spaced">
+          ID: <span class="app-cell-mono">{{ emp.employeeId }}</span>
+        </p>
+        <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
+          <div class="app-form-group">
+            <label class="app-label">Full name</label>
+            <input type="text" formControlName="name" class="app-input" />
+          </div>
+          <div class="app-form-group">
+            <label class="app-label">Nickname</label>
+            <input type="text" formControlName="nickname" class="app-input" />
+          </div>
+          <div class="app-form-group">
+            <label class="app-label">Email</label>
+            <input type="email" formControlName="email" class="app-input" />
+          </div>
+          <div class="app-form-group">
+            <label class="app-label">Status</label>
+            <app-custom-dropdown
+              formControlName="status"
+              [options]="statusDropdownOptions"
+              placeholder="Select status"
+            />
+          </div>
+          @if (config.team === 'managers') {
+            <div class="app-form-group">
+              <label class="app-label">Role</label>
+              <app-custom-dropdown
+                formControlName="roleId"
+                [options]="roleDropdownOptions()"
+                placeholder="Select role"
+              />
+            </div>
+          }
+          <div class="app-form-group">
+            <label class="app-label">New password (optional)</label>
+            <input type="password" formControlName="password" class="app-input" />
+          </div>
+          <div class="app-form-actions app-form-actions-top">
+            <button type="button" class="app-btn-secondary" (click)="closeEdit()">Cancel</button>
+            <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+              {{ submitting() ? 'Saving...' : 'Save changes' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (loading()) {
+    <p class="app-loading-text">Loading...</p>
+  } @else if (employees().length === 0) {
+    <p class="app-empty-state">No team members yet</p>
+  } @else {
+    <section class="app-card app-card-flush">
+      <div class="app-data-table-wrap">
+        <table class="app-data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Role</th>
+              <th>Status</th>
+              @if (canManage()) {
+                <th class="app-cell-right">Actions</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (emp of employees(); track emp.id) {
+              <tr>
+                <td class="app-cell-mono">{{ emp.employeeId }}</td>
+                <td class="app-cell-primary">{{ emp.name }}</td>
+                <td>
+                  <span [class]="roleBadgeClass(emp.role?.name)">{{ emp.role?.name }}</span>
+                </td>
+                <td>{{ emp.status }}</td>
+                @if (canManage()) {
+                  <td class="app-cell-right">
+                    @if (canMutateRow(emp)) {
+                      <div class="app-table-actions">
+                        <button type="button" class="app-btn-secondary-sm" (click)="openEdit(emp)">
+                          Edit
+                        </button>
+                        <button type="button" class="app-btn-danger" (click)="confirmDelete(emp)">
+                          Delete
+                        </button>
+                      </div>
+                    } @else {
+                      <span class="app-cell-meta">—</span>
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+</div>

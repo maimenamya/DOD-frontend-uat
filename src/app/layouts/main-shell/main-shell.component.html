@@ -1,0 +1,25 @@
+<div class="app-layout">
+  @if (mobileMenuOpen()) {
+    <button
+      type="button"
+      class="app-mobile-overlay"
+      aria-label="Close menu"
+      (click)="closeMobileMenu()"
+    ></button>
+  }
+
+  <div class="app-sidebar-slot">
+    <app-sidebar [mobileOpen]="mobileMenuOpen()" (mobileClose)="closeMobileMenu()" />
+  </div>
+
+  <div class="app-layout-main">
+    <header class="app-mobile-header">
+      <button type="button" class="app-btn-menu" (click)="toggleMobileMenu()">Menu</button>
+      <p class="app-mobile-header-title">{{ user?.name }}</p>
+    </header>
+
+    <main class="app-main-content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

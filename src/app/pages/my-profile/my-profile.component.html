@@ -1,0 +1,49 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">My Profile</h1>
+      <p class="app-page-subtitle">
+        Account <span class="app-page-subtitle-accent">{{ user?.employeeId }}</span>
+        · Role <span class="app-page-subtitle-strong">{{ user?.role }}</span>
+        · {{ user?.shopName }}
+      </p>
+    </div>
+  </div>
+
+  @if (success()) {
+    <div class="app-alert-success">{{ success() }}</div>
+  }
+
+  @if (error()) {
+    <div class="app-alert-error">{{ error() }}</div>
+  }
+
+  <section class="app-card app-profile-card">
+    <p class="app-profile-hint">
+      Update your personal details here. Role and shop cannot be changed from this page.
+    </p>
+    <form class="app-form-stack" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="app-form-group">
+        <label class="app-label">Full name</label>
+        <input type="text" formControlName="name" class="app-input" />
+      </div>
+      <div class="app-form-group">
+        <label class="app-label">Nickname</label>
+        <input type="text" formControlName="nickname" class="app-input" />
+      </div>
+      <div class="app-form-group">
+        <label class="app-label">Email</label>
+        <input type="email" formControlName="email" class="app-input" />
+      </div>
+      <div class="app-form-group">
+        <label class="app-label">New password (optional)</label>
+        <input type="password" formControlName="password" class="app-input" placeholder="Leave blank to keep current" />
+      </div>
+      <div class="app-form-actions app-form-actions-top">
+        <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+          {{ submitting() ? 'Saving...' : 'Save profile' }}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

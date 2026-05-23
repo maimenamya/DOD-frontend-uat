@@ -1,0 +1,77 @@
+<aside
+  class="app-sidebar"
+  [class.app-sidebar--closed]="!mobileOpen()"
+  [class.app-sidebar--open]="mobileOpen()"
+>
+  <div class="app-sidebar-brand">
+    <p class="app-sidebar-brand-label">DOD System</p>
+    <p class="app-sidebar-brand-title">Performance Hub</p>
+    @if (user) {
+      <p class="app-sidebar-meta">{{ user.shopName }}</p>
+      <p class="app-sidebar-meta">{{ user.employeeId }} · {{ user.role }}</p>
+    }
+  </div>
+
+  <nav class="app-sidebar-nav">
+    <a
+      routerLink="/dashboard"
+      routerLinkActive="app-sidebar-link-active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      (click)="mobileClose.emit()"
+      class="app-sidebar-link"
+    >
+      <span aria-hidden="true">📊</span>
+      Dashboard
+    </a>
+
+    @if (showTeamLinks) {
+      <a
+        routerLink="/dashboard/sale-team"
+        routerLinkActive="app-sidebar-link-active"
+        (click)="mobileClose.emit()"
+        class="app-sidebar-link"
+      >
+        <span aria-hidden="true">💼</span>
+        SALE Team
+      </a>
+      <a
+        routerLink="/dashboard/pr-team"
+        routerLinkActive="app-sidebar-link-active"
+        (click)="mobileClose.emit()"
+        class="app-sidebar-link"
+      >
+        <span aria-hidden="true">🍸</span>
+        PR Team
+      </a>
+    }
+
+    @if (showManagersLink) {
+      <a
+        routerLink="/dashboard/managers"
+        routerLinkActive="app-sidebar-link-active"
+        (click)="mobileClose.emit()"
+        class="app-sidebar-link"
+      >
+        <span aria-hidden="true">🛡️</span>
+        Managers
+      </a>
+    }
+
+    <a
+      routerLink="/dashboard/my-profile"
+      routerLinkActive="app-sidebar-link-active"
+      (click)="mobileClose.emit()"
+      class="app-sidebar-link"
+    >
+      <span aria-hidden="true">👤</span>
+      My Profile
+    </a>
+  </nav>
+
+  <div class="app-sidebar-footer">
+    <button type="button" class="app-sidebar-logout" (click)="logout(); mobileClose.emit()">
+      <span aria-hidden="true">🚪</span>
+      Logout
+    </button>
+  </div>
+</aside>

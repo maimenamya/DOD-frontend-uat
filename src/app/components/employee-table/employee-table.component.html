@@ -1,34 +1,31 @@
-<div class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-lg shadow-slate-200/50">
-  <div class="overflow-x-auto">
-    <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
-      <thead class="bg-slate-900 text-slate-100">
+<div class="app-card app-card-flush">
+  <div class="app-data-table-wrap">
+    <table class="app-data-table">
+      <thead>
         <tr>
-          <th scope="col" class="px-5 py-4 font-semibold">รหัส</th>
-          <th scope="col" class="px-5 py-4 font-semibold">ชื่อเล่น</th>
-          <th scope="col" class="px-5 py-4 font-semibold">Role</th>
-          <th scope="col" class="px-5 py-4 font-semibold">ร้าน</th>
-          <th scope="col" class="px-5 py-4 font-semibold">สถานะ</th>
+          <th>รหัส</th>
+          <th>ชื่อเล่น</th>
+          <th>Role</th>
+          <th>ร้าน</th>
+          <th>สถานะ</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-slate-100 bg-white">
+      <tbody>
         @for (emp of employees(); track emp.id) {
-          <tr class="transition-colors hover:bg-indigo-50/60">
-            <td class="whitespace-nowrap px-5 py-4 font-mono text-xs text-slate-500">{{ emp.id }}</td>
-            <td class="px-5 py-4 font-medium text-slate-900">{{ emp.nickname }}</td>
-            <td class="px-5 py-4 text-slate-700">{{ emp.role?.name || ('Role #' + emp.roleId) }}</td>
-            <td class="px-5 py-4 text-slate-700">{{ emp.shop?.name || ('Shop #' + emp.shopId) }}</td>
-            <td class="px-5 py-4">
-              <span class="inline-flex rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-800 ring-1 ring-inset ring-indigo-600/15">
-                {{ emp.status }}
-              </span>
+          <tr>
+            <td class="app-cell-mono">{{ emp.id }}</td>
+            <td class="app-cell-primary">{{ emp.nickname }}</td>
+            <td>{{ emp.role?.name || ('Role #' + emp.roleId) }}</td>
+            <td>{{ emp.shop?.name || ('Shop #' + emp.shopId) }}</td>
+            <td>
+              <span class="app-badge app-badge-default">{{ emp.status }}</span>
             </td>
           </tr>
         }
       </tbody>
     </table>
   </div>
-  <div class="border-t border-slate-100 bg-slate-50/80 px-5 py-3 text-xs text-slate-500">
+  <div class="app-data-table-footer">
     ทั้งหมด {{ employees().length }} คน
   </div>
 </div>
-

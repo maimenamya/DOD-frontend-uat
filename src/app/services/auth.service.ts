@@ -1,0 +1,145 @@
+import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
+
+import type {
+  AuthResponse,
+  AuthSession,
+  AuthUser,
+  LoginRequest,
+  RegisterRequest,
+  UpdateProfileRequest,
+} from '../models/auth';
+import { FIELD_STAFF_ROLES, MANAGEMENT_ROLES, type EmployeeRole } from '../models/role';
+
+const STORAGE_KEY = 'dod_auth_session';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class AuthService {
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = '/api/auth';
+
+  private readonly sessionSignal = signal<AuthSession | null>(this.readStoredSession());
+
+  readonly session = this.sessionSignal.asReadonly();
+
+  login(credentials: LoginRequest): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/login`, credentials)
+      .pipe(tap((response) => this.persistSession(response)));
+  }
+
+  register(payload: RegisterRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, payload);
+  }
+
+  updateProfile(payload: UpdateProfileRequest): Observable<AuthResponse> {
+    return this.http
+      .put<AuthResponse>(`${this.apiUrl}/me`, payload)
+      .pipe(tap((response) => this.persistSession(response)));
+  }
+
+  logout(): void {
+    localStorage.removeItem(STORAGE_KEY);
+    this.sessionSignal.set(null);
+  }
+
+  isAuthenticated(): boolean {
+    return !!this.getToken();
+  }
+
+  getToken(): string | null {
+    return this.sessionSignal()?.token ?? null;
+  }
+
+  getUser(): AuthUser | null {
+    return this.sessionSignal()?.user ?? null;
+  }
+
+  getShopId(): number | null {
+    return this.getUser()?.shopId ?? null;
+  }
+
+  getRole(): EmployeeRole | null {
+    return this.getUser()?.role ?? null;
+  }
+
+  isOwner(): boolean {
+    return this.getRole() === 'OWNER';
+  }
+
+  isFieldStaff(): boolean {
+    const role = this.getRole();
+    return role ? FIELD_STAFF_ROLES.includes(role) : false;
+  }
+
+  /** SALE Team & PR Team navigation */
+  canAccessTeamManagement(): boolean {
+    const role = this.getRole();
+    return role ? MANAGEMENT_ROLES.includes(role) : false;
+  }
+
+  /** Row-level Edit/Delete — OWNER accounts are never mutable */
+  canMutateEmployeeRow(targetRoleName?: string): boolean {
+    if (!targetRoleName || targetRoleName === 'OWNER') {
+      return false;
+    }
+    return this.canAccessTeamManagement() || this.isOwner();
+  }
+
+  canMutateOnManagersPage(targetRoleName?: string): boolean {
+    if (!this.isOwner() || !targetRoleName) {
+      return false;
+    }
+    return targetRoleName === 'ADMIN' || targetRoleName === 'MANAGER';
+  }
+
+  private persistSession(response: AuthResponse): void {
+    const session = this.toSession(response);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    this.sessionSignal.set(session);
+  }
+
+  updateSessionUser(user: AuthUser): void {
+    const current = this.sessionSignal();
+    if (!current) return;
+    const next = { ...current, user };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    this.sessionSignal.set(next);
+  }
+
+  private readStoredSession(): AuthSession | null {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        return null;
+      }
+      const parsed = JSON.parse(raw) as AuthSession;
+      if (!parsed?.token || !parsed?.user?.shopId) {
+        return null;
+      }
+      return parsed;
+    } catch {
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+  }
+
+  private toSession(response: AuthResponse): AuthSession {
+    const { employee, token } = response;
+    const user: AuthUser = {
+      id: employee.id,
+      employeeId: employee.employeeId,
+      name: employee.name,
+      email: employee.email,
+      nickname: employee.nickname,
+      shopId: employee.shopId,
+      roleId: employee.roleId,
+      role: employee.role.name,
+      shopName: employee.shop.name,
+    };
+    return { token, user };
+  }
+}

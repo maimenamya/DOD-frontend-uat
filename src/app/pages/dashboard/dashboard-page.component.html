@@ -1,0 +1,143 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">Dashboard</h1>
+      @if (isPersonalView()) {
+        <p class="app-page-subtitle">
+          สวัสดี <span class="app-page-subtitle-accent">{{ user?.name }}</span> — ภาพรวมผลงานของคุณ
+        </p>
+      } @else {
+        <p class="app-page-subtitle">
+          ร้าน <span class="app-page-subtitle-accent">{{ user?.shopName }}</span> — ภาพรวมยอดขายและเครื่องดื่ม PR ทั้งร้าน
+        </p>
+      }
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="app-alert-error app-alert-row">
+      <span>{{ error() }}</span>
+      <button type="button" class="app-btn-ghost" (click)="loadStats()">ลองอีกครั้ง</button>
+    </div>
+  }
+
+  @if (loading()) {
+    @if (isPersonalView()) {
+      <div class="app-grid-stats-single">
+        <div class="app-skeleton"></div>
+      </div>
+    } @else {
+      <div class="app-grid-stats">
+        @for (_ of [1, 2]; track $index) {
+          <div class="app-skeleton"></div>
+        }
+      </div>
+    }
+  } @else if (stats()) {
+    @let s = stats()!;
+
+    @if (isPersonalView()) {
+      <div class="app-grid-stats-single">
+        @if (isSaleRole()) {
+          <div class="app-stat-card app-stat-card-revenue">
+            <p class="app-stat-label app-stat-label-revenue">My Total Sales (฿)</p>
+            <p class="app-stat-value">{{ s.totalSalesAmount | number: '1.0-0' }}</p>
+            <p class="app-stat-hint">ยอดขายรวมของคุณ (SALE)</p>
+          </div>
+        }
+        @if (isPrRole()) {
+          <div class="app-stat-card app-stat-card-drinks">
+            <p class="app-stat-label app-stat-label-drinks">My Total PR Drinks (Glasses)</p>
+            <p class="app-stat-value">{{ s.totalDrinksCount | number: '1.0-0' }}</p>
+            <p class="app-stat-hint">จำนวนแก้วรวมของคุณ (PR)</p>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="app-grid-stats">
+        <div class="app-stat-card app-stat-card-revenue">
+          <p class="app-stat-label app-stat-label-revenue">Total Revenue (฿)</p>
+          <p class="app-stat-value">{{ s.totalSalesAmount | number: '1.0-0' }}</p>
+          <p class="app-stat-hint">รวมยอดขาย SALE ทั้งร้าน</p>
+        </div>
+        <div class="app-stat-card app-stat-card-drinks">
+          <p class="app-stat-label app-stat-label-drinks">Total PR Drinks (Glasses)</p>
+          <p class="app-stat-value">{{ s.totalDrinksCount | number: '1.0-0' }}</p>
+          <p class="app-stat-hint">รวมจำนวนแก้ว DRINK ทั้งร้าน</p>
+        </div>
+      </div>
+
+      <div class="app-grid-panels">
+        <section class="app-card app-card-flush">
+          <div class="app-card-header">
+            <h2 class="app-card-title">Top Sales Performance</h2>
+            <p class="app-card-subtitle">เรียงตามยอดขาย (฿)</p>
+          </div>
+          @if (s.topSales.length === 0) {
+            <p class="app-table-empty">ยังไม่มีข้อมูลยอดขาย</p>
+          } @else {
+            <div class="app-data-table-wrap">
+              <table class="app-data-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>พนักงาน</th>
+                    <th class="app-cell-right">ยอดขาย (฿)</th>
+                    <th class="app-cell-right">รายการ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of s.topSales; track row.employeeId; let i = $index) {
+                    <tr>
+                      <td class="app-cell-meta">{{ i + 1 }}</td>
+                      <td class="app-cell-primary">{{ row.name }}</td>
+                      <td class="app-cell-right app-cell-highlight-emerald">
+                        {{ row.totalAmount | number: '1.0-0' }}
+                      </td>
+                      <td class="app-cell-right">{{ row.transactionCount }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </section>
+
+        <section class="app-card app-card-flush">
+          <div class="app-card-header">
+            <h2 class="app-card-title">Top PR Drinks Performance</h2>
+            <p class="app-card-subtitle">เรียงตามจำนวนแก้ว</p>
+          </div>
+          @if (s.topPr.length === 0) {
+            <p class="app-table-empty">ยังไม่มีข้อมูลเครื่องดื่ม PR</p>
+          } @else {
+            <div class="app-data-table-wrap">
+              <table class="app-data-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>พนักงาน</th>
+                    <th class="app-cell-right">แก้ว</th>
+                    <th class="app-cell-right">รายการ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of s.topPr; track row.employeeId; let i = $index) {
+                    <tr>
+                      <td class="app-cell-meta">{{ i + 1 }}</td>
+                      <td class="app-cell-primary">{{ row.name }}</td>
+                      <td class="app-cell-right app-cell-highlight-violet">
+                        {{ row.totalDrinks | number: '1.0-0' }}
+                      </td>
+                      <td class="app-cell-right">{{ row.transactionCount }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </section>
+      </div>
+    }
+  }
+</div>

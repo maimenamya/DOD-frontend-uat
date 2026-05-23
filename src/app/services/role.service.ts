@@ -8,10 +8,9 @@ import type { Role } from '../models/role';
 })
 export class RoleService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000';
+  private readonly apiUrl = '/api/roles';
 
   getRoles(): Observable<Role[]> {
-    return this.http.get<Role[]>(`${this.apiUrl}/roles`);
+    return this.http.get<Role[]>(this.apiUrl);
   }
 }
-
