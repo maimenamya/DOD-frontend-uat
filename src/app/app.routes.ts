@@ -1,10 +1,12 @@
 import { Routes } from '@angular/router';
 
-import { authGuard, guestGuard, ownerOnlyGuard, teamManagementGuard } from './guards/auth.guard';
+import { authGuard, guestGuard, teamManagementGuard } from './guards/auth.guard';
 import { MainShellComponent } from './layouts/main-shell/main-shell.component';
 import { DashboardPageComponent } from './pages/dashboard/dashboard-page.component';
-import { EmployeeTeamPageComponent } from './pages/employee-team/employee-team-page.component';
+import { EmployeeManagementPageComponent } from './pages/employee-management/employee-management-page.component';
 import { LoginComponent } from './pages/login/login.component';
+import { MasterDrinkPageComponent } from './pages/master-drink/master-drink-page.component';
+import { MasterRolePageComponent } from './pages/master-role/master-role-page.component';
 import { MyProfileComponent } from './pages/my-profile/my-profile.component';
 
 export const routes: Routes = [
@@ -21,37 +23,25 @@ export const routes: Routes = [
     children: [
       { path: '', component: DashboardPageComponent },
       {
-        path: 'sale-team',
-        component: EmployeeTeamPageComponent,
+        path: 'employees',
+        component: EmployeeManagementPageComponent,
         canActivate: [teamManagementGuard],
-        data: {
-          team: 'sale',
-          title: 'SALE Team',
-          subtitle: 'Manage sales team members — full CRUD for OWNER, ADMIN, and MANAGER',
-        },
       },
       {
-        path: 'pr-team',
-        component: EmployeeTeamPageComponent,
+        path: 'master-roles',
+        component: MasterRolePageComponent,
         canActivate: [teamManagementGuard],
-        data: {
-          team: 'pr',
-          title: 'PR Team',
-          subtitle: 'Manage PR drink team members — full CRUD for OWNER, ADMIN, and MANAGER',
-        },
       },
       {
-        path: 'managers',
-        component: EmployeeTeamPageComponent,
-        canActivate: [ownerOnlyGuard],
-        data: {
-          team: 'managers',
-          title: 'Managers',
-          subtitle: 'OWNER only — manage ADMIN and MANAGER accounts',
-        },
+        path: 'master-drinks',
+        component: MasterDrinkPageComponent,
+        canActivate: [teamManagementGuard],
       },
       { path: 'my-profile', component: MyProfileComponent },
-      { path: 'manage-employees', redirectTo: 'sale-team', pathMatch: 'full' },
+      { path: 'sale-team', redirectTo: 'employees', pathMatch: 'full' },
+      { path: 'pr-team', redirectTo: 'employees', pathMatch: 'full' },
+      { path: 'managers', redirectTo: 'employees', pathMatch: 'full' },
+      { path: 'manage-employees', redirectTo: 'employees', pathMatch: 'full' },
     ],
   },
   { path: '**', redirectTo: 'login' },

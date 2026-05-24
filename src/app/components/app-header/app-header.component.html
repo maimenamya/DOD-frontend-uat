@@ -1,0 +1,30 @@
+<header class="app-top-header">
+  <div class="app-top-header-start">
+    <button
+      type="button"
+      class="app-btn-menu app-top-header-menu"
+      (click)="onMenuClick()"
+      aria-label="เปิดเมนู"
+    >
+      เมนู
+    </button>
+
+    <button
+      type="button"
+      class="app-profile-trigger"
+      (click)="goToProfile()"
+      aria-label="แก้ไขโปรไฟล์"
+      title="แก้ไขโปรไฟล์"
+    >
+      <span class="app-profile-avatar" aria-hidden="true">
+        {{ user?.name?.charAt(0) ?? '?' }}
+      </span>
+      <span class="app-profile-copy">
+        <span class="app-profile-shop">{{ user?.shopName ?? '—' }}</span>
+        <span class="app-profile-meta">
+          ชื่อผู้ใช้: {{ user?.name ?? '—' }} | ตำแหน่ง: {{ user?.role ?? '—' }}
+        </span>
+      </span>
+    </button>
+  </div>
+</header>

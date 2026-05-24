@@ -1,7 +1,7 @@
 <div class="app-page">
   <div class="app-page-header">
     <div>
-      <h1 class="app-page-title">Dashboard</h1>
+      <h1 class="app-page-title">แดชบอร์ด</h1>
       @if (isPersonalView()) {
         <p class="app-page-subtitle">
           สวัสดี <span class="app-page-subtitle-accent">{{ user?.name }}</span> — ภาพรวมผลงานของคุณ
@@ -40,14 +40,14 @@
       <div class="app-grid-stats-single">
         @if (isSaleRole()) {
           <div class="app-stat-card app-stat-card-revenue">
-            <p class="app-stat-label app-stat-label-revenue">My Total Sales (฿)</p>
+            <p class="app-stat-label app-stat-label-revenue">ยอดขายรวมของฉัน (฿)</p>
             <p class="app-stat-value">{{ s.totalSalesAmount | number: '1.0-0' }}</p>
             <p class="app-stat-hint">ยอดขายรวมของคุณ (SALE)</p>
           </div>
         }
         @if (isPrRole()) {
           <div class="app-stat-card app-stat-card-drinks">
-            <p class="app-stat-label app-stat-label-drinks">My Total PR Drinks (Glasses)</p>
+            <p class="app-stat-label app-stat-label-drinks">ยอดดื่ม PR รวมของฉัน (แก้ว)</p>
             <p class="app-stat-value">{{ s.totalDrinksCount | number: '1.0-0' }}</p>
             <p class="app-stat-hint">จำนวนแก้วรวมของคุณ (PR)</p>
           </div>
@@ -56,12 +56,12 @@
     } @else {
       <div class="app-grid-stats">
         <div class="app-stat-card app-stat-card-revenue">
-          <p class="app-stat-label app-stat-label-revenue">Total Revenue (฿)</p>
+          <p class="app-stat-label app-stat-label-revenue">ยอดขายรวม (฿)</p>
           <p class="app-stat-value">{{ s.totalSalesAmount | number: '1.0-0' }}</p>
           <p class="app-stat-hint">รวมยอดขาย SALE ทั้งร้าน</p>
         </div>
         <div class="app-stat-card app-stat-card-drinks">
-          <p class="app-stat-label app-stat-label-drinks">Total PR Drinks (Glasses)</p>
+          <p class="app-stat-label app-stat-label-drinks">ยอดดื่ม PR รวม (แก้ว)</p>
           <p class="app-stat-value">{{ s.totalDrinksCount | number: '1.0-0' }}</p>
           <p class="app-stat-hint">รวมจำนวนแก้ว DRINK ทั้งร้าน</p>
         </div>
@@ -70,7 +70,7 @@
       <div class="app-grid-panels">
         <section class="app-card app-card-flush">
           <div class="app-card-header">
-            <h2 class="app-card-title">Top Sales Performance</h2>
+            <h2 class="app-card-title">อันดับยอดขาย SALE</h2>
             <p class="app-card-subtitle">เรียงตามยอดขาย (฿)</p>
           </div>
           @if (s.topSales.length === 0) {
@@ -105,7 +105,7 @@
 
         <section class="app-card app-card-flush">
           <div class="app-card-header">
-            <h2 class="app-card-title">Top PR Drinks Performance</h2>
+            <h2 class="app-card-title">อันดับยอดดื่ม PR</h2>
             <p class="app-card-subtitle">เรียงตามจำนวนแก้ว</p>
           </div>
           @if (s.topPr.length === 0) {

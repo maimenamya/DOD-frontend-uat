@@ -15,9 +15,7 @@ export class SidebarComponent {
   readonly mobileOpen = input(false);
   readonly mobileClose = output<void>();
 
-  readonly user = this.auth.getUser();
-  readonly showTeamLinks = this.auth.canAccessTeamManagement();
-  readonly showManagersLink = this.auth.isOwner();
+  readonly showManagementLinks = this.auth.canAccessTeamManagement();
 
   logout(): void {
     this.auth.logout();

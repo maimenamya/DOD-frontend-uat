@@ -1,10 +1,10 @@
 <div class="app-page">
   <div class="app-page-header">
     <div>
-      <h1 class="app-page-title">My Profile</h1>
+      <h1 class="app-page-title">โปรไฟล์ของฉัน</h1>
       <p class="app-page-subtitle">
-        Account <span class="app-page-subtitle-accent">{{ user?.employeeId }}</span>
-        · Role <span class="app-page-subtitle-strong">{{ user?.role }}</span>
+        บัญชี <span class="app-page-subtitle-accent">{{ user?.employeeId }}</span>
+        · ตำแหน่ง <span class="app-page-subtitle-strong">{{ user?.role }}</span>
         · {{ user?.shopName }}
       </p>
     </div>
@@ -20,28 +20,33 @@
 
   <section class="app-card app-profile-card">
     <p class="app-profile-hint">
-      Update your personal details here. Role and shop cannot be changed from this page.
+      แก้ไขข้อมูลส่วนตัวของคุณได้ที่นี่ ไม่สามารถเปลี่ยนตำแหน่งหรือร้านจากหน้านี้
     </p>
     <form class="app-form-stack" [formGroup]="form" (ngSubmit)="submit()">
       <div class="app-form-group">
-        <label class="app-label">Full name</label>
+        <label class="app-label">ชื่อ-นามสกุล</label>
         <input type="text" formControlName="name" class="app-input" />
       </div>
       <div class="app-form-group">
-        <label class="app-label">Nickname</label>
+        <label class="app-label">ชื่อเล่น</label>
         <input type="text" formControlName="nickname" class="app-input" />
       </div>
       <div class="app-form-group">
-        <label class="app-label">Email</label>
+        <label class="app-label">อีเมล</label>
         <input type="email" formControlName="email" class="app-input" />
       </div>
       <div class="app-form-group">
-        <label class="app-label">New password (optional)</label>
-        <input type="password" formControlName="password" class="app-input" placeholder="Leave blank to keep current" />
+        <label class="app-label">รหัสผ่านใหม่ (ไม่บังคับ)</label>
+        <input
+          type="password"
+          formControlName="password"
+          class="app-input"
+          placeholder="เว้นว่างหากไม่ต้องการเปลี่ยน"
+        />
       </div>
       <div class="app-form-actions app-form-actions-top">
         <button type="submit" class="app-btn-primary" [disabled]="submitting()">
-          {{ submitting() ? 'Saving...' : 'Save profile' }}
+          {{ submitting() ? 'กำลังบันทึก...' : 'บันทึกโปรไฟล์' }}
         </button>
       </div>
     </form>

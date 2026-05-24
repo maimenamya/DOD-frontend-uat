@@ -6,10 +6,6 @@
   <div class="app-sidebar-brand">
     <p class="app-sidebar-brand-label">DOD System</p>
     <p class="app-sidebar-brand-title">Performance Hub</p>
-    @if (user) {
-      <p class="app-sidebar-meta">{{ user.shopName }}</p>
-      <p class="app-sidebar-meta">{{ user.employeeId }} · {{ user.role }}</p>
-    }
   </div>
 
   <nav class="app-sidebar-nav">
@@ -20,58 +16,45 @@
       (click)="mobileClose.emit()"
       class="app-sidebar-link"
     >
-      <span aria-hidden="true">📊</span>
-      Dashboard
+      <span class="app-sidebar-icon" aria-hidden="true">📊</span>
+      แดชบอร์ด
     </a>
 
-    @if (showTeamLinks) {
+    @if (showManagementLinks) {
       <a
-        routerLink="/dashboard/sale-team"
+        routerLink="/dashboard/employees"
         routerLinkActive="app-sidebar-link-active"
         (click)="mobileClose.emit()"
         class="app-sidebar-link"
       >
-        <span aria-hidden="true">💼</span>
-        SALE Team
+        <span class="app-sidebar-icon" aria-hidden="true">👥</span>
+        จัดการพนักงาน
       </a>
       <a
-        routerLink="/dashboard/pr-team"
+        routerLink="/dashboard/master-roles"
         routerLinkActive="app-sidebar-link-active"
         (click)="mobileClose.emit()"
         class="app-sidebar-link"
       >
-        <span aria-hidden="true">🍸</span>
-        PR Team
+        <span class="app-sidebar-icon" aria-hidden="true">🛡️</span>
+        ตำแหน่ง
       </a>
-    }
-
-    @if (showManagersLink) {
       <a
-        routerLink="/dashboard/managers"
+        routerLink="/dashboard/master-drinks"
         routerLinkActive="app-sidebar-link-active"
         (click)="mobileClose.emit()"
         class="app-sidebar-link"
       >
-        <span aria-hidden="true">🛡️</span>
-        Managers
+        <span class="app-sidebar-icon" aria-hidden="true">🍸</span>
+        เครื่องดื่ม
       </a>
     }
-
-    <a
-      routerLink="/dashboard/my-profile"
-      routerLinkActive="app-sidebar-link-active"
-      (click)="mobileClose.emit()"
-      class="app-sidebar-link"
-    >
-      <span aria-hidden="true">👤</span>
-      My Profile
-    </a>
   </nav>
 
   <div class="app-sidebar-footer">
     <button type="button" class="app-sidebar-logout" (click)="logout(); mobileClose.emit()">
-      <span aria-hidden="true">🚪</span>
-      Logout
+      <span class="app-sidebar-icon" aria-hidden="true">🚪</span>
+      ออกจากระบบ
     </button>
   </div>
 </aside>

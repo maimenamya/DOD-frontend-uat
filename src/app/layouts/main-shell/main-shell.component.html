@@ -3,7 +3,7 @@
     <button
       type="button"
       class="app-mobile-overlay"
-      aria-label="Close menu"
+      aria-label="ปิดเมนู"
       (click)="closeMobileMenu()"
     ></button>
   }
@@ -13,10 +13,7 @@
   </div>
 
   <div class="app-layout-main">
-    <header class="app-mobile-header">
-      <button type="button" class="app-btn-menu" (click)="toggleMobileMenu()">Menu</button>
-      <p class="app-mobile-header-title">{{ user?.name }}</p>
-    </header>
+    <app-header (menuToggle)="toggleMobileMenu()" />
 
     <main class="app-main-content">
       <router-outlet />

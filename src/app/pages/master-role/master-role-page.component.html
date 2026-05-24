@@ -1,0 +1,41 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">ตำแหน่ง</h1>
+      <p class="app-page-subtitle">รายการตำแหน่ง (Master Role) จากระบบ — ใช้กำหนดสิทธิ์และแท็บจัดการพนักงาน</p>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="app-alert-error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <p class="app-loading-text">กำลังโหลด...</p>
+  } @else if (roles().length === 0) {
+    <p class="app-empty-state">ยังไม่มีข้อมูลตำแหน่ง</p>
+  } @else {
+    <section class="app-card app-card-flush">
+      <div class="app-data-table-wrap">
+        <table class="app-data-table">
+          <thead>
+            <tr>
+              <th>รหัส</th>
+              <th>ชื่อระบบ</th>
+              <th>ชื่อแสดง</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (role of roles(); track role.id) {
+              <tr>
+                <td class="app-cell-mono">{{ role.id }}</td>
+                <td class="app-cell-primary">{{ role.name }}</td>
+                <td>{{ roleLabel(role.name) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+</div>

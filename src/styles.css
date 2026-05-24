@@ -340,9 +340,59 @@
     @apply flex-1 p-4 sm:p-6 lg:p-8;
   }
 
-  .app-mobile-header {
-    @apply sticky top-0 z-20 flex items-center justify-between border-b border-theme-border px-4 py-3 backdrop-blur-glass lg:hidden;
+  /* ── Top header (profile + shop) ── */
+  .app-top-header {
+    @apply sticky top-0 z-20 border-b border-theme-border px-4 py-3 backdrop-blur-glass sm:px-6 lg:px-8;
     background: var(--surface-strong);
+  }
+
+  .app-top-header-start {
+    @apply flex min-w-0 items-center gap-3;
+  }
+
+  .app-top-header-menu {
+    @apply shrink-0 lg:hidden;
+  }
+
+  .app-profile-trigger {
+    @apply flex min-w-0 items-center gap-3 rounded-input border-0 bg-transparent p-1 text-left transition-colors duration-200;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-profile-trigger:hover {
+    background: var(--surface-hover);
+  }
+
+  .app-profile-avatar {
+    @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white;
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+    box-shadow: var(--shadow-glow-sm);
+  }
+
+  .app-profile-copy {
+    @apply flex min-w-0 flex-col gap-0.5;
+  }
+
+  .app-profile-shop {
+    @apply truncate text-lg font-semibold tracking-tight text-text-primary sm:text-xl;
+    line-height: var(--leading-snug);
+  }
+
+  .app-profile-meta {
+    @apply truncate text-xs text-text-secondary sm:text-sm;
+  }
+
+  .app-sidebar-icon {
+    @apply text-base leading-none;
+  }
+
+  .app-role-tabs {
+    @apply flex-wrap gap-2;
+  }
+
+  .app-mobile-header {
+    @apply hidden;
   }
 
   .app-mobile-header-title {

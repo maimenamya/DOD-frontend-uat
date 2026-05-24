@@ -18,10 +18,17 @@ export class EmployeeService {
   private readonly api = inject(ApiConfig);
   private readonly employeesUrl = this.api.resource('employees');
 
+  getEmployeesByShop(shopId: number, team?: EmployeeTeam): Observable<Employee[]> {
+    const params: Record<string, string> = { shopId: shopId.toString() };
+    if (team) {
+      params['team'] = team;
+    }
+    return this.http.get<Employee[]>(this.employeesUrl, { params });
+  }
+
+  /** @deprecated Use getEmployeesByShop — kept for legacy team routes */
   getEmployeesByTeam(shopId: number, team: EmployeeTeam): Observable<Employee[]> {
-    return this.http.get<Employee[]>(this.employeesUrl, {
-      params: { shopId: shopId.toString(), team },
-    });
+    return this.getEmployeesByShop(shopId, team);
   }
 
   createEmployee(payload: CreateEmployeePayload): Observable<Employee> {
