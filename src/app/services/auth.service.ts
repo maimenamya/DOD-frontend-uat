@@ -133,7 +133,6 @@ export class AuthService {
     const user: AuthUser = {
       id: employee.id,
       employeeId: employee.employeeId,
-      name: employee.name,
       email: employee.email,
       nickname: employee.nickname,
       shopId: employee.shopId,

@@ -31,16 +31,12 @@
           <input type="text" formControlName="employeeId" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">Full name</label>
-          <input type="text" formControlName="name" class="app-input" />
+          <label class="app-label">ชื่อเล่น</label>
+          <input type="text" formControlName="nickname" class="app-input" />
         </div>
         <div class="app-form-group">
           <label class="app-label">Password</label>
           <input type="password" formControlName="password" class="app-input" />
-        </div>
-        <div class="app-form-group">
-          <label class="app-label">Nickname</label>
-          <input type="text" formControlName="nickname" class="app-input" />
         </div>
         <div class="app-form-group">
           <label class="app-label">Email (optional)</label>
@@ -78,11 +74,7 @@
         </p>
         <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
           <div class="app-form-group">
-            <label class="app-label">Full name</label>
-            <input type="text" formControlName="name" class="app-input" />
-          </div>
-          <div class="app-form-group">
-            <label class="app-label">Nickname</label>
+            <label class="app-label">ชื่อเล่น</label>
             <input type="text" formControlName="nickname" class="app-input" />
           </div>
           <div class="app-form-group">
@@ -133,7 +125,7 @@
           <thead>
             <tr>
               <th>ID</th>
-              <th>Name</th>
+              <th>ชื่อเล่น</th>
               <th>Role</th>
               <th>Status</th>
               @if (canManage()) {
@@ -145,7 +137,7 @@
             @for (emp of employees(); track emp.id) {
               <tr>
                 <td class="app-cell-mono">{{ emp.employeeId }}</td>
-                <td class="app-cell-primary">{{ emp.name }}</td>
+                <td class="app-cell-primary">{{ emp.nickname }}</td>
                 <td>
                   <span [class]="roleBadgeClass(emp.role?.name)">{{ emp.role?.name }}</span>
                 </td>

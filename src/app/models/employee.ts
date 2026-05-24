@@ -3,7 +3,6 @@ import type { EmployeeRole } from './role';
 export interface Employee {
   id: number;
   employeeId: string;
-  name: string;
   email: string | null;
   nickname: string;
   roleId: number;
@@ -26,7 +25,6 @@ export type EmployeeTeam = 'sale' | 'pr' | 'managers';
 
 export interface CreateEmployeePayload {
   employeeId: string;
-  name: string;
   password: string;
   nickname: string;
   roleId: number;
@@ -36,7 +34,6 @@ export interface CreateEmployeePayload {
 }
 
 export interface UpdateEmployeePayload {
-  name?: string;
   nickname?: string;
   email?: string | null;
   status?: string;

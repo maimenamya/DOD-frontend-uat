@@ -4,7 +4,7 @@
       <h1 class="app-page-title">แดชบอร์ด</h1>
       @if (isPersonalView()) {
         <p class="app-page-subtitle">
-          สวัสดี <span class="app-page-subtitle-accent">{{ user?.name }}</span> — ภาพรวมผลงานของคุณ
+          สวัสดี <span class="app-page-subtitle-accent">{{ user?.nickname }}</span> — ภาพรวมผลงานของคุณ
         </p>
       } @else {
         <p class="app-page-subtitle">
@@ -90,7 +90,7 @@
                   @for (row of s.topSales; track row.employeeId; let i = $index) {
                     <tr>
                       <td class="app-cell-meta">{{ i + 1 }}</td>
-                      <td class="app-cell-primary">{{ row.name }}</td>
+                      <td class="app-cell-primary">{{ row.nickname }}</td>
                       <td class="app-cell-right app-cell-highlight-emerald">
                         {{ row.totalAmount | number: '1.0-0' }}
                       </td>
@@ -125,7 +125,7 @@
                   @for (row of s.topPr; track row.employeeId; let i = $index) {
                     <tr>
                       <td class="app-cell-meta">{{ i + 1 }}</td>
-                      <td class="app-cell-primary">{{ row.name }}</td>
+                      <td class="app-cell-primary">{{ row.nickname }}</td>
                       <td class="app-cell-right app-cell-highlight-violet">
                         {{ row.totalDrinks | number: '1.0-0' }}
                       </td>

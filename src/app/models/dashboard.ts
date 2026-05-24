@@ -1,6 +1,5 @@
 export interface EmployeePerformanceRank {
   employeeId: string;
-  name: string;
   nickname: string;
   role: string;
   totalAmount: number;

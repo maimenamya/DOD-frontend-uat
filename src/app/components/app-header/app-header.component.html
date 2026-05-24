@@ -10,7 +10,7 @@
 
   <div class="app-top-header-end">
     <div class="app-profile-text">
-      <span class="app-profile-name">{{ user?.name ?? '—' }}</span>
+      <span class="app-profile-name">{{ user?.nickname ?? '—' }}</span>
       <span class="app-profile-role">{{ roleLabel(user?.role ?? '') }}</span>
     </div>
     <button
@@ -21,7 +21,7 @@
       title="แก้ไขโปรไฟล์"
     >
       <span class="app-profile-avatar" aria-hidden="true">
-        {{ user?.name?.charAt(0) ?? '?' }}
+        {{ user?.nickname?.charAt(0) ?? '?' }}
       </span>
     </button>
   </div>

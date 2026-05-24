@@ -7,18 +7,16 @@ export interface LoginRequest {
 
 export interface RegisterRequest {
   employeeId: string;
-  name: string;
   password: string;
   shopId: number;
   role: EmployeeRole;
   email?: string;
-  nickname?: string;
+  nickname: string;
 }
 
 export interface AuthUser {
   id: number;
   employeeId: string;
-  name: string;
   email: string | null;
   nickname: string;
   shopId: number;
@@ -32,7 +30,6 @@ export interface AuthResponse {
   employee: {
     id: number;
     employeeId: string;
-    name: string;
     email: string | null;
     nickname: string;
     shopId: number;
@@ -48,7 +45,6 @@ export interface AuthSession {
 }
 
 export interface UpdateProfileRequest {
-  name?: string;
   email?: string | null;
   nickname?: string;
   password?: string;

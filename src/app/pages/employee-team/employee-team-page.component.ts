@@ -74,16 +74,14 @@ export class EmployeeTeamPageComponent implements OnInit {
 
   readonly createForm = this.fb.group({
     employeeId: ['', [Validators.required, Validators.minLength(3)]],
-    name: ['', [Validators.required, Validators.minLength(2)]],
     password: ['', [Validators.required, Validators.minLength(6)]],
-    nickname: ['', Validators.required],
+    nickname: ['', [Validators.required, Validators.minLength(1)]],
     email: [''],
     roleId: [0, [Validators.required, Validators.min(1)]],
   });
 
   readonly editForm = this.fb.group({
-    name: ['', [Validators.required, Validators.minLength(2)]],
-    nickname: ['', Validators.required],
+    nickname: ['', [Validators.required, Validators.minLength(1)]],
     email: [''],
     status: ['Active', Validators.required],
     roleId: [0, [Validators.required, Validators.min(1)]],
@@ -155,7 +153,6 @@ export class EmployeeTeamPageComponent implements OnInit {
     const defaultRoleId = this.roleDropdownOptions()[0]?.value ?? 0;
     this.createForm.reset({
       employeeId: '',
-      name: '',
       password: '',
       nickname: '',
       email: '',
@@ -172,7 +169,6 @@ export class EmployeeTeamPageComponent implements OnInit {
     this.editingEmployee.set(employee);
     this.showCreateForm.set(false);
     this.editForm.patchValue({
-      name: employee.name,
       nickname: employee.nickname,
       email: employee.email ?? '',
       status: employee.status,
@@ -202,7 +198,6 @@ export class EmployeeTeamPageComponent implements OnInit {
     this.employeeService
       .createEmployee({
         employeeId: raw.employeeId,
-        name: raw.name,
         password: raw.password,
         nickname: raw.nickname,
         roleId: raw.roleId,
@@ -238,7 +233,6 @@ export class EmployeeTeamPageComponent implements OnInit {
 
     this.employeeService
       .updateEmployee(employee.id, {
-        name: raw.name,
         nickname: raw.nickname,
         email: raw.email || null,
         status: raw.status,
@@ -263,7 +257,7 @@ export class EmployeeTeamPageComponent implements OnInit {
     if (!this.canMutateRow(employee)) return;
 
     const confirmed = window.confirm(
-      `ต้องการลบพนักงาน "${employee.name}" (${employee.employeeId}) ใช่หรือไม่?`,
+      `ต้องการลบพนักงาน "${employee.nickname}" (${employee.employeeId}) ใช่หรือไม่?`,
     );
     if (!confirmed) return;
 

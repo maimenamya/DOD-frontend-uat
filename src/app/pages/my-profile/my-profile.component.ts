@@ -22,8 +22,7 @@ export class MyProfileComponent implements OnInit {
   readonly success = signal<string | null>(null);
 
   readonly form = this.fb.group({
-    name: ['', [Validators.required, Validators.minLength(2)]],
-    nickname: ['', Validators.required],
+    nickname: ['', [Validators.required, Validators.minLength(1)]],
     email: [''],
     password: [''],
   });
@@ -32,7 +31,6 @@ export class MyProfileComponent implements OnInit {
     const user = this.user;
     if (user) {
       this.form.patchValue({
-        name: user.name,
         nickname: user.nickname,
         email: user.email ?? '',
         password: '',
@@ -48,7 +46,7 @@ export class MyProfileComponent implements OnInit {
 
     const raw = this.form.getRawValue();
     if (raw.password && raw.password.length < 6) {
-      this.error.set('Password must be at least 6 characters');
+      this.error.set('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
       return;
     }
 
@@ -58,7 +56,6 @@ export class MyProfileComponent implements OnInit {
 
     this.auth
       .updateProfile({
-        name: raw.name,
         nickname: raw.nickname,
         email: raw.email || null,
         password: raw.password || undefined,
@@ -66,12 +63,12 @@ export class MyProfileComponent implements OnInit {
       .subscribe({
         next: () => {
           this.submitting.set(false);
-          this.success.set('Profile updated successfully');
+          this.success.set('บันทึกโปรไฟล์เรียบร้อย');
           this.form.patchValue({ password: '' });
         },
         error: (err: { error?: { error?: string } }) => {
           this.submitting.set(false);
-          this.error.set(err.error?.error ?? 'Could not update profile');
+          this.error.set(err.error?.error ?? 'ไม่สามารถอัปเดตโปรไฟล์ได้');
         },
       });
   }
