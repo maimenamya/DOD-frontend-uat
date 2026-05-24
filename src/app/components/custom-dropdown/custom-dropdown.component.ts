@@ -1,4 +1,4 @@
-import { NgStyle } from '@angular/common';
+import { NgClass, NgStyle } from '@angular/common';
 import {
   Component,
   DestroyRef,
@@ -19,10 +19,12 @@ export interface DropdownOption {
 }
 
 const MENU_GAP_PX = 8;
+/** Fixed cap for scrollable overlay — does not expand parent layout. */
+export const DROPDOWN_MENU_MAX_HEIGHT_PX = 280;
 
 @Component({
   selector: 'app-custom-dropdown',
-  imports: [NgStyle],
+  imports: [NgClass, NgStyle],
   templateUrl: './custom-dropdown.component.html',
   host: {
     class: 'app-dropdown-root',
@@ -45,6 +47,7 @@ export class CustomDropdownComponent implements ControlValueAccessor {
   @Input() placeholder = 'เลือก...';
 
   readonly isOpen = signal(false);
+  readonly menuVisible = signal(false);
   readonly value = signal<number | string | null>(null);
   readonly disabled = signal(false);
   readonly menuStyle = signal<Record<string, string>>({});
@@ -62,10 +65,7 @@ export class CustomDropdownComponent implements ControlValueAccessor {
   constructor() {
     this.destroyRef.onDestroy(() => {
       this.removeScrollListener();
-      const menu = this.menuPanel()?.nativeElement;
-      if (menu?.parentElement === document.body) {
-        menu.remove();
-      }
+      this.removeMenuFromBody();
     });
   }
 
@@ -89,9 +89,7 @@ export class CustomDropdownComponent implements ControlValueAccessor {
     this.onTouched();
 
     afterNextRender(() => {
-      this.portalMenuToBody();
-      this.positionMenu();
-      this.addScrollListener();
+      this.openFloatingMenu();
     });
   }
 
@@ -146,22 +144,34 @@ export class CustomDropdownComponent implements ControlValueAccessor {
     this.disabled.set(isDisabled);
   }
 
-  private closeMenu(): void {
-    this.removeScrollListener();
-    this.isOpen.set(false);
-    this.menuStyle.set({});
-  }
-
-  /**
-   * Modals use backdrop-filter which creates a new containing block — `position: fixed`
-   * inside them uses wrong coordinates. Portaling the menu to `body` fixes placement.
-   */
-  private portalMenuToBody(): void {
+  private openFloatingMenu(): void {
     const menu = this.menuPanel()?.nativeElement;
-    if (!menu || menu.parentElement === document.body) {
+    if (!menu) {
       return;
     }
-    document.body.appendChild(menu);
+
+    if (menu.parentElement !== document.body) {
+      document.body.appendChild(menu);
+    }
+
+    this.positionMenu();
+    this.menuVisible.set(true);
+    this.addScrollListener();
+  }
+
+  private closeMenu(): void {
+    this.removeScrollListener();
+    this.menuVisible.set(false);
+    this.isOpen.set(false);
+    this.menuStyle.set({});
+    this.removeMenuFromBody();
+  }
+
+  private removeMenuFromBody(): void {
+    const menu = this.menuPanel()?.nativeElement;
+    if (menu?.parentElement === document.body) {
+      menu.remove();
+    }
   }
 
   private positionMenu(): void {
@@ -174,25 +184,25 @@ export class CustomDropdownComponent implements ControlValueAccessor {
 
     const rect = trigger.getBoundingClientRect();
     const viewportPadding = 12;
+    const maxMenuHeight = DROPDOWN_MENU_MAX_HEIGHT_PX;
     const spaceBelow = window.innerHeight - rect.bottom - MENU_GAP_PX - viewportPadding;
     const spaceAbove = rect.top - MENU_GAP_PX - viewportPadding;
-    const preferredMax = 16 * 16;
 
     let top = rect.bottom + MENU_GAP_PX;
-    let maxHeight = Math.min(preferredMax, spaceBelow);
+    let height = Math.min(maxMenuHeight, spaceBelow);
 
-    if (maxHeight < 120 && spaceAbove > spaceBelow) {
-      maxHeight = Math.min(preferredMax, spaceAbove);
-      top = rect.top - MENU_GAP_PX - maxHeight;
+    if (height < 120 && spaceAbove > spaceBelow) {
+      height = Math.min(maxMenuHeight, spaceAbove);
+      top = Math.max(viewportPadding, rect.top - MENU_GAP_PX - height);
     }
 
+    height = Math.max(120, Math.min(maxMenuHeight, height));
+
     this.menuStyle.set({
-      position: 'fixed',
-      top: `${Math.max(viewportPadding, top)}px`,
+      top: `${top}px`,
       left: `${rect.left}px`,
       width: `${rect.width}px`,
-      maxHeight: `${Math.max(120, maxHeight)}px`,
-      zIndex: '400',
+      maxHeight: `${height}px`,
     });
   }
 
