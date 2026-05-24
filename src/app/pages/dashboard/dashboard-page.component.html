@@ -58,12 +58,12 @@
         <div class="app-stat-card app-stat-card-revenue">
           <p class="app-stat-label app-stat-label-revenue">ยอดขายรวม (฿)</p>
           <p class="app-stat-value">{{ s.totalSalesAmount | number: '1.0-0' }}</p>
-          <p class="app-stat-hint">รวมยอดขาย SALE ทั้งร้าน</p>
+          <p class="app-stat-hint">รวมยอดเงินจากทุกรายการ (SALE + ลงดื่ม)</p>
         </div>
         <div class="app-stat-card app-stat-card-drinks">
           <p class="app-stat-label app-stat-label-drinks">ยอดดื่ม PR รวม (แก้ว)</p>
           <p class="app-stat-value">{{ s.totalDrinksCount | number: '1.0-0' }}</p>
-          <p class="app-stat-hint">รวมจำนวนแก้ว DRINK ทั้งร้าน</p>
+          <p class="app-stat-hint">รวมจำนวนดื่มของพนักงาน PR เท่านั้น</p>
         </div>
       </div>
 
