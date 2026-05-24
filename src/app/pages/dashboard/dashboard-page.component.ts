@@ -14,7 +14,8 @@ export class DashboardPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly dashboardService = inject(DashboardService);
 
-  readonly user = this.auth.getUser();
+  readonly user = computed(() => this.auth.getUser());
+  readonly displayNickname = computed(() => this.auth.getDisplayNickname());
   readonly isPersonalView = computed(() => this.auth.isFieldStaff());
   readonly isSaleRole = computed(() => this.auth.getRole() === 'SALE');
   readonly isPrRole = computed(() => this.auth.getRole() === 'PR');

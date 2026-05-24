@@ -59,6 +59,19 @@ export class AuthService {
     return this.sessionSignal()?.user ?? null;
   }
 
+  /** Display label for header/UI — prefers nickname, falls back to employeeId. */
+  getDisplayNickname(): string {
+    const user = this.getUser();
+    if (!user) {
+      return '—';
+    }
+    const nick = user.nickname?.trim();
+    if (nick) {
+      return nick;
+    }
+    return user.employeeId?.trim() || '—';
+  }
+
   getShopId(): number | null {
     return this.getUser()?.shopId ?? null;
   }
@@ -117,11 +130,18 @@ export class AuthService {
       if (!raw) {
         return null;
       }
-      const parsed = JSON.parse(raw) as AuthSession;
+      const parsed = JSON.parse(raw) as AuthSession & {
+        user?: AuthUser & { name?: string };
+      };
       if (!parsed?.token || !parsed?.user?.shopId) {
         return null;
       }
-      return parsed;
+      const session: AuthSession = {
+        token: parsed.token,
+        user: this.normalizeUser(parsed.user),
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+      return session;
     } catch {
       localStorage.removeItem(STORAGE_KEY);
       return null;
@@ -130,7 +150,7 @@ export class AuthService {
 
   private toSession(response: AuthResponse): AuthSession {
     const { employee, token } = response;
-    const user: AuthUser = {
+    const user = this.normalizeUser({
       id: employee.id,
       employeeId: employee.employeeId,
       email: employee.email,
@@ -139,7 +159,23 @@ export class AuthService {
       roleId: employee.roleId,
       role: employee.role.name,
       shopName: employee.shop.name,
-    };
+    });
     return { token, user };
+  }
+
+  /** Supports sessions saved before `name` was removed from the API. */
+  private normalizeUser(user: AuthUser & { name?: string }): AuthUser {
+    const nickname =
+      user.nickname?.trim() || user.name?.trim() || user.employeeId?.trim() || '';
+    return {
+      id: user.id,
+      employeeId: user.employeeId,
+      email: user.email ?? null,
+      nickname,
+      shopId: user.shopId,
+      roleId: user.roleId,
+      role: user.role,
+      shopName: user.shopName,
+    };
   }
 }

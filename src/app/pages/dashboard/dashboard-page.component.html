@@ -4,11 +4,11 @@
       <h1 class="app-page-title">แดชบอร์ด</h1>
       @if (isPersonalView()) {
         <p class="app-page-subtitle">
-          สวัสดี <span class="app-page-subtitle-accent">{{ user?.nickname }}</span> — ภาพรวมผลงานของคุณ
+          สวัสดี <span class="app-page-subtitle-accent">{{ displayNickname() }}</span> — ภาพรวมผลงานของคุณ
         </p>
       } @else {
         <p class="app-page-subtitle">
-          ร้าน <span class="app-page-subtitle-accent">{{ user?.shopName }}</span> — ภาพรวมยอดขายและเครื่องดื่ม PR ทั้งร้าน
+          ร้าน <span class="app-page-subtitle-accent">{{ user()?.shopName }}</span> — ภาพรวมยอดขายและเครื่องดื่ม PR ทั้งร้าน
         </p>
       }
     </div>

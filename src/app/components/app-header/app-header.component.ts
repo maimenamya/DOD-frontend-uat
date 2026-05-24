@@ -1,4 +1,4 @@
-import { Component, inject, output } from '@angular/core';
+import { Component, computed, inject, output } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AuthService } from '../../services/auth.service';
@@ -14,7 +14,12 @@ export class AppHeaderComponent {
 
   readonly menuToggle = output<void>();
 
-  readonly user = this.auth.getUser();
+  readonly user = computed(() => this.auth.getUser());
+  readonly displayNickname = computed(() => this.auth.getDisplayNickname());
+  readonly avatarInitial = computed(() => {
+    const nick = this.displayNickname();
+    return nick !== '—' ? nick.charAt(0).toUpperCase() : '?';
+  });
 
   onMenuClick(): void {
     this.menuToggle.emit();
