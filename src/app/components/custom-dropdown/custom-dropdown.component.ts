@@ -1,15 +1,12 @@
-import { NgClass, NgStyle } from '@angular/common';
 import {
   Component,
   DestroyRef,
   ElementRef,
   HostListener,
   Input,
-  afterNextRender,
   forwardRef,
   inject,
   signal,
-  viewChild,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
@@ -21,13 +18,11 @@ export interface DropdownOption {
 }
 
 const MENU_GAP_PX = 8;
-/** Fixed cap for scrollable overlay — does not expand parent layout. */
 export const DROPDOWN_MENU_MAX_HEIGHT_PX = 280;
 const DROPDOWN_MENU_Z_INDEX = 9999;
 
 @Component({
   selector: 'app-custom-dropdown',
-  imports: [NgClass, NgStyle],
   templateUrl: './custom-dropdown.component.html',
   host: {
     class: 'app-dropdown-root',
@@ -44,32 +39,33 @@ const DROPDOWN_MENU_Z_INDEX = 9999;
 export class CustomDropdownComponent implements ControlValueAccessor {
   private readonly elementRef = inject(ElementRef<HTMLElement>);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly menuPanel = viewChild<ElementRef<HTMLElement>>('menuPanel');
 
   @Input({ required: true }) options: DropdownOption[] = [];
   @Input() placeholder = 'เลือก...';
 
   readonly isOpen = signal(false);
-  readonly menuVisible = signal(false);
   readonly value = signal<number | string | null>(null);
   readonly disabled = signal(false);
-  readonly menuStyle = signal<Record<string, string>>({});
 
+  private overlayMenu: HTMLDivElement | null = null;
   private onChange: (value: number | string | null) => void = () => {};
   private onTouched: () => void = () => {};
   private scrollListenerActive = false;
   private suppressCloseUntil = 0;
 
   private readonly onScrollReposition = (): void => {
-    if (this.isOpen()) {
-      this.positionMenu();
+    if (this.isOpen() && this.overlayMenu) {
+      const trigger = this.getTrigger();
+      if (trigger) {
+        this.applyMenuPosition(this.overlayMenu, trigger);
+      }
     }
   };
 
   constructor() {
     this.destroyRef.onDestroy(() => {
       this.removeScrollListener();
-      this.detachMenuFromOverlay();
+      this.destroyOverlayMenu();
     });
   }
 
@@ -84,7 +80,9 @@ export class CustomDropdownComponent implements ControlValueAccessor {
   toggleDropdown(event: MouseEvent): void {
     event.stopPropagation();
 
-    if (this.disabled()) return;
+    if (this.disabled()) {
+      return;
+    }
 
     if (this.isOpen()) {
       this.closeMenu();
@@ -93,23 +91,11 @@ export class CustomDropdownComponent implements ControlValueAccessor {
 
     this.isOpen.set(true);
     this.onTouched();
-    this.suppressCloseUntil = Date.now() + 100;
+    this.suppressCloseUntil = Date.now() + 200;
 
-    afterNextRender(() => {
-      this.openFloatingMenu(0);
+    requestAnimationFrame(() => {
+      this.buildAndOpenMenu();
     });
-  }
-
-  selectOption(option: DropdownOption, event: MouseEvent): void {
-    event.stopPropagation();
-    this.value.set(option.value);
-    this.onChange(option.value);
-    this.onTouched();
-    this.closeMenu();
-  }
-
-  isSelected(option: DropdownOption): boolean {
-    return this.value() === option.value;
   }
 
   @HostListener('document:click', ['$event'])
@@ -120,8 +106,7 @@ export class CustomDropdownComponent implements ControlValueAccessor {
 
     const target = event.target as Node;
     const inHost = this.elementRef.nativeElement.contains(target);
-    const menu = this.menuPanel()?.nativeElement;
-    const inMenu = menu?.contains(target) ?? false;
+    const inMenu = this.overlayMenu?.contains(target) ?? false;
 
     if (!inHost && !inMenu) {
       this.closeMenu();
@@ -135,9 +120,7 @@ export class CustomDropdownComponent implements ControlValueAccessor {
 
   @HostListener('window:resize')
   onViewportChange(): void {
-    if (this.isOpen()) {
-      this.positionMenu();
-    }
+    this.onScrollReposition();
   }
 
   writeValue(value: number | string | null): void {
@@ -156,52 +139,78 @@ export class CustomDropdownComponent implements ControlValueAccessor {
     this.disabled.set(isDisabled);
   }
 
-  private openFloatingMenu(attempt: number): void {
-    const menu = this.menuPanel()?.nativeElement;
-    if (!menu) {
-      if (attempt < 5) {
-        requestAnimationFrame(() => this.openFloatingMenu(attempt + 1));
-      }
+  private buildAndOpenMenu(): void {
+    if (!this.isOpen()) {
       return;
     }
 
-    const overlayRoot = getDropdownOverlayRoot();
-    if (menu.parentElement !== overlayRoot) {
-      overlayRoot.appendChild(menu);
-    }
-
-    this.positionMenu();
-    this.menuVisible.set(true);
-    this.addScrollListener();
-  }
-
-  private closeMenu(): void {
-    this.removeScrollListener();
-    this.menuVisible.set(false);
-    this.isOpen.set(false);
-    this.menuStyle.set({});
-  }
-
-  private detachMenuFromOverlay(): void {
-    const menu = this.menuPanel()?.nativeElement;
-    if (!menu) {
-      return;
-    }
-
-    const host = this.elementRef.nativeElement;
-    if (menu.parentElement !== host) {
-      host.appendChild(menu);
-    }
-  }
-
-  private positionMenu(): void {
-    const trigger = this.elementRef.nativeElement.querySelector(
-      '.app-dropdown-trigger',
-    ) as HTMLElement | null;
+    const trigger = this.getTrigger();
     if (!trigger) {
       return;
     }
 
+    this.destroyOverlayMenu();
+
+    const menu = document.createElement('div');
+    menu.className = 'app-dropdown-menu app-dropdown-menu--visible';
+    menu.setAttribute('role', 'listbox');
+    menu.addEventListener('click', (e) => e.stopPropagation());
+
+    if (this.options.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'app-dropdown-empty';
+      empty.textContent = 'ไม่มีรายการ';
+      menu.appendChild(empty);
+    } else {
+      for (const option of this.options) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'app-dropdown-item';
+        btn.setAttribute('role', 'option');
+        if (this.value() === option.value) {
+          btn.classList.add('app-dropdown-item-selected');
+          btn.setAttribute('aria-selected', 'true');
+        }
+        btn.textContent = option.label;
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.selectValue(option.value);
+        });
+        menu.appendChild(btn);
+      }
+    }
+
+    getDropdownOverlayRoot().appendChild(menu);
+    this.overlayMenu = menu;
+    this.applyMenuPosition(menu, trigger);
+    this.addScrollListener();
+  }
+
+  private selectValue(value: number | string): void {
+    this.value.set(value);
+    this.onChange(value);
+    this.onTouched();
+    this.closeMenu();
+  }
+
+  private closeMenu(): void {
+    this.removeScrollListener();
+    this.destroyOverlayMenu();
+    this.isOpen.set(false);
+  }
+
+  private destroyOverlayMenu(): void {
+    if (this.overlayMenu) {
+      this.overlayMenu.remove();
+      this.overlayMenu = null;
+    }
+  }
+
+  private getTrigger(): HTMLButtonElement | null {
+    return this.elementRef.nativeElement.querySelector('.app-dropdown-trigger');
+  }
+
+  private applyMenuPosition(menu: HTMLElement, trigger: HTMLElement): void {
     const rect = trigger.getBoundingClientRect();
     const viewportPadding = 12;
     const maxMenuHeight = DROPDOWN_MENU_MAX_HEIGHT_PX;
@@ -218,14 +227,13 @@ export class CustomDropdownComponent implements ControlValueAccessor {
 
     maxHeight = Math.max(120, Math.min(maxMenuHeight, maxHeight));
 
-    this.menuStyle.set({
-      position: 'fixed',
-      top: `${top}px`,
-      left: `${rect.left}px`,
-      width: `${Math.max(rect.width, 120)}px`,
-      maxHeight: `${maxHeight}px`,
-      zIndex: `${DROPDOWN_MENU_Z_INDEX}`,
-    });
+    menu.style.position = 'fixed';
+    menu.style.top = `${top}px`;
+    menu.style.left = `${rect.left}px`;
+    menu.style.width = `${Math.max(rect.width, 120)}px`;
+    menu.style.maxHeight = `${maxHeight}px`;
+    menu.style.zIndex = String(DROPDOWN_MENU_Z_INDEX);
+    menu.style.display = 'block';
   }
 
   private addScrollListener(): void {
