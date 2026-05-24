@@ -1,6 +1,6 @@
 <div class="app-page">
-  <div class="app-page-header">
-    <div>
+  <div class="app-page-header app-page-header-split">
+    <div class="app-page-header-main">
       <h1 class="app-page-title">แดชบอร์ด</h1>
       @if (isPersonalView()) {
         <p class="app-page-subtitle">
@@ -8,8 +8,64 @@
         </p>
       } @else {
         <p class="app-page-subtitle">
-          ร้าน <span class="app-page-subtitle-accent">{{ user()?.shopName }}</span> — ภาพรวมยอดขายและเครื่องดื่ม PR ทั้งร้าน
+          ร้าน <span class="app-page-subtitle-accent">{{ user()?.shopName }}</span> — ภาพรวมยอดขายและเครื่องดื่มทั้งร้าน
         </p>
+      }
+    </div>
+    <div class="dashboard-date-filter">
+      <div class="dashboard-date-presets">
+        <button
+          type="button"
+          class="dashboard-date-btn"
+          [class.dashboard-date-btn-active]="datePreset() === 'today'"
+          (click)="selectPreset('today')"
+        >
+          วันนี้
+        </button>
+        <button
+          type="button"
+          class="dashboard-date-btn"
+          [class.dashboard-date-btn-active]="datePreset() === '7d'"
+          (click)="selectPreset('7d')"
+        >
+          7 วันที่ผ่านมา
+        </button>
+        <button
+          type="button"
+          class="dashboard-date-btn"
+          [class.dashboard-date-btn-active]="datePreset() === '30d'"
+          (click)="selectPreset('30d')"
+        >
+          30 วันที่ผ่านมา
+        </button>
+        <button
+          type="button"
+          class="dashboard-date-btn"
+          [class.dashboard-date-btn-active]="datePreset() === 'custom'"
+          (click)="selectPreset('custom')"
+        >
+          กำหนดเอง
+        </button>
+      </div>
+      @if (datePreset() === 'custom') {
+        <div class="dashboard-date-custom">
+          <input
+            type="date"
+            class="dashboard-date-input"
+            [ngModel]="customFrom()"
+            (ngModelChange)="customFrom.set($event)"
+          />
+          <span class="dashboard-date-separator">–</span>
+          <input
+            type="date"
+            class="dashboard-date-input"
+            [ngModel]="customTo()"
+            (ngModelChange)="customTo.set($event)"
+          />
+          <button type="button" class="dashboard-date-apply" (click)="applyCustomRange()">
+            ใช้ช่วงนี้
+          </button>
+        </div>
       }
     </div>
   </div>
@@ -17,7 +73,7 @@
   @if (error()) {
     <div class="app-alert-error app-alert-row">
       <span>{{ error() }}</span>
-      <button type="button" class="app-btn-ghost" (click)="loadStats()">ลองอีกครั้ง</button>
+      <button type="button" class="app-btn-ghost" (click)="loadSummary()">ลองอีกครั้ง</button>
     </div>
   }
 
@@ -27,43 +83,53 @@
         <div class="app-skeleton"></div>
       </div>
     } @else {
-      <div class="app-grid-stats">
-        @for (_ of [1, 2]; track $index) {
+      <div class="app-grid-stats-triple">
+        @for (_ of [1, 2, 3]; track $index) {
           <div class="app-skeleton"></div>
         }
       </div>
     }
-  } @else if (stats()) {
-    @let s = stats()!;
+  } @else if (summary()) {
+    @let s = summary()!;
 
     @if (isPersonalView()) {
       <div class="app-grid-stats-single">
         @if (isSaleRole()) {
           <div class="app-stat-card app-stat-card-revenue">
             <p class="app-stat-label app-stat-label-revenue">ยอดขายรวมของฉัน (฿)</p>
-            <p class="app-stat-value">{{ s.totalSalesAmount | number: '1.0-0' }}</p>
+            <p class="app-stat-value">{{ s.totalRevenue | number: '1.0-0' }}</p>
             <p class="app-stat-hint">ยอดขายรวมของคุณ (SALE)</p>
+          </div>
+          <div class="app-stat-card app-stat-card-drinks">
+            <p class="app-stat-label app-stat-label-drinks">ดื่มฝ่ายขายของฉัน (แก้ว)</p>
+            <p class="app-stat-value">{{ s.totalSalesDrinks | number: '1.0-0' }}</p>
+            <p class="app-stat-hint">จำนวนแก้วที่คุณลง (SALE)</p>
           </div>
         }
         @if (isPrRole()) {
-          <div class="app-stat-card app-stat-card-drinks">
-            <p class="app-stat-label app-stat-label-drinks">ยอดดื่ม PR รวมของฉัน (แก้ว)</p>
-            <p class="app-stat-value">{{ s.totalDrinksCount | number: '1.0-0' }}</p>
+          <div class="app-stat-card app-stat-card-drinks-pr">
+            <p class="app-stat-label app-stat-label-drinks-pr">ดื่มพีอาร์ของฉัน (แก้ว)</p>
+            <p class="app-stat-value">{{ s.totalPrDrinks | number: '1.0-0' }}</p>
             <p class="app-stat-hint">จำนวนแก้วรวมของคุณ (PR)</p>
           </div>
         }
       </div>
     } @else {
-      <div class="app-grid-stats">
+      <div class="app-grid-stats-triple">
         <div class="app-stat-card app-stat-card-revenue">
           <p class="app-stat-label app-stat-label-revenue">ยอดขายรวม (฿)</p>
-          <p class="app-stat-value">{{ s.totalSalesAmount | number: '1.0-0' }}</p>
-          <p class="app-stat-hint">รวมยอดเงินจากทุกรายการ (SALE + ลงดื่ม)</p>
+          <p class="app-stat-value">{{ s.totalRevenue | number: '1.0-0' }}</p>
+          <p class="app-stat-hint">รวมยอดเงินจาก SALE และ PR ในช่วงที่เลือก</p>
         </div>
         <div class="app-stat-card app-stat-card-drinks">
-          <p class="app-stat-label app-stat-label-drinks">ยอดดื่ม PR รวม (แก้ว)</p>
-          <p class="app-stat-value">{{ s.totalDrinksCount | number: '1.0-0' }}</p>
-          <p class="app-stat-hint">รวมจำนวนดื่มของพนักงาน PR เท่านั้น</p>
+          <p class="app-stat-label app-stat-label-drinks">ดื่มฝ่ายขายรวม (แก้ว)</p>
+          <p class="app-stat-value">{{ s.totalSalesDrinks | number: '1.0-0' }}</p>
+          <p class="app-stat-hint">จำนวนดื่มที่พนักงาน SALE ลงทั้งหมด</p>
+        </div>
+        <div class="app-stat-card app-stat-card-drinks-pr">
+          <p class="app-stat-label app-stat-label-drinks-pr">ดื่มพีอาร์รวม (แก้ว)</p>
+          <p class="app-stat-value">{{ s.totalPrDrinks | number: '1.0-0' }}</p>
+          <p class="app-stat-hint">จำนวนดื่มที่พนักงาน PR ลงทั้งหมด</p>
         </div>
       </div>
 
@@ -73,28 +139,39 @@
             <h2 class="app-card-title">อันดับยอดขาย SALE</h2>
             <p class="app-card-subtitle">เรียงตามยอดขาย (฿)</p>
           </div>
+          <div class="dashboard-table-search">
+            <input
+              type="search"
+              class="dashboard-table-search-input"
+              placeholder="ช่องค้นหาชื่อ"
+              [ngModel]="saleSearch()"
+              (ngModelChange)="saleSearch.set($event)"
+            />
+          </div>
           @if (s.topSales.length === 0) {
-            <p class="app-table-empty">ยังไม่มีข้อมูลยอดขาย</p>
+            <p class="app-table-empty">ยังไม่มีข้อมูลยอดขายในช่วงนี้</p>
+          } @else if (filteredTopSales().length === 0) {
+            <p class="app-table-empty">ไม่พบชื่อที่ตรงกับการค้นหา</p>
           } @else {
             <div class="app-data-table-wrap">
               <table class="app-data-table">
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>พนักงาน</th>
+                    <th>ชื่อ</th>
+                    <th class="app-cell-right">ดื่มรวม</th>
                     <th class="app-cell-right">ยอดขาย (฿)</th>
-                    <th class="app-cell-right">รายการ</th>
                   </tr>
                 </thead>
                 <tbody>
-                  @for (row of s.topSales; track row.employeeId; let i = $index) {
+                  @for (row of filteredTopSales(); track row.employeeId; let i = $index) {
                     <tr>
                       <td class="app-cell-meta">{{ i + 1 }}</td>
                       <td class="app-cell-primary">{{ row.nickname }}</td>
+                      <td class="app-cell-right">{{ row.totalDrinks | number: '1.0-0' }}</td>
                       <td class="app-cell-right app-cell-highlight-emerald">
                         {{ row.totalAmount | number: '1.0-0' }}
                       </td>
-                      <td class="app-cell-right">{{ row.transactionCount }}</td>
                     </tr>
                   }
                 </tbody>
@@ -108,28 +185,39 @@
             <h2 class="app-card-title">อันดับยอดดื่ม PR</h2>
             <p class="app-card-subtitle">เรียงตามจำนวนแก้ว</p>
           </div>
+          <div class="dashboard-table-search">
+            <input
+              type="search"
+              class="dashboard-table-search-input"
+              placeholder="ช่องค้นหาชื่อ"
+              [ngModel]="prSearch()"
+              (ngModelChange)="prSearch.set($event)"
+            />
+          </div>
           @if (s.topPr.length === 0) {
-            <p class="app-table-empty">ยังไม่มีข้อมูลเครื่องดื่ม PR</p>
+            <p class="app-table-empty">ยังไม่มีข้อมูลเครื่องดื่ม PR ในช่วงนี้</p>
+          } @else if (filteredTopPr().length === 0) {
+            <p class="app-table-empty">ไม่พบชื่อที่ตรงกับการค้นหา</p>
           } @else {
             <div class="app-data-table-wrap">
               <table class="app-data-table">
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>พนักงาน</th>
-                    <th class="app-cell-right">แก้ว</th>
-                    <th class="app-cell-right">รายการ</th>
+                    <th>ชื่อ</th>
+                    <th class="app-cell-right">ดื่มรวม</th>
+                    <th class="app-cell-right">ยอดขาย (฿)</th>
                   </tr>
                 </thead>
                 <tbody>
-                  @for (row of s.topPr; track row.employeeId; let i = $index) {
+                  @for (row of filteredTopPr(); track row.employeeId; let i = $index) {
                     <tr>
                       <td class="app-cell-meta">{{ i + 1 }}</td>
                       <td class="app-cell-primary">{{ row.nickname }}</td>
                       <td class="app-cell-right app-cell-highlight-violet">
                         {{ row.totalDrinks | number: '1.0-0' }}
                       </td>
-                      <td class="app-cell-right">{{ row.transactionCount }}</td>
+                      <td class="app-cell-right">{{ row.totalAmount | number: '1.0-0' }}</td>
                     </tr>
                   }
                 </tbody>
