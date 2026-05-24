@@ -21,7 +21,10 @@ import { TransactionService } from '../../services/transaction.service';
 import { ToastService } from '../../services/toast.service';
 import { roleLabelThai } from '../../utils/employee-team.util';
 
+export type DrinkStaffTeam = 'SALE' | 'PR';
+
 type DrinkRowForm = FormGroup<{
+  staffTeam: FormControl<DrinkStaffTeam | ''>;
   employeeId: FormControl<string>;
   quantity: FormControl<number>;
 }>;
@@ -43,18 +46,16 @@ export class RecordDrinksPageComponent implements OnInit {
   readonly submitting = signal(false);
   readonly staff = signal<Employee[]>([]);
 
+  readonly staffTeamChoices: { value: DrinkStaffTeam; label: string }[] = [
+    { value: 'SALE', label: 'ฝ่ายขาย (Sale)' },
+    { value: 'PR', label: 'พีอาร์ (PR)' },
+  ];
+
   readonly form = this.fb.group({
     billReference: this.fb.control('', {
       validators: [Validators.required, Validators.maxLength(64)],
     }),
     rows: this.fb.array<DrinkRowForm>([this.createRow()]),
-  });
-
-  readonly employeeOptions = computed((): DropdownOption[] => {
-    return this.staff().map((employee) => ({
-      value: employee.employeeId,
-      label: `${employee.nickname} (${roleLabelThai(employee.role?.name ?? '')})`,
-    }));
   });
 
   readonly grandTotal = computed(() => {
@@ -103,6 +104,36 @@ export class RecordDrinksPageComponent implements OnInit {
     return this.form.controls.rows;
   }
 
+  employeeOptionsForRow(index: number): DropdownOption[] {
+    const row = this.rows.at(index);
+    const team = row?.controls.staffTeam.value;
+    if (!team) {
+      return [];
+    }
+
+    return this.staff()
+      .filter((employee) => employee.role?.name === team)
+      .map((employee) => ({
+        value: employee.employeeId,
+        label: employee.nickname,
+      }));
+  }
+
+  isRowTeamSelected(index: number, team: DrinkStaffTeam): boolean {
+    return this.rows.at(index)?.controls.staffTeam.value === team;
+  }
+
+  setRowTeam(index: number, team: DrinkStaffTeam): void {
+    const row = this.rows.at(index);
+    if (!row) {
+      return;
+    }
+
+    row.patchValue({ staffTeam: team, employeeId: '' });
+    row.controls.employeeId.enable();
+    row.controls.employeeId.markAsUntouched();
+  }
+
   addRow(): void {
     this.rows.push(this.createRow());
   }
@@ -131,16 +162,27 @@ export class RecordDrinksPageComponent implements OnInit {
   }
 
   submit(): void {
+    for (const row of this.rows.controls) {
+      if (row.controls.staffTeam.value) {
+        row.controls.employeeId.enable({ emitEvent: false });
+      }
+    }
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.toast.showError('กรุณากรอกเลขบิลและเลือกพนักงานทุกแถว');
+      this.toast.showError('กรุณากรอกเลขบิล เลือกฝ่าย และเลือกพนักงานทุกแถว');
+      for (const row of this.rows.controls) {
+        if (!row.controls.staffTeam.value) {
+          row.controls.employeeId.disable({ emitEvent: false });
+        }
+      }
       return;
     }
 
     const billReference = this.form.controls.billReference.value.trim();
-    const transactions = this.rows.controls.map((row) => ({
-      employeeId: row.controls.employeeId.value,
-      quantity: row.controls.quantity.value,
+    const transactions = this.rows.getRawValue().map((row) => ({
+      employeeId: row.employeeId,
+      quantity: row.quantity,
     }));
 
     this.submitting.set(true);
@@ -160,8 +202,17 @@ export class RecordDrinksPageComponent implements OnInit {
             'บันทึกไม่สำเร็จ — ตรวจสอบราคาต่อดื่มของตำแหน่งและข้อมูลพนักงาน';
           this.toast.showError(message);
           this.submitting.set(false);
+          this.reapplyEmployeeDisabledState();
         },
       });
+  }
+
+  private reapplyEmployeeDisabledState(): void {
+    for (const row of this.rows.controls) {
+      if (!row.controls.staffTeam.value) {
+        row.controls.employeeId.disable({ emitEvent: false });
+      }
+    }
   }
 
   private resetForm(): void {
@@ -171,12 +222,16 @@ export class RecordDrinksPageComponent implements OnInit {
   }
 
   private createRow(): DrinkRowForm {
-    return this.fb.group({
-      employeeId: this.fb.control('', { validators: [Validators.required] }),
+    const row = this.fb.group({
+      staffTeam: this.fb.control<DrinkStaffTeam | ''>('', {
+        validators: [Validators.required],
+      }),
+      employeeId: this.fb.control({ value: '', disabled: true }, { validators: [Validators.required] }),
       quantity: this.fb.control(1, {
         validators: [Validators.required, Validators.min(1), Validators.max(999)],
       }),
     });
+    return row;
   }
 
   private staffByEmployeeId(): Map<string, Employee> {

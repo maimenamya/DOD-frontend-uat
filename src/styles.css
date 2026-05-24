@@ -55,8 +55,9 @@
 
     /* Radius */
     --radius-glass: 22px;
-    --radius-card: 16px;
-    --radius-input: 12px;
+    --radius-card: 20px;
+    --radius-input: 14px;
+    --radius-menu: 16px;
     --radius-pill: 999px;
 
     /* Shadows */
@@ -528,16 +529,24 @@
 
   /* ── Cards & stats ── */
   .app-card {
-    @apply rounded-card border border-theme-border p-6;
+    @apply rounded-card border border-theme-border p-7;
     background: var(--surface-strong);
     backdrop-filter: blur(var(--glass-blur-sm));
     -webkit-backdrop-filter: blur(var(--glass-blur-sm));
     box-shadow: var(--shadow-elevated);
   }
 
+  .app-card-section {
+    @apply overflow-visible p-0;
+  }
+
   .app-card-header {
-    @apply border-b border-theme-border px-5 py-4;
+    @apply border-b border-theme-border px-6 pb-4 pt-6;
     background: var(--surface);
+  }
+
+  .app-card-body {
+    @apply px-6 pb-7 pt-6;
   }
 
   .app-card-title {
@@ -558,7 +567,7 @@
   }
 
   .app-card-flush {
-    @apply overflow-hidden rounded-card border border-theme-border p-0;
+    @apply overflow-visible rounded-card border border-theme-border p-0;
     background: var(--surface-strong);
     backdrop-filter: blur(var(--glass-blur-sm));
     -webkit-backdrop-filter: blur(var(--glass-blur-sm));
@@ -681,12 +690,12 @@
   }
 
   .app-form-stack {
-    @apply space-y-4;
+    @apply space-y-4 overflow-visible;
   }
 
   .app-form-field,
   .app-form-group {
-    @apply block;
+    @apply overflow-visible;
   }
 
   .app-label {
@@ -716,6 +725,34 @@
     box-shadow:
       0 0 0 3px rgba(47, 128, 255, 0.15),
       var(--shadow-glow-sm);
+  }
+
+  .app-segmented-control {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .app-segmented-chip {
+    @apply rounded-pill border border-theme-border px-3 py-2 text-xs font-medium text-text-secondary transition-all duration-200;
+    background: var(--surface);
+    line-height: 1.35;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-segmented-chip:hover {
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+    background: var(--surface-hover);
+  }
+
+  .app-segmented-chip-active {
+    @apply border-0 text-white;
+    background: linear-gradient(90deg, var(--primary-light) 0%, var(--primary) 100%);
+    box-shadow: var(--shadow-button);
+  }
+
+  .app-input-number {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
   }
 
   .app-dropdown {
@@ -760,13 +797,20 @@
   }
 
   /* ── Custom dropdown ── */
+  app-custom-dropdown.app-dropdown-root,
   .app-dropdown-root {
-    @apply relative w-full;
+    @apply relative block w-full;
     isolation: isolate;
+    overflow: visible;
+  }
+
+  .app-dropdown-root--open {
+    z-index: 50;
   }
 
   .app-dropdown-trigger {
-    @apply flex w-full items-center justify-between rounded-input border border-theme-border px-4 py-2.5 text-left text-text-primary shadow-sm transition-all duration-200;
+    @apply flex w-full items-center justify-between border border-theme-border px-4 py-2.5 text-left text-text-primary shadow-sm transition-all duration-200;
+    border-radius: var(--radius-input);
     min-height: 2.75rem;
     line-height: var(--leading-normal);
     background: var(--surface);
@@ -803,13 +847,12 @@
   }
 
   .app-dropdown-menu {
-    @apply absolute z-50 mt-1.5 w-full overflow-hidden rounded-input border border-theme-border py-1 focus:outline-none;
-    max-height: min(16rem, 50vh);
+    @apply overflow-hidden border border-theme-border py-1.5 focus:outline-none;
+    border-radius: var(--radius-menu);
     overflow-y: auto;
     background: var(--bg-secondary);
-    box-shadow: var(--shadow-elevated);
+    box-shadow: var(--shadow-elevated), 0 0 0 1px rgba(255, 255, 255, 0.04);
     -webkit-overflow-scrolling: touch;
-    transform: translateZ(0);
   }
 
   .app-dropdown-item {
@@ -1089,11 +1132,17 @@
   }
 
   .app-modal {
-    @apply max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-card border border-theme-border p-6;
+    @apply w-full max-w-lg overflow-visible rounded-card border border-theme-border p-0;
     background: var(--surface-strong);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
     box-shadow: var(--shadow-card);
+    border-radius: var(--radius-glass);
+  }
+
+  .app-modal-scroll {
+    @apply max-h-[min(90vh,52rem)] overflow-x-visible overflow-y-auto p-6;
+    border-radius: inherit;
   }
 
   .app-modal-header {
@@ -1154,20 +1203,31 @@
     @apply flex flex-col gap-4;
   }
 
-  .record-drinks-row {
-    @apply grid gap-4 rounded-card border border-theme-border p-4;
-    background: var(--surface);
-    grid-template-columns: 1fr minmax(5rem, 7rem) minmax(5rem, 6rem) auto;
-    align-items: end;
+  .record-drinks-lines-body {
+    @apply pt-7;
   }
 
-  @media (max-width: 768px) {
+  .record-drinks-row {
+    @apply grid gap-x-4 gap-y-5 border border-theme-border p-5;
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    grid-template-columns: minmax(11rem, 1.1fr) minmax(10rem, 1.4fr) 5.5rem 6.5rem 2.5rem;
+    align-items: start;
+    overflow: visible;
+  }
+
+  @media (max-width: 900px) {
     .record-drinks-row {
       grid-template-columns: 1fr 1fr;
     }
 
-    .record-drinks-row-total {
+    .record-drinks-row-employee {
       grid-column: 1 / -1;
+    }
+
+    .record-drinks-row-total,
+    .record-drinks-remove {
+      align-self: center;
     }
   }
 
@@ -1176,11 +1236,27 @@
   }
 
   .record-drinks-line-amount {
+    @apply block text-lg font-semibold tabular-nums;
     color: var(--stat-drinks);
+    line-height: 1.2;
+  }
+
+  .record-drinks-row-total {
+    @apply flex min-h-[2.75rem] flex-col justify-center pt-6;
+  }
+
+  .record-drinks-remove {
+    @apply mt-6 flex h-11 w-11 shrink-0 items-center justify-center self-start rounded-input border border-theme-border text-lg leading-none;
+    color: var(--danger);
+  }
+
+  .record-drinks-remove:hover {
+    background: var(--danger-surface);
+    border-color: var(--danger-border);
   }
 
   .record-drinks-summary {
-    @apply mt-6 flex items-center justify-between border-t border-theme-border pt-4 text-sm text-text-secondary;
+    @apply mt-8 flex items-center justify-between border-t border-theme-border pt-5 text-sm text-text-secondary;
   }
 
   .record-drinks-summary strong {
@@ -1197,7 +1273,4 @@
     box-shadow: var(--shadow-glow-sm);
   }
 
-  .record-drinks-remove {
-    @apply self-end px-2 py-1 text-danger;
-  }
 }

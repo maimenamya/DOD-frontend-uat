@@ -6,6 +6,8 @@
   (keydown.escape)="onBackdropClick()"
 >
   <div class="app-modal" (click)="$event.stopPropagation()">
-    <ng-content />
+    <div class="app-modal-scroll">
+      <ng-content />
+    </div>
   </div>
 </div>
