@@ -3,15 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { ApiConfig } from '../core/api-config';
-import type { Role } from '../models/role';
-
-export interface CreateRolePayload {
-  name: string;
-}
-
-export interface UpdateRolePayload {
-  name: string;
-}
+import type { Role, RoleWritePayload } from '../models/role';
 
 @Injectable({
   providedIn: 'root',
@@ -24,11 +16,11 @@ export class RoleService {
     return this.http.get<Role[]>(this.api.resource('roles'));
   }
 
-  createRole(payload: CreateRolePayload): Observable<Role> {
+  createRole(payload: RoleWritePayload): Observable<Role> {
     return this.http.post<Role>(this.api.resource('roles'), payload);
   }
 
-  updateRole(id: number, payload: UpdateRolePayload): Observable<Role> {
+  updateRole(id: number, payload: RoleWritePayload): Observable<Role> {
     return this.http.put<Role>(this.api.resource(`roles/${id}`), payload);
   }
 

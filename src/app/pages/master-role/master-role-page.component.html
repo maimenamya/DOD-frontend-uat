@@ -1,8 +1,10 @@
 <div class="app-page">
   <div class="app-page-header">
     <div>
-      <h1 class="app-page-title">ตำแหน่ง</h1>
-      <p class="app-page-subtitle">จัดการตำแหน่งพนักงานและสิทธิ์การเข้าถึงระบบ</p>
+      <h1 class="app-page-title">ตั้งค่าตำแหน่ง</h1>
+      <p class="app-page-subtitle">
+        กำหนดรอบดื่ม PR (หน่วยเวลาโต๊ะ) — ไม่ใช่ราคาเครื่องดื่มเมนูที่บาร์
+      </p>
     </div>
     @if (canManage()) {
       <button type="button" (click)="openCreate()" class="app-btn-primary">+ เพิ่มตำแหน่ง</button>
@@ -18,8 +20,23 @@
       <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
           <label class="app-label">ชื่อตำแหน่ง (ภาษาอังกฤษ)</label>
-          <input type="text" formControlName="name" class="app-input" placeholder="เช่น SALE, PR" />
+          <input type="text" formControlName="name" class="app-input" placeholder="เช่น PR, SALE" />
           <p class="app-field-hint">ระบบจะแปลงเป็นตัวพิมพ์ใหญ่อัตโนมัติ</p>
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">สตาร์ทดื่ม</label>
+          <input type="number" formControlName="startDrinks" class="app-input" min="0" step="1" />
+          <p class="app-field-hint">จำนวนหน่วยดื่มชั่วโมงแรก / เปิดโต๊ะ</p>
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">ชั่วโมงต่อไป</label>
+          <input type="number" formControlName="nextHourDrinks" class="app-input" min="0" step="1" />
+          <p class="app-field-hint">หน่วยดื่มที่คิดเพิ่มทุกชั่วโมงถัดไป</p>
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">ราคาต่อดื่ม (฿)</label>
+          <input type="number" formControlName="defaultPricePerDrink" class="app-input" min="0" step="1" />
+          <p class="app-field-hint">มูลค่า 1 หน่วยดื่ม PR สำหรับคำนวณยอดอัตโนมัติ</p>
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
@@ -41,6 +58,18 @@
         <div class="app-form-group">
           <label class="app-label">ชื่อตำแหน่ง (ภาษาอังกฤษ)</label>
           <input type="text" formControlName="name" class="app-input" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">สตาร์ทดื่ม</label>
+          <input type="number" formControlName="startDrinks" class="app-input" min="0" step="1" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">ชั่วโมงต่อไป</label>
+          <input type="number" formControlName="nextHourDrinks" class="app-input" min="0" step="1" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">ราคาต่อดื่ม (฿)</label>
+          <input type="number" formControlName="defaultPricePerDrink" class="app-input" min="0" step="1" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
@@ -65,6 +94,9 @@
               <th>รหัส</th>
               <th>ชื่อระบบ</th>
               <th>ชื่อแสดง</th>
+              <th class="app-cell-right">สตาร์ทดื่ม</th>
+              <th class="app-cell-right">ชม.ถัดไป</th>
+              <th class="app-cell-right">฿/หน่วย</th>
               @if (canManage()) {
                 <th class="app-cell-right">จัดการ</th>
               }
@@ -76,6 +108,11 @@
                 <td class="app-cell-mono">{{ role.id }}</td>
                 <td class="app-cell-primary">{{ role.name }}</td>
                 <td>{{ roleLabel(role.name) }}</td>
+                <td class="app-cell-right">{{ role.startDrinks }}</td>
+                <td class="app-cell-right">{{ role.nextHourDrinks }}</td>
+                <td class="app-cell-right app-cell-highlight-violet">
+                  {{ role.defaultPricePerDrink | number: '1.0-0' }}
+                </td>
                 @if (canManage()) {
                   <td class="app-cell-right">
                     <div class="app-table-actions">

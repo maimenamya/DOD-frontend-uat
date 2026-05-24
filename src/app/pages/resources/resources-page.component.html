@@ -12,7 +12,7 @@
     <div class="app-alert-error">{{ error() }}</div>
   } @else {
     <div class="app-grid-stats">
-      @for (item of resources(); track item.id) {
+      @for (item of beverages(); track item.id) {
         <article class="app-card">
           <p class="app-card-kicker">ประเภทเครื่องดื่ม</p>
           <h3 class="app-card-title app-card-title-spaced">{{ item.name }}</h3>

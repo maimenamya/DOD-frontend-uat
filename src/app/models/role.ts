@@ -15,5 +15,15 @@ export const MANAGEMENT_TABLE_ROLES: readonly EmployeeRole[] = ['ADMIN', 'MANAGE
 export interface Role {
   id: number;
   name: string;
+  startDrinks: number;
+  nextHourDrinks: number;
+  defaultPricePerDrink: number;
   createdAt?: string;
+}
+
+export interface RoleWritePayload {
+  name: string;
+  startDrinks: number;
+  nextHourDrinks: number;
+  defaultPricePerDrink: number;
 }

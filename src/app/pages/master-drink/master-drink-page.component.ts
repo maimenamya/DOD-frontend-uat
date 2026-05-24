@@ -7,10 +7,9 @@ import {
 } from '@angular/forms';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
-import { DEFAULT_DRINK_PRICE } from '../../constants/drink';
-import type { ResourceItem } from '../../models/resource';
+import type { Beverage } from '../../models/beverage';
 import { AuthService } from '../../services/auth.service';
-import { ResourceService } from '../../services/resource.service';
+import { BeverageService } from '../../services/beverage.service';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
@@ -20,47 +19,47 @@ import { ToastService } from '../../services/toast.service';
 })
 export class MasterDrinkPageComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
-  private readonly resourceService = inject(ResourceService);
+  private readonly beverageService = inject(BeverageService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
 
   readonly canManage = computed(() => this.auth.canAccessTeamManagement());
-  readonly drinks = signal<ResourceItem[]>([]);
+  readonly beverages = signal<Beverage[]>([]);
   readonly loading = signal(true);
   readonly submitting = signal(false);
-  readonly editingDrink = signal<ResourceItem | null>(null);
+  readonly editingBeverage = signal<Beverage | null>(null);
   readonly showCreateModal = signal(false);
 
   readonly createForm = this.fb.group({
     name: ['', Validators.required],
-    price: [DEFAULT_DRINK_PRICE, [Validators.required, Validators.min(0)]],
+    price: [0, [Validators.required, Validators.min(0)]],
   });
 
   readonly editForm = this.fb.group({
     name: ['', Validators.required],
-    price: [DEFAULT_DRINK_PRICE, [Validators.required, Validators.min(0)]],
+    price: [0, [Validators.required, Validators.min(0)]],
   });
 
   ngOnInit(): void {
-    this.loadDrinks();
+    this.loadBeverages();
   }
 
-  loadDrinks(): void {
+  loadBeverages(): void {
     this.loading.set(true);
-    this.resourceService.getResources().subscribe({
+    this.beverageService.getBeverages().subscribe({
       next: (items) => {
-        this.drinks.set(items);
+        this.beverages.set(items);
         this.loading.set(false);
       },
       error: (err: { error?: { error?: string } }) => {
-        this.toast.showError(err.error?.error ?? 'ไม่สามารถโหลดข้อมูลเครื่องดื่มได้');
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถโหลดข้อมูลเครื่องดื่มเมนูได้');
         this.loading.set(false);
       },
     });
   }
 
   openCreate(): void {
-    this.createForm.reset({ name: '', price: DEFAULT_DRINK_PRICE });
+    this.createForm.reset({ name: '', price: 0 });
     this.showCreateModal.set(true);
   }
 
@@ -68,61 +67,61 @@ export class MasterDrinkPageComponent implements OnInit {
     this.showCreateModal.set(false);
   }
 
-  openEdit(item: ResourceItem): void {
+  openEdit(item: Beverage): void {
     this.editForm.reset({ name: item.name, price: item.price });
-    this.editingDrink.set(item);
+    this.editingBeverage.set(item);
   }
 
   closeEdit(): void {
-    this.editingDrink.set(null);
+    this.editingBeverage.set(null);
   }
 
   submitCreate(): void {
     if (this.createForm.invalid || this.submitting()) return;
     this.submitting.set(true);
     const { name, price } = this.createForm.getRawValue();
-    this.resourceService.createResource({ name, price }).subscribe({
+    this.beverageService.createBeverage({ name, price }).subscribe({
       next: () => {
         this.submitting.set(false);
         this.closeCreate();
-        this.toast.showSuccess('เพิ่มเครื่องดื่มเรียบร้อย');
-        this.loadDrinks();
+        this.toast.showSuccess('เพิ่มเครื่องดื่มเมนูเรียบร้อย');
+        this.loadBeverages();
       },
       error: (err: { error?: { error?: string } }) => {
         this.submitting.set(false);
-        this.toast.showError(err.error?.error ?? 'ไม่สามารถเพิ่มเครื่องดื่มได้');
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถเพิ่มเครื่องดื่มเมนูได้');
       },
     });
   }
 
   submitEdit(): void {
-    const item = this.editingDrink();
+    const item = this.editingBeverage();
     if (!item || this.editForm.invalid || this.submitting()) return;
     this.submitting.set(true);
     const { name, price } = this.editForm.getRawValue();
-    this.resourceService.updateResource(item.id, { name, price }).subscribe({
+    this.beverageService.updateBeverage(item.id, { name, price }).subscribe({
       next: () => {
         this.submitting.set(false);
         this.closeEdit();
         this.toast.showSuccess('บันทึกการแก้ไขเรียบร้อย');
-        this.loadDrinks();
+        this.loadBeverages();
       },
       error: (err: { error?: { error?: string } }) => {
         this.submitting.set(false);
-        this.toast.showError(err.error?.error ?? 'ไม่สามารถแก้ไขเครื่องดื่มได้');
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถแก้ไขเครื่องดื่มเมนูได้');
       },
     });
   }
 
-  confirmDelete(item: ResourceItem): void {
-    if (!confirm(`ลบเครื่องดื่ม "${item.name}" ใช่หรือไม่?`)) return;
-    this.resourceService.deleteResource(item.id).subscribe({
+  confirmDelete(item: Beverage): void {
+    if (!confirm(`ลบเครื่องดื่มเมนู "${item.name}" ใช่หรือไม่?`)) return;
+    this.beverageService.deleteBeverage(item.id).subscribe({
       next: () => {
-        this.toast.showSuccess('ลบเครื่องดื่มเรียบร้อย');
-        this.loadDrinks();
+        this.toast.showSuccess('ลบเครื่องดื่มเมนูเรียบร้อย');
+        this.loadBeverages();
       },
       error: (err: { error?: { error?: string } }) => {
-        this.toast.showError(err.error?.error ?? 'ไม่สามารถลบเครื่องดื่มได้');
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถลบเครื่องดื่มเมนูได้');
       },
     });
   }

@@ -1,31 +1,30 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import type { ResourceItem } from '../../models/resource';
-import { ResourceService } from '../../services/resource.service';
+import type { Beverage } from '../../models/beverage';
+import { BeverageService } from '../../services/beverage.service';
 
 @Component({
   selector: 'app-resources-page',
   templateUrl: './resources-page.component.html',
 })
 export class ResourcesPageComponent implements OnInit {
-  private readonly resourceService = inject(ResourceService);
+  private readonly beverageService = inject(BeverageService);
 
-  readonly resources = signal<ResourceItem[]>([]);
+  readonly beverages = signal<Beverage[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
 
-  readonly total = computed(() => this.resources().length);
+  readonly total = computed(() => this.beverages().length);
 
   ngOnInit(): void {
-    this.resourceService.getResources().subscribe({
+    this.beverageService.getBeverages().subscribe({
       next: (data) => {
-        this.resources.set(data);
+        this.beverages.set(data);
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('ไม่สามารถโหลดข้อมูลทรัพยากรได้');
+        this.error.set('ไม่สามารถโหลดข้อมูลเครื่องดื่มเมนูได้');
         this.loading.set(false);
       },
     });
   }
 }
-

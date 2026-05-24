@@ -1,18 +1,20 @@
 <div class="app-page">
   <div class="app-page-header">
     <div>
-      <h1 class="app-page-title">เครื่องดื่ม</h1>
-      <p class="app-page-subtitle">จัดการประเภทเครื่องดื่มและราคา (ค่าเริ่มต้น 160 บาท)</p>
+      <h1 class="app-page-title">เครื่องดื่มเมนู (Beverages)</h1>
+      <p class="app-page-subtitle">
+        รายการเครื่องดื่มจริงที่บาร์ — ราคาต่อแก้ว/ขวด (แยกจากหน่วยดื่ม PR ตามตำแหน่ง)
+      </p>
     </div>
     @if (canManage()) {
-      <button type="button" (click)="openCreate()" class="app-btn-primary">+ เพิ่มเครื่องดื่ม</button>
+      <button type="button" (click)="openCreate()" class="app-btn-primary">+ เพิ่มเครื่องดื่มเมนู</button>
     }
   </div>
 
   @if (showCreateModal() && canManage()) {
     <app-modal (dismiss)="closeCreate()">
       <div class="app-modal-header">
-        <h2 class="app-modal-title">เพิ่มเครื่องดื่ม</h2>
+        <h2 class="app-modal-title">เพิ่มเครื่องดื่มเมนู</h2>
         <button type="button" class="app-btn-ghost" (click)="closeCreate()">✕</button>
       </div>
       <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
@@ -21,7 +23,7 @@
           <input type="text" formControlName="name" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ราคา (฿)</label>
+          <label class="app-label">ราคาเมนู (฿)</label>
           <input type="number" formControlName="price" class="app-input" min="0" step="1" />
         </div>
         <div class="app-form-actions">
@@ -34,10 +36,10 @@
     </app-modal>
   }
 
-  @if (editingDrink(); as drink) {
+  @if (editingBeverage(); as item) {
     <app-modal (dismiss)="closeEdit()">
       <div class="app-modal-header">
-        <h2 class="app-modal-title">แก้ไขเครื่องดื่ม</h2>
+        <h2 class="app-modal-title">แก้ไขเครื่องดื่มเมนู</h2>
         <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
       </div>
       <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
@@ -46,7 +48,7 @@
           <input type="text" formControlName="name" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ราคา (฿)</label>
+          <label class="app-label">ราคาเมนู (฿)</label>
           <input type="number" formControlName="price" class="app-input" min="0" step="1" />
         </div>
         <div class="app-form-actions">
@@ -61,8 +63,8 @@
 
   @if (loading()) {
     <p class="app-loading-text">กำลังโหลด...</p>
-  } @else if (drinks().length === 0) {
-    <p class="app-empty-state">ยังไม่มีข้อมูลเครื่องดื่ม</p>
+  } @else if (beverages().length === 0) {
+    <p class="app-empty-state">ยังไม่มีข้อมูลเครื่องดื่มเมนู</p>
   } @else {
     <section class="app-card app-card-flush">
       <div class="app-data-table-wrap">
@@ -71,14 +73,14 @@
             <tr>
               <th>รหัส</th>
               <th>ชื่อ</th>
-              <th class="app-cell-right">ราคา (฿)</th>
+              <th class="app-cell-right">ราคาเมนู (฿)</th>
               @if (canManage()) {
                 <th class="app-cell-right">จัดการ</th>
               }
             </tr>
           </thead>
           <tbody>
-            @for (item of drinks(); track item.id) {
+            @for (item of beverages(); track item.id) {
               <tr>
                 <td class="app-cell-mono">{{ item.id }}</td>
                 <td class="app-cell-primary">{{ item.name }}</td>
