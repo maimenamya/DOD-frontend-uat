@@ -1,12 +1,15 @@
 import { NgStyle } from '@angular/common';
 import {
   Component,
+  DestroyRef,
   ElementRef,
   HostListener,
   Input,
+  afterNextRender,
   forwardRef,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
@@ -35,6 +38,8 @@ const MENU_GAP_PX = 8;
 })
 export class CustomDropdownComponent implements ControlValueAccessor {
   private readonly elementRef = inject(ElementRef<HTMLElement>);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly menuPanel = viewChild<ElementRef<HTMLElement>>('menuPanel');
 
   @Input({ required: true }) options: DropdownOption[] = [];
   @Input() placeholder = 'เลือก...';
@@ -46,6 +51,23 @@ export class CustomDropdownComponent implements ControlValueAccessor {
 
   private onChange: (value: number | string | null) => void = () => {};
   private onTouched: () => void = () => {};
+  private scrollListenerActive = false;
+
+  private readonly onScrollReposition = (): void => {
+    if (this.isOpen()) {
+      this.positionMenu();
+    }
+  };
+
+  constructor() {
+    this.destroyRef.onDestroy(() => {
+      this.removeScrollListener();
+      const menu = this.menuPanel()?.nativeElement;
+      if (menu?.parentElement === document.body) {
+        menu.remove();
+      }
+    });
+  }
 
   readonly selectedLabel = () => {
     const current = this.value();
@@ -57,22 +79,27 @@ export class CustomDropdownComponent implements ControlValueAccessor {
 
   toggleDropdown(): void {
     if (this.disabled()) return;
-    const nextOpen = !this.isOpen();
-    this.isOpen.set(nextOpen);
-    if (nextOpen) {
-      this.onTouched();
-      requestAnimationFrame(() => this.positionMenu());
-    } else {
-      this.menuStyle.set({});
+
+    if (this.isOpen()) {
+      this.closeMenu();
+      return;
     }
+
+    this.isOpen.set(true);
+    this.onTouched();
+
+    afterNextRender(() => {
+      this.portalMenuToBody();
+      this.positionMenu();
+      this.addScrollListener();
+    });
   }
 
   selectOption(option: DropdownOption): void {
     this.value.set(option.value);
     this.onChange(option.value);
     this.onTouched();
-    this.isOpen.set(false);
-    this.menuStyle.set({});
+    this.closeMenu();
   }
 
   isSelected(option: DropdownOption): boolean {
@@ -81,19 +108,21 @@ export class CustomDropdownComponent implements ControlValueAccessor {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
-    if (!this.elementRef.nativeElement.contains(event.target as Node)) {
-      this.isOpen.set(false);
-      this.menuStyle.set({});
+    const target = event.target as Node;
+    const inHost = this.elementRef.nativeElement.contains(target);
+    const menu = this.menuPanel()?.nativeElement;
+    const inMenu = menu?.contains(target) ?? false;
+
+    if (!inHost && !inMenu) {
+      this.closeMenu();
     }
   }
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    this.isOpen.set(false);
-    this.menuStyle.set({});
+    this.closeMenu();
   }
 
-  @HostListener('window:scroll')
   @HostListener('window:resize')
   onViewportChange(): void {
     if (this.isOpen()) {
@@ -117,6 +146,24 @@ export class CustomDropdownComponent implements ControlValueAccessor {
     this.disabled.set(isDisabled);
   }
 
+  private closeMenu(): void {
+    this.removeScrollListener();
+    this.isOpen.set(false);
+    this.menuStyle.set({});
+  }
+
+  /**
+   * Modals use backdrop-filter which creates a new containing block — `position: fixed`
+   * inside them uses wrong coordinates. Portaling the menu to `body` fixes placement.
+   */
+  private portalMenuToBody(): void {
+    const menu = this.menuPanel()?.nativeElement;
+    if (!menu || menu.parentElement === document.body) {
+      return;
+    }
+    document.body.appendChild(menu);
+  }
+
   private positionMenu(): void {
     const trigger = this.elementRef.nativeElement.querySelector(
       '.app-dropdown-trigger',
@@ -127,15 +174,41 @@ export class CustomDropdownComponent implements ControlValueAccessor {
 
     const rect = trigger.getBoundingClientRect();
     const viewportPadding = 12;
-    const maxHeight = Math.min(16 * 16, window.innerHeight - rect.bottom - MENU_GAP_PX - viewportPadding);
+    const spaceBelow = window.innerHeight - rect.bottom - MENU_GAP_PX - viewportPadding;
+    const spaceAbove = rect.top - MENU_GAP_PX - viewportPadding;
+    const preferredMax = 16 * 16;
+
+    let top = rect.bottom + MENU_GAP_PX;
+    let maxHeight = Math.min(preferredMax, spaceBelow);
+
+    if (maxHeight < 120 && spaceAbove > spaceBelow) {
+      maxHeight = Math.min(preferredMax, spaceAbove);
+      top = rect.top - MENU_GAP_PX - maxHeight;
+    }
 
     this.menuStyle.set({
       position: 'fixed',
-      top: `${rect.bottom + MENU_GAP_PX}px`,
+      top: `${Math.max(viewportPadding, top)}px`,
       left: `${rect.left}px`,
       width: `${rect.width}px`,
       maxHeight: `${Math.max(120, maxHeight)}px`,
-      zIndex: '300',
+      zIndex: '400',
     });
+  }
+
+  private addScrollListener(): void {
+    if (this.scrollListenerActive) {
+      return;
+    }
+    document.addEventListener('scroll', this.onScrollReposition, true);
+    this.scrollListenerActive = true;
+  }
+
+  private removeScrollListener(): void {
+    if (!this.scrollListenerActive) {
+      return;
+    }
+    document.removeEventListener('scroll', this.onScrollReposition, true);
+    this.scrollListenerActive = false;
   }
 }

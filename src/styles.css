@@ -855,6 +855,10 @@
     -webkit-overflow-scrolling: touch;
   }
 
+  .app-dropdown-menu-portal {
+    z-index: 400;
+  }
+
   .app-dropdown-item {
     @apply w-full px-4 py-2.5 text-left text-sm text-text-secondary transition-all duration-150;
     line-height: var(--leading-normal);
