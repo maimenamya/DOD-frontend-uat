@@ -2,6 +2,7 @@ import { Component, inject, output } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AuthService } from '../../services/auth.service';
+import { roleLabelThai } from '../../utils/employee-team.util';
 
 @Component({
   selector: 'app-header',
@@ -21,5 +22,9 @@ export class AppHeaderComponent {
 
   goToProfile(): void {
     void this.router.navigate(['/dashboard/my-profile']);
+  }
+
+  roleLabel(roleName: string): string {
+    return roleName ? roleLabelThai(roleName) : '—';
   }
 }

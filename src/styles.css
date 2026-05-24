@@ -342,45 +342,50 @@
 
   /* ── Top header (profile + shop) ── */
   .app-top-header {
-    @apply sticky top-0 z-20 border-b border-theme-border px-4 py-3 backdrop-blur-glass sm:px-6 lg:px-8;
+    @apply sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-theme-border px-4 py-3 backdrop-blur-glass sm:px-6 lg:px-8;
     background: var(--surface-strong);
-  }
-
-  .app-top-header-start {
-    @apply flex min-w-0 items-center gap-3;
   }
 
   .app-top-header-menu {
     @apply shrink-0 lg:hidden;
   }
 
-  .app-profile-trigger {
-    @apply flex min-w-0 items-center gap-3 rounded-input border-0 bg-transparent p-1 text-left transition-colors duration-200;
+  .app-top-header-end {
+    @apply ml-auto flex min-w-0 items-center gap-3 sm:gap-4;
+  }
+
+  .app-profile-text {
+    @apply flex min-w-0 flex-col items-end gap-0.5 text-right;
+  }
+
+  .app-profile-name {
+    @apply truncate text-base font-semibold text-text-primary sm:text-lg;
+    line-height: var(--leading-snug);
+  }
+
+  .app-profile-role {
+    @apply truncate text-xs text-text-secondary sm:text-sm;
+  }
+
+  .app-profile-avatar-btn {
+    @apply shrink-0 rounded-full border-0 bg-transparent p-0 transition-transform duration-200;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
 
-  .app-profile-trigger:hover {
-    background: var(--surface-hover);
+  .app-profile-avatar-btn:hover {
+    transform: scale(1.04);
+  }
+
+  .app-profile-avatar-btn:focus-visible {
+    outline: 2px solid var(--primary-light);
+    outline-offset: 3px;
   }
 
   .app-profile-avatar {
-    @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white;
+    @apply flex h-11 w-11 items-center justify-center rounded-full text-sm font-semibold text-white;
     background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
     box-shadow: var(--shadow-glow-sm);
-  }
-
-  .app-profile-copy {
-    @apply flex min-w-0 flex-col gap-0.5;
-  }
-
-  .app-profile-shop {
-    @apply truncate text-lg font-semibold tracking-tight text-text-primary sm:text-xl;
-    line-height: var(--leading-snug);
-  }
-
-  .app-profile-meta {
-    @apply truncate text-xs text-text-secondary sm:text-sm;
   }
 
   .app-sidebar-icon {
@@ -475,8 +480,9 @@
   }
 
   .app-sidebar-brand-title {
-    @apply mt-1 text-lg font-semibold text-text-primary;
+    @apply mt-1 text-lg font-semibold tracking-wide text-text-primary;
     line-height: var(--leading-snug);
+    text-shadow: 0 0 28px rgba(139, 92, 246, 0.5);
   }
 
   .app-sidebar-meta {
@@ -1021,9 +1027,10 @@
 
   /* ── Modal ── */
   .app-modal-overlay {
-    @apply fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm;
-    background: rgba(6, 8, 22, 0.65);
-    -webkit-backdrop-filter: blur(4px);
+    @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+    background: rgba(6, 8, 22, 0.78);
+    backdrop-filter: blur(16px) saturate(1.15);
+    -webkit-backdrop-filter: blur(16px) saturate(1.15);
   }
 
   .app-modal {
@@ -1040,6 +1047,10 @@
 
   .app-modal-title {
     @apply text-lg font-semibold text-text-primary;
+  }
+
+  .app-field-hint {
+    @apply mt-1 text-xs text-text-secondary;
   }
 
   /* ── Grids & profile ── */

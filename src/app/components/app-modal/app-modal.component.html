@@ -1,0 +1,11 @@
+<div
+  class="app-modal-overlay"
+  role="dialog"
+  aria-modal="true"
+  (click)="onBackdropClick()"
+  (keydown.escape)="onBackdropClick()"
+>
+  <div class="app-modal" (click)="$event.stopPropagation()">
+    <ng-content />
+  </div>
+</div>

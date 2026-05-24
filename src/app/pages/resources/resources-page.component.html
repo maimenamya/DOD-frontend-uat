@@ -1,8 +1,8 @@
 <div class="app-page">
   <div class="app-page-header">
     <div>
-      <h1 class="app-page-title">Resources</h1>
-      <p class="app-page-subtitle">ข้อมูลจาก Master Table: DrinkType</p>
+      <h1 class="app-page-title">เครื่องดื่ม</h1>
+      <p class="app-page-subtitle">ข้อมูลจากตาราง Master Drink</p>
     </div>
   </div>
 
@@ -14,10 +14,9 @@
     <div class="app-grid-stats">
       @for (item of resources(); track item.id) {
         <article class="app-card">
-          <p class="app-card-kicker">Drink Type</p>
+          <p class="app-card-kicker">ประเภทเครื่องดื่ม</p>
           <h3 class="app-card-title app-card-title-spaced">{{ item.name }}</h3>
           <p class="app-page-subtitle app-page-subtitle-tight">ราคา: {{ item.price }} บาท</p>
-          <p class="app-page-subtitle">คอมมิชชั่น: {{ item.commissionRate * 100 }}%</p>
         </article>
       }
     </div>

@@ -37,12 +37,12 @@
   }
 
   @if (showCreateForm() && canManage()) {
-    <section class="app-card">
+    <app-modal (dismiss)="closeCreateForm()">
       <div class="app-modal-header">
-        <h2 class="app-card-title">เพิ่มพนักงาน — {{ roleLabel(selectedRole()!.name) }}</h2>
-        <button type="button" class="app-btn-ghost" (click)="closeCreateForm()">ปิด</button>
+        <h2 class="app-modal-title">เพิ่มพนักงาน — {{ roleLabel(selectedRole()!.name) }}</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeCreateForm()">✕</button>
       </div>
-      <form class="app-form-grid" [formGroup]="createForm" (ngSubmit)="submitCreate()">
+      <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
           <label class="app-label">รหัสพนักงาน</label>
           <input type="text" formControlName="employeeId" class="app-input" />
@@ -78,20 +78,19 @@
           </button>
         </div>
       </form>
-    </section>
+    </app-modal>
   }
 
   @if (editingEmployee(); as emp) {
-    <div class="app-modal-overlay" role="dialog">
-      <div class="app-modal">
-        <div class="app-modal-header">
-          <h2 class="app-modal-title">แก้ไขพนักงาน</h2>
-          <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
-        </div>
-        <p class="app-page-subtitle app-page-subtitle-spaced">
-          รหัส: <span class="app-cell-mono">{{ emp.employeeId }}</span>
-        </p>
-        <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
+    <app-modal (dismiss)="closeEdit()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">แก้ไขพนักงาน</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
+      </div>
+      <p class="app-page-subtitle app-page-subtitle-spaced">
+        รหัส: <span class="app-cell-mono">{{ emp.employeeId }}</span>
+      </p>
+      <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
           <div class="app-form-group">
             <label class="app-label">ชื่อ-นามสกุล</label>
             <input type="text" formControlName="name" class="app-input" />
@@ -131,8 +130,7 @@
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </app-modal>
   }
 
   @if (loading()) {

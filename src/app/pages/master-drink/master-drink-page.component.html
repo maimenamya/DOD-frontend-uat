@@ -2,12 +2,69 @@
   <div class="app-page-header">
     <div>
       <h1 class="app-page-title">เครื่องดื่ม</h1>
-      <p class="app-page-subtitle">แพ็กเกจ / ประเภทเครื่องดื่ม (Master Drink) สำหรับคำนวณยอดและค่าคอมมิชชั่น PR</p>
+      <p class="app-page-subtitle">จัดการประเภทเครื่องดื่มและราคา (ค่าเริ่มต้น 160 บาท)</p>
     </div>
+    @if (canManage()) {
+      <button type="button" (click)="openCreate()" class="app-btn-primary">+ เพิ่มเครื่องดื่ม</button>
+    }
   </div>
+
+  @if (success()) {
+    <div class="app-alert-success">{{ success() }}</div>
+  }
 
   @if (error()) {
     <div class="app-alert-error">{{ error() }}</div>
+  }
+
+  @if (showCreateModal() && canManage()) {
+    <app-modal (dismiss)="closeCreate()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">เพิ่มเครื่องดื่ม</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeCreate()">✕</button>
+      </div>
+      <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
+        <div class="app-form-group">
+          <label class="app-label">ชื่อเครื่องดื่ม</label>
+          <input type="text" formControlName="name" class="app-input" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">ราคา (฿)</label>
+          <input type="number" formControlName="price" class="app-input" min="0" step="1" />
+        </div>
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
+          <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+            {{ submitting() ? 'กำลังบันทึก...' : 'บันทึก' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+
+  @if (editingDrink(); as drink) {
+    <app-modal (dismiss)="closeEdit()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">แก้ไขเครื่องดื่ม</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
+      </div>
+      <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
+        <div class="app-form-group">
+          <label class="app-label">ชื่อเครื่องดื่ม</label>
+          <input type="text" formControlName="name" class="app-input" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">ราคา (฿)</label>
+          <input type="number" formControlName="price" class="app-input" min="0" step="1" />
+        </div>
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
+          <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+            {{ submitting() ? 'กำลังบันทึก...' : 'บันทึกการแก้ไข' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
   }
 
   @if (loading()) {
@@ -23,7 +80,9 @@
               <th>รหัส</th>
               <th>ชื่อ</th>
               <th class="app-cell-right">ราคา (฿)</th>
-              <th class="app-cell-right">คอมมิชชั่น</th>
+              @if (canManage()) {
+                <th class="app-cell-right">จัดการ</th>
+              }
             </tr>
           </thead>
           <tbody>
@@ -31,10 +90,21 @@
               <tr>
                 <td class="app-cell-mono">{{ item.id }}</td>
                 <td class="app-cell-primary">{{ item.name }}</td>
-                <td class="app-cell-right">{{ item.price | number: '1.0-0' }}</td>
                 <td class="app-cell-right app-cell-highlight-violet">
-                  {{ commissionPercent(item.commissionRate) }}
+                  {{ item.price | number: '1.0-0' }}
                 </td>
+                @if (canManage()) {
+                  <td class="app-cell-right">
+                    <div class="app-table-actions">
+                      <button type="button" class="app-btn-secondary-sm" (click)="openEdit(item)">
+                        แก้ไข
+                      </button>
+                      <button type="button" class="app-btn-danger" (click)="confirmDelete(item)">
+                        ลบ
+                      </button>
+                    </div>
+                  </td>
+                }
               </tr>
             }
           </tbody>

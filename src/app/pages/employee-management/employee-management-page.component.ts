@@ -6,6 +6,7 @@ import {
   Validators,
 } from '@angular/forms';
 
+import { AppModalComponent } from '../../components/app-modal/app-modal.component';
 import {
   CustomDropdownComponent,
   type DropdownOption,
@@ -23,7 +24,7 @@ import {
 
 @Component({
   selector: 'app-employee-management-page',
-  imports: [ReactiveFormsModule, CustomDropdownComponent],
+  imports: [ReactiveFormsModule, CustomDropdownComponent, AppModalComponent],
   templateUrl: './employee-management-page.component.html',
 })
 export class EmployeeManagementPageComponent implements OnInit {
