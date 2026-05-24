@@ -10,6 +10,7 @@ import type {
   RegisterRequest,
   UpdateProfileRequest,
 } from '../models/auth';
+import { ApiConfig } from '../core/api-config';
 import { FIELD_STAFF_ROLES, MANAGEMENT_ROLES, type EmployeeRole } from '../models/role';
 
 const STORAGE_KEY = 'dod_auth_session';
@@ -19,7 +20,7 @@ const STORAGE_KEY = 'dod_auth_session';
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = '/api/auth';
+  private readonly api = inject(ApiConfig);
 
   private readonly sessionSignal = signal<AuthSession | null>(this.readStoredSession());
 
@@ -27,17 +28,17 @@ export class AuthService {
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.http
-      .post<AuthResponse>(`${this.apiUrl}/login`, credentials)
+      .post<AuthResponse>(this.api.resource('auth', 'login'), credentials)
       .pipe(tap((response) => this.persistSession(response)));
   }
 
   register(payload: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, payload);
+    return this.http.post<AuthResponse>(this.api.resource('auth', 'register'), payload);
   }
 
   updateProfile(payload: UpdateProfileRequest): Observable<AuthResponse> {
     return this.http
-      .put<AuthResponse>(`${this.apiUrl}/me`, payload)
+      .put<AuthResponse>(this.api.resource('auth', 'me'), payload)
       .pipe(tap((response) => this.persistSession(response)));
   }
 

@@ -1,4 +1,7 @@
 import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+
+import { ApiConfig } from '../core/api-config';
 
 const AUTH_STORAGE_KEY = 'dod_auth_session';
 
@@ -16,8 +19,11 @@ function readToken(): string | null {
 }
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  const api = inject(ApiConfig);
+
   const isAuthEndpoint =
-    req.url.includes('/api/auth/login') || req.url.includes('/api/auth/register');
+    req.url.includes(api.resource('auth', 'login')) ||
+    req.url.includes(api.resource('auth', 'register'));
 
   if (isAuthEndpoint) {
     return next(req);
