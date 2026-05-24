@@ -1200,18 +1200,30 @@
   }
 
   .record-drinks-rows {
-    @apply flex flex-col gap-4;
+    @apply flex flex-col gap-5;
+    overflow: visible;
   }
 
   .record-drinks-lines-body {
     @apply pt-7;
+    overflow: visible;
+  }
+
+  .record-drinks-row-field {
+    @apply relative min-w-0;
+    overflow: visible;
+  }
+
+  .record-drinks-row:has(app-custom-dropdown.app-dropdown-root--open) {
+    @apply relative;
+    z-index: 30;
   }
 
   .record-drinks-row {
     @apply grid gap-x-4 gap-y-5 border border-theme-border p-5;
     border-radius: var(--radius-card);
     background: var(--surface);
-    grid-template-columns: minmax(11rem, 1.1fr) minmax(10rem, 1.4fr) 5.5rem 6.5rem 2.5rem;
+    grid-template-columns: minmax(10rem, 1fr) minmax(10rem, 1.25fr) 5.5rem 6rem 2.5rem;
     align-items: start;
     overflow: visible;
   }
@@ -1221,6 +1233,7 @@
       grid-template-columns: 1fr 1fr;
     }
 
+    .record-drinks-row-role,
     .record-drinks-row-employee {
       grid-column: 1 / -1;
     }

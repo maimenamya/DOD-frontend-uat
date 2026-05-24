@@ -8,24 +8,29 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 
 import {
   CustomDropdownComponent,
   type DropdownOption,
 } from '../../components/custom-dropdown/custom-dropdown.component';
 import type { Employee } from '../../models/employee';
-import { FIELD_STAFF_ROLES } from '../../models/role';
+import type { Role } from '../../models/role';
 import { AuthService } from '../../services/auth.service';
 import { EmployeeService } from '../../services/employee.service';
+import { RoleService } from '../../services/role.service';
 import { TransactionService } from '../../services/transaction.service';
 import { ToastService } from '../../services/toast.service';
-export type DrinkStaffTeam = 'SALE' | 'PR';
+import { roleLabelThai } from '../../utils/employee-team.util';
 
 type DrinkRowForm = FormGroup<{
-  staffTeam: FormControl<DrinkStaffTeam | ''>;
+  roleId: FormControl<number | ''>;
   employeeId: FormControl<string>;
   quantity: FormControl<number>;
 }>;
+
+/** Roles excluded from drink entry (no field billing). */
+const EXCLUDED_DRINK_ROLE_NAMES = new Set(['OWNER']);
 
 @Component({
   selector: 'app-record-drinks-page',
@@ -36,6 +41,7 @@ export class RecordDrinksPageComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly auth = inject(AuthService);
   private readonly employeeService = inject(EmployeeService);
+  private readonly roleService = inject(RoleService);
   private readonly transactionService = inject(TransactionService);
   private readonly toast = inject(ToastService);
 
@@ -43,17 +49,26 @@ export class RecordDrinksPageComponent implements OnInit {
   readonly loading = signal(true);
   readonly submitting = signal(false);
   readonly staff = signal<Employee[]>([]);
-
-  readonly staffTeamChoices: { value: DrinkStaffTeam; label: string }[] = [
-    { value: 'SALE', label: 'ฝ่ายขาย (Sale)' },
-    { value: 'PR', label: 'พีอาร์ (PR)' },
-  ];
+  readonly allRoles = signal<Role[]>([]);
 
   readonly form = this.fb.group({
     billReference: this.fb.control('', {
       validators: [Validators.required, Validators.maxLength(64)],
     }),
     rows: this.fb.array<DrinkRowForm>([this.createRow()]),
+  });
+
+  /** Roles from master data that have at least one active employee in this shop. */
+  readonly roleDropdownOptions = computed((): DropdownOption[] => {
+    const roleIdsInShop = new Set(this.staff().map((employee) => employee.roleId));
+    return this.allRoles()
+      .filter(
+        (role) => roleIdsInShop.has(role.id) && !EXCLUDED_DRINK_ROLE_NAMES.has(role.name),
+      )
+      .map((role) => ({
+        value: role.id,
+        label: roleLabelThai(role.name),
+      }));
   });
 
   readonly grandTotal = computed(() => {
@@ -80,19 +95,17 @@ export class RecordDrinksPageComponent implements OnInit {
       return;
     }
 
-    this.employeeService.getEmployeesByShop(shopId).subscribe({
-      next: (employees) => {
-        const eligible = employees.filter(
-          (e) =>
-            e.status === 'Active' &&
-            e.role?.name &&
-            FIELD_STAFF_ROLES.includes(e.role.name),
-        );
-        this.staff.set(eligible);
+    forkJoin({
+      roles: this.roleService.getRoles(),
+      employees: this.employeeService.getEmployeesByShop(shopId),
+    }).subscribe({
+      next: ({ roles, employees }) => {
+        this.allRoles.set(roles);
+        this.staff.set(employees.filter((employee) => employee.status === 'Active'));
         this.loading.set(false);
       },
       error: () => {
-        this.toast.showError('โหลดรายชื่อพนักงานไม่สำเร็จ');
+        this.toast.showError('โหลดข้อมูลตำแหน่งและพนักงานไม่สำเร็จ');
         this.loading.set(false);
       },
     });
@@ -104,32 +117,17 @@ export class RecordDrinksPageComponent implements OnInit {
 
   employeeOptionsForRow(index: number): DropdownOption[] {
     const row = this.rows.at(index);
-    const team = row?.controls.staffTeam.value;
-    if (!team) {
+    const roleId = row?.controls.roleId.value;
+    if (!roleId) {
       return [];
     }
 
     return this.staff()
-      .filter((employee) => employee.role?.name === team)
+      .filter((employee) => employee.roleId === roleId)
       .map((employee) => ({
         value: employee.employeeId,
         label: employee.nickname,
       }));
-  }
-
-  isRowTeamSelected(index: number, team: DrinkStaffTeam): boolean {
-    return this.rows.at(index)?.controls.staffTeam.value === team;
-  }
-
-  setRowTeam(index: number, team: DrinkStaffTeam): void {
-    const row = this.rows.at(index);
-    if (!row) {
-      return;
-    }
-
-    row.patchValue({ staffTeam: team, employeeId: '' });
-    row.controls.employeeId.enable();
-    row.controls.employeeId.markAsUntouched();
   }
 
   addRow(): void {
@@ -161,19 +159,15 @@ export class RecordDrinksPageComponent implements OnInit {
 
   submit(): void {
     for (const row of this.rows.controls) {
-      if (row.controls.staffTeam.value) {
+      if (row.controls.roleId.value) {
         row.controls.employeeId.enable({ emitEvent: false });
       }
     }
 
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.toast.showError('กรุณากรอกเลขบิล เลือกฝ่าย และเลือกพนักงานทุกแถว');
-      for (const row of this.rows.controls) {
-        if (!row.controls.staffTeam.value) {
-          row.controls.employeeId.disable({ emitEvent: false });
-        }
-      }
+      this.toast.showError('กรุณากรอกเลขบิล เลือกตำแหน่ง และเลือกพนักงานทุกแถว');
+      this.reapplyEmployeeDisabledState();
       return;
     }
 
@@ -207,7 +201,7 @@ export class RecordDrinksPageComponent implements OnInit {
 
   private reapplyEmployeeDisabledState(): void {
     for (const row of this.rows.controls) {
-      if (!row.controls.staffTeam.value) {
+      if (!row.controls.roleId.value) {
         row.controls.employeeId.disable({ emitEvent: false });
       }
     }
@@ -221,18 +215,30 @@ export class RecordDrinksPageComponent implements OnInit {
 
   private createRow(): DrinkRowForm {
     const row = this.fb.group({
-      staffTeam: this.fb.control<DrinkStaffTeam | ''>('', {
+      roleId: this.fb.control<number | ''>('', {
         validators: [Validators.required],
       }),
-      employeeId: this.fb.control({ value: '', disabled: true }, { validators: [Validators.required] }),
+      employeeId: this.fb.control({ value: '', disabled: true }, {
+        validators: [Validators.required],
+      }),
       quantity: this.fb.control(1, {
         validators: [Validators.required, Validators.min(1), Validators.max(999)],
       }),
     });
+
+    row.controls.roleId.valueChanges.subscribe((roleId) => {
+      row.patchValue({ employeeId: '' }, { emitEvent: false });
+      if (roleId) {
+        row.controls.employeeId.enable({ emitEvent: false });
+      } else {
+        row.controls.employeeId.disable({ emitEvent: false });
+      }
+    });
+
     return row;
   }
 
   private staffByEmployeeId(): Map<string, Employee> {
-    return new Map(this.staff().map((e) => [e.employeeId, e]));
+    return new Map(this.staff().map((employee) => [employee.employeeId, employee]));
   }
 }

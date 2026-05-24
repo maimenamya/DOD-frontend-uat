@@ -1,9 +1,9 @@
-<div class="app-page record-drinks-page">
+﻿<div class="app-page record-drinks-page">
   <div class="app-page-header">
     <div>
       <h1 class="app-page-title">ลงดื่ม</h1>
       <p class="app-page-subtitle">
-        บันทึกหน่วยดื่ม PR / Sale หลายคนในบิลเดียว —
+        บันทึกหน่วยดื่มหลายคนในบิลเดียว —
         <span class="app-page-subtitle-accent">{{ user()?.shopName }}</span>
       </p>
     </div>
@@ -41,7 +41,7 @@
           <div>
             <h2 class="app-card-title">รายการพนักงาน</h2>
             <p class="app-card-subtitle">
-              เลือกฝ่ายก่อน จากนั้นเลือกชื่อพนักงานและจำนวนหน่วยดื่ม
+              เลือกประเภทตำแหน่งจากข้อมูลหลัก จากนั้นเลือกพนักงานและจำนวนหน่วยดื่ม
             </p>
           </div>
           <button type="button" class="app-btn-secondary" (click)="addRow()">
@@ -53,32 +53,25 @@
           <div class="record-drinks-rows" formArrayName="rows">
             @for (row of rows.controls; track $index) {
               <div class="record-drinks-row" [formGroupName]="$index">
-                <div class="record-drinks-row-field record-drinks-row-team">
-                  <label class="record-drinks-label">ฝ่าย</label>
-                  <div class="app-segmented-control" role="group" [attr.aria-label]="'ฝ่ายแถวที่ ' + ($index + 1)">
-                    @for (choice of staffTeamChoices; track choice.value) {
-                      <button
-                        type="button"
-                        class="app-segmented-chip"
-                        [class.app-segmented-chip-active]="isRowTeamSelected($index, choice.value)"
-                        (click)="setRowTeam($index, choice.value)"
-                      >
-                        {{ choice.label }}
-                      </button>
-                    }
-                  </div>
-                  @if (row.controls.staffTeam.touched && row.controls.staffTeam.invalid) {
-                    <p class="record-drinks-field-error">กรุณาเลือกฝ่าย</p>
+                <div class="record-drinks-row-field record-drinks-row-role">
+                  <label class="record-drinks-label">เลือกประเภทตำแหน่ง</label>
+                  <app-custom-dropdown
+                    formControlName="roleId"
+                    [options]="roleDropdownOptions()"
+                    placeholder="เลือกตำแหน่ง"
+                  />
+                  @if (row.controls.roleId.touched && row.controls.roleId.invalid) {
+                    <p class="record-drinks-field-error">กรุณาเลือกประเภทตำแหน่ง</p>
                   }
                 </div>
 
                 <div class="record-drinks-row-field record-drinks-row-employee">
-                  <label class="record-drinks-label">พนักงาน</label>
+                  <label class="record-drinks-label">เลือกพนักงาน</label>
                   <app-custom-dropdown
                     formControlName="employeeId"
                     [options]="employeeOptionsForRow($index)"
                     [placeholder]="
-                      row.controls.staffTeam.value ? 'เลือกพนักงาน' : 'เลือกฝ่ายก่อน'
+                      row.controls.roleId.value ? 'เลือกพนักงาน' : 'เลือกตำแหน่งก่อน'
                     "
                   />
                   @if (row.controls.employeeId.touched && row.controls.employeeId.invalid) {
