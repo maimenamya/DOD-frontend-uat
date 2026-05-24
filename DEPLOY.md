@@ -1,35 +1,39 @@
 # Deploy frontend to Vercel
 
+## Environment files
+
+| File | Purpose |
+|------|---------|
+| `.env.uat` | Copy `BACKEND_URL` into Vercel → **Preview** / UAT |
+| `.env.prod` | Copy `BACKEND_URL` into Vercel → **Production** |
+
+Local `npm start` does **not** use these files — it proxies `/api` to `http://127.0.0.1:3000` via `proxy.conf.json`.
+
+Backend Railway variables: see `backend/.env.uat` / `backend/.env.prod` and `backend/RAILWAY_DEPLOY.md`.
+
+---
+
 ## 1. Connect the repo
 
 1. Go to [vercel.com](https://vercel.com) → **Add New Project** → import this Git repository.
-2. Set **Root Directory** to `frontend` (important for a monorepo).
-3. Vercel should detect settings from `vercel.json` automatically:
-   - **Build Command:** `npm run build`
-   - **Output Directory:** `dist/frontend/browser`
+2. Set **Root Directory** to `frontend`.
+3. Build: `npm run build` → output `dist/frontend/browser` (from `vercel.json`).
 
-## 2. Environment variables
+## 2. Vercel environment variables
 
-In **Project Settings → Environment Variables**, add:
+| Name | UAT (Preview) | Production |
+|------|---------------|------------|
+| `BACKEND_URL` | From `frontend/.env.uat` | From `frontend/.env.prod` |
 
-| Name          | Value                                      | Environments      |
-|---------------|--------------------------------------------|-------------------|
-| `BACKEND_URL` | Your API base URL (no trailing slash)      | Production, Preview |
+No trailing slash. Example: `https://dod-api-production.up.railway.app`
 
-Example: `https://dod-api.railway.app`
-
-The app calls `/api/...` in the browser. Vercel routes those requests to `api/[...path].js`, which proxies to `BACKEND_URL`.
+Vercel `api/[...path].js` proxies browser `/api/*` requests to `BACKEND_URL`.
 
 ## 3. Backend CORS
 
-Allow your Vercel URL on the Express server, for example:
-
-- `https://your-app.vercel.app`
-- Preview URLs if you use them
+Set Railway `CORS_ORIGIN` to your Vercel URL (see `backend/.env.uat` / `.env.prod`).
 
 ## 4. Deploy
-
-Push to the connected branch or run locally:
 
 ```bash
 cd frontend
@@ -38,4 +42,4 @@ npx vercel
 
 ## 5. Angular routes
 
-`vercel.json` rewrites all non-file routes to `index.html` so client-side routing (`/dashboard`, `/login`, etc.) works on refresh.
+`vercel.json` rewrites routes to `index.html` for client-side routing.

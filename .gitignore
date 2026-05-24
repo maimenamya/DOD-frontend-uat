@@ -41,5 +41,9 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# Environment (never commit secrets — Vercel deploy reference only)
+.env.uat
+.env.prod
+
 # Vercel
 .vercel
