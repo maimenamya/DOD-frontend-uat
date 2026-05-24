@@ -19,8 +19,6 @@ import { AuthService } from '../../services/auth.service';
 import { EmployeeService } from '../../services/employee.service';
 import { TransactionService } from '../../services/transaction.service';
 import { ToastService } from '../../services/toast.service';
-import { roleLabelThai } from '../../utils/employee-team.util';
-
 export type DrinkStaffTeam = 'SALE' | 'PR';
 
 type DrinkRowForm = FormGroup<{
