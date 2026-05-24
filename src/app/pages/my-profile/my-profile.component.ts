@@ -6,6 +6,7 @@ import {
 } from '@angular/forms';
 
 import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-my-profile',
@@ -15,11 +16,10 @@ import { AuthService } from '../../services/auth.service';
 export class MyProfileComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly auth = inject(AuthService);
+  private readonly toast = inject(ToastService);
 
   readonly user = this.auth.getUser();
   readonly submitting = signal(false);
-  readonly error = signal<string | null>(null);
-  readonly success = signal<string | null>(null);
 
   readonly form = this.fb.group({
     nickname: ['', [Validators.required, Validators.minLength(1)]],
@@ -46,13 +46,11 @@ export class MyProfileComponent implements OnInit {
 
     const raw = this.form.getRawValue();
     if (raw.password && raw.password.length < 6) {
-      this.error.set('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
+      this.toast.showError('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
       return;
     }
 
     this.submitting.set(true);
-    this.error.set(null);
-    this.success.set(null);
 
     this.auth
       .updateProfile({
@@ -63,12 +61,12 @@ export class MyProfileComponent implements OnInit {
       .subscribe({
         next: () => {
           this.submitting.set(false);
-          this.success.set('บันทึกโปรไฟล์เรียบร้อย');
+          this.toast.showSuccess('บันทึกโปรไฟล์เรียบร้อย');
           this.form.patchValue({ password: '' });
         },
         error: (err: { error?: { error?: string } }) => {
           this.submitting.set(false);
-          this.error.set(err.error?.error ?? 'ไม่สามารถอัปเดตโปรไฟล์ได้');
+          this.toast.showError(err.error?.error ?? 'ไม่สามารถอัปเดตโปรไฟล์ได้');
         },
       });
   }

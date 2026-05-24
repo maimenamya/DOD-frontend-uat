@@ -16,6 +16,7 @@ import type { Role } from '../../models/role';
 import { AuthService } from '../../services/auth.service';
 import { EmployeeService } from '../../services/employee.service';
 import { RoleService } from '../../services/role.service';
+import { ToastService } from '../../services/toast.service';
 import {
   isRoleMutableByViewer,
   roleLabelThai,
@@ -34,6 +35,7 @@ export class EmployeeManagementPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly employeeService = inject(EmployeeService);
   private readonly roleService = inject(RoleService);
+  private readonly toast = inject(ToastService);
 
   readonly user = this.auth.getUser();
   readonly canManage = computed(() => this.auth.canAccessTeamManagement());
@@ -43,8 +45,6 @@ export class EmployeeManagementPageComponent implements OnInit {
   readonly selectedRoleName = signal<string | null>(null);
   readonly loading = signal(true);
   readonly submitting = signal(false);
-  readonly error = signal<string | null>(null);
-  readonly success = signal<string | null>(null);
   readonly editingEmployee = signal<Employee | null>(null);
   readonly showCreateForm = signal(false);
 
@@ -89,11 +89,28 @@ export class EmployeeManagementPageComponent implements OnInit {
     password: [''],
   });
 
-  readonly roleDropdownOptions = computed<DropdownOption[]>(() =>
-    this.tabRoles().map((r) => ({
-      value: r.id,
-      label: roleLabelThai(r.name),
-    })),
+  /** Create: lock to tab role; owner on manager tabs may pick ADMIN or MANAGER. */
+  readonly createRoleDropdownOptions = computed<DropdownOption[]>(() => {
+    const selected = this.selectedRole();
+    if (!selected) {
+      return [];
+    }
+    if (this.auth.isOwner() && (selected.name === 'ADMIN' || selected.name === 'MANAGER')) {
+      return this.tabRoles()
+        .filter((r) => r.name === 'ADMIN' || r.name === 'MANAGER')
+        .map((r) => ({ value: r.id, label: roleLabelThai(r.name) }));
+    }
+    return [{ value: selected.id, label: roleLabelThai(selected.name) }];
+  });
+
+  readonly editRoleDropdownOptions = computed<DropdownOption[]>(() =>
+    this.tabRoles()
+      .filter(
+        (r) =>
+          r.name !== 'OWNER' &&
+          isRoleMutableByViewer(r.name, this.auth.isOwner(), this.auth.canAccessTeamManagement()),
+      )
+      .map((r) => ({ value: r.id, label: roleLabelThai(r.name) })),
   );
 
   ngOnInit(): void {
@@ -108,7 +125,7 @@ export class EmployeeManagementPageComponent implements OnInit {
           this.selectRole(initial, false);
         }
       },
-      error: () => this.error.set('ไม่สามารถโหลดรายการตำแหน่งได้'),
+      error: () => this.toast.showError('ไม่สามารถโหลดรายการตำแหน่งได้'),
     });
 
     this.loadEmployees();
@@ -155,13 +172,12 @@ export class EmployeeManagementPageComponent implements OnInit {
   loadEmployees(): void {
     const shopId = this.auth.getShopId();
     if (shopId == null) {
-      this.error.set('ไม่พบข้อมูลร้าน กรุณาเข้าสู่ระบบใหม่');
+      this.toast.showError('ไม่พบข้อมูลร้าน กรุณาเข้าสู่ระบบใหม่');
       this.loading.set(false);
       return;
     }
 
     this.loading.set(true);
-    this.error.set(null);
 
     this.employeeService.getEmployeesByShop(shopId).subscribe({
       next: (data) => {
@@ -169,7 +185,7 @@ export class EmployeeManagementPageComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err: { error?: { error?: string } }) => {
-        this.error.set(err.error?.error ?? 'ไม่สามารถโหลดรายชื่อพนักงานได้');
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถโหลดรายชื่อพนักงานได้');
         this.loading.set(false);
       },
     });
@@ -224,8 +240,6 @@ export class EmployeeManagementPageComponent implements OnInit {
 
     const raw = this.createForm.getRawValue();
     this.submitting.set(true);
-    this.error.set(null);
-    this.success.set(null);
 
     this.employeeService
       .createEmployee({
@@ -240,13 +254,13 @@ export class EmployeeManagementPageComponent implements OnInit {
       .subscribe({
         next: () => {
           this.submitting.set(false);
-          this.success.set('เพิ่มพนักงานสำเร็จ');
           this.closeCreateForm();
+          this.toast.showSuccess('เพิ่มพนักงานสำเร็จ');
           this.loadEmployees();
         },
         error: (err: { error?: { error?: string } }) => {
           this.submitting.set(false);
-          this.error.set(err.error?.error ?? 'ไม่สามารถเพิ่มพนักงานได้');
+          this.toast.showError(err.error?.error ?? 'ไม่สามารถเพิ่มพนักงานได้');
         },
       });
   }
@@ -260,8 +274,6 @@ export class EmployeeManagementPageComponent implements OnInit {
 
     const raw = this.editForm.getRawValue();
     this.submitting.set(true);
-    this.error.set(null);
-    this.success.set(null);
 
     this.employeeService
       .updateEmployee(employee.id, {
@@ -274,13 +286,13 @@ export class EmployeeManagementPageComponent implements OnInit {
       .subscribe({
         next: () => {
           this.submitting.set(false);
-          this.success.set('บันทึกการแก้ไขสำเร็จ');
           this.closeEdit();
+          this.toast.showSuccess('บันทึกการแก้ไขสำเร็จ');
           this.loadEmployees();
         },
         error: (err: { error?: { error?: string } }) => {
           this.submitting.set(false);
-          this.error.set(err.error?.error ?? 'ไม่สามารถแก้ไขพนักงานได้');
+          this.toast.showError(err.error?.error ?? 'ไม่สามารถแก้ไขพนักงานได้');
         },
       });
   }
@@ -295,14 +307,12 @@ export class EmployeeManagementPageComponent implements OnInit {
 
     this.employeeService.deleteEmployee(employee.id).subscribe({
       next: () => {
-        this.success.set('ลบพนักงานสำเร็จ');
-        if (this.editingEmployee()?.id === employee.id) {
-          this.closeEdit();
-        }
+        this.closeEdit();
+        this.toast.showSuccess('ลบพนักงานสำเร็จ');
         this.loadEmployees();
       },
       error: (err: { error?: { error?: string } }) => {
-        this.error.set(err.error?.error ?? 'ไม่สามารถลบพนักงานได้');
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถลบพนักงานได้');
       },
     });
   }

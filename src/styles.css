@@ -950,6 +950,61 @@
     background: var(--surface-hover);
   }
 
+  /* ── Top toast (no backdrop blur) ── */
+  .app-toast-host {
+    @apply pointer-events-none fixed inset-x-0 top-4 z-[60] flex justify-center px-4;
+  }
+
+  .app-toast {
+    @apply pointer-events-auto flex max-w-md items-start gap-3 rounded-card border px-5 py-4 shadow-card;
+    animation: app-toast-in 0.28s ease-out;
+  }
+
+  .app-toast-success {
+    border-color: var(--success-border);
+    background: var(--surface-strong);
+    box-shadow: 0 12px 40px rgba(16, 185, 129, 0.18);
+  }
+
+  .app-toast-error {
+    border-color: var(--danger-border);
+    background: var(--surface-strong);
+    box-shadow: 0 12px 40px rgba(239, 68, 68, 0.18);
+  }
+
+  .app-toast-text {
+    @apply flex-1 text-sm font-medium leading-snug text-text-primary;
+  }
+
+  .app-toast-success .app-toast-text {
+    color: var(--success);
+  }
+
+  .app-toast-error .app-toast-text {
+    color: var(--danger);
+  }
+
+  .app-toast-close {
+    @apply shrink-0 rounded-input border-0 bg-transparent p-1 text-lg leading-none text-text-secondary transition-colors;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-toast-close:hover {
+    color: var(--text-primary);
+  }
+
+  @keyframes app-toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(-12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   /* ── Alerts & states ── */
   .app-alert-error {
     @apply rounded-input border px-4 py-3 text-sm;

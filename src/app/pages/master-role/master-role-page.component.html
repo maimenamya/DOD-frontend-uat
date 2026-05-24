@@ -9,14 +9,6 @@
     }
   </div>
 
-  @if (success()) {
-    <div class="app-alert-success">{{ success() }}</div>
-  }
-
-  @if (error()) {
-    <div class="app-alert-error">{{ error() }}</div>
-  }
-
   @if (showCreateModal() && canManage()) {
     <app-modal (dismiss)="closeCreate()">
       <div class="app-modal-header">

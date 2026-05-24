@@ -1,0 +1,16 @@
+@if (toast.message(); as text) {
+  <div
+    class="app-toast-host"
+    role="alertdialog"
+    [attr.aria-live]="toast.kind() === 'error' ? 'assertive' : 'polite'"
+  >
+    <div
+      class="app-toast"
+      [class.app-toast-success]="toast.kind() === 'success'"
+      [class.app-toast-error]="toast.kind() === 'error'"
+    >
+      <p class="app-toast-text">{{ text }}</p>
+      <button type="button" class="app-toast-close" (click)="dismiss()" aria-label="ปิด">✕</button>
+    </div>
+  </div>
+}

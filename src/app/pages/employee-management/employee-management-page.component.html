@@ -28,14 +28,6 @@
     </div>
   }
 
-  @if (success()) {
-    <div class="app-alert-success">{{ success() }}</div>
-  }
-
-  @if (error()) {
-    <div class="app-alert-error">{{ error() }}</div>
-  }
-
   @if (showCreateForm() && canManage()) {
     <app-modal (dismiss)="closeCreateForm()">
       <div class="app-modal-header">
@@ -63,7 +55,7 @@
           <label class="app-label">ตำแหน่ง</label>
           <app-custom-dropdown
             formControlName="roleId"
-            [options]="roleDropdownOptions()"
+            [options]="createRoleDropdownOptions()"
             placeholder="เลือกตำแหน่ง"
           />
         </div>
@@ -107,7 +99,7 @@
             <label class="app-label">ตำแหน่ง</label>
             <app-custom-dropdown
               formControlName="roleId"
-              [options]="roleDropdownOptions()"
+              [options]="editRoleDropdownOptions()"
               placeholder="เลือกตำแหน่ง"
             />
           </div>
