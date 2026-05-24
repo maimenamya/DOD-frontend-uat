@@ -4,7 +4,7 @@
   [attr.aria-expanded]="isOpen()"
   aria-haspopup="listbox"
   [disabled]="disabled()"
-  (click)="toggleDropdown()"
+  (click)="toggleDropdown($event)"
 >
   <span class="app-dropdown-trigger-label">{{ selectedLabel() }}</span>
   <svg class="app-dropdown-chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -23,6 +23,7 @@
     role="listbox"
     [ngClass]="{ 'app-dropdown-menu--visible': menuVisible() }"
     [ngStyle]="menuStyle()"
+    (click)="$event.stopPropagation()"
   >
     @for (option of options; track option.value) {
       <button
@@ -31,7 +32,7 @@
         role="option"
         [attr.aria-selected]="isSelected(option)"
         [class.app-dropdown-item-selected]="isSelected(option)"
-        (click)="selectOption(option)"
+        (click)="selectOption(option, $event)"
       >
         {{ option.label }}
       </button>

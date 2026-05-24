@@ -13,6 +13,8 @@ import {
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
+import { getDropdownOverlayRoot } from './dropdown-overlay.util';
+
 export interface DropdownOption {
   value: number | string;
   label: string;
@@ -21,6 +23,7 @@ export interface DropdownOption {
 const MENU_GAP_PX = 8;
 /** Fixed cap for scrollable overlay — does not expand parent layout. */
 export const DROPDOWN_MENU_MAX_HEIGHT_PX = 280;
+const DROPDOWN_MENU_Z_INDEX = 9999;
 
 @Component({
   selector: 'app-custom-dropdown',
@@ -55,6 +58,7 @@ export class CustomDropdownComponent implements ControlValueAccessor {
   private onChange: (value: number | string | null) => void = () => {};
   private onTouched: () => void = () => {};
   private scrollListenerActive = false;
+  private suppressCloseUntil = 0;
 
   private readonly onScrollReposition = (): void => {
     if (this.isOpen()) {
@@ -65,7 +69,7 @@ export class CustomDropdownComponent implements ControlValueAccessor {
   constructor() {
     this.destroyRef.onDestroy(() => {
       this.removeScrollListener();
-      this.removeMenuFromBody();
+      this.detachMenuFromOverlay();
     });
   }
 
@@ -77,7 +81,9 @@ export class CustomDropdownComponent implements ControlValueAccessor {
     return this.options.find((o) => o.value === current)?.label ?? this.placeholder;
   };
 
-  toggleDropdown(): void {
+  toggleDropdown(event: MouseEvent): void {
+    event.stopPropagation();
+
     if (this.disabled()) return;
 
     if (this.isOpen()) {
@@ -87,13 +93,15 @@ export class CustomDropdownComponent implements ControlValueAccessor {
 
     this.isOpen.set(true);
     this.onTouched();
+    this.suppressCloseUntil = Date.now() + 100;
 
     afterNextRender(() => {
-      this.openFloatingMenu();
+      this.openFloatingMenu(0);
     });
   }
 
-  selectOption(option: DropdownOption): void {
+  selectOption(option: DropdownOption, event: MouseEvent): void {
+    event.stopPropagation();
     this.value.set(option.value);
     this.onChange(option.value);
     this.onTouched();
@@ -106,6 +114,10 @@ export class CustomDropdownComponent implements ControlValueAccessor {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
+    if (Date.now() < this.suppressCloseUntil) {
+      return;
+    }
+
     const target = event.target as Node;
     const inHost = this.elementRef.nativeElement.contains(target);
     const menu = this.menuPanel()?.nativeElement;
@@ -144,14 +156,18 @@ export class CustomDropdownComponent implements ControlValueAccessor {
     this.disabled.set(isDisabled);
   }
 
-  private openFloatingMenu(): void {
+  private openFloatingMenu(attempt: number): void {
     const menu = this.menuPanel()?.nativeElement;
     if (!menu) {
+      if (attempt < 5) {
+        requestAnimationFrame(() => this.openFloatingMenu(attempt + 1));
+      }
       return;
     }
 
-    if (menu.parentElement !== document.body) {
-      document.body.appendChild(menu);
+    const overlayRoot = getDropdownOverlayRoot();
+    if (menu.parentElement !== overlayRoot) {
+      overlayRoot.appendChild(menu);
     }
 
     this.positionMenu();
@@ -164,13 +180,17 @@ export class CustomDropdownComponent implements ControlValueAccessor {
     this.menuVisible.set(false);
     this.isOpen.set(false);
     this.menuStyle.set({});
-    this.removeMenuFromBody();
   }
 
-  private removeMenuFromBody(): void {
+  private detachMenuFromOverlay(): void {
     const menu = this.menuPanel()?.nativeElement;
-    if (menu?.parentElement === document.body) {
-      menu.remove();
+    if (!menu) {
+      return;
+    }
+
+    const host = this.elementRef.nativeElement;
+    if (menu.parentElement !== host) {
+      host.appendChild(menu);
     }
   }
 
@@ -189,20 +209,22 @@ export class CustomDropdownComponent implements ControlValueAccessor {
     const spaceAbove = rect.top - MENU_GAP_PX - viewportPadding;
 
     let top = rect.bottom + MENU_GAP_PX;
-    let height = Math.min(maxMenuHeight, spaceBelow);
+    let maxHeight = Math.min(maxMenuHeight, spaceBelow);
 
-    if (height < 120 && spaceAbove > spaceBelow) {
-      height = Math.min(maxMenuHeight, spaceAbove);
-      top = Math.max(viewportPadding, rect.top - MENU_GAP_PX - height);
+    if (maxHeight < 120 && spaceAbove > spaceBelow) {
+      maxHeight = Math.min(maxMenuHeight, spaceAbove);
+      top = Math.max(viewportPadding, rect.top - MENU_GAP_PX - maxHeight);
     }
 
-    height = Math.max(120, Math.min(maxMenuHeight, height));
+    maxHeight = Math.max(120, Math.min(maxMenuHeight, maxHeight));
 
     this.menuStyle.set({
+      position: 'fixed',
       top: `${top}px`,
       left: `${rect.left}px`,
-      width: `${rect.width}px`,
-      maxHeight: `${height}px`,
+      width: `${Math.max(rect.width, 120)}px`,
+      maxHeight: `${maxHeight}px`,
+      zIndex: `${DROPDOWN_MENU_Z_INDEX}`,
     });
   }
 
