@@ -8,7 +8,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { catchError, of } from 'rxjs';
 
 import {
   CustomDropdownComponent,
@@ -31,6 +31,26 @@ type DrinkRowForm = FormGroup<{
 
 /** Roles excluded from drink entry (no field billing). */
 const EXCLUDED_DRINK_ROLE_NAMES = new Set(['OWNER']);
+
+function rolesFromEmployees(employees: Employee[]): Role[] {
+  const byId = new Map<number, Role>();
+  for (const employee of employees) {
+    const role = employee.role;
+    if (!role || EXCLUDED_DRINK_ROLE_NAMES.has(role.name)) {
+      continue;
+    }
+    if (!byId.has(role.id)) {
+      byId.set(role.id, {
+        id: role.id,
+        name: role.name,
+        startDrinks: role.startDrinks ?? 0,
+        nextHourDrinks: role.nextHourDrinks ?? 0,
+        defaultPricePerDrink: role.defaultPricePerDrink ?? 0,
+      });
+    }
+  }
+  return Array.from(byId.values()).sort((a, b) => a.id - b.id);
+}
 
 @Component({
   selector: 'app-record-drinks-page',
@@ -58,17 +78,11 @@ export class RecordDrinksPageComponent implements OnInit {
     rows: this.fb.array<DrinkRowForm>([this.createRow()]),
   });
 
-  /** Roles from master data that have at least one active employee in this shop. */
   readonly roleDropdownOptions = computed((): DropdownOption[] => {
-    const roleIdsInShop = new Set(this.staff().map((employee) => employee.roleId));
-    return this.allRoles()
-      .filter(
-        (role) => roleIdsInShop.has(role.id) && !EXCLUDED_DRINK_ROLE_NAMES.has(role.name),
-      )
-      .map((role) => ({
-        value: role.id,
-        label: roleLabelThai(role.name),
-      }));
+    return this.allRoles().map((role) => ({
+      value: role.id,
+      label: roleLabelThai(role.name),
+    }));
   });
 
   readonly grandTotal = computed(() => {
@@ -95,17 +109,26 @@ export class RecordDrinksPageComponent implements OnInit {
       return;
     }
 
-    forkJoin({
-      roles: this.roleService.getRoles(),
-      employees: this.employeeService.getEmployeesByShop(shopId),
-    }).subscribe({
-      next: ({ roles, employees }) => {
-        this.allRoles.set(roles);
-        this.staff.set(employees.filter((employee) => employee.status === 'Active'));
-        this.loading.set(false);
+    this.employeeService.getEmployeesByShop(shopId).subscribe({
+      next: (employees) => {
+        const active = employees.filter((employee) => employee.status === 'Active');
+        this.staff.set(active);
+        this.allRoles.set(rolesFromEmployees(active));
+
+        this.roleService
+          .getRolesForShop(shopId)
+          .pipe(catchError(() => of(null)))
+          .subscribe((roles) => {
+            if (roles?.length) {
+              this.allRoles.set(roles);
+            } else if (this.allRoles().length === 0) {
+              this.toast.showError('ไม่พบตำแหน่งที่มีพนักงานในร้านนี้');
+            }
+            this.loading.set(false);
+          });
       },
       error: () => {
-        this.toast.showError('โหลดข้อมูลตำแหน่งและพนักงานไม่สำเร็จ');
+        this.toast.showError('โหลดรายชื่อพนักงานไม่สำเร็จ');
         this.loading.set(false);
       },
     });

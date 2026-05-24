@@ -16,6 +16,13 @@ export class RoleService {
     return this.http.get<Role[]>(this.api.resource('roles'));
   }
 
+  /** Roles with active employees in the given shop (for drink entry, filters, etc.). */
+  getRolesForShop(shopId: number): Observable<Role[]> {
+    return this.http.get<Role[]>(this.api.resource('roles', 'for-shop'), {
+      params: { shopId: shopId.toString() },
+    });
+  }
+
   createRole(payload: RoleWritePayload): Observable<Role> {
     return this.http.post<Role>(this.api.resource('roles'), payload);
   }
