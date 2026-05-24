@@ -1,6 +1,7 @@
 /**
- * Production build (Vercel).
- * Requests use relative `/api` — proxied to Railway via `api/[...path].js` + `BACKEND_URL`.
+ * Production (Vercel build).
+ * Overwritten by `scripts/generate-environment.mjs` when BACKEND_URL is set.
+ * Local prod build without BACKEND_URL keeps `/api` (dev proxy).
  */
 export const environment = {
   production: true,

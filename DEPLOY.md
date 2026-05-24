@@ -19,15 +19,18 @@ Backend Railway variables: see `backend/.env.uat` / `backend/.env.prod` and `bac
 2. Set **Root Directory** to `frontend`.
 3. Build: `npm run build` → output `dist/frontend/browser` (from `vercel.json`).
 
-## 2. Vercel environment variables
+## 2. Vercel environment variables (required)
 
 | Name | UAT (Preview) | Production |
 |------|---------------|------------|
 | `BACKEND_URL` | From `frontend/.env.uat` | From `frontend/.env.prod` |
 
-No trailing slash. Example: `https://dod-api-production.up.railway.app`
+Railway URL, **no trailing slash**. Example: `https://dod-backend.up.railway.app`
 
-Vercel `api/[...path].js` proxies browser `/api/*` requests to `BACKEND_URL`.
+Each deploy runs `scripts/generate-environment.mjs`, which sets Angular `apiBaseUrl` to  
+`https://your-railway.app/api` so login calls **Railway**, not `dod-frontend.vercel.app/api`.
+
+Ensure Railway `CORS_ORIGIN` includes your Vercel domain.
 
 ## 3. Backend CORS
 
