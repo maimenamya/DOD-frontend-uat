@@ -8,6 +8,7 @@ import { LoginComponent } from './pages/login/login.component';
 import { MasterDrinkPageComponent } from './pages/master-drink/master-drink-page.component';
 import { MasterRolePageComponent } from './pages/master-role/master-role-page.component';
 import { MyProfileComponent } from './pages/my-profile/my-profile.component';
+import { RecordDrinksPageComponent } from './pages/record-drinks/record-drinks-page.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -22,6 +23,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: '', component: DashboardPageComponent },
+      {
+        path: 'record-drinks',
+        component: RecordDrinksPageComponent,
+        canActivate: [teamManagementGuard],
+      },
       {
         path: 'employees',
         component: EmployeeManagementPageComponent,

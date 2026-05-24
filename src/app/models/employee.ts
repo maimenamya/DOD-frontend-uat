@@ -9,6 +9,9 @@ export interface Employee {
   role?: {
     id: number;
     name: EmployeeRole;
+    startDrinks?: number;
+    nextHourDrinks?: number;
+    defaultPricePerDrink?: number;
     createdAt?: string;
   };
   shopId: number;
