@@ -197,9 +197,11 @@
   }
 
   .glass-input {
-    @apply w-full min-w-0 flex-1 border-0 bg-transparent text-base text-text-primary outline-none;
-    padding: 0.875rem 1rem;
-    line-height: 1.5;
+    @apply w-full min-w-0 border-0 bg-transparent text-base text-text-primary outline-none;
+    box-sizing: border-box;
+    height: 3rem;
+    padding: 0 1rem;
+    line-height: 3rem;
     font-size: 1rem;
     -webkit-appearance: none;
     appearance: none;
@@ -258,7 +260,21 @@
   }
 
   .login-card {
-    @apply glass-card glow-border z-10 w-full max-w-[460px] animate-fade-in p-8 sm:p-10;
+    @apply glass-card glow-border z-10 w-full max-w-[460px] p-8 sm:p-10;
+    animation: loginCardFade 0.5s ease-out forwards;
+    transform: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  @keyframes loginCardFade {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
   }
 
   .login-heading {
@@ -275,14 +291,22 @@
   }
 
   .login-input-group {
-    @apply relative flex min-h-[3rem] w-full items-center overflow-hidden rounded-input border border-theme-border;
+    @apply relative grid w-full items-center rounded-input border border-theme-border;
+    grid-template-columns: auto 1fr auto;
+    min-height: 3rem;
     background: var(--surface);
-    backdrop-filter: blur(var(--glass-blur-sm));
-    -webkit-backdrop-filter: blur(var(--glass-blur-sm));
     transition:
       border-color var(--transition-smooth),
       box-shadow var(--transition-smooth),
       background var(--transition-smooth);
+  }
+
+  .login-input-group--with-icon {
+    grid-template-columns: auto 1fr;
+  }
+
+  .login-input-group--with-icon.login-input-group--toggle {
+    grid-template-columns: auto 1fr auto;
   }
 
   .login-input-group:hover {
@@ -299,7 +323,7 @@
   }
 
   .login-input-group--with-icon .glass-input {
-    padding-left: 0.5rem;
+    padding-left: 0.25rem;
   }
 
   .login-input-group--toggle .glass-input {
@@ -307,11 +331,24 @@
   }
 
   .login-input-icon {
-    @apply pointer-events-none my-auto ml-3.5 h-5 w-5 shrink-0 self-center text-text-secondary;
+    @apply pointer-events-none ml-3.5 h-5 w-5 text-text-secondary;
   }
 
   .login-input-icon-right {
-    @apply pointer-events-auto my-auto mr-3.5 h-5 w-5 shrink-0 cursor-pointer self-center border-0 bg-transparent p-0 text-text-secondary transition-colors duration-200 hover:text-primary-light;
+    @apply pointer-events-auto mr-3.5 h-5 w-5 cursor-pointer justify-self-end border-0 bg-transparent p-0 text-text-secondary transition-colors duration-200 hover:text-primary-light;
+  }
+
+  @supports (-webkit-touch-callout: none) {
+    .login-page .login-card,
+    .login-page .login-input-group,
+    .login-page .glass-input {
+      transform: none;
+    }
+
+    .login-page .glass-input {
+      font-size: 16px;
+      line-height: 3rem;
+    }
   }
 
   .login-toggle-icon {
@@ -705,8 +742,48 @@
   }
 
   /**
-   * ~10 visible rows; single table keeps columns aligned (ranking-style scrollbar).
+   * Split header + scrollable body (same pattern as dashboard ranking tables).
+   * Scrollbar stays on the body only; header keeps labels centered over columns.
    */
+  .app-split-table {
+    background-color: var(--table-body-bg);
+  }
+
+  .app-split-table-header {
+    scrollbar-gutter: stable;
+    background-color: var(--table-head-sticky-bg);
+    border-bottom: 1px solid var(--table-head-border);
+  }
+
+  .app-split-table-header th {
+    @apply px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wider;
+    color: var(--table-head-text);
+    background-color: var(--table-head-sticky-bg) !important;
+    line-height: 1.4;
+  }
+
+  .app-split-table-grid {
+    @apply w-full table-fixed text-sm;
+  }
+
+  .app-split-table-body {
+    scrollbar-gutter: stable;
+    @apply app-scroll-region;
+    max-height: 37.5rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .app-split-table-body .app-data-table td {
+    @apply box-border py-3 text-center;
+    vertical-align: middle;
+  }
+
+  .app-split-table--wide .app-split-table-grid {
+    min-width: 40rem;
+  }
+
+  /** @deprecated — use .app-split-table */
   .app-data-table-scroll-10 {
     @apply app-scroll-region relative max-h-[600px] overflow-y-auto overflow-x-auto;
     isolation: isolate;
@@ -1016,8 +1093,14 @@
     }
 
     .app-data-table-scroll-10.app-data-table-wrap--wide .app-data-table,
-    .app-data-table-wrap.app-data-table-scroll-10--wide .app-data-table {
+    .app-data-table-wrap.app-data-table-scroll-10--wide .app-data-table,
+    .app-split-table--wide .app-split-table-grid {
       min-width: 36rem;
+    }
+
+    .app-split-table-header th,
+    .app-split-table-body .app-data-table td {
+      @apply px-2.5 py-2.5 text-xs;
     }
 
     .app-data-table th,
@@ -1685,6 +1768,7 @@
   }
 
   .dashboard-rank-table-header {
+    scrollbar-gutter: stable;
     background-color: var(--table-head-sticky-bg);
     border-bottom: 1px solid var(--table-head-border);
   }
@@ -1713,6 +1797,7 @@
   }
 
   .dashboard-rank-table-body {
+    scrollbar-gutter: stable;
     @apply app-scroll-region;
     height: var(--dashboard-rank-body);
     min-height: var(--dashboard-rank-body);

@@ -1,30 +1,36 @@
 <div class="app-card app-card-flush">
   <div class="app-data-table-shell">
-    <div class="app-data-table-wrap app-data-table-scroll-10 app-data-table-scroll-10--wide">
-      <table class="app-data-table app-data-table-sticky-head app-data-table-cols-5">
-      <thead>
-        <tr>
-          <th>รหัส</th>
-          <th>ชื่อเล่น</th>
-          <th>Role</th>
-          <th>ร้าน</th>
-          <th>สถานะ</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (emp of employees(); track emp.id) {
-          <tr>
-            <td class="app-cell-mono">{{ emp.id }}</td>
-            <td class="app-cell-primary">{{ emp.nickname }}</td>
-            <td>{{ emp.role?.name || ('Role #' + emp.roleId) }}</td>
-            <td>{{ emp.shop?.name || ('Shop #' + emp.shopId) }}</td>
-            <td>
-              <span class="app-badge app-badge-default">{{ emp.status }}</span>
-            </td>
-          </tr>
-        }
-      </tbody>
-      </table>
+    <div class="app-split-table app-split-table--wide">
+      <div class="app-split-table-header">
+        <table class="app-data-table app-split-table-grid app-data-table-cols-5">
+          <thead>
+            <tr>
+              <th>รหัส</th>
+              <th>ชื่อเล่น</th>
+              <th>Role</th>
+              <th>ร้าน</th>
+              <th>สถานะ</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+      <div class="app-split-table-body app-scroll-region">
+        <table class="app-data-table app-split-table-grid app-data-table-cols-5">
+          <tbody>
+            @for (emp of employees(); track emp.id) {
+              <tr>
+                <td class="app-cell-mono">{{ emp.id }}</td>
+                <td class="app-cell-primary">{{ emp.nickname }}</td>
+                <td>{{ emp.role?.name || ('Role #' + emp.roleId) }}</td>
+                <td>{{ emp.shop?.name || ('Shop #' + emp.shopId) }}</td>
+                <td>
+                  <span class="app-badge app-badge-default">{{ emp.status }}</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
   <div class="app-data-table-footer">

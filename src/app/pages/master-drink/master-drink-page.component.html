@@ -65,46 +65,56 @@
   } @else {
     <section class="app-card app-card-flush">
       <div class="app-data-table-shell">
-        <div class="app-data-table-wrap app-data-table-scroll-10">
-          <table
-            class="app-data-table app-data-table-sticky-head"
-            [class.app-data-table-cols-4]="canManage()"
-            [class.app-data-table-cols-3]="!canManage()"
-          >
-            <thead>
-              <tr>
-                <th>รหัส</th>
-                <th>ชื่อ</th>
-                <th class="app-cell-right">ราคา</th>
-                @if (canManage()) {
-                  <th class="app-cell-right">จัดการ</th>
-                }
-              </tr>
-            </thead>
-            <tbody>
-              @for (item of beverages(); track item.id) {
+        <div class="app-split-table">
+          <div class="app-split-table-header">
+            <table
+              class="app-data-table app-split-table-grid"
+              [class.app-data-table-cols-4]="canManage()"
+              [class.app-data-table-cols-3]="!canManage()"
+            >
+              <thead>
                 <tr>
-                  <td class="app-cell-mono">{{ item.id }}</td>
-                  <td class="app-cell-primary">{{ item.name }}</td>
-                  <td class="app-cell-right app-cell-highlight-violet">
-                    {{ item.price | number: '1.0-0' }}
-                  </td>
+                  <th>รหัส</th>
+                  <th>ชื่อ</th>
+                  <th class="app-cell-right">ราคา</th>
                   @if (canManage()) {
-                    <td class="app-cell-right">
-                      <div class="app-table-actions">
-                        <button type="button" class="app-btn-secondary-sm" (click)="openEdit(item)">
-                          แก้ไข
-                        </button>
-                        <button type="button" class="app-btn-danger" (click)="confirmDelete(item)">
-                          ลบ
-                        </button>
-                      </div>
-                    </td>
+                    <th class="app-cell-right">จัดการ</th>
                   }
                 </tr>
-              }
-            </tbody>
-          </table>
+              </thead>
+            </table>
+          </div>
+          <div class="app-split-table-body app-scroll-region">
+            <table
+              class="app-data-table app-split-table-grid"
+              [class.app-data-table-cols-4]="canManage()"
+              [class.app-data-table-cols-3]="!canManage()"
+            >
+              <tbody>
+                @for (item of beverages(); track item.id) {
+                  <tr>
+                    <td class="app-cell-mono">{{ item.id }}</td>
+                    <td class="app-cell-primary">{{ item.name }}</td>
+                    <td class="app-cell-right app-cell-highlight-violet">
+                      {{ item.price | number: '1.0-0' }}
+                    </td>
+                    @if (canManage()) {
+                      <td class="app-cell-right">
+                        <div class="app-table-actions">
+                          <button type="button" class="app-btn-secondary-sm" (click)="openEdit(item)">
+                            แก้ไข
+                          </button>
+                          <button type="button" class="app-btn-danger" (click)="confirmDelete(item)">
+                            ลบ
+                          </button>
+                        </div>
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>

@@ -85,52 +85,62 @@
   } @else {
     <section class="app-card app-card-flush">
       <div class="app-data-table-shell">
-        <div class="app-data-table-wrap app-data-table-scroll-10 app-data-table-scroll-10--wide">
-          <table
-            class="app-data-table app-data-table-sticky-head"
-            [class.app-data-table-cols-7]="canManage()"
-            [class.app-data-table-cols-6-role]="!canManage()"
-          >
-            <thead>
-              <tr>
-                <th>รหัส</th>
-                <th>ชื่อระบบ</th>
-                <th>ชื่อแสดง</th>
-                <th class="app-cell-right">สตาร์ทดื่ม</th>
-                <th class="app-cell-right">รันดื่ม</th>
-                <th class="app-cell-right">ราคา</th>
-                @if (canManage()) {
-                  <th class="app-cell-right">จัดการ</th>
-                }
-              </tr>
-            </thead>
-            <tbody>
-              @for (role of roles(); track role.id) {
+        <div class="app-split-table app-split-table--wide">
+          <div class="app-split-table-header">
+            <table
+              class="app-data-table app-split-table-grid"
+              [class.app-data-table-cols-7]="canManage()"
+              [class.app-data-table-cols-6-role]="!canManage()"
+            >
+              <thead>
                 <tr>
-                  <td class="app-cell-mono">{{ role.id }}</td>
-                  <td class="app-cell-primary">{{ role.name }}</td>
-                  <td>{{ roleLabel(role.name) }}</td>
-                  <td class="app-cell-right">{{ role.startDrinks }}</td>
-                  <td class="app-cell-right">{{ role.nextHourDrinks }}</td>
-                  <td class="app-cell-right app-cell-highlight-violet">
-                    {{ role.defaultPricePerDrink | number: '1.0-0' }}
-                  </td>
+                  <th>รหัส</th>
+                  <th>ชื่อระบบ</th>
+                  <th>ชื่อแสดง</th>
+                  <th class="app-cell-right">สตาร์ทดื่ม</th>
+                  <th class="app-cell-right">รันดื่ม</th>
+                  <th class="app-cell-right">ราคา</th>
                   @if (canManage()) {
-                    <td class="app-cell-right">
-                      <div class="app-table-actions">
-                        <button type="button" class="app-btn-secondary-sm" (click)="openEdit(role)">
-                          แก้ไข
-                        </button>
-                        <button type="button" class="app-btn-danger" (click)="confirmDelete(role)">
-                          ลบ
-                        </button>
-                      </div>
-                    </td>
+                    <th class="app-cell-right">จัดการ</th>
                   }
                 </tr>
-              }
-            </tbody>
-          </table>
+              </thead>
+            </table>
+          </div>
+          <div class="app-split-table-body app-scroll-region">
+            <table
+              class="app-data-table app-split-table-grid"
+              [class.app-data-table-cols-7]="canManage()"
+              [class.app-data-table-cols-6-role]="!canManage()"
+            >
+              <tbody>
+                @for (role of roles(); track role.id) {
+                  <tr>
+                    <td class="app-cell-mono">{{ role.id }}</td>
+                    <td class="app-cell-primary">{{ role.name }}</td>
+                    <td>{{ roleLabel(role.name) }}</td>
+                    <td class="app-cell-right">{{ role.startDrinks }}</td>
+                    <td class="app-cell-right">{{ role.nextHourDrinks }}</td>
+                    <td class="app-cell-right app-cell-highlight-violet">
+                      {{ role.defaultPricePerDrink | number: '1.0-0' }}
+                    </td>
+                    @if (canManage()) {
+                      <td class="app-cell-right">
+                        <div class="app-table-actions">
+                          <button type="button" class="app-btn-secondary-sm" (click)="openEdit(role)">
+                            แก้ไข
+                          </button>
+                          <button type="button" class="app-btn-danger" (click)="confirmDelete(role)">
+                            ลบ
+                          </button>
+                        </div>
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>

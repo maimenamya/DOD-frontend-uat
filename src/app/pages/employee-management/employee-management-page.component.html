@@ -123,55 +123,62 @@
   } @else {
     <section class="app-card app-card-flush">
       <div class="app-data-table-shell">
-        <div
-          class="app-data-table-wrap app-data-table-scroll-10"
-          [class.app-data-table-scroll-10--wide]="canManage()"
-        >
-          <table
-            class="app-data-table app-data-table-sticky-head"
-            [class.app-data-table-cols-6]="canManage()"
-            [class.app-data-table-cols-5]="!canManage()"
-          >
-          <thead>
-            <tr>
-              <th>รหัส</th>
-              <th>ชื่อเล่น</th>
-              <th>ตำแหน่ง</th>
-              <th>สถานะ</th>
-              @if (canManage()) {
-                <th class="app-cell-right">จัดการ</th>
-              }
-            </tr>
-          </thead>
-          <tbody>
-            @for (emp of filteredEmployees(); track emp.id) {
-              <tr>
-                <td class="app-cell-mono">{{ emp.employeeId }}</td>
-                <td class="app-cell-primary">{{ emp.nickname }}</td>
-                <td>
-                  <span [class]="roleBadgeClass(emp.role?.name)">{{ roleLabel(emp.role?.name ?? '') }}</span>
-                </td>
-                <td>{{ emp.status === 'Active' ? 'ใช้งาน' : 'ไม่ใช้งาน' }}</td>
-                @if (canManage()) {
-                  <td class="app-cell-right">
-                    @if (canMutateRow(emp)) {
-                      <div class="app-table-actions">
-                        <button type="button" class="app-btn-secondary-sm" (click)="openEdit(emp)">
-                          แก้ไข
-                        </button>
-                        <button type="button" class="app-btn-danger" (click)="confirmDelete(emp)">
-                          ลบ
-                        </button>
-                      </div>
-                    } @else {
-                      <span class="app-cell-meta">—</span>
+        <div class="app-split-table" [class.app-split-table--wide]="canManage()">
+          <div class="app-split-table-header">
+            <table
+              class="app-data-table app-split-table-grid"
+              [class.app-data-table-cols-6]="canManage()"
+              [class.app-data-table-cols-5]="!canManage()"
+            >
+              <thead>
+                <tr>
+                  <th>รหัส</th>
+                  <th>ชื่อเล่น</th>
+                  <th>ตำแหน่ง</th>
+                  <th>สถานะ</th>
+                  @if (canManage()) {
+                    <th class="app-cell-right">จัดการ</th>
+                  }
+                </tr>
+              </thead>
+            </table>
+          </div>
+          <div class="app-split-table-body app-scroll-region">
+            <table
+              class="app-data-table app-split-table-grid"
+              [class.app-data-table-cols-6]="canManage()"
+              [class.app-data-table-cols-5]="!canManage()"
+            >
+              <tbody>
+                @for (emp of filteredEmployees(); track emp.id) {
+                  <tr>
+                    <td class="app-cell-mono">{{ emp.employeeId }}</td>
+                    <td class="app-cell-primary">{{ emp.nickname }}</td>
+                    <td>
+                      <span [class]="roleBadgeClass(emp.role?.name)">{{ roleLabel(emp.role?.name ?? '') }}</span>
+                    </td>
+                    <td>{{ emp.status === 'Active' ? 'ใช้งาน' : 'ไม่ใช้งาน' }}</td>
+                    @if (canManage()) {
+                      <td class="app-cell-right">
+                        @if (canMutateRow(emp)) {
+                          <div class="app-table-actions">
+                            <button type="button" class="app-btn-secondary-sm" (click)="openEdit(emp)">
+                              แก้ไข
+                            </button>
+                            <button type="button" class="app-btn-danger" (click)="confirmDelete(emp)">
+                              ลบ
+                            </button>
+                          </div>
+                        } @else {
+                          <span class="app-cell-meta">—</span>
+                        }
+                      </td>
                     }
-                  </td>
+                  </tr>
                 }
-              </tr>
-            }
-          </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>
