@@ -27,8 +27,8 @@ Backend Railway variables: see `backend/.env.uat` / `backend/.env.prod` and `bac
 
 Railway URL, **no trailing slash**. Example: `https://dod-backend.up.railway.app`
 
-Each deploy runs `scripts/generate-environment.mjs`, which sets Angular `apiBaseUrl` to  
-`https://your-railway.app/api` so login calls **Railway**, not `dod-frontend.vercel.app/api`.
+Each deploy runs `scripts/generate-environment.mjs`, which sets Angular `apiBaseUrl` to `/api`.  
+Browser calls go to `dod-frontend.vercel.app/api/*` → Vercel function `api/index.js` → Railway `BACKEND_URL`.
 
 Ensure Railway `CORS_ORIGIN` includes your Vercel domain.
 

@@ -1,42 +1,64 @@
 /**
- * Proxies /api/* to the Express backend (BACKEND_URL).
- * Set BACKEND_URL in Vercel → Project Settings → Environment Variables.
- * Example: https://your-api.railway.app
+ * Proxies /api/* → BACKEND_URL (Railway Express).
+ * Set BACKEND_URL in Vercel → Environment Variables.
  */
-export const config = {
-  runtime: 'edge',
-};
-
-export default async function handler(request) {
+module.exports = async (req, res) => {
   const backend = process.env.BACKEND_URL?.replace(/\/$/, '');
 
   if (!backend) {
-    return new Response(
-      JSON.stringify({ error: 'BACKEND_URL is not configured on Vercel' }),
-      { status: 502, headers: { 'Content-Type': 'application/json' } },
-    );
+    res.status(502).json({ error: 'BACKEND_URL is not configured on Vercel' });
+    return;
   }
 
-  const url = new URL(request.url);
-  const target = `${backend}${url.pathname}${url.search}`;
+  const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost';
+  const proto = req.headers['x-forwarded-proto'] || 'https';
+  const incoming = new URL(req.url || '/api', `${proto}://${host}`);
+  const target = `${backend}${incoming.pathname}${incoming.search}`;
 
-  const headers = new Headers(request.headers);
-  headers.delete('host');
+  const headers = new Headers();
+  for (const [key, value] of Object.entries(req.headers)) {
+    if (value === undefined || key.toLowerCase() === 'host') {
+      continue;
+    }
+    if (Array.isArray(value)) {
+      value.forEach((v) => headers.append(key, v));
+    } else {
+      headers.set(key, value);
+    }
+  }
 
   const init = {
-    method: request.method,
+    method: req.method,
     headers,
   };
 
-  if (request.method !== 'GET' && request.method !== 'HEAD') {
-    init.body = await request.arrayBuffer();
+  if (req.method && req.method !== 'GET' && req.method !== 'HEAD' && req.body !== undefined) {
+    if (typeof req.body === 'string' || Buffer.isBuffer(req.body)) {
+      init.body = req.body;
+    } else {
+      init.body = JSON.stringify(req.body);
+      if (!headers.has('content-type')) {
+        headers.set('content-type', 'application/json');
+      }
+    }
   }
 
-  const response = await fetch(target, init);
+  let upstream;
+  try {
+    upstream = await fetch(target, init);
+  } catch (err) {
+    console.error('[api proxy]', target, err);
+    res.status(502).json({ error: 'Backend unreachable' });
+    return;
+  }
 
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: response.headers,
+  res.status(upstream.status);
+  upstream.headers.forEach((value, key) => {
+    if (key.toLowerCase() === 'transfer-encoding') {
+      return;
+    }
+    res.setHeader(key, value);
   });
-}
+
+  res.send(Buffer.from(await upstream.arrayBuffer()));
+};
