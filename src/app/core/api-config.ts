@@ -6,11 +6,11 @@ import { environment } from '../../environments/environment';
   providedIn: 'root',
 })
 export class ApiConfig {
-  /** Base path for all HTTP API calls (never hardcode localhost in services). */
-  readonly baseUrl = environment.apiBaseUrl;
+  /** Base URL for all HTTP API calls (from environment; set at Vercel build via set-env.js). */
+  readonly baseUrl = environment.apiUrl;
 
   /**
-   * Build a URL under the API base, e.g. `resource('employees')` → `/api/employees`.
+   * Build a URL under the API base, e.g. `resource('employees')` → `{apiUrl}/employees`.
    */
   resource(...segments: string[]): string {
     const path = segments

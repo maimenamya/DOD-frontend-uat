@@ -7,42 +7,54 @@
 | `.env.uat` | Copy `BACKEND_URL` into Vercel → **Preview** / UAT |
 | `.env.prod` | Copy `BACKEND_URL` into Vercel → **Production** |
 
-Local `npm start` does **not** use these files — it proxies `/api` to `http://127.0.0.1:3000` via `proxy.conf.json`.
-
-Backend Railway variables: see `backend/.env.uat` / `backend/.env.prod` and `backend/RAILWAY_DEPLOY.md`.
+Local `npm start` does **not** use these files — it uses `environment.ts` with `apiUrl: '/api'` and `proxy.conf.json`.
 
 ---
 
 ## 1. Connect the repo
 
-1. Go to [vercel.com](https://vercel.com) → **Add New Project** → import this Git repository.
-2. Set **Root Directory** to `frontend`.
-3. Build: `npm run build` → output `dist/frontend/browser` (from `vercel.json`).
+1. Go to [vercel.com](https://vercel.com) → **Add New Project** → import `DOD-frontend`.
+2. **Root Directory:** `frontend` (if the repo is the monorepo root, set Root Directory to `frontend`).
+3. Build uses `vercel.json`: `npm run build` → `set-env.js` then `ng build --configuration production`.
 
-## 2. Vercel environment variables (required)
+## 2. Vercel environment variable (required)
 
 | Name | UAT (Preview) | Production |
 |------|---------------|------------|
-| `BACKEND_URL` | From `frontend/.env.uat` | From `frontend/.env.prod` |
+| `BACKEND_URL` | Railway UAT/public URL | Railway production URL |
 
-Railway URL, **no trailing slash**. Example: `https://dod-backend.up.railway.app`
+Example: `https://dod-backend-production.up.railway.app` — **no trailing slash**.
 
-Each deploy runs `scripts/generate-environment.mjs`, which sets Angular `apiBaseUrl` to `/api`.  
-Browser calls go to `dod-frontend.vercel.app/api/*` → Vercel function `api/index.js` → Railway `BACKEND_URL`.
+During build, `set-env.js` writes `src/environments/environment.prod.ts` with:
 
-Ensure Railway `CORS_ORIGIN` includes your Vercel domain.
+```typescript
+apiUrl: 'https://your-railway.app/api'
+```
 
-## 3. Backend CORS
+The browser calls Railway **directly** (no `/api` proxy on Vercel).
 
-Set Railway `CORS_ORIGIN` to your Vercel URL (see `backend/.env.uat` / `.env.prod`).
+## 3. Backend CORS (required)
+
+On Railway, set `CORS_ORIGIN` to your Vercel frontend URL only:
+
+- Production: `https://dod-frontend.vercel.app`
+- Preview: your preview URL if needed
+
+Do **not** put the Railway backend URL in `CORS_ORIGIN`.
 
 ## 4. Deploy
 
+Push to `main` → Vercel auto-deploys. Or:
+
 ```bash
 cd frontend
-npx vercel
+npx vercel --prod
 ```
 
-## 5. Angular routes
+## 5. Verify
 
-`vercel.json` rewrites routes to `index.html` for client-side routing.
+After deploy, open DevTools → Network → login request should go to:
+
+`https://<your-railway-host>/api/auth/login`
+
+not `dod-frontend.vercel.app/api/...`.
