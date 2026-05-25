@@ -120,8 +120,16 @@
     <p class="app-empty-state">No team members yet</p>
   } @else {
     <section class="app-card app-card-flush">
-      <div class="app-data-table-wrap">
-        <table class="app-data-table">
+      <div class="app-data-table-shell">
+        <div
+          class="app-data-table-wrap app-data-table-scroll-10"
+          [class.app-data-table-scroll-10--wide]="canManage()"
+        >
+          <table
+            class="app-data-table app-data-table-sticky-head"
+            [class.app-data-table-cols-6]="canManage()"
+            [class.app-data-table-cols-5]="!canManage()"
+          >
           <thead>
             <tr>
               <th>ID</th>
@@ -161,7 +169,8 @@
               </tr>
             }
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
     </section>
   }

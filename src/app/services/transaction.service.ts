@@ -7,6 +7,7 @@ import { ApiConfig } from '../core/api-config';
 export interface BatchDrinkLinePayload {
   employeeId: string;
   quantity: number;
+  roleId: number;
 }
 
 export interface BatchDrinkPayload {

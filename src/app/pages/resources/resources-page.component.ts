@@ -22,7 +22,7 @@ export class ResourcesPageComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('ไม่สามารถโหลดข้อมูลเครื่องดื่มเมนูได้');
+        this.error.set('ไม่สามารถโหลดข้อมูลเครื่องดื่มได้');
         this.loading.set(false);
       },
     });

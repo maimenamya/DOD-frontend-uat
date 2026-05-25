@@ -53,6 +53,13 @@
     --stat-revenue: #34d399;
     --stat-drinks: #1ec8ff;
 
+    /* Scrollable data tables (opaque — sticky header) */
+    --table-body-bg: #1a1b2e;
+    --table-head-sticky-bg: #222541;
+    --table-head-border: rgba(51, 65, 85, 0.6);
+    --table-head-text: #d1d5db;
+    --table-row-hover-bg: #252849;
+
     /* Radius */
     --radius-glass: 22px;
     --radius-card: 20px;
@@ -96,6 +103,11 @@
     --text-primary: #0b1226;
     --text-secondary: #64748b;
     --glow: rgba(47, 128, 255, 0.2);
+    --table-body-bg: #f8fafc;
+    --table-head-sticky-bg: #e8edf8;
+    --table-head-border: rgba(148, 163, 184, 0.55);
+    --table-head-text: #475569;
+    --table-row-hover-bg: #eef2ff;
     --shadow-card: 0 8px 30px rgba(15, 23, 42, 0.08);
     --shadow-elevated: 0 12px 40px rgba(15, 23, 42, 0.1);
     --shadow-glow: 0 0 40px var(--glow);
@@ -334,11 +346,11 @@
   }
 
   .app-layout-main {
-    @apply flex min-h-[100dvh] min-h-0 flex-1 flex-col;
+    @apply flex min-h-0 min-h-[100dvh] w-full min-w-0 max-w-full flex-1 flex-col;
   }
 
   .app-main-content {
-    @apply flex-1 p-4 sm:p-6 lg:p-8;
+    @apply min-w-0 max-w-full flex-1 p-4 sm:p-6 lg:p-8;
   }
 
   /* ── Top header (profile + shop) ── */
@@ -412,11 +424,16 @@
   }
 
   .app-page {
-    @apply space-y-6 sm:space-y-8;
+    @apply w-full min-w-0 max-w-full space-y-6 sm:space-y-8;
   }
 
   .app-page-header {
     @apply flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between;
+  }
+
+  .app-page-header .app-btn-primary,
+  .app-page-header .app-btn-secondary {
+    @apply w-full shrink-0 sm:w-auto;
   }
 
   .app-page-header-split {
@@ -584,7 +601,7 @@
   }
 
   .app-stat-card {
-    @apply rounded-card border border-theme-border p-6;
+    @apply overflow-hidden rounded-card border border-theme-border p-6;
     background: var(--surface-strong);
     backdrop-filter: blur(var(--glass-blur-sm));
     -webkit-backdrop-filter: blur(var(--glass-blur-sm));
@@ -629,9 +646,271 @@
     @apply mt-1 text-xs text-text-secondary;
   }
 
+  /* ── Shared scrollbars (dashboard ranking, tables, modals, dropdowns) ── */
+  .app-scroll-region {
+    --app-scroll-track: var(--table-body-bg);
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--text-secondary) 35%, transparent) var(--app-scroll-track);
+  }
+
+  .app-scroll-region::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .app-scroll-region::-webkit-scrollbar-track {
+    background: var(--app-scroll-track);
+  }
+
+  .app-scroll-region::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--text-secondary) 30%, transparent);
+    border-radius: 3px;
+  }
+
+  .app-modal-scroll {
+    --app-scroll-track: var(--surface-strong);
+  }
+
+  .app-dropdown-menu {
+    --app-scroll-track: rgba(11, 18, 38, 0.98);
+  }
+
   /* ── Tables ── */
   .app-data-table-wrap {
     @apply overflow-x-auto;
+  }
+
+  /** Outer clip + horizontal scroll on small screens */
+  .app-data-table-shell {
+    @apply overflow-x-auto overflow-y-hidden rounded-xl;
+    -webkit-overflow-scrolling: touch;
+    background-color: var(--table-body-bg);
+  }
+
+  /**
+   * ~10 visible rows; single table keeps columns aligned (ranking-style scrollbar).
+   */
+  .app-data-table-scroll-10 {
+    @apply app-scroll-region relative max-h-[600px] overflow-y-auto overflow-x-auto;
+    isolation: isolate;
+    scrollbar-gutter: stable;
+  }
+
+  .app-data-table-scroll-10 .app-data-table {
+    @apply w-full table-fixed;
+  }
+
+  .app-data-table-scroll-10.app-data-table-wrap--wide .app-data-table,
+  .app-data-table-wrap.app-data-table-scroll-10--wide .app-data-table {
+    min-width: 40rem;
+  }
+
+  .app-data-table-scroll-10 .app-data-table-sticky-head thead th {
+    @apply sticky top-0 z-10;
+  }
+
+  /** table-fixed column widths — keeps header/body aligned */
+  .app-data-table-cols-3 th:nth-child(1),
+  .app-data-table-cols-3 td:nth-child(1) {
+    width: 14%;
+  }
+
+  .app-data-table-cols-3 th:nth-child(2),
+  .app-data-table-cols-3 td:nth-child(2) {
+    width: 52%;
+  }
+
+  .app-data-table-cols-3 th:nth-child(3),
+  .app-data-table-cols-3 td:nth-child(3) {
+    width: 34%;
+  }
+
+  .app-data-table-cols-4 th:nth-child(1),
+  .app-data-table-cols-4 td:nth-child(1) {
+    width: 12%;
+  }
+
+  .app-data-table-cols-4 th:nth-child(2),
+  .app-data-table-cols-4 td:nth-child(2) {
+    width: 38%;
+  }
+
+  .app-data-table-cols-4 th:nth-child(3),
+  .app-data-table-cols-4 td:nth-child(3) {
+    width: 22%;
+  }
+
+  .app-data-table-cols-4 th:nth-child(4),
+  .app-data-table-cols-4 td:nth-child(4) {
+    width: 28%;
+  }
+
+  .app-data-table-cols-5 th:nth-child(1),
+  .app-data-table-cols-5 td:nth-child(1) {
+    width: 10%;
+  }
+
+  .app-data-table-cols-5 th:nth-child(2),
+  .app-data-table-cols-5 td:nth-child(2) {
+    width: 28%;
+  }
+
+  .app-data-table-cols-5 th:nth-child(3),
+  .app-data-table-cols-5 td:nth-child(3) {
+    width: 22%;
+  }
+
+  .app-data-table-cols-5 th:nth-child(4),
+  .app-data-table-cols-5 td:nth-child(4) {
+    width: 18%;
+  }
+
+  .app-data-table-cols-5 th:nth-child(5),
+  .app-data-table-cols-5 td:nth-child(5) {
+    width: 22%;
+  }
+
+  .app-data-table-cols-6 th:nth-child(1),
+  .app-data-table-cols-6 td:nth-child(1) {
+    width: 10%;
+  }
+
+  .app-data-table-cols-6 th:nth-child(2),
+  .app-data-table-cols-6 td:nth-child(2) {
+    width: 22%;
+  }
+
+  .app-data-table-cols-6 th:nth-child(3),
+  .app-data-table-cols-6 td:nth-child(3) {
+    width: 18%;
+  }
+
+  .app-data-table-cols-6 th:nth-child(4),
+  .app-data-table-cols-6 td:nth-child(4) {
+    width: 16%;
+  }
+
+  .app-data-table-cols-6 th:nth-child(5),
+  .app-data-table-cols-6 td:nth-child(5) {
+    width: 14%;
+  }
+
+  .app-data-table-cols-6 th:nth-child(6),
+  .app-data-table-cols-6 td:nth-child(6) {
+    width: 20%;
+  }
+
+  .app-data-table-cols-7 th:nth-child(1),
+  .app-data-table-cols-7 td:nth-child(1) {
+    width: 8%;
+  }
+
+  .app-data-table-cols-7 th:nth-child(2),
+  .app-data-table-cols-7 td:nth-child(2) {
+    width: 14%;
+  }
+
+  .app-data-table-cols-7 th:nth-child(3),
+  .app-data-table-cols-7 td:nth-child(3) {
+    width: 18%;
+  }
+
+  .app-data-table-cols-7 th:nth-child(4),
+  .app-data-table-cols-7 td:nth-child(4) {
+    width: 14%;
+  }
+
+  .app-data-table-cols-7 th:nth-child(5),
+  .app-data-table-cols-7 td:nth-child(5) {
+    width: 14%;
+  }
+
+  .app-data-table-cols-7 th:nth-child(6),
+  .app-data-table-cols-7 td:nth-child(6) {
+    width: 14%;
+  }
+
+  .app-data-table-cols-7 th:nth-child(7),
+  .app-data-table-cols-7 td:nth-child(7) {
+    width: 18%;
+  }
+
+  .app-data-table-cols-6-role th:nth-child(1),
+  .app-data-table-cols-6-role td:nth-child(1) {
+    width: 9%;
+  }
+
+  .app-data-table-cols-6-role th:nth-child(2),
+  .app-data-table-cols-6-role td:nth-child(2) {
+    width: 16%;
+  }
+
+  .app-data-table-cols-6-role th:nth-child(3),
+  .app-data-table-cols-6-role td:nth-child(3) {
+    width: 20%;
+  }
+
+  .app-data-table-cols-6-role th:nth-child(4),
+  .app-data-table-cols-6-role td:nth-child(4) {
+    width: 16%;
+  }
+
+  .app-data-table-cols-6-role th:nth-child(5),
+  .app-data-table-cols-6-role td:nth-child(5) {
+    width: 16%;
+  }
+
+  .app-data-table-cols-6-role th:nth-child(6),
+  .app-data-table-cols-6-role td:nth-child(6) {
+    width: 23%;
+  }
+
+  /** Up to 5 rows: natural height. More than 5: locked viewport + scroll. */
+  .app-data-table-scroll-5 {
+    --app-table-scroll-head: 3rem;
+    --app-table-scroll-row: 2.75rem;
+    --app-table-scroll-max: calc(var(--app-table-scroll-head) + 5 * var(--app-table-scroll-row));
+    @apply app-scroll-region relative overflow-y-auto overflow-x-auto;
+    max-height: var(--app-table-scroll-max);
+    height: auto;
+    min-height: 0;
+    isolation: isolate;
+  }
+
+  .app-data-table-scroll-5--locked {
+    height: var(--app-table-scroll-max);
+    min-height: var(--app-table-scroll-max);
+  }
+
+  .app-data-table-scroll-5 .app-data-table-empty-in-scroll {
+    @apply flex items-center justify-center px-5 py-8 text-center text-sm text-text-secondary;
+    min-height: var(--app-table-scroll-max);
+  }
+
+  .app-data-table-scroll-5 .app-data-table-sticky-head thead th,
+  .app-data-table-scroll-5 .app-data-table th {
+    @apply py-2.5;
+  }
+
+  .app-data-table-scroll-5 .app-data-table td {
+    @apply py-2.5;
+  }
+
+  .app-data-table-sticky-head thead {
+    @apply relative z-10;
+  }
+
+  .app-data-table-sticky-head thead tr {
+    border-bottom: 1px solid var(--table-head-border);
+  }
+
+  .app-data-table-sticky-head thead th {
+    @apply sticky top-0 z-10 px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wider;
+    color: var(--table-head-text);
+    background-color: var(--table-head-sticky-bg) !important;
+    background-image: none;
+    line-height: 1.4;
   }
 
   .app-data-table {
@@ -639,18 +918,31 @@
   }
 
   .app-data-table thead {
-    @apply text-left;
+    @apply text-center;
   }
 
   .app-data-table th {
-    @apply px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-text-primary;
+    @apply px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-text-primary;
     background: var(--surface);
     line-height: 1.4;
   }
 
+  .app-data-table-sticky-head tbody td {
+    background-color: var(--table-body-bg);
+  }
+
+  .app-data-table-sticky-head tbody tr:hover {
+    background: transparent;
+  }
+
+  .app-data-table-sticky-head tbody tr:hover td {
+    background-color: var(--table-row-hover-bg);
+  }
+
   .app-data-table td {
-    @apply px-5 py-4 text-text-secondary;
+    @apply px-5 py-4 text-center text-text-secondary;
     line-height: var(--leading-normal);
+    vertical-align: middle;
   }
 
   .app-data-table tbody tr {
@@ -674,7 +966,7 @@
   }
 
   .app-cell-right {
-    @apply text-right;
+    @apply text-center;
   }
 
   .app-cell-highlight-emerald {
@@ -688,7 +980,7 @@
   }
 
   .app-table-actions {
-    @apply flex justify-end gap-2;
+    @apply flex justify-center gap-2;
   }
 
   .app-table-empty {
@@ -697,8 +989,72 @@
   }
 
   .app-data-table-footer {
-    @apply border-t border-theme-border px-5 py-3 text-xs text-text-secondary;
+    @apply border-t border-theme-border px-5 py-3 text-center text-xs text-text-secondary;
     background: var(--surface);
+  }
+
+  /* ── Tables: mobile ── */
+  @media (max-width: 639px) {
+    .app-card-flush {
+      @apply min-w-0 max-w-full;
+    }
+
+    .app-data-table-scroll-10.app-data-table-wrap--wide .app-data-table,
+    .app-data-table-wrap.app-data-table-scroll-10--wide .app-data-table {
+      min-width: 36rem;
+    }
+
+    .app-data-table th,
+    .app-data-table td {
+      @apply px-2.5 py-3 text-xs;
+    }
+
+    .app-data-table-sticky-head thead th {
+      @apply px-2.5 py-2.5 text-[0.65rem] leading-snug;
+    }
+
+    .app-table-actions {
+      @apply min-w-[6.5rem] flex-row flex-nowrap gap-1.5;
+    }
+
+    .app-table-actions .app-btn-secondary-sm,
+    .app-table-actions .app-btn-danger {
+      @apply shrink-0 px-2;
+    }
+
+    .dashboard-rank-table-header th,
+    .dashboard-rank-table-body .app-data-table td {
+      @apply px-2.5 text-xs;
+    }
+
+    .dashboard-rank-col-rank {
+      width: 2.75rem;
+    }
+
+    .dashboard-rank-col-num {
+      width: 5.5rem;
+    }
+
+    .dashboard-date-filter {
+      @apply w-full;
+    }
+
+    .dashboard-date-presets {
+      @apply flex flex-wrap gap-2;
+    }
+
+    .dashboard-date-btn {
+      @apply flex-1 text-xs;
+      min-width: calc(50% - 0.25rem);
+    }
+
+    .dashboard-date-custom {
+      @apply flex w-full flex-col gap-2;
+    }
+
+    .dashboard-date-input {
+      @apply w-full;
+    }
   }
 
   /* ── Forms ── */
@@ -870,6 +1226,7 @@
   }
 
   .app-dropdown-menu {
+    @apply app-scroll-region;
     display: block;
     margin: 0;
     padding: 0.375rem 0;
@@ -1181,7 +1538,7 @@
   }
 
   .app-modal-scroll {
-    @apply max-h-[min(90vh,52rem)] overflow-x-visible overflow-y-auto p-6;
+    @apply app-scroll-region max-h-[min(90vh,52rem)] overflow-x-visible overflow-y-auto p-6;
     border-radius: inherit;
   }
 
@@ -1276,7 +1633,65 @@
   }
 
   .app-grid-panels {
-    @apply grid gap-6 lg:grid-cols-2;
+    @apply grid min-w-0 gap-6 lg:grid-cols-2;
+  }
+
+  /** Dashboard rank cards: same clean border clip as stat cards */
+  .app-grid-panels .app-card-flush {
+    overflow: hidden;
+  }
+
+  .dashboard-rank-table {
+    --dashboard-rank-row: 2.75rem;
+    --dashboard-rank-body: calc(5 * var(--dashboard-rank-row));
+    background-color: var(--table-body-bg);
+  }
+
+  .dashboard-rank-table-header {
+    background-color: var(--table-head-sticky-bg);
+    border-bottom: 1px solid var(--table-head-border);
+  }
+
+  .dashboard-rank-table-header th {
+    @apply px-5 py-2.5 text-center text-xs font-semibold uppercase tracking-wider;
+    color: var(--table-head-text);
+    background-color: var(--table-head-sticky-bg) !important;
+    line-height: 1.4;
+  }
+
+  .dashboard-rank-table-grid {
+    @apply w-full table-fixed text-sm;
+  }
+
+  .dashboard-rank-col-rank {
+    width: 4.5rem;
+  }
+
+  .dashboard-rank-col-name {
+    width: auto;
+  }
+
+  .dashboard-rank-col-num {
+    width: 7.5rem;
+  }
+
+  .dashboard-rank-table-body {
+    @apply app-scroll-region;
+    height: var(--dashboard-rank-body);
+    min-height: var(--dashboard-rank-body);
+    max-height: var(--dashboard-rank-body);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .dashboard-rank-table-body .app-data-table td {
+    @apply box-border py-2.5 text-center;
+    vertical-align: middle;
+  }
+
+  .dashboard-rank-table-empty {
+    @apply flex h-full items-center justify-center px-5 text-center text-sm text-text-secondary;
+    min-height: var(--dashboard-rank-body);
   }
 
   .app-profile-card {
@@ -1288,12 +1703,41 @@
     line-height: var(--leading-normal);
   }
 
-  /* ── Full-screen action overlay (batch save, etc.) ── */
+  /* ── Full-screen action overlay (portaled to body) ── */
+  body.app-action-overlay-open {
+    overflow: hidden;
+  }
+
   .app-action-overlay {
-    @apply fixed inset-0 z-[60] flex items-center justify-center;
-    background: rgba(6, 8, 22, 0.82);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 100dvh;
+    margin: 0;
+    padding: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(6, 8, 22, 0.88);
     backdrop-filter: blur(20px) saturate(1.2);
     -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    pointer-events: all;
+  }
+
+  .app-action-overlay[hidden] {
+    display: none !important;
+  }
+
+  .app-action-overlay-message,
+  .record-drinks-saving {
+    @apply rounded-pill border border-theme-border px-6 py-3 text-sm font-medium text-text-primary;
+    background: var(--surface-strong);
+    box-shadow: var(--shadow-glow-sm);
+    line-height: var(--leading-normal);
   }
 
   .record-drinks-page {
@@ -1301,21 +1745,69 @@
   }
 
   .record-drinks-form {
-    @apply flex flex-col gap-6;
+    @apply flex min-h-0 flex-col gap-6;
+  }
+
+  .record-drinks-lines {
+    @apply flex min-h-0 flex-col;
   }
 
   .record-drinks-lines-header {
-    @apply flex flex-wrap items-start justify-between gap-4;
+    @apply flex shrink-0 items-center justify-between gap-3;
+  }
+
+  .record-drinks-add-btn {
+    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-input border-0 p-0 text-base font-semibold leading-none text-white transition-all duration-200 active:scale-[0.98];
+    background: linear-gradient(90deg, var(--primary-light) 0%, var(--primary) 100%);
+    box-shadow: var(--shadow-glow-sm);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .record-drinks-add-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-button);
+  }
+
+  .record-drinks-lines-shell {
+    @apply min-h-0 shrink overflow-hidden rounded-xl;
+    background-color: var(--table-body-bg);
+  }
+
+  /** 1 row: natural height. 2+ rows: locked to 2-row viewport + scroll. */
+  .record-drinks-lines-scroll {
+    @apply overflow-x-hidden;
+    overflow-y: visible;
+  }
+
+  .record-drinks-lines-scroll--multi {
+    @apply app-scroll-region;
+    --record-drinks-row-slot: 6.5rem;
+    --record-drinks-row-gap: 0.75rem;
+    height: calc(2 * var(--record-drinks-row-slot) + var(--record-drinks-row-gap));
+    max-height: calc(2 * var(--record-drinks-row-slot) + var(--record-drinks-row-gap));
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  @media (max-width: 900px) {
+    .record-drinks-lines-scroll--multi {
+      --record-drinks-row-slot: 10.5rem;
+      --record-drinks-row-gap: 0.75rem;
+    }
   }
 
   .record-drinks-rows {
-    @apply flex flex-col gap-5;
+    @apply flex flex-col gap-3 p-1;
     overflow: visible;
   }
 
   .record-drinks-lines-body {
-    @apply pt-7;
-    overflow: visible;
+    @apply flex min-h-0 flex-col overflow-hidden pt-6;
+  }
+
+  .record-drinks-actions {
+    @apply shrink-0;
   }
 
   .record-drinks-row-field {
@@ -1323,8 +1815,12 @@
     overflow: visible;
   }
 
+  .record-drinks-lines-scroll--multi .record-drinks-row {
+    min-height: var(--record-drinks-row-slot);
+  }
+
   .record-drinks-row {
-    @apply grid gap-x-4 gap-y-5 border border-theme-border p-5;
+    @apply grid gap-x-4 gap-y-3 border border-theme-border p-4;
     border-radius: var(--radius-card);
     background: var(--surface);
     grid-template-columns: minmax(10rem, 1fr) minmax(10rem, 1.25fr) 5.5rem 6rem 2.5rem;
@@ -1359,11 +1855,11 @@
   }
 
   .record-drinks-row-total {
-    @apply flex min-h-[2.75rem] flex-col justify-center pt-6;
+    @apply flex min-h-[2.75rem] flex-col justify-center pt-5;
   }
 
   .record-drinks-remove {
-    @apply mt-6 flex h-11 w-11 shrink-0 items-center justify-center self-start rounded-input border border-theme-border text-lg leading-none;
+    @apply mt-5 flex h-9 w-9 shrink-0 items-center justify-center self-start rounded-input border border-theme-border text-base leading-none;
     color: var(--danger);
   }
 
@@ -1373,7 +1869,7 @@
   }
 
   .record-drinks-summary {
-    @apply mt-8 flex items-center justify-between border-t border-theme-border pt-5 text-sm text-text-secondary;
+    @apply mt-4 flex shrink-0 items-center justify-between border-t border-theme-border pt-4 text-sm text-text-secondary;
   }
 
   .record-drinks-summary strong {
@@ -1382,12 +1878,6 @@
 
   .record-drinks-field-error {
     @apply mt-2 text-sm text-danger;
-  }
-
-  .record-drinks-saving {
-    @apply rounded-pill border border-theme-border px-6 py-3 text-sm font-medium text-text-primary;
-    background: var(--surface-strong);
-    box-shadow: var(--shadow-glow-sm);
   }
 
 }

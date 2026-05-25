@@ -1,20 +1,17 @@
 <div class="app-page">
   <div class="app-page-header">
     <div>
-      <h1 class="app-page-title">เครื่องดื่มเมนู (Beverages)</h1>
-      <p class="app-page-subtitle">
-        รายการเครื่องดื่มจริงที่บาร์ — ราคาต่อแก้ว/ขวด (แยกจากหน่วยดื่ม PR ตามตำแหน่ง)
-      </p>
+      <h1 class="app-page-title">เครื่องดื่ม (Beverages)</h1>
     </div>
     @if (canManage()) {
-      <button type="button" (click)="openCreate()" class="app-btn-primary">+ เพิ่มเครื่องดื่มเมนู</button>
+      <button type="button" (click)="openCreate()" class="app-btn-primary">+ เพิ่มเครื่องดื่ม</button>
     }
   </div>
 
   @if (showCreateModal() && canManage()) {
     <app-modal (dismiss)="closeCreate()">
       <div class="app-modal-header">
-        <h2 class="app-modal-title">เพิ่มเครื่องดื่มเมนู</h2>
+        <h2 class="app-modal-title">เพิ่มเครื่องดื่ม</h2>
         <button type="button" class="app-btn-ghost" (click)="closeCreate()">✕</button>
       </div>
       <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
@@ -23,7 +20,7 @@
           <input type="text" formControlName="name" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ราคาเมนู (฿)</label>
+          <label class="app-label">ราคา</label>
           <input type="number" formControlName="price" class="app-input" min="0" step="1" />
         </div>
         <div class="app-form-actions">
@@ -39,7 +36,7 @@
   @if (editingBeverage(); as item) {
     <app-modal (dismiss)="closeEdit()">
       <div class="app-modal-header">
-        <h2 class="app-modal-title">แก้ไขเครื่องดื่มเมนู</h2>
+        <h2 class="app-modal-title">แก้ไขเครื่องดื่ม</h2>
         <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
       </div>
       <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
@@ -48,7 +45,7 @@
           <input type="text" formControlName="name" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ราคาเมนู (฿)</label>
+          <label class="app-label">ราคา</label>
           <input type="number" formControlName="price" class="app-input" min="0" step="1" />
         </div>
         <div class="app-form-actions">
@@ -64,45 +61,51 @@
   @if (loading()) {
     <p class="app-loading-text">กำลังโหลด...</p>
   } @else if (beverages().length === 0) {
-    <p class="app-empty-state">ยังไม่มีข้อมูลเครื่องดื่มเมนู</p>
+    <p class="app-empty-state">ยังไม่มีข้อมูลเครื่องดื่ม</p>
   } @else {
     <section class="app-card app-card-flush">
-      <div class="app-data-table-wrap">
-        <table class="app-data-table">
-          <thead>
-            <tr>
-              <th>รหัส</th>
-              <th>ชื่อ</th>
-              <th class="app-cell-right">ราคาเมนู (฿)</th>
-              @if (canManage()) {
-                <th class="app-cell-right">จัดการ</th>
-              }
-            </tr>
-          </thead>
-          <tbody>
-            @for (item of beverages(); track item.id) {
+      <div class="app-data-table-shell">
+        <div class="app-data-table-wrap app-data-table-scroll-10">
+          <table
+            class="app-data-table app-data-table-sticky-head"
+            [class.app-data-table-cols-4]="canManage()"
+            [class.app-data-table-cols-3]="!canManage()"
+          >
+            <thead>
               <tr>
-                <td class="app-cell-mono">{{ item.id }}</td>
-                <td class="app-cell-primary">{{ item.name }}</td>
-                <td class="app-cell-right app-cell-highlight-violet">
-                  {{ item.price | number: '1.0-0' }}
-                </td>
+                <th>รหัส</th>
+                <th>ชื่อ</th>
+                <th class="app-cell-right">ราคา</th>
                 @if (canManage()) {
-                  <td class="app-cell-right">
-                    <div class="app-table-actions">
-                      <button type="button" class="app-btn-secondary-sm" (click)="openEdit(item)">
-                        แก้ไข
-                      </button>
-                      <button type="button" class="app-btn-danger" (click)="confirmDelete(item)">
-                        ลบ
-                      </button>
-                    </div>
-                  </td>
+                  <th class="app-cell-right">จัดการ</th>
                 }
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (item of beverages(); track item.id) {
+                <tr>
+                  <td class="app-cell-mono">{{ item.id }}</td>
+                  <td class="app-cell-primary">{{ item.name }}</td>
+                  <td class="app-cell-right app-cell-highlight-violet">
+                    {{ item.price | number: '1.0-0' }}
+                  </td>
+                  @if (canManage()) {
+                    <td class="app-cell-right">
+                      <div class="app-table-actions">
+                        <button type="button" class="app-btn-secondary-sm" (click)="openEdit(item)">
+                          แก้ไข
+                        </button>
+                        <button type="button" class="app-btn-danger" (click)="confirmDelete(item)">
+                          ลบ
+                        </button>
+                      </div>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   }

@@ -1,6 +1,8 @@
 /**
  * Writes environment.prod.ts before Vercel build.
- * Set BACKEND_URL in Vercel → Environment Variables (Railway URL, no trailing slash).
+ *
+ * - BACKEND_URL on Vercel is used by api/[...path].js (server proxy only).
+ * - The Angular app always calls same-origin /api to avoid browser CORS issues.
  */
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -8,14 +10,13 @@ import { resolve } from 'node:path';
 const outFile = resolve('src/environments/environment.prod.ts');
 const backend = (process.env.BACKEND_URL ?? '').trim().replace(/\/$/, '');
 
-let apiBaseUrl = '/api';
+const apiBaseUrl = '/api';
 
 if (backend) {
-  apiBaseUrl = backend.endsWith('/api') ? backend : `${backend}/api`;
-  console.log(`[generate-environment] apiBaseUrl → ${apiBaseUrl}`);
+  console.log(`[generate-environment] apiBaseUrl → ${apiBaseUrl} (proxy → ${backend})`);
 } else {
   console.warn(
-    '[generate-environment] BACKEND_URL is not set. Using "/api" (requires Vercel api proxy).',
+    '[generate-environment] BACKEND_URL is not set on Vercel. /api proxy will return 502 until it is set.',
   );
 }
 

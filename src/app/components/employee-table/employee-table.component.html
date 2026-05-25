@@ -1,6 +1,7 @@
 <div class="app-card app-card-flush">
-  <div class="app-data-table-wrap">
-    <table class="app-data-table">
+  <div class="app-data-table-shell">
+    <div class="app-data-table-wrap app-data-table-scroll-10 app-data-table-scroll-10--wide">
+      <table class="app-data-table app-data-table-sticky-head app-data-table-cols-5">
       <thead>
         <tr>
           <th>รหัส</th>
@@ -23,7 +24,8 @@
           </tr>
         }
       </tbody>
-    </table>
+      </table>
+    </div>
   </div>
   <div class="app-data-table-footer">
     ทั้งหมด {{ employees().length }} คน

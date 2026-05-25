@@ -31,7 +31,7 @@ export const ROLE_LABEL_TH: Record<string, string> = {
   OWNER: 'เจ้าของร้าน',
   ADMIN: 'ผู้ดูแลระบบ',
   MANAGER: 'ผู้จัดการ',
-  SALE: 'พนักงานขาย',
+  SALE: 'เซลส์',
   PR: 'พีอาร์',
 };
 

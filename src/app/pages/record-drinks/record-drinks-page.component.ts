@@ -1,5 +1,6 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormArray,
   FormControl,
@@ -21,6 +22,7 @@ import { EmployeeService } from '../../services/employee.service';
 import { RoleService } from '../../services/role.service';
 import { TransactionService } from '../../services/transaction.service';
 import { ToastService } from '../../services/toast.service';
+import { hideActionOverlay, showActionOverlay } from '../../utils/action-overlay.util';
 import { roleLabelThai } from '../../utils/employee-team.util';
 
 type DrinkRowForm = FormGroup<{
@@ -59,6 +61,7 @@ function rolesFromEmployees(employees: Employee[]): Role[] {
 })
 export class RecordDrinksPageComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly auth = inject(AuthService);
   private readonly employeeService = inject(EmployeeService);
   private readonly roleService = inject(RoleService);
@@ -85,24 +88,27 @@ export class RecordDrinksPageComponent implements OnInit {
     }));
   });
 
-  readonly grandTotal = computed(() => {
-    const map = this.staffByEmployeeId();
-    let total = 0;
-    for (const row of this.rows.controls) {
-      total += this.lineAmount(row, map);
-    }
-    return total;
-  });
+  readonly grandTotal = signal(0);
+  readonly grandDrinks = signal(0);
 
-  readonly grandDrinks = computed(() => {
-    let total = 0;
-    for (const row of this.rows.controls) {
-      total += row.controls.quantity.value;
-    }
-    return total;
-  });
+  constructor() {
+    effect(() => {
+      if (this.submitting()) {
+        showActionOverlay('กำลังบันทึกข้อมูล…');
+      } else {
+        hideActionOverlay();
+      }
+    });
+
+    this.destroyRef.onDestroy(() => hideActionOverlay());
+  }
 
   ngOnInit(): void {
+    this.form.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.refreshSummary());
+
+    this.refreshSummary();
     const shopId = this.auth.getShopId();
     if (!shopId) {
       this.loading.set(false);
@@ -125,6 +131,7 @@ export class RecordDrinksPageComponent implements OnInit {
               this.toast.showError('ไม่พบตำแหน่งที่มีพนักงานในร้านนี้');
             }
             this.loading.set(false);
+            this.refreshSummary();
           });
       },
       error: () => {
@@ -138,10 +145,14 @@ export class RecordDrinksPageComponent implements OnInit {
     return this.form.controls.rows;
   }
 
-  employeeOptionsForRow(index: number): DropdownOption[] {
-    const row = this.rows.at(index);
-    const roleId = row?.controls.roleId.value;
-    if (!roleId) {
+  hasRoleSelected(row: DrinkRowForm): boolean {
+    const roleId = Number(row.controls.roleId.value);
+    return Number.isInteger(roleId) && roleId > 0;
+  }
+
+  employeeOptionsForRow(row: DrinkRowForm): DropdownOption[] {
+    const roleId = Number(row.controls.roleId.value);
+    if (!Number.isInteger(roleId) || roleId <= 0) {
       return [];
     }
 
@@ -154,7 +165,10 @@ export class RecordDrinksPageComponent implements OnInit {
   }
 
   addRow(): void {
-    this.rows.push(this.createRow());
+    const row = this.createRow();
+    this.rows.push(row);
+    this.syncEmployeeControlState(row);
+    this.refreshSummary();
   }
 
   removeRow(index: number): void {
@@ -162,22 +176,34 @@ export class RecordDrinksPageComponent implements OnInit {
       return;
     }
     this.rows.removeAt(index);
+    this.syncAllRowsEmployeeState();
+    this.refreshSummary();
   }
 
-  lineAmount(row: DrinkRowForm, map?: Map<string, Employee>): number {
-    const staffMap = map ?? this.staffByEmployeeId();
-    const employee = staffMap.get(row.controls.employeeId.value);
-    const price = employee?.role?.defaultPricePerDrink ?? 0;
-    const qty = row.controls.quantity.value;
-    if (!price || qty <= 0) {
+  lineAmount(row: DrinkRowForm): number {
+    const qty = Number(row.controls.quantity.value);
+    const roleId = Number(row.controls.roleId.value);
+    const role = this.allRoles().find((item) => item.id === roleId);
+    const price = role?.defaultPricePerDrink ?? 0;
+    if (!Number.isFinite(price) || price <= 0 || qty <= 0) {
       return 0;
     }
     return Math.round(price * qty * 100) / 100;
   }
 
-  lineAmountForIndex(index: number): number {
-    const row = this.rows.at(index);
-    return row ? this.lineAmount(row) : 0;
+  private refreshSummary(): void {
+    let drinks = 0;
+    let total = 0;
+    for (const row of this.rows.controls) {
+      drinks += Number(row.controls.quantity.value) || 0;
+      total += this.lineAmount(row);
+    }
+    this.grandDrinks.set(drinks);
+    this.grandTotal.set(total);
+  }
+
+  lineAmountForRow(row: DrinkRowForm): number {
+    return this.lineAmount(row);
   }
 
   submit(): void {
@@ -198,6 +224,7 @@ export class RecordDrinksPageComponent implements OnInit {
     const transactions = this.rows.getRawValue().map((row) => ({
       employeeId: row.employeeId,
       quantity: row.quantity,
+      roleId: Number(row.roleId),
     }));
 
     this.submitting.set(true);
@@ -223,17 +250,31 @@ export class RecordDrinksPageComponent implements OnInit {
   }
 
   private reapplyEmployeeDisabledState(): void {
-    for (const row of this.rows.controls) {
-      if (!row.controls.roleId.value) {
-        row.controls.employeeId.disable({ emitEvent: false });
-      }
-    }
+    this.syncAllRowsEmployeeState();
   }
 
   private resetForm(): void {
     this.form.controls.billReference.reset('');
     this.rows.clear();
-    this.rows.push(this.createRow());
+    const row = this.createRow();
+    this.rows.push(row);
+    this.syncEmployeeControlState(row);
+    this.refreshSummary();
+  }
+
+  private syncAllRowsEmployeeState(): void {
+    for (const row of this.rows.controls) {
+      this.syncEmployeeControlState(row);
+    }
+  }
+
+  private syncEmployeeControlState(row: DrinkRowForm): void {
+    if (this.hasRoleSelected(row)) {
+      row.controls.employeeId.enable({ emitEvent: false });
+    } else {
+      row.controls.employeeId.disable({ emitEvent: false });
+      row.controls.employeeId.reset('', { emitEvent: false });
+    }
   }
 
   private createRow(): DrinkRowForm {
@@ -249,19 +290,16 @@ export class RecordDrinksPageComponent implements OnInit {
       }),
     });
 
-    row.controls.roleId.valueChanges.subscribe((roleId) => {
-      row.patchValue({ employeeId: '' }, { emitEvent: false });
-      if (roleId) {
-        row.controls.employeeId.enable({ emitEvent: false });
-      } else {
-        row.controls.employeeId.disable({ emitEvent: false });
-      }
-    });
+    row.controls.roleId.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        row.patchValue({ employeeId: '' }, { emitEvent: false });
+        this.syncEmployeeControlState(row);
+        this.refreshSummary();
+      });
+
+    row.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.refreshSummary());
 
     return row;
-  }
-
-  private staffByEmployeeId(): Map<string, Employee> {
-    return new Map(this.staff().map((employee) => [employee.employeeId, employee]));
   }
 }

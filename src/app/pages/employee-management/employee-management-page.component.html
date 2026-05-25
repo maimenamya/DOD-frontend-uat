@@ -2,7 +2,6 @@
   <div class="app-page-header">
     <div>
       <h1 class="app-page-title">จัดการพนักงาน</h1>
-      <p class="app-page-subtitle">เลือกตำแหน่งจากแท็บด้านล่างเพื่อดูและจัดการรายชื่อพนักงาน</p>
     </div>
     @if (canManage() && selectedRole() && selectedRole()!.name !== 'OWNER') {
       <button type="button" (click)="openCreateForm()" class="app-btn-primary">
@@ -123,8 +122,16 @@
     <p class="app-empty-state">ยังไม่มีพนักงานในตำแหน่งนี้</p>
   } @else {
     <section class="app-card app-card-flush">
-      <div class="app-data-table-wrap">
-        <table class="app-data-table">
+      <div class="app-data-table-shell">
+        <div
+          class="app-data-table-wrap app-data-table-scroll-10"
+          [class.app-data-table-scroll-10--wide]="canManage()"
+        >
+          <table
+            class="app-data-table app-data-table-sticky-head"
+            [class.app-data-table-cols-6]="canManage()"
+            [class.app-data-table-cols-5]="!canManage()"
+          >
           <thead>
             <tr>
               <th>รหัส</th>
@@ -164,7 +171,8 @@
               </tr>
             }
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
     </section>
   }

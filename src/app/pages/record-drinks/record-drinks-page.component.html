@@ -2,10 +2,6 @@
   <div class="app-page-header">
     <div>
       <h1 class="app-page-title">ลงดื่ม</h1>
-      <p class="app-page-subtitle">
-        บันทึกหน่วยดื่มหลายคนในบิลเดียว —
-        <span class="app-page-subtitle-accent">{{ user()?.shopName }}</span>
-      </p>
     </div>
   </div>
 
@@ -20,7 +16,6 @@
       <section class="app-card app-card-section record-drinks-bill">
         <div class="app-card-header">
           <h2 class="app-card-title">เลขบิล / โต๊ะ</h2>
-          <p class="app-card-subtitle">อ้างอิงบิลลูกค้าสำหรับรายการในครั้งนี้</p>
         </div>
         <div class="app-card-body">
           <input
@@ -38,21 +33,26 @@
 
       <section class="app-card app-card-section record-drinks-lines">
         <div class="app-card-header record-drinks-lines-header">
-          <div>
-            <h2 class="app-card-title">รายการพนักงาน</h2>
-            <p class="app-card-subtitle">
-              เลือกประเภทตำแหน่งจากข้อมูลหลัก จากนั้นเลือกพนักงานและจำนวนหน่วยดื่ม
-            </p>
-          </div>
-          <button type="button" class="app-btn-secondary" (click)="addRow()">
-            + เพิ่มพนักงาน
+          <h2 class="app-card-title">ลงดื่ม</h2>
+          <button
+            type="button"
+            class="record-drinks-add-btn"
+            (click)="addRow()"
+            aria-label="เพิ่มพนักงาน"
+          >
+            +
           </button>
         </div>
 
         <div class="app-card-body record-drinks-lines-body">
-          <div class="record-drinks-rows" formArrayName="rows">
-            @for (row of rows.controls; track $index) {
-              <div class="record-drinks-row" [formGroupName]="$index">
+          <div class="record-drinks-lines-shell">
+            <div
+              class="record-drinks-lines-scroll"
+              [class.record-drinks-lines-scroll--multi]="rows.length >= 2"
+            >
+              <div class="record-drinks-rows" formArrayName="rows">
+                @for (row of rows.controls; track row; let i = $index) {
+                  <div class="record-drinks-row" [formGroupName]="i">
                 <div class="record-drinks-row-field record-drinks-row-role">
                   <label class="record-drinks-label">เลือกประเภทตำแหน่ง</label>
                   <app-custom-dropdown
@@ -69,10 +69,8 @@
                   <label class="record-drinks-label">เลือกพนักงาน</label>
                   <app-custom-dropdown
                     formControlName="employeeId"
-                    [options]="employeeOptionsForRow($index)"
-                    [placeholder]="
-                      row.controls.roleId.value ? 'เลือกพนักงาน' : 'เลือกตำแหน่งก่อน'
-                    "
+                    [options]="employeeOptionsForRow(row)"
+                    [placeholder]="hasRoleSelected(row) ? 'เลือกพนักงาน' : 'เลือกตำแหน่งก่อน'"
                   />
                   @if (row.controls.employeeId.touched && row.controls.employeeId.invalid) {
                     <p class="record-drinks-field-error">กรุณาเลือกพนักงาน</p>
@@ -93,7 +91,7 @@
                 <div class="record-drinks-row-total">
                   <span class="record-drinks-label">ยอดแถว</span>
                   <strong class="record-drinks-line-amount">
-                    ฿{{ lineAmountForIndex($index) | number: '1.0-2' }}
+                    ฿{{ lineAmountForRow(row) | number: '1.0-2' }}
                   </strong>
                 </div>
 
@@ -101,14 +99,16 @@
                   <button
                     type="button"
                     class="app-btn-ghost record-drinks-remove"
-                    (click)="removeRow($index)"
+                    (click)="removeRow(i)"
                     aria-label="ลบแถว"
                   >
                     ✕
                   </button>
                 }
+                  </div>
+                }
               </div>
-            }
+            </div>
           </div>
 
           <div class="record-drinks-summary">
@@ -128,11 +128,5 @@
         </button>
       </div>
     </form>
-  }
-
-  @if (submitting()) {
-    <div class="app-action-overlay" aria-busy="true" aria-live="polite">
-      <p class="record-drinks-saving">กำลังบันทึกข้อมูล…</p>
-    </div>
   }
 </div>

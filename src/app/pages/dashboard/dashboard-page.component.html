@@ -2,15 +2,6 @@
   <div class="app-page-header app-page-header-split">
     <div class="app-page-header-main">
       <h1 class="app-page-title">แดชบอร์ด</h1>
-      @if (isPersonalView()) {
-        <p class="app-page-subtitle">
-          สวัสดี <span class="app-page-subtitle-accent">{{ displayNickname() }}</span> — ภาพรวมผลงานของคุณ
-        </p>
-      } @else {
-        <p class="app-page-subtitle">
-          ร้าน <span class="app-page-subtitle-accent">{{ user()?.shopName }}</span> — ภาพรวมยอดขายและเครื่องดื่มทั้งร้าน
-        </p>
-      }
     </div>
     <div class="dashboard-date-filter">
       <div class="dashboard-date-presets">
@@ -96,12 +87,12 @@
       <div class="app-grid-stats-single">
         @if (isSaleRole()) {
           <div class="app-stat-card app-stat-card-revenue">
-            <p class="app-stat-label app-stat-label-revenue">ยอดขายรวมของฉัน (฿)</p>
+            <p class="app-stat-label app-stat-label-revenue">ยอดรวมของฉัน</p>
             <p class="app-stat-value">{{ s.totalRevenue | number: '1.0-0' }}</p>
-            <p class="app-stat-hint">ยอดขายรวมของคุณ (SALE)</p>
+            <p class="app-stat-hint">ยอดรวมของคุณ (SALE)</p>
           </div>
           <div class="app-stat-card app-stat-card-drinks">
-            <p class="app-stat-label app-stat-label-drinks">ดื่มฝ่ายขายของฉัน (แก้ว)</p>
+            <p class="app-stat-label app-stat-label-drinks">ดื่มเซลส์ของฉัน (แก้ว)</p>
             <p class="app-stat-value">{{ s.totalSalesDrinks | number: '1.0-0' }}</p>
             <p class="app-stat-hint">จำนวนแก้วที่คุณลง (SALE)</p>
           </div>
@@ -117,12 +108,12 @@
     } @else {
       <div class="app-grid-stats-triple">
         <div class="app-stat-card app-stat-card-revenue">
-          <p class="app-stat-label app-stat-label-revenue">ยอดขายรวม (฿)</p>
+          <p class="app-stat-label app-stat-label-revenue">ยอดรวม </p>
           <p class="app-stat-value">{{ s.totalRevenue | number: '1.0-0' }}</p>
           <p class="app-stat-hint">รวมยอดเงินจาก SALE และ PR ในช่วงที่เลือก</p>
         </div>
         <div class="app-stat-card app-stat-card-drinks">
-          <p class="app-stat-label app-stat-label-drinks">ดื่มฝ่ายขายรวม (แก้ว)</p>
+          <p class="app-stat-label app-stat-label-drinks">ดื่มเซลส์รวม (แก้ว)</p>
           <p class="app-stat-value">{{ s.totalSalesDrinks | number: '1.0-0' }}</p>
           <p class="app-stat-hint">จำนวนดื่มที่พนักงาน SALE ลงทั้งหมด</p>
         </div>
@@ -136,8 +127,8 @@
       <div class="app-grid-panels">
         <section class="app-card app-card-flush">
           <div class="app-card-header">
-            <h2 class="app-card-title">อันดับยอดขาย SALE</h2>
-            <p class="app-card-subtitle">เรียงตามยอดขาย (฿)</p>
+            <h2 class="app-card-title">อันดับยอด SALE</h2>
+            <p class="app-card-subtitle">เรียงตามยอด</p>
           </div>
           <div class="dashboard-table-search">
             <input
@@ -149,33 +140,55 @@
             />
           </div>
           @if (s.topSales.length === 0) {
-            <p class="app-table-empty">ยังไม่มีข้อมูลยอดขายในช่วงนี้</p>
-          } @else if (filteredTopSales().length === 0) {
-            <p class="app-table-empty">ไม่พบชื่อที่ตรงกับการค้นหา</p>
+            <p class="app-table-empty">ยังไม่มีข้อมูลยอดในช่วงนี้</p>
           } @else {
-            <div class="app-data-table-wrap">
-              <table class="app-data-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>ชื่อ</th>
-                    <th class="app-cell-right">ดื่มรวม</th>
-                    <th class="app-cell-right">ยอดขาย (฿)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (row of filteredTopSales(); track row.employeeId; let i = $index) {
+            <div class="dashboard-rank-table">
+              <div class="dashboard-rank-table-header">
+                <table class="app-data-table dashboard-rank-table-grid">
+                  <colgroup>
+                    <col class="dashboard-rank-col-rank" />
+                    <col class="dashboard-rank-col-name" />
+                    <col class="dashboard-rank-col-num" />
+                    <col class="dashboard-rank-col-num" />
+                  </colgroup>
+                  <thead>
                     <tr>
-                      <td class="app-cell-meta">{{ i + 1 }}</td>
-                      <td class="app-cell-primary">{{ row.nickname }}</td>
-                      <td class="app-cell-right">{{ row.totalDrinks | number: '1.0-0' }}</td>
-                      <td class="app-cell-right app-cell-highlight-emerald">
-                        {{ row.totalAmount | number: '1.0-0' }}
-                      </td>
+                      <th>#</th>
+                      <th>ชื่อ</th>
+                      <th class="app-cell-right">ดื่มรวม</th>
+                      <th class="app-cell-right">ยอด </th>
                     </tr>
-                  }
-                </tbody>
-              </table>
+                  </thead>
+                </table>
+              </div>
+              @if (filteredTopSales().length === 0) {
+                <div class="dashboard-rank-table-body">
+                  <p class="dashboard-rank-table-empty">ไม่พบชื่อที่ตรงกับการค้นหา</p>
+                </div>
+              } @else {
+                <div class="dashboard-rank-table-body app-scroll-region">
+                  <table class="app-data-table dashboard-rank-table-grid">
+                    <colgroup>
+                      <col class="dashboard-rank-col-rank" />
+                      <col class="dashboard-rank-col-name" />
+                      <col class="dashboard-rank-col-num" />
+                      <col class="dashboard-rank-col-num" />
+                    </colgroup>
+                    <tbody>
+                      @for (row of filteredTopSales(); track row.employeeId; let i = $index) {
+                        <tr>
+                          <td class="app-cell-meta">{{ i + 1 }}</td>
+                          <td class="app-cell-primary">{{ row.nickname }}</td>
+                          <td class="app-cell-right">{{ row.totalDrinks | number: '1.0-0' }}</td>
+                          <td class="app-cell-right app-cell-highlight-emerald">
+                            {{ row.totalAmount | number: '1.0-0' }}
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
             </div>
           }
         </section>
@@ -196,32 +209,54 @@
           </div>
           @if (s.topPr.length === 0) {
             <p class="app-table-empty">ยังไม่มีข้อมูลเครื่องดื่ม PR ในช่วงนี้</p>
-          } @else if (filteredTopPr().length === 0) {
-            <p class="app-table-empty">ไม่พบชื่อที่ตรงกับการค้นหา</p>
           } @else {
-            <div class="app-data-table-wrap">
-              <table class="app-data-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>ชื่อ</th>
-                    <th class="app-cell-right">ดื่มรวม</th>
-                    <th class="app-cell-right">ยอดขาย (฿)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (row of filteredTopPr(); track row.employeeId; let i = $index) {
+            <div class="dashboard-rank-table">
+              <div class="dashboard-rank-table-header">
+                <table class="app-data-table dashboard-rank-table-grid">
+                  <colgroup>
+                    <col class="dashboard-rank-col-rank" />
+                    <col class="dashboard-rank-col-name" />
+                    <col class="dashboard-rank-col-num" />
+                    <col class="dashboard-rank-col-num" />
+                  </colgroup>
+                  <thead>
                     <tr>
-                      <td class="app-cell-meta">{{ i + 1 }}</td>
-                      <td class="app-cell-primary">{{ row.nickname }}</td>
-                      <td class="app-cell-right app-cell-highlight-violet">
-                        {{ row.totalDrinks | number: '1.0-0' }}
-                      </td>
-                      <td class="app-cell-right">{{ row.totalAmount | number: '1.0-0' }}</td>
+                      <th>#</th>
+                      <th>ชื่อ</th>
+                      <th class="app-cell-right">ดื่มรวม</th>
+                      <th class="app-cell-right">ยอด </th>
                     </tr>
-                  }
-                </tbody>
-              </table>
+                  </thead>
+                </table>
+              </div>
+              @if (filteredTopPr().length === 0) {
+                <div class="dashboard-rank-table-body">
+                  <p class="dashboard-rank-table-empty">ไม่พบชื่อที่ตรงกับการค้นหา</p>
+                </div>
+              } @else {
+                <div class="dashboard-rank-table-body app-scroll-region">
+                  <table class="app-data-table dashboard-rank-table-grid">
+                    <colgroup>
+                      <col class="dashboard-rank-col-rank" />
+                      <col class="dashboard-rank-col-name" />
+                      <col class="dashboard-rank-col-num" />
+                      <col class="dashboard-rank-col-num" />
+                    </colgroup>
+                    <tbody>
+                      @for (row of filteredTopPr(); track row.employeeId; let i = $index) {
+                        <tr>
+                          <td class="app-cell-meta">{{ i + 1 }}</td>
+                          <td class="app-cell-primary">{{ row.nickname }}</td>
+                          <td class="app-cell-right app-cell-highlight-violet">
+                            {{ row.totalDrinks | number: '1.0-0' }}
+                          </td>
+                          <td class="app-cell-right">{{ row.totalAmount | number: '1.0-0' }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
             </div>
           }
         </section>

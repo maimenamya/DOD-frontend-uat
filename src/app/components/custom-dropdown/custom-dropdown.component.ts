@@ -74,7 +74,10 @@ export class CustomDropdownComponent implements ControlValueAccessor {
     if (current == null || current === '' || current === 0) {
       return this.placeholder;
     }
-    return this.options.find((o) => o.value === current)?.label ?? this.placeholder;
+    const match = this.options.find(
+      (o) => o.value === current || String(o.value) === String(current),
+    );
+    return match?.label ?? this.placeholder;
   };
 
   toggleDropdown(event: MouseEvent): void {
@@ -167,7 +170,10 @@ export class CustomDropdownComponent implements ControlValueAccessor {
         btn.type = 'button';
         btn.className = 'app-dropdown-item';
         btn.setAttribute('role', 'option');
-        if (this.value() === option.value) {
+        if (
+          this.value() === option.value ||
+          String(this.value()) === String(option.value)
+        ) {
           btn.classList.add('app-dropdown-item-selected');
           btn.setAttribute('aria-selected', 'true');
         }

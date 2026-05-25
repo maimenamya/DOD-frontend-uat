@@ -52,7 +52,7 @@ export class MasterDrinkPageComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err: { error?: { error?: string } }) => {
-        this.toast.showError(err.error?.error ?? 'ไม่สามารถโหลดข้อมูลเครื่องดื่มเมนูได้');
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถโหลดข้อมูลเครื่องดื่มได้');
         this.loading.set(false);
       },
     });
@@ -84,12 +84,12 @@ export class MasterDrinkPageComponent implements OnInit {
       next: () => {
         this.submitting.set(false);
         this.closeCreate();
-        this.toast.showSuccess('เพิ่มเครื่องดื่มเมนูเรียบร้อย');
+        this.toast.showSuccess('เพิ่มเครื่องดื่มเรียบร้อย');
         this.loadBeverages();
       },
       error: (err: { error?: { error?: string } }) => {
         this.submitting.set(false);
-        this.toast.showError(err.error?.error ?? 'ไม่สามารถเพิ่มเครื่องดื่มเมนูได้');
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถเพิ่มเครื่องดื่มได้');
       },
     });
   }
@@ -108,20 +108,20 @@ export class MasterDrinkPageComponent implements OnInit {
       },
       error: (err: { error?: { error?: string } }) => {
         this.submitting.set(false);
-        this.toast.showError(err.error?.error ?? 'ไม่สามารถแก้ไขเครื่องดื่มเมนูได้');
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถแก้ไขเครื่องดื่มได้');
       },
     });
   }
 
   confirmDelete(item: Beverage): void {
-    if (!confirm(`ลบเครื่องดื่มเมนู "${item.name}" ใช่หรือไม่?`)) return;
+    if (!confirm(`ลบเครื่องดื่ม "${item.name}" ใช่หรือไม่?`)) return;
     this.beverageService.deleteBeverage(item.id).subscribe({
       next: () => {
-        this.toast.showSuccess('ลบเครื่องดื่มเมนูเรียบร้อย');
+        this.toast.showSuccess('ลบเครื่องดื่มเรียบร้อย');
         this.loadBeverages();
       },
       error: (err: { error?: { error?: string } }) => {
-        this.toast.showError(err.error?.error ?? 'ไม่สามารถลบเครื่องดื่มเมนูได้');
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถลบเครื่องดื่มได้');
       },
     });
   }
