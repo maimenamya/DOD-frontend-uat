@@ -3,12 +3,12 @@
     <div>
       <h1 class="app-page-title">เครื่องดื่ม (Beverages)</h1>
     </div>
-    @if (canManage()) {
+    @if (canManage() && !loading()) {
       <button type="button" (click)="openCreate()" class="app-btn-primary">+ เพิ่มเครื่องดื่ม</button>
     }
   </div>
 
-  @if (showCreateModal() && canManage()) {
+  @if (showCreateModal() && canManage() && !loading()) {
     <app-modal (dismiss)="closeCreate()">
       <div class="app-modal-header">
         <h2 class="app-modal-title">เพิ่มเครื่องดื่ม</h2>

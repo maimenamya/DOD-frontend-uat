@@ -178,6 +178,7 @@ export class EmployeeManagementPageComponent implements OnInit {
     }
 
     this.loading.set(true);
+    this.showCreateForm.set(false);
 
     this.employeeService.getEmployeesByShop(shopId).subscribe({
       next: (data) => {
@@ -192,7 +193,7 @@ export class EmployeeManagementPageComponent implements OnInit {
   }
 
   openCreateForm(): void {
-    if (!this.canManage()) return;
+    if (!this.canManage() || this.loading()) return;
     const role = this.selectedRole();
     if (!role || role.name === 'OWNER') return;
 

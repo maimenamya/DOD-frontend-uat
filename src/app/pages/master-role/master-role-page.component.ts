@@ -56,6 +56,7 @@ export class MasterRolePageComponent implements OnInit {
 
   loadRoles(): void {
     this.loading.set(true);
+    this.showCreateModal.set(false);
     this.roleService.getRoles().subscribe({
       next: (roles) => {
         this.roles.set(roles);
@@ -69,6 +70,7 @@ export class MasterRolePageComponent implements OnInit {
   }
 
   openCreate(): void {
+    if (this.loading()) return;
     this.createForm.reset({
       name: '',
       startDrinks: DEFAULT_PR_START_DRINKS,

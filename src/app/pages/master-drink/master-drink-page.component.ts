@@ -46,6 +46,7 @@ export class MasterDrinkPageComponent implements OnInit {
 
   loadBeverages(): void {
     this.loading.set(true);
+    this.showCreateModal.set(false);
     this.beverageService.getBeverages().subscribe({
       next: (items) => {
         this.beverages.set(items);
@@ -59,6 +60,7 @@ export class MasterDrinkPageComponent implements OnInit {
   }
 
   openCreate(): void {
+    if (this.loading()) return;
     this.createForm.reset({ name: '', price: 0 });
     this.showCreateModal.set(true);
   }

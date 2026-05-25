@@ -3,7 +3,7 @@
     <div>
       <h1 class="app-page-title">จัดการพนักงาน</h1>
     </div>
-    @if (canManage() && selectedRole() && selectedRole()!.name !== 'OWNER') {
+    @if (canManage() && !loading() && selectedRole() && selectedRole()!.name !== 'OWNER') {
       <button type="button" (click)="openCreateForm()" class="app-btn-primary">
         + เพิ่มพนักงาน
       </button>
@@ -27,7 +27,7 @@
     </div>
   }
 
-  @if (showCreateForm() && canManage()) {
+  @if (showCreateForm() && canManage() && !loading()) {
     <app-modal (dismiss)="closeCreateForm()">
       <div class="app-modal-header">
         <h2 class="app-modal-title">เพิ่มพนักงาน — {{ roleLabel(selectedRole()!.name) }}</h2>
