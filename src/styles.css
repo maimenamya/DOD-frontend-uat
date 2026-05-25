@@ -197,34 +197,18 @@
   }
 
   .glass-input {
-    @apply w-full rounded-input border border-theme-border bg-transparent text-text-primary outline-none;
-    padding: 0.875rem 1rem 0.875rem 2.75rem;
-    background: var(--surface);
-    backdrop-filter: blur(var(--glass-blur-sm));
-    -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-    transition: all var(--transition-smooth);
+    @apply w-full min-w-0 flex-1 border-0 bg-transparent text-base text-text-primary outline-none;
+    padding: 0.875rem 1rem;
+    line-height: 1.5;
+    font-size: 1rem;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: color var(--transition-smooth);
   }
 
   .glass-input::placeholder {
     color: var(--text-secondary);
     opacity: 0.7;
-  }
-
-  .glass-input:hover {
-    border-color: var(--border-strong);
-    background: var(--surface-hover);
-  }
-
-  .glass-input:focus {
-    border-color: var(--border-focus);
-    background: rgba(255, 255, 255, 0.07);
-    box-shadow:
-      0 0 0 3px rgba(47, 128, 255, 0.15),
-      var(--shadow-glow-sm);
-  }
-
-  .glass-input-with-toggle {
-    padding-right: 2.75rem;
   }
 
   .neon-button {
@@ -286,16 +270,48 @@
     @apply mt-8 space-y-5;
   }
 
+  .login-field {
+    @apply w-full;
+  }
+
   .login-input-group {
-    @apply relative;
+    @apply relative flex min-h-[3rem] w-full items-center overflow-hidden rounded-input border border-theme-border;
+    background: var(--surface);
+    backdrop-filter: blur(var(--glass-blur-sm));
+    -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+    transition:
+      border-color var(--transition-smooth),
+      box-shadow var(--transition-smooth),
+      background var(--transition-smooth);
+  }
+
+  .login-input-group:hover {
+    border-color: var(--border-strong);
+    background: var(--surface-hover);
+  }
+
+  .login-input-group:focus-within {
+    border-color: var(--border-focus);
+    background: rgba(255, 255, 255, 0.07);
+    box-shadow:
+      0 0 0 3px rgba(47, 128, 255, 0.15),
+      var(--shadow-glow-sm);
+  }
+
+  .login-input-group--with-icon .glass-input {
+    padding-left: 0.5rem;
+  }
+
+  .login-input-group--toggle .glass-input {
+    padding-right: 0.25rem;
   }
 
   .login-input-icon {
-    @apply pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-text-secondary;
+    @apply pointer-events-none my-auto ml-3.5 h-5 w-5 shrink-0 self-center text-text-secondary;
   }
 
   .login-input-icon-right {
-    @apply pointer-events-auto absolute right-3.5 top-1/2 h-5 w-5 -translate-y-1/2 cursor-pointer border-0 bg-transparent p-0 text-text-secondary transition-colors duration-200 hover:text-primary-light;
+    @apply pointer-events-auto my-auto mr-3.5 h-5 w-5 shrink-0 cursor-pointer self-center border-0 bg-transparent p-0 text-text-secondary transition-colors duration-200 hover:text-primary-light;
   }
 
   .login-toggle-icon {
@@ -1077,9 +1093,12 @@
   }
 
   .app-input {
-    @apply h-11 w-full rounded-input border border-theme-border px-4 text-sm text-text-primary outline-none transition-all duration-200;
+    @apply h-11 w-full rounded-input border border-theme-border px-4 text-base text-text-primary outline-none transition-all duration-200;
     background: var(--surface);
-    line-height: var(--leading-normal);
+    line-height: 1.5;
+    font-size: 1rem;
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   .app-input::placeholder {
@@ -1125,7 +1144,25 @@
 
   .app-input-number {
     text-align: center;
+    font-size: 1rem;
+    line-height: 1.5;
     font-variant-numeric: tabular-nums;
+  }
+
+  /**
+   * iOS Safari zooms the page when an input has font-size < 16px.
+   * Keep 16px on touch devices for all form controls.
+   */
+  @media (max-width: 768px) {
+    input,
+    select,
+    textarea,
+    .glass-input,
+    .app-input,
+    .app-dropdown-trigger-label {
+      font-size: 16px;
+      line-height: 1.5;
+    }
   }
 
   .app-dropdown {
