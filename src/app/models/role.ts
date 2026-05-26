@@ -2,6 +2,8 @@ export const EMPLOYEE_ROLES = ['OWNER', 'ADMIN', 'MANAGER', 'SALE', 'PR'] as con
 
 export type EmployeeRole = (typeof EMPLOYEE_ROLES)[number];
 
+export type RoleCategory = 'STAFF' | 'ENTERTAINER';
+
 export const MANAGEMENT_ROLES: readonly EmployeeRole[] = ['OWNER', 'ADMIN', 'MANAGER'];
 
 export const FIELD_STAFF_ROLES: readonly EmployeeRole[] = ['SALE', 'PR'];
@@ -15,6 +17,7 @@ export const MANAGEMENT_TABLE_ROLES: readonly EmployeeRole[] = ['ADMIN', 'MANAGE
 export interface Role {
   id: number;
   name: string;
+  category?: RoleCategory;
   startDrinks: number;
   nextHourDrinks: number;
   defaultPricePerDrink: number;
@@ -23,6 +26,7 @@ export interface Role {
 
 export interface RoleWritePayload {
   name: string;
+  category?: RoleCategory;
   startDrinks: number;
   nextHourDrinks: number;
   defaultPricePerDrink: number;

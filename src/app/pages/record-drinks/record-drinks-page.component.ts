@@ -45,6 +45,7 @@ function rolesFromEmployees(employees: Employee[]): Role[] {
       byId.set(role.id, {
         id: role.id,
         name: role.name,
+        category: role.category,
         startDrinks: role.startDrinks ?? 0,
         nextHourDrinks: role.nextHourDrinks ?? 0,
         defaultPricePerDrink: role.defaultPricePerDrink ?? 0,
@@ -52,6 +53,14 @@ function rolesFromEmployees(employees: Employee[]): Role[] {
     }
   }
   return Array.from(byId.values()).sort((a, b) => a.id - b.id);
+}
+
+function todayDateInputValue(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 @Component({
@@ -68,18 +77,31 @@ export class RecordDrinksPageComponent implements OnInit {
   private readonly transactionService = inject(TransactionService);
   private readonly toast = inject(ToastService);
 
-  readonly user = computed(() => this.auth.getUser());
   readonly loading = signal(true);
   readonly submitting = signal(false);
   readonly staff = signal<Employee[]>([]);
   readonly allRoles = signal<Role[]>([]);
 
   readonly form = this.fb.group({
+    saleEmployeeId: this.fb.control('', Validators.required),
     billReference: this.fb.control('', {
       validators: [Validators.required, Validators.maxLength(64)],
     }),
-    rows: this.fb.array<DrinkRowForm>([this.createRow()]),
+    billAmount: this.fb.control(0, {
+      validators: [Validators.required, Validators.min(0)],
+    }),
+    businessDate: this.fb.control(todayDateInputValue(), Validators.required),
+    rows: this.fb.array<DrinkRowForm>([]),
   });
+
+  readonly saleDropdownOptions = computed((): DropdownOption[] =>
+    this.staff()
+      .filter((e) => e.role?.name === 'SALE')
+      .map((e) => ({
+        value: e.employeeId,
+        label: e.nickname,
+      })),
+  );
 
   readonly roleDropdownOptions = computed((): DropdownOption[] => {
     return this.allRoles().map((role) => ({
@@ -88,7 +110,6 @@ export class RecordDrinksPageComponent implements OnInit {
     }));
   });
 
-  readonly grandTotal = signal(0);
   readonly grandDrinks = signal(0);
 
   constructor() {
@@ -121,12 +142,19 @@ export class RecordDrinksPageComponent implements OnInit {
         this.staff.set(active);
         this.allRoles.set(rolesFromEmployees(active));
 
+        const saleEmployees = active.filter((e) => e.role?.name === 'SALE');
+        if (saleEmployees.length > 0 && !this.form.controls.saleEmployeeId.value) {
+          this.form.controls.saleEmployeeId.setValue(saleEmployees[0].employeeId);
+        }
+
         this.roleService
           .getRolesForShop(shopId)
           .pipe(catchError(() => of(null)))
           .subscribe((roles) => {
             if (roles?.length) {
-              this.allRoles.set(roles);
+              this.allRoles.set(
+                roles.filter((r) => !EXCLUDED_DRINK_ROLE_NAMES.has(r.name)),
+              );
             } else if (this.allRoles().length === 0) {
               this.toast.showError('ไม่พบตำแหน่งที่มีพนักงานในร้านนี้');
             }
@@ -172,9 +200,6 @@ export class RecordDrinksPageComponent implements OnInit {
   }
 
   removeRow(index: number): void {
-    if (this.rows.length <= 1) {
-      return;
-    }
     this.rows.removeAt(index);
     this.syncAllRowsEmployeeState();
     this.refreshSummary();
@@ -191,17 +216,6 @@ export class RecordDrinksPageComponent implements OnInit {
     return Math.round(price * qty * 100) / 100;
   }
 
-  private refreshSummary(): void {
-    let drinks = 0;
-    let total = 0;
-    for (const row of this.rows.controls) {
-      drinks += Number(row.controls.quantity.value) || 0;
-      total += this.lineAmount(row);
-    }
-    this.grandDrinks.set(drinks);
-    this.grandTotal.set(total);
-  }
-
   lineAmountForRow(row: DrinkRowForm): number {
     return this.lineAmount(row);
   }
@@ -213,27 +227,48 @@ export class RecordDrinksPageComponent implements OnInit {
       }
     }
 
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      this.toast.showError('กรุณากรอกเลขบิล เลือกตำแหน่ง และเลือกพนักงานทุกแถว');
+    const incompleteRow = this.rows.controls.find((row) => this.isRowPartial(row));
+    if (incompleteRow) {
+      this.markIncompleteRowErrors(incompleteRow);
+      this.toast.showError('กรุณากรอกตำแหน่ง พนักงาน และจำนวนดื่มให้ครบทุกแถวที่เพิ่ม');
       this.reapplyEmployeeDisabledState();
       return;
     }
 
-    const billReference = this.form.controls.billReference.value.trim();
-    const transactions = this.rows.getRawValue().map((row) => ({
-      employeeId: row.employeeId,
-      quantity: row.quantity,
-      roleId: Number(row.roleId),
-    }));
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.toast.showError('กรุณากรอกข้อมูลบิลให้ครบ');
+      this.reapplyEmployeeDisabledState();
+      return;
+    }
+
+    const raw = this.form.getRawValue();
+    const billReference = raw.billReference.trim();
+    const transactions = raw.rows
+      .filter((row) => this.isRowCompleteValues(row))
+      .map((row) => ({
+        employeeId: row.employeeId,
+        quantity: row.quantity,
+        roleId: Number(row.roleId),
+      }));
 
     this.submitting.set(true);
     this.transactionService
-      .createBatchDrinks({ billReference, transactions })
+      .createBatchDrinks({
+        billReference,
+        saleEmployeeId: raw.saleEmployeeId.trim().toLowerCase(),
+        billAmount: Number(raw.billAmount),
+        businessDate: raw.businessDate,
+        transactions,
+      })
       .subscribe({
         next: (result) => {
+          const drinkPart =
+            result.count > 0
+              ? `${result.count} รายการ, ${result.totalDrinks} ดื่ม`
+              : 'ไม่มีรายการดื่ม';
           this.toast.showSuccess(
-            `บันทึกบิล ${result.billReference} สำเร็จ — ${result.count} รายการ, รวม ${result.totalDrinks} ดื่ม, ฿${result.totalAmount.toLocaleString('th-TH')}`,
+            `บันทึกบิล ${result.billReference} สำเร็จ — ยอดบิล ฿${result.billAmount.toLocaleString('th-TH')}, ${drinkPart}`,
           );
           this.resetForm();
           this.submitting.set(false);
@@ -249,16 +284,27 @@ export class RecordDrinksPageComponent implements OnInit {
       });
   }
 
+  private refreshSummary(): void {
+    let drinks = 0;
+    for (const row of this.rows.controls) {
+      drinks += Number(row.controls.quantity.value) || 0;
+    }
+    this.grandDrinks.set(drinks);
+  }
+
   private reapplyEmployeeDisabledState(): void {
     this.syncAllRowsEmployeeState();
   }
 
   private resetForm(): void {
-    this.form.controls.billReference.reset('');
+    const saleId = this.form.controls.saleEmployeeId.value;
+    this.form.reset({
+      saleEmployeeId: saleId,
+      billReference: '',
+      billAmount: 0,
+      businessDate: todayDateInputValue(),
+    });
     this.rows.clear();
-    const row = this.createRow();
-    this.rows.push(row);
-    this.syncEmployeeControlState(row);
     this.refreshSummary();
   }
 
@@ -277,16 +323,59 @@ export class RecordDrinksPageComponent implements OnInit {
     }
   }
 
+  private markIncompleteRowErrors(row: DrinkRowForm): void {
+    row.markAllAsTouched();
+    const roleId = Number(row.controls.roleId.value);
+    if (!Number.isInteger(roleId) || roleId <= 0) {
+      row.controls.roleId.setErrors({ required: true });
+    }
+    if (!row.controls.employeeId.value?.trim()) {
+      row.controls.employeeId.setErrors({ required: true });
+    }
+    const qty = Number(row.controls.quantity.value);
+    if (!Number.isFinite(qty) || qty < 1) {
+      row.controls.quantity.setErrors({ min: { min: 1, actual: qty } });
+    }
+  }
+
+  private isRowEmpty(row: DrinkRowForm): boolean {
+    const roleId = row.controls.roleId.value;
+    const employeeId = row.controls.employeeId.value?.trim();
+    const qty = Number(row.controls.quantity.value);
+    return !roleId && !employeeId && (!Number.isFinite(qty) || qty <= 0);
+  }
+
+  private isRowPartial(row: DrinkRowForm): boolean {
+    return !this.isRowEmpty(row) && !this.isRowComplete(row);
+  }
+
+  private isRowComplete(row: DrinkRowForm): boolean {
+    return this.isRowCompleteValues(row.getRawValue());
+  }
+
+  private isRowCompleteValues(row: {
+    roleId: number | '';
+    employeeId: string;
+    quantity: number;
+  }): boolean {
+    const roleId = Number(row.roleId);
+    const employeeId = row.employeeId?.trim();
+    const qty = Number(row.quantity);
+    return (
+      Number.isInteger(roleId) &&
+      roleId > 0 &&
+      !!employeeId &&
+      Number.isFinite(qty) &&
+      qty >= 1
+    );
+  }
+
   private createRow(): DrinkRowForm {
     const row = this.fb.group({
-      roleId: this.fb.control<number | ''>('', {
-        validators: [Validators.required],
-      }),
-      employeeId: this.fb.control({ value: '', disabled: true }, {
-        validators: [Validators.required],
-      }),
-      quantity: this.fb.control(1, {
-        validators: [Validators.required, Validators.min(1), Validators.max(999)],
+      roleId: this.fb.control<number | ''>(''),
+      employeeId: this.fb.control({ value: '', disabled: true }),
+      quantity: this.fb.control(0, {
+        validators: [Validators.min(0), Validators.max(999)],
       }),
     });
 

@@ -1,46 +1,105 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { finalize } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 
-import type { DashboardPreset, DashboardSummary, EmployeePerformanceRank } from '../../models/dashboard';
+import {
+  CustomDropdownComponent,
+  type DropdownOption,
+} from '../../components/custom-dropdown/custom-dropdown.component';
+import type {
+  DashboardBillStatus,
+  DashboardPreset,
+  DashboardSummary,
+  EmployeePerformanceRank,
+} from '../../models/dashboard';
+import type { Employee } from '../../models/employee';
 import { AuthService } from '../../services/auth.service';
 import { DashboardService } from '../../services/dashboard.service';
+import { EmployeeService } from '../../services/employee.service';
+import { roleLabelThai } from '../../utils/employee-team.util';
 
 @Component({
   selector: 'app-dashboard-page',
-  imports: [DecimalPipe, FormsModule],
+  imports: [DecimalPipe, FormsModule, CustomDropdownComponent],
   templateUrl: './dashboard-page.component.html',
 })
 export class DashboardPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly dashboardService = inject(DashboardService);
+  private readonly employeeService = inject(EmployeeService);
 
-  readonly user = computed(() => this.auth.getUser());
   readonly displayNickname = computed(() => this.auth.getDisplayNickname());
-  readonly isPersonalView = computed(() => this.auth.isFieldStaff());
   readonly isSaleRole = computed(() => this.auth.getRole() === 'SALE');
   readonly isPrRole = computed(() => this.auth.getRole() === 'PR');
+  readonly canPickBillSale = computed(
+    () => this.auth.canAccessTeamManagement() || this.auth.isOwner(),
+  );
+  /** Manager / OWNER — full shop stats + bill picker. */
+  readonly isManagerView = computed(() => this.canPickBillSale());
+  /** SALE — shop-wide cards/tables; top bar = own bill total. */
+  readonly isSaleTeamView = computed(() => this.isSaleRole() && !this.canPickBillSale());
+  /** PR — one PR total card + PR table; top bar = own drink count. */
+  readonly isPrTeamView = computed(() => this.isPrRole() && !this.canPickBillSale());
+  readonly showTripleStatCards = computed(
+    () => this.isManagerView() || this.isSaleTeamView(),
+  );
+  readonly showStaffRanking = computed(
+    () => this.isManagerView() || this.isSaleTeamView(),
+  );
+  readonly showEntertainerRanking = computed(
+    () => this.isManagerView() || this.isSaleTeamView() || this.isPrTeamView(),
+  );
 
   readonly loading = signal(true);
+  readonly billLoading = signal(false);
   readonly error = signal<string | null>(null);
   readonly summary = signal<DashboardSummary | null>(null);
+  readonly billStatus = signal<DashboardBillStatus | null>(null);
+  readonly saleStaff = signal<Employee[]>([]);
 
   readonly datePreset = signal<DashboardPreset>('today');
   readonly customFrom = signal('');
   readonly customTo = signal('');
-  readonly saleSearch = signal('');
-  readonly prSearch = signal('');
+  readonly staffSearch = signal('');
+  readonly entertainerSearch = signal('');
+  readonly selectedSaleEmployeeId = signal('');
+  private billStatusRequestSeq = 0;
 
-  readonly filteredTopSales = computed(() =>
-    this.filterLeaderboard(this.summary()?.topSales ?? [], this.saleSearch()),
+  readonly billSectionTitle = computed(() => {
+    if (this.canPickBillSale()) {
+      return 'ดูยอดบิลพนักงาน (SALE)';
+    }
+    if (this.isSaleRole()) {
+      return 'ยอดบิลของตัวเอง';
+    }
+    if (this.isPrRole()) {
+      return 'ยอดดื่มของตัวเอง';
+    }
+    return 'ยอดบิลของตัวเอง';
+  });
+
+  readonly saleBillDropdownOptions = computed((): DropdownOption[] =>
+    this.saleStaff().map((emp) => ({
+      value: emp.employeeId,
+      label: emp.nickname,
+    })),
   );
 
-  readonly filteredTopPr = computed(() =>
-    this.filterLeaderboard(this.summary()?.topPr ?? [], this.prSearch()),
+  readonly filteredTopStaff = computed(() =>
+    this.filterLeaderboard(this.summary()?.topStaff ?? [], this.staffSearch()),
+  );
+
+  readonly filteredTopEntertainers = computed(() =>
+    this.filterLeaderboard(this.summary()?.topEntertainers ?? [], this.entertainerSearch()),
   );
 
   ngOnInit(): void {
-    this.loadSummary();
+    if (this.canPickBillSale()) {
+      this.loadSaleStaff();
+    } else {
+      this.loadSummary();
+    }
   }
 
   selectPreset(preset: DashboardPreset): void {
@@ -56,6 +115,29 @@ export class DashboardPageComponent implements OnInit {
     }
     this.datePreset.set('custom');
     this.loadSummary();
+  }
+
+  onSaleEmployeeChange(employeeId: string): void {
+    this.selectedSaleEmployeeId.set(employeeId);
+    this.loadBillStatus();
+  }
+
+  rankDisplayName(row: EmployeePerformanceRank): string {
+    return `${row.nickname} (${roleLabelThai(row.role)})`;
+  }
+
+  billAmountDisplay(): string {
+    const status = this.billStatus();
+    if (status) {
+      if (status.kind === 'bill_amount') {
+        return `฿${status.value.toLocaleString('th-TH', { maximumFractionDigits: 0 })}`;
+      }
+      return `${status.value.toLocaleString('th-TH')} ดื่ม`;
+    }
+    if (this.isPrRole() && !this.canPickBillSale()) {
+      return '0 ดื่ม';
+    }
+    return '฿0';
   }
 
   loadSummary(): void {
@@ -85,12 +167,92 @@ export class DashboardPageComponent implements OnInit {
         next: (data) => {
           this.summary.set(data);
           this.loading.set(false);
+          if (this.canPickBillSale()) {
+            this.loadBillStatus();
+          } else {
+            this.billStatus.set(data.billStatus);
+          }
         },
         error: () => {
           this.error.set('ไม่สามารถโหลดข้อมูล Dashboard ได้');
           this.loading.set(false);
         },
       });
+  }
+
+  loadBillStatus(): void {
+    const shopId = this.auth.getShopId();
+    if (shopId == null) {
+      return;
+    }
+
+    const preset = this.datePreset();
+    if (preset === 'custom' && (!this.customFrom() || !this.customTo())) {
+      return;
+    }
+
+    const billEmployeeId = this.canPickBillSale()
+      ? this.selectedSaleEmployeeId().trim()
+      : undefined;
+    if (this.canPickBillSale() && !billEmployeeId) {
+      this.billStatus.set(null);
+      return;
+    }
+
+    const requestSeq = ++this.billStatusRequestSeq;
+    this.billLoading.set(true);
+
+    this.dashboardService
+      .getBillStatus({
+        shopId,
+        preset,
+        from: preset === 'custom' ? this.customFrom() : undefined,
+        to: preset === 'custom' ? this.customTo() : undefined,
+        billEmployeeId,
+      })
+      .pipe(finalize(() => {
+        if (requestSeq === this.billStatusRequestSeq) {
+          this.billLoading.set(false);
+        }
+      }))
+      .subscribe({
+        next: (status) => {
+          if (requestSeq !== this.billStatusRequestSeq) {
+            return;
+          }
+          this.billStatus.set(status);
+        },
+        error: () => {
+          if (requestSeq !== this.billStatusRequestSeq) {
+            return;
+          }
+          this.billStatus.set(null);
+        },
+      });
+  }
+
+  private loadSaleStaff(): void {
+    const shopId = this.auth.getShopId();
+    if (shopId == null) {
+      this.loadSummary();
+      return;
+    }
+
+    this.employeeService.getEmployeesByShop(shopId).subscribe({
+      next: (employees) => {
+        const sales = employees.filter(
+          (e) => e.status === 'Active' && e.role?.name === 'SALE',
+        );
+        this.saleStaff.set(sales);
+        if (!this.selectedSaleEmployeeId() && sales.length > 0) {
+          this.selectedSaleEmployeeId.set(sales[0].employeeId);
+        }
+        this.loadSummary();
+      },
+      error: () => {
+        this.loadSummary();
+      },
+    });
   }
 
   private filterLeaderboard(
@@ -104,7 +266,8 @@ export class DashboardPageComponent implements OnInit {
     return rows.filter(
       (row) =>
         row.nickname.toLowerCase().includes(term) ||
-        row.employeeId.toLowerCase().includes(term),
+        row.employeeId.toLowerCase().includes(term) ||
+        row.role.toLowerCase().includes(term),
     );
   }
 }

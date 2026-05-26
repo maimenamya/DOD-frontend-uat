@@ -88,6 +88,10 @@
     --gradient-ambient: rgba(124, 58, 237, 0.1);
     --gradient-login-orb: rgba(47, 128, 255, 0.35);
     --gradient-login-orb-secondary: rgba(124, 58, 237, 0.15);
+
+    /* Login fields — opaque fill so icon + input share one flat color */
+    --login-input-fill: #151c30;
+    --login-input-fill-hover: #1a2440;
   }
 
   [data-theme='light'] {
@@ -112,6 +116,8 @@
     --shadow-elevated: 0 12px 40px rgba(15, 23, 42, 0.1);
     --shadow-glow: 0 0 40px var(--glow);
     --shadow-sidebar: 0 8px 24px rgba(15, 23, 42, 0.08);
+    --login-input-fill: #eef2fb;
+    --login-input-fill-hover: #e4eaf8;
   }
 
   html {
@@ -248,23 +254,23 @@
   }
 
   .login-ambient {
-    @apply pointer-events-none absolute left-1/2 top-[38%] h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-70;
+    @apply pointer-events-none absolute left-1/2 top-[38%] h-[380px] w-[380px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-50;
     background: radial-gradient(
       circle,
-      var(--gradient-login-orb) 0%,
-      var(--gradient-login-orb-secondary) 40%,
-      transparent 70%
+      rgba(30, 200, 255, 0.18) 0%,
+      rgba(47, 128, 255, 0.08) 45%,
+      transparent 72%
     );
-    filter: blur(40px);
+    filter: blur(48px);
     animation: floatGlow 8s ease-in-out infinite;
   }
 
   .login-card {
-    @apply glass-card glow-border z-10 w-full max-w-[460px] p-8 sm:p-10;
+    @apply relative z-10 w-full max-w-[460px] overflow-visible rounded-glass border border-theme-border p-8 sm:p-10;
+    background: var(--surface-strong);
+    box-shadow: var(--shadow-card);
     animation: loginCardFade 0.5s ease-out forwards;
     transform: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
   }
 
   @keyframes loginCardFade {
@@ -291,14 +297,13 @@
   }
 
   .login-input-group {
-    @apply relative grid w-full items-center rounded-input border border-theme-border;
+    @apply relative grid w-full min-w-0 items-center overflow-hidden rounded-input border border-theme-border;
     grid-template-columns: auto 1fr auto;
     min-height: 3rem;
-    background: var(--surface);
+    background-color: var(--login-input-fill);
     transition:
       border-color var(--transition-smooth),
-      box-shadow var(--transition-smooth),
-      background var(--transition-smooth);
+      background-color var(--transition-smooth);
   }
 
   .login-input-group--with-icon {
@@ -311,15 +316,37 @@
 
   .login-input-group:hover {
     border-color: var(--border-strong);
-    background: var(--surface-hover);
+    background-color: var(--login-input-fill-hover);
   }
 
   .login-input-group:focus-within {
     border-color: var(--border-focus);
-    background: rgba(255, 255, 255, 0.07);
-    box-shadow:
-      0 0 0 3px rgba(47, 128, 255, 0.15),
-      var(--shadow-glow-sm);
+    background-color: var(--login-input-fill-hover);
+    box-shadow: inset 0 0 0 1px rgba(47, 128, 255, 0.35);
+  }
+
+  .login-page .login-input-group .glass-input {
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .login-page .login-input-group .glass-input:-webkit-autofill,
+  .login-page .login-input-group .glass-input:-webkit-autofill:hover,
+  .login-page .login-input-group .glass-input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--text-primary) !important;
+    caret-color: var(--text-primary);
+    transition: background-color 99999s ease-out 0s;
+    -webkit-box-shadow: 0 0 0 1000px var(--login-input-fill) inset !important;
+  }
+
+  .login-page .login-input-group:hover .glass-input:-webkit-autofill,
+  .login-page .login-input-group:focus-within .glass-input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px var(--login-input-fill-hover) inset !important;
+  }
+
+  .login-input-icon,
+  .login-input-icon-right {
+    background: transparent;
   }
 
   .login-input-group--with-icon .glass-input {
@@ -335,7 +362,7 @@
   }
 
   .login-input-icon-right {
-    @apply pointer-events-auto mr-3.5 h-5 w-5 cursor-pointer justify-self-end border-0 bg-transparent p-0 text-text-secondary transition-colors duration-200 hover:text-primary-light;
+    @apply pointer-events-auto mr-3.5 flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center justify-self-end rounded-input border-0 bg-transparent p-0 text-text-secondary transition-colors duration-200 hover:text-primary-light;
   }
 
   @supports (-webkit-touch-callout: none) {
@@ -391,15 +418,42 @@
 
   /* ── App layout (dashboard shell) ── */
   .app-layout {
-    @apply page-background soft-grid-bg flex min-h-screen min-h-[100dvh] flex-col items-stretch lg:flex-row;
+    @apply page-background soft-grid-bg flex min-h-screen min-h-[100dvh] flex-col items-stretch lg:flex-row lg:items-stretch;
   }
 
   .app-sidebar-slot {
-    @apply flex shrink-0 lg:min-h-[100dvh] lg:self-stretch;
+    @apply flex shrink-0 lg:flex lg:flex-col lg:self-stretch;
+  }
+
+  /* Mobile: sidebar is fixed — slot must not reserve a full-viewport row */
+  @media (max-width: 1023px) {
+    .app-sidebar-slot {
+      @apply pointer-events-none h-0 w-0 min-h-0 min-w-0 overflow-visible;
+    }
+
+    .app-sidebar-slot > app-sidebar {
+      @apply flex min-h-0 w-0 min-w-0 overflow-visible;
+    }
+
+    .app-sidebar-slot .app-sidebar {
+      @apply pointer-events-auto;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .app-sidebar-slot > app-sidebar {
+      @apply flex h-full min-h-full w-auto min-w-0 flex-1;
+    }
   }
 
   .app-layout-main {
-    @apply flex min-h-0 min-h-[100dvh] w-full min-w-0 max-w-full flex-1 flex-col;
+    @apply flex min-h-0 w-full min-w-0 max-w-full flex-1 flex-col;
+  }
+
+  @media (min-width: 1024px) {
+    .app-layout-main {
+      @apply min-h-[100dvh];
+    }
   }
 
   .app-main-content {
@@ -410,6 +464,8 @@
   .app-top-header {
     @apply sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-theme-border px-4 py-3 backdrop-blur-glass sm:px-6 lg:px-8;
     background: var(--surface-strong);
+    /* Sticky split-table heads sit flush under this bar on mobile */
+    --app-top-header-offset: 3.5rem;
   }
 
   .app-top-header-menu {
@@ -493,6 +549,32 @@
     @apply flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between;
   }
 
+  .app-page-header-dashboard {
+    @apply flex w-full min-w-0 flex-col items-stretch gap-4;
+  }
+
+  .app-page-header.app-page-header-dashboard {
+    @apply sm:flex-col sm:items-stretch sm:justify-start;
+  }
+
+  .app-page-header-dashboard .app-page-title {
+    @apply order-1 w-full text-left;
+  }
+
+  .app-page-header-dashboard .dashboard-date-filter {
+    @apply order-2 w-full;
+  }
+
+  @media (min-width: 1280px) {
+    .app-page-header-dashboard {
+      @apply flex-row items-start justify-between gap-6;
+    }
+
+    .app-page-header-dashboard .dashboard-date-filter {
+      @apply w-auto shrink-0;
+    }
+  }
+
   .app-page-header-main {
     @apply min-w-0 flex-1;
   }
@@ -542,7 +624,7 @@
 
   @media (min-width: 1024px) {
     .app-sidebar {
-      @apply sticky top-0 z-auto h-[100dvh] min-h-[100dvh] max-h-[100dvh] translate-x-0 self-stretch;
+      @apply relative top-auto left-0 z-auto h-full min-h-full w-64 max-h-none translate-x-0 self-stretch;
       box-shadow: none;
     }
 
@@ -673,6 +755,14 @@
     background: linear-gradient(135deg, rgba(167, 139, 250, 0.14) 0%, var(--surface-strong) 100%);
   }
 
+  .app-stat-card-drinks-total {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, var(--surface-strong) 100%);
+  }
+
+  .app-skeleton-stat {
+    min-height: 7.5rem;
+  }
+
   .app-stat-label {
     @apply text-sm font-medium;
     line-height: 1.4;
@@ -693,6 +783,32 @@
   .app-stat-value {
     @apply mt-2 text-4xl font-bold tracking-tight text-text-primary sm:text-5xl;
     line-height: 1.05;
+  }
+
+  .app-stat-breakdown {
+    @apply mt-5 space-y-2 border-t border-theme-border pt-4;
+  }
+
+  .app-stat-breakdown-row {
+    @apply flex items-center justify-between gap-4 text-sm;
+  }
+
+  .app-stat-breakdown-row dt {
+    @apply font-medium text-text-secondary;
+    line-height: 1.4;
+  }
+
+  .app-stat-breakdown-row dd {
+    @apply text-lg font-semibold tabular-nums text-text-primary;
+    margin: 0;
+  }
+
+  .app-stat-breakdown-row-entertainer dd {
+    color: #a78bfa;
+  }
+
+  .app-stat-card-drinks-total .app-stat-value {
+    @apply mb-0;
   }
 
   .app-stat-hint {
@@ -716,6 +832,10 @@
     background: var(--app-scroll-track);
   }
 
+  .app-scroll-region::-webkit-scrollbar-corner {
+    background: var(--app-scroll-track);
+  }
+
   .app-scroll-region::-webkit-scrollbar-thumb {
     background: color-mix(in srgb, var(--text-secondary) 30%, transparent);
     border-radius: 3px;
@@ -731,14 +851,22 @@
 
   /* ── Tables ── */
   .app-data-table-wrap {
-    @apply overflow-x-auto;
+    @apply app-scroll-region overflow-x-auto overflow-y-hidden;
+    -webkit-overflow-scrolling: touch;
   }
 
   /** Outer clip + horizontal scroll on small screens */
   .app-data-table-shell {
-    @apply overflow-x-auto overflow-y-hidden rounded-xl;
+    @apply app-scroll-region overflow-x-auto overflow-y-hidden rounded-xl;
     -webkit-overflow-scrolling: touch;
     background-color: var(--table-body-bg);
+  }
+
+  /** Split tables fill the card on desktop; shell scrolls horizontally on mobile */
+  @media (min-width: 640px) {
+    .app-data-table-shell:has(.app-split-table) {
+      overflow-x: clip;
+    }
   }
 
   /**
@@ -750,9 +878,16 @@
   }
 
   .app-split-table-header {
-    scrollbar-gutter: stable;
+    box-sizing: border-box;
     background-color: var(--table-head-sticky-bg);
     border-bottom: 1px solid var(--table-head-border);
+  }
+
+  @media (min-width: 640px) {
+    .app-split-table-header {
+      /* Match body vertical scrollbar (6px) so header columns align with rows */
+      padding-inline-end: 6px;
+    }
   }
 
   .app-split-table-header th {
@@ -767,8 +902,6 @@
   }
 
   .app-split-table-body {
-    scrollbar-gutter: stable;
-    @apply app-scroll-region;
     max-height: 37.5rem;
     overflow-y: auto;
     overflow-x: hidden;
@@ -779,8 +912,17 @@
     vertical-align: middle;
   }
 
-  .app-split-table--wide .app-split-table-grid {
-    min-width: 40rem;
+  /**
+   * Split-table column widths via <colgroup> (same idea as dashboard rank tables).
+   * Add/remove <col> in the template when columns change — no cols-N CSS classes.
+   * Unmarked <col> share remaining width equally (table-fixed).
+   */
+  .app-split-table-grid col.app-col-id {
+    width: 8%;
+  }
+
+  .app-split-table-grid col.app-col-actions {
+    width: 14%;
   }
 
   /** @deprecated — use .app-split-table */
@@ -801,162 +943,6 @@
 
   .app-data-table-scroll-10 .app-data-table-sticky-head thead th {
     @apply sticky top-0 z-10;
-  }
-
-  /** table-fixed column widths — keeps header/body aligned */
-  .app-data-table-cols-3 th:nth-child(1),
-  .app-data-table-cols-3 td:nth-child(1) {
-    width: 14%;
-  }
-
-  .app-data-table-cols-3 th:nth-child(2),
-  .app-data-table-cols-3 td:nth-child(2) {
-    width: 52%;
-  }
-
-  .app-data-table-cols-3 th:nth-child(3),
-  .app-data-table-cols-3 td:nth-child(3) {
-    width: 34%;
-  }
-
-  .app-data-table-cols-4 th:nth-child(1),
-  .app-data-table-cols-4 td:nth-child(1) {
-    width: 12%;
-  }
-
-  .app-data-table-cols-4 th:nth-child(2),
-  .app-data-table-cols-4 td:nth-child(2) {
-    width: 38%;
-  }
-
-  .app-data-table-cols-4 th:nth-child(3),
-  .app-data-table-cols-4 td:nth-child(3) {
-    width: 22%;
-  }
-
-  .app-data-table-cols-4 th:nth-child(4),
-  .app-data-table-cols-4 td:nth-child(4) {
-    width: 28%;
-  }
-
-  .app-data-table-cols-5 th:nth-child(1),
-  .app-data-table-cols-5 td:nth-child(1) {
-    width: 10%;
-  }
-
-  .app-data-table-cols-5 th:nth-child(2),
-  .app-data-table-cols-5 td:nth-child(2) {
-    width: 28%;
-  }
-
-  .app-data-table-cols-5 th:nth-child(3),
-  .app-data-table-cols-5 td:nth-child(3) {
-    width: 22%;
-  }
-
-  .app-data-table-cols-5 th:nth-child(4),
-  .app-data-table-cols-5 td:nth-child(4) {
-    width: 18%;
-  }
-
-  .app-data-table-cols-5 th:nth-child(5),
-  .app-data-table-cols-5 td:nth-child(5) {
-    width: 22%;
-  }
-
-  .app-data-table-cols-6 th:nth-child(1),
-  .app-data-table-cols-6 td:nth-child(1) {
-    width: 10%;
-  }
-
-  .app-data-table-cols-6 th:nth-child(2),
-  .app-data-table-cols-6 td:nth-child(2) {
-    width: 22%;
-  }
-
-  .app-data-table-cols-6 th:nth-child(3),
-  .app-data-table-cols-6 td:nth-child(3) {
-    width: 18%;
-  }
-
-  .app-data-table-cols-6 th:nth-child(4),
-  .app-data-table-cols-6 td:nth-child(4) {
-    width: 16%;
-  }
-
-  .app-data-table-cols-6 th:nth-child(5),
-  .app-data-table-cols-6 td:nth-child(5) {
-    width: 14%;
-  }
-
-  .app-data-table-cols-6 th:nth-child(6),
-  .app-data-table-cols-6 td:nth-child(6) {
-    width: 20%;
-  }
-
-  .app-data-table-cols-7 th:nth-child(1),
-  .app-data-table-cols-7 td:nth-child(1) {
-    width: 8%;
-  }
-
-  .app-data-table-cols-7 th:nth-child(2),
-  .app-data-table-cols-7 td:nth-child(2) {
-    width: 14%;
-  }
-
-  .app-data-table-cols-7 th:nth-child(3),
-  .app-data-table-cols-7 td:nth-child(3) {
-    width: 18%;
-  }
-
-  .app-data-table-cols-7 th:nth-child(4),
-  .app-data-table-cols-7 td:nth-child(4) {
-    width: 14%;
-  }
-
-  .app-data-table-cols-7 th:nth-child(5),
-  .app-data-table-cols-7 td:nth-child(5) {
-    width: 14%;
-  }
-
-  .app-data-table-cols-7 th:nth-child(6),
-  .app-data-table-cols-7 td:nth-child(6) {
-    width: 14%;
-  }
-
-  .app-data-table-cols-7 th:nth-child(7),
-  .app-data-table-cols-7 td:nth-child(7) {
-    width: 18%;
-  }
-
-  .app-data-table-cols-6-role th:nth-child(1),
-  .app-data-table-cols-6-role td:nth-child(1) {
-    width: 9%;
-  }
-
-  .app-data-table-cols-6-role th:nth-child(2),
-  .app-data-table-cols-6-role td:nth-child(2) {
-    width: 16%;
-  }
-
-  .app-data-table-cols-6-role th:nth-child(3),
-  .app-data-table-cols-6-role td:nth-child(3) {
-    width: 20%;
-  }
-
-  .app-data-table-cols-6-role th:nth-child(4),
-  .app-data-table-cols-6-role td:nth-child(4) {
-    width: 16%;
-  }
-
-  .app-data-table-cols-6-role th:nth-child(5),
-  .app-data-table-cols-6-role td:nth-child(5) {
-    width: 16%;
-  }
-
-  .app-data-table-cols-6-role th:nth-child(6),
-  .app-data-table-cols-6-role td:nth-child(6) {
-    width: 23%;
   }
 
   /** Up to 5 rows: natural height. More than 5: locked viewport + scroll. */
@@ -1092,15 +1078,71 @@
       @apply min-w-0 max-w-full;
     }
 
+    /**
+     * Mobile: same table-fixed + colgroup % as desktop so header/body columns line up.
+     * Fixed rem width on both tables (do not squeeze to viewport); shell scrolls horizontally.
+     */
+    .app-data-table-shell:has(.app-split-table) {
+      overflow-x: auto;
+      overflow-y: visible;
+      scrollbar-gutter: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+    }
+
+    .app-split-table {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .app-split-table-header .app-split-table-grid,
+    .app-split-table-body .app-split-table-grid {
+      table-layout: fixed;
+      width: 32rem;
+      min-width: 32rem;
+    }
+
+    .app-split-table:has(.app-col-actions):not(.app-split-table--wide) .app-split-table-header .app-split-table-grid,
+    .app-split-table:has(.app-col-actions):not(.app-split-table--wide) .app-split-table-body .app-split-table-grid {
+      width: 36rem;
+      min-width: 36rem;
+    }
+
     .app-data-table-scroll-10.app-data-table-wrap--wide .app-data-table,
     .app-data-table-wrap.app-data-table-scroll-10--wide .app-data-table,
-    .app-split-table--wide .app-split-table-grid {
-      min-width: 36rem;
+    .app-split-table--wide .app-split-table-header .app-split-table-grid,
+    .app-split-table--wide .app-split-table-body .app-split-table-grid {
+      width: 42rem;
+      min-width: 42rem;
+    }
+
+    .app-split-table-grid col.app-col-id {
+      width: 8%;
+    }
+
+    .app-split-table-grid col.app-col-actions {
+      width: 14%;
+    }
+
+    .app-split-table-header {
+      position: static;
+      box-shadow: none;
+    }
+
+    .app-split-table-body {
+      max-height: none;
+      overflow: visible;
+    }
+
+    .app-split-table-body.app-scroll-region {
+      scrollbar-gutter: auto;
+      scrollbar-width: auto;
     }
 
     .app-split-table-header th,
     .app-split-table-body .app-data-table td {
       @apply px-2.5 py-2.5 text-xs;
+      white-space: nowrap;
     }
 
     .app-data-table th,
@@ -1113,7 +1155,7 @@
     }
 
     .app-table-actions {
-      @apply min-w-[6.5rem] flex-row flex-nowrap gap-1.5;
+      @apply min-w-0 flex-row flex-nowrap justify-center gap-1.5;
     }
 
     .app-table-actions .app-btn-secondary-sm,
@@ -1756,6 +1798,10 @@
     @apply grid min-w-0 gap-6 lg:grid-cols-2;
   }
 
+  .app-grid-panels--single {
+    @apply lg:grid-cols-1;
+  }
+
   /** Dashboard rank cards: same clean border clip as stat cards */
   .app-grid-panels .app-card-flush {
     overflow: hidden;
@@ -1870,12 +1916,94 @@
     @apply flex min-h-0 flex-col gap-6;
   }
 
+  .record-drinks-bill-bar {
+    @apply grid gap-4;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .record-drinks-bill-field {
+    @apply min-w-0;
+  }
+
+  .dashboard-bill-bar {
+    @apply mb-6 flex flex-col gap-3 border-b border-theme-border pb-6;
+  }
+
+  .dashboard-bill-bar-title {
+    @apply min-w-0 text-lg font-semibold text-text-primary sm:text-xl;
+    line-height: 1.3;
+  }
+
+  .dashboard-bill-bar-row {
+    @apply flex w-full flex-wrap items-center gap-3 sm:gap-4;
+  }
+
+  .dashboard-bill-bar-row--manager {
+    @apply items-center;
+  }
+
+  .dashboard-bill-bar-row--manager .dashboard-bill-bar-title {
+    @apply w-full shrink-0 sm:w-auto;
+  }
+
+  .dashboard-bill-bar-row--self {
+    @apply items-baseline justify-start gap-4;
+  }
+
+  .dashboard-bill-bar-picker {
+    @apply w-full min-w-[12rem] max-w-xs shrink-0;
+  }
+
+  .dashboard-bill-bar-empty,
+  .dashboard-bill-bar-muted {
+    @apply text-sm text-text-secondary;
+  }
+
+  .dashboard-bill-bar-amount {
+    @apply flex shrink-0 items-center;
+  }
+
+  .dashboard-bill-bar-amount-value {
+    @apply text-2xl font-bold tracking-tight text-primary-light sm:text-3xl;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    transition: opacity 0.2s ease;
+  }
+
+  .dashboard-bill-bar-amount--pending .dashboard-bill-bar-amount-value {
+    opacity: 0.55;
+  }
+
+  .dashboard-bill-bar-muted {
+    @apply text-sm text-text-secondary;
+  }
+
+  @media (max-width: 1023px) {
+    .record-drinks-bill-bar {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 639px) {
+    .record-drinks-bill-bar {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
   .record-drinks-lines {
     @apply flex min-h-0 flex-col;
   }
 
   .record-drinks-lines-header {
-    @apply flex shrink-0 items-center justify-between gap-3;
+    @apply flex shrink-0 items-start justify-between gap-3;
+  }
+
+  .record-drinks-lines-hint {
+    @apply mt-1 text-sm text-text-secondary;
+  }
+
+  .record-drinks-empty {
+    @apply py-6 text-center text-sm text-text-secondary;
   }
 
   .record-drinks-add-btn {

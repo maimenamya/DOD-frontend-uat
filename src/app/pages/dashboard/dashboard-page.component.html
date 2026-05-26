@@ -1,8 +1,6 @@
 <div class="app-page">
-  <div class="app-page-header app-page-header-split">
-    <div class="app-page-header-main">
-      <h1 class="app-page-title">แดชบอร์ด</h1>
-    </div>
+  <header class="app-page-header app-page-header-dashboard">
+    <h1 class="app-page-title">แดชบอร์ด</h1>
     <div class="dashboard-date-filter">
       <div class="dashboard-date-presets">
         <button
@@ -59,6 +57,44 @@
         </div>
       }
     </div>
+  </header>
+
+  <div class="dashboard-bill-bar">
+    @if (canPickBillSale()) {
+      <div class="dashboard-bill-bar-row dashboard-bill-bar-row--manager">
+        <h2 class="dashboard-bill-bar-title">{{ billSectionTitle() }}</h2>
+        @if (saleStaff().length === 0) {
+          <p class="dashboard-bill-bar-empty">ไม่มีพนักงาน SALE ในร้าน</p>
+        } @else {
+          <div class="dashboard-bill-bar-picker">
+            <app-custom-dropdown
+              [options]="saleBillDropdownOptions()"
+              [ngModel]="selectedSaleEmployeeId()"
+              (ngModelChange)="onSaleEmployeeChange($event)"
+              placeholder="เลือกเซลล์"
+            />
+          </div>
+          <div
+            class="dashboard-bill-bar-amount"
+            [class.dashboard-bill-bar-amount--pending]="billLoading()"
+            aria-live="polite"
+          >
+            <span class="dashboard-bill-bar-amount-value">{{ billAmountDisplay() }}</span>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="dashboard-bill-bar-row dashboard-bill-bar-row--self">
+        <h2 class="dashboard-bill-bar-title">{{ billSectionTitle() }}</h2>
+        <div
+          class="dashboard-bill-bar-amount"
+          [class.dashboard-bill-bar-amount--pending]="billLoading()"
+          aria-live="polite"
+        >
+          <span class="dashboard-bill-bar-amount-value">{{ billAmountDisplay() }}</span>
+        </div>
+      </div>
+    }
   </div>
 
   @if (error()) {
@@ -69,198 +105,183 @@
   }
 
   @if (loading()) {
-    @if (isPersonalView()) {
-      <div class="app-grid-stats-single">
-        <div class="app-skeleton"></div>
-      </div>
-    } @else {
+    @if (showTripleStatCards()) {
       <div class="app-grid-stats-triple">
         @for (_ of [1, 2, 3]; track $index) {
-          <div class="app-skeleton"></div>
+          <div class="app-skeleton app-skeleton-stat"></div>
         }
       </div>
+    } @else {
+      <div class="app-grid-stats-single">
+        <div class="app-skeleton app-skeleton-stat"></div>
+      </div>
     }
+    <div class="app-grid-panels" [class.app-grid-panels--single]="isPrTeamView()">
+      @if (showStaffRanking()) {
+        <div class="app-skeleton" style="min-height: 14rem"></div>
+      }
+      @if (showEntertainerRanking()) {
+        <div class="app-skeleton" style="min-height: 14rem"></div>
+      }
+    </div>
   } @else if (summary()) {
     @let s = summary()!;
 
-    @if (isPersonalView()) {
-      <div class="app-grid-stats-single">
-        @if (isSaleRole()) {
-          <div class="app-stat-card app-stat-card-revenue">
-            <p class="app-stat-label app-stat-label-revenue">ยอดรวมของฉัน</p>
-            <p class="app-stat-value">{{ s.totalRevenue | number: '1.0-0' }}</p>
-            <p class="app-stat-hint">ยอดรวมของคุณ (SALE)</p>
-          </div>
-          <div class="app-stat-card app-stat-card-drinks">
-            <p class="app-stat-label app-stat-label-drinks">ดื่มเซลส์ของฉัน (แก้ว)</p>
-            <p class="app-stat-value">{{ s.totalSalesDrinks | number: '1.0-0' }}</p>
-            <p class="app-stat-hint">จำนวนแก้วที่คุณลง (SALE)</p>
-          </div>
-        }
-        @if (isPrRole()) {
-          <div class="app-stat-card app-stat-card-drinks-pr">
-            <p class="app-stat-label app-stat-label-drinks-pr">ดื่มพีอาร์ของฉัน (แก้ว)</p>
-            <p class="app-stat-value">{{ s.totalPrDrinks | number: '1.0-0' }}</p>
-            <p class="app-stat-hint">จำนวนแก้วรวมของคุณ (PR)</p>
-          </div>
-        }
-      </div>
-    } @else {
+    @if (showTripleStatCards()) {
       <div class="app-grid-stats-triple">
-        <div class="app-stat-card app-stat-card-revenue">
-          <p class="app-stat-label app-stat-label-revenue">ยอดรวม </p>
-          <p class="app-stat-value">{{ s.totalRevenue | number: '1.0-0' }}</p>
-          <p class="app-stat-hint">รวมยอดเงินจาก SALE และ PR ในช่วงที่เลือก</p>
+        <div class="app-stat-card app-stat-card-drinks-total">
+          <p class="app-stat-label app-stat-label-drinks">ยอดดื่มรวม</p>
+          <p class="app-stat-value">{{ s.totalDrinks | number: '1.0-0' }}</p>
+          <p class="app-stat-hint">รวมทั้งพนักงานและเด็กนั่งดริ๊งค์</p>
         </div>
         <div class="app-stat-card app-stat-card-drinks">
-          <p class="app-stat-label app-stat-label-drinks">ดื่มเซลส์รวม (แก้ว)</p>
-          <p class="app-stat-value">{{ s.totalSalesDrinks | number: '1.0-0' }}</p>
-          <p class="app-stat-hint">จำนวนดื่มที่พนักงาน SALE ลงทั้งหมด</p>
+          <p class="app-stat-label app-stat-label-drinks">ยอดดื่มพนักงาน</p>
+          <p class="app-stat-value">{{ s.totalStaffDrinks | number: '1.0-0' }}</p>
+          <p class="app-stat-hint">Sale, Admin, Manager</p>
         </div>
         <div class="app-stat-card app-stat-card-drinks-pr">
-          <p class="app-stat-label app-stat-label-drinks-pr">ดื่มพีอาร์รวม (แก้ว)</p>
-          <p class="app-stat-value">{{ s.totalPrDrinks | number: '1.0-0' }}</p>
-          <p class="app-stat-hint">จำนวนดื่มที่พนักงาน PR ลงทั้งหมด</p>
+          <p class="app-stat-label app-stat-label-drinks-pr">ยอดดื่มพีอาร์</p>
+          <p class="app-stat-value">{{ s.totalEntertainerDrinks | number: '1.0-0' }}</p>
+          <p class="app-stat-hint">เด็กนั่งดริ๊งค์ / PR</p>
         </div>
       </div>
-
-      <div class="app-grid-panels">
-        <section class="app-card app-card-flush">
-          <div class="app-card-header">
-            <h2 class="app-card-title">อันดับยอด SALE</h2>
-            <p class="app-card-subtitle">เรียงตามยอด</p>
-          </div>
-          <div class="dashboard-table-search">
-            <input
-              type="search"
-              class="dashboard-table-search-input"
-              placeholder="ช่องค้นหาชื่อ"
-              [ngModel]="saleSearch()"
-              (ngModelChange)="saleSearch.set($event)"
-            />
-          </div>
-          @if (s.topSales.length === 0) {
-            <p class="app-table-empty">ยังไม่มีข้อมูลยอดในช่วงนี้</p>
-          } @else {
-            <div class="dashboard-rank-table">
-              <div class="dashboard-rank-table-header">
-                <table class="app-data-table dashboard-rank-table-grid">
-                  <colgroup>
-                    <col class="dashboard-rank-col-rank" />
-                    <col class="dashboard-rank-col-name" />
-                    <col class="dashboard-rank-col-num" />
-                    <col class="dashboard-rank-col-num" />
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>ชื่อ</th>
-                      <th class="app-cell-right">ดื่มรวม</th>
-                      <th class="app-cell-right">ยอด </th>
-                    </tr>
-                  </thead>
-                </table>
-              </div>
-              @if (filteredTopSales().length === 0) {
-                <div class="dashboard-rank-table-body">
-                  <p class="dashboard-rank-table-empty">ไม่พบชื่อที่ตรงกับการค้นหา</p>
-                </div>
-              } @else {
-                <div class="dashboard-rank-table-body app-scroll-region">
-                  <table class="app-data-table dashboard-rank-table-grid">
-                    <colgroup>
-                      <col class="dashboard-rank-col-rank" />
-                      <col class="dashboard-rank-col-name" />
-                      <col class="dashboard-rank-col-num" />
-                      <col class="dashboard-rank-col-num" />
-                    </colgroup>
-                    <tbody>
-                      @for (row of filteredTopSales(); track row.employeeId; let i = $index) {
-                        <tr>
-                          <td class="app-cell-meta">{{ i + 1 }}</td>
-                          <td class="app-cell-primary">{{ row.nickname }}</td>
-                          <td class="app-cell-right">{{ row.totalDrinks | number: '1.0-0' }}</td>
-                          <td class="app-cell-right app-cell-highlight-emerald">
-                            {{ row.totalAmount | number: '1.0-0' }}
-                          </td>
-                        </tr>
-                      }
-                    </tbody>
-                  </table>
-                </div>
-              }
-            </div>
-          }
-        </section>
-
-        <section class="app-card app-card-flush">
-          <div class="app-card-header">
-            <h2 class="app-card-title">อันดับยอดดื่ม PR</h2>
-            <p class="app-card-subtitle">เรียงตามจำนวนแก้ว</p>
-          </div>
-          <div class="dashboard-table-search">
-            <input
-              type="search"
-              class="dashboard-table-search-input"
-              placeholder="ช่องค้นหาชื่อ"
-              [ngModel]="prSearch()"
-              (ngModelChange)="prSearch.set($event)"
-            />
-          </div>
-          @if (s.topPr.length === 0) {
-            <p class="app-table-empty">ยังไม่มีข้อมูลเครื่องดื่ม PR ในช่วงนี้</p>
-          } @else {
-            <div class="dashboard-rank-table">
-              <div class="dashboard-rank-table-header">
-                <table class="app-data-table dashboard-rank-table-grid">
-                  <colgroup>
-                    <col class="dashboard-rank-col-rank" />
-                    <col class="dashboard-rank-col-name" />
-                    <col class="dashboard-rank-col-num" />
-                    <col class="dashboard-rank-col-num" />
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>ชื่อ</th>
-                      <th class="app-cell-right">ดื่มรวม</th>
-                      <th class="app-cell-right">ยอด </th>
-                    </tr>
-                  </thead>
-                </table>
-              </div>
-              @if (filteredTopPr().length === 0) {
-                <div class="dashboard-rank-table-body">
-                  <p class="dashboard-rank-table-empty">ไม่พบชื่อที่ตรงกับการค้นหา</p>
-                </div>
-              } @else {
-                <div class="dashboard-rank-table-body app-scroll-region">
-                  <table class="app-data-table dashboard-rank-table-grid">
-                    <colgroup>
-                      <col class="dashboard-rank-col-rank" />
-                      <col class="dashboard-rank-col-name" />
-                      <col class="dashboard-rank-col-num" />
-                      <col class="dashboard-rank-col-num" />
-                    </colgroup>
-                    <tbody>
-                      @for (row of filteredTopPr(); track row.employeeId; let i = $index) {
-                        <tr>
-                          <td class="app-cell-meta">{{ i + 1 }}</td>
-                          <td class="app-cell-primary">{{ row.nickname }}</td>
-                          <td class="app-cell-right app-cell-highlight-violet">
-                            {{ row.totalDrinks | number: '1.0-0' }}
-                          </td>
-                          <td class="app-cell-right">{{ row.totalAmount | number: '1.0-0' }}</td>
-                        </tr>
-                      }
-                    </tbody>
-                  </table>
-                </div>
-              }
-            </div>
-          }
-        </section>
+    } @else if (isPrTeamView()) {
+      <div class="app-grid-stats-single">
+        <div class="app-stat-card app-stat-card-drinks-pr">
+          <p class="app-stat-label app-stat-label-drinks-pr">ยอดดื่มพีอาร์รวม</p>
+          <p class="app-stat-value">{{ s.totalEntertainerDrinks | number: '1.0-0' }}</p>
+        </div>
       </div>
     }
+
+    <div class="app-grid-panels" [class.app-grid-panels--single]="isPrTeamView()">
+      @if (showStaffRanking()) {
+      <section class="app-card app-card-flush">
+        <div class="app-card-header">
+          <h2 class="app-card-title">อันดับพนักงาน</h2>
+        </div>
+        <div class="dashboard-table-search">
+          <input
+            type="search"
+            class="dashboard-table-search-input"
+            placeholder="ช่องค้นหาชื่อ"
+            [ngModel]="staffSearch()"
+            (ngModelChange)="staffSearch.set($event)"
+          />
+        </div>
+        @if (s.topStaff.length === 0) {
+          <p class="app-table-empty">ยังไม่มีข้อมูลในช่วงนี้</p>
+        } @else {
+          <div class="dashboard-rank-table dashboard-rank-table--cols-3">
+            <div class="dashboard-rank-table-header">
+              <table class="app-data-table dashboard-rank-table-grid">
+                <colgroup>
+                  <col class="dashboard-rank-col-rank" />
+                  <col class="dashboard-rank-col-name" />
+                  <col class="dashboard-rank-col-num" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>ชื่อ</th>
+                    <th class="app-cell-right">ดื่มรวม</th>
+                  </tr>
+                </thead>
+              </table>
+            </div>
+            @if (filteredTopStaff().length === 0) {
+              <div class="dashboard-rank-table-body">
+                <p class="dashboard-rank-table-empty">ไม่พบชื่อที่ตรงกับการค้นหา</p>
+              </div>
+            } @else {
+              <div class="dashboard-rank-table-body app-scroll-region">
+                <table class="app-data-table dashboard-rank-table-grid">
+                  <colgroup>
+                    <col class="dashboard-rank-col-rank" />
+                    <col class="dashboard-rank-col-name" />
+                    <col class="dashboard-rank-col-num" />
+                  </colgroup>
+                  <tbody>
+                    @for (row of filteredTopStaff(); track row.employeeId; let i = $index) {
+                      <tr>
+                        <td class="app-cell-meta">{{ i + 1 }}</td>
+                        <td class="app-cell-primary">{{ rankDisplayName(row) }}</td>
+                        <td class="app-cell-right">{{ row.totalDrinks | number: '1.0-0' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        }
+      </section>
+      }
+
+      @if (showEntertainerRanking()) {
+      <section class="app-card app-card-flush">
+        <div class="app-card-header">
+          <h2 class="app-card-title">อันดับเด็กนั่งดริ๊งค์</h2>
+        </div>
+        <div class="dashboard-table-search">
+          <input
+            type="search"
+            class="dashboard-table-search-input"
+            placeholder="ช่องค้นหาชื่อ"
+            [ngModel]="entertainerSearch()"
+            (ngModelChange)="entertainerSearch.set($event)"
+          />
+        </div>
+        @if (s.topEntertainers.length === 0) {
+          <p class="app-table-empty">ยังไม่มีข้อมูลในช่วงนี้</p>
+        } @else {
+          <div class="dashboard-rank-table dashboard-rank-table--cols-3">
+            <div class="dashboard-rank-table-header">
+              <table class="app-data-table dashboard-rank-table-grid">
+                <colgroup>
+                  <col class="dashboard-rank-col-rank" />
+                  <col class="dashboard-rank-col-name" />
+                  <col class="dashboard-rank-col-num" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>ชื่อ</th>
+                    <th class="app-cell-right">ดื่มรวม</th>
+                  </tr>
+                </thead>
+              </table>
+            </div>
+            @if (filteredTopEntertainers().length === 0) {
+              <div class="dashboard-rank-table-body">
+                <p class="dashboard-rank-table-empty">ไม่พบชื่อที่ตรงกับการค้นหา</p>
+              </div>
+            } @else {
+              <div class="dashboard-rank-table-body app-scroll-region">
+                <table class="app-data-table dashboard-rank-table-grid">
+                  <colgroup>
+                    <col class="dashboard-rank-col-rank" />
+                    <col class="dashboard-rank-col-name" />
+                    <col class="dashboard-rank-col-num" />
+                  </colgroup>
+                  <tbody>
+                    @for (row of filteredTopEntertainers(); track row.employeeId; let i = $index) {
+                      <tr>
+                        <td class="app-cell-meta">{{ i + 1 }}</td>
+                        <td class="app-cell-primary">{{ rankDisplayName(row) }}</td>
+                        <td class="app-cell-right app-cell-highlight-violet">
+                          {{ row.totalDrinks | number: '1.0-0' }}
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        }
+      </section>
+      }
+    </div>
   }
 </div>

@@ -2,7 +2,14 @@
   <div class="app-data-table-shell">
     <div class="app-split-table app-split-table--wide">
       <div class="app-split-table-header">
-        <table class="app-data-table app-split-table-grid app-data-table-cols-5">
+        <table class="app-data-table app-split-table-grid">
+          <colgroup>
+            <col class="app-col-id" />
+            <col />
+            <col />
+            <col />
+            <col />
+          </colgroup>
           <thead>
             <tr>
               <th>รหัส</th>
@@ -15,7 +22,14 @@
         </table>
       </div>
       <div class="app-split-table-body app-scroll-region">
-        <table class="app-data-table app-split-table-grid app-data-table-cols-5">
+        <table class="app-data-table app-split-table-grid">
+          <colgroup>
+            <col class="app-col-id" />
+            <col />
+            <col />
+            <col />
+            <col />
+          </colgroup>
           <tbody>
             @for (emp of employees(); track emp.id) {
               <tr>

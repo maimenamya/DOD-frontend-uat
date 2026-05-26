@@ -1,7 +1,7 @@
 ﻿<div class="app-page record-drinks-page">
   <div class="app-page-header">
     <div>
-      <h1 class="app-page-title">ลงดื่ม</h1>
+      <h1 class="app-page-title">ลงบิล</h1>
     </div>
   </div>
 
@@ -14,26 +14,74 @@
   } @else {
     <form class="record-drinks-form" [formGroup]="form" (ngSubmit)="submit()">
       <section class="app-card app-card-section record-drinks-bill">
-        <div class="app-card-header">
-          <h2 class="app-card-title">เลขบิล / โต๊ะ</h2>
-        </div>
         <div class="app-card-body">
-          <input
-            type="text"
-            class="app-input"
-            formControlName="billReference"
-            placeholder="เช่น BILL-1002 หรือ T-12"
-            autocomplete="off"
-          />
-          @if (form.controls.billReference.touched && form.controls.billReference.invalid) {
-            <p class="record-drinks-field-error">กรุณาระบุเลขบิลหรือหมายเลขโต๊ะ</p>
-          }
+          <div class="record-drinks-bill-bar">
+            <div class="record-drinks-bill-field">
+              <label class="record-drinks-label" for="saleEmployeeId">เซลล์รับผิดชอบ</label>
+              <app-custom-dropdown
+                id="saleEmployeeId"
+                formControlName="saleEmployeeId"
+                [options]="saleDropdownOptions()"
+                placeholder="เลือก SALE"
+              />
+              @if (form.controls.saleEmployeeId.touched && form.controls.saleEmployeeId.invalid) {
+                <p class="record-drinks-field-error">กรุณาเลือกเซลล์</p>
+              }
+            </div>
+
+            <div class="record-drinks-bill-field">
+              <label class="record-drinks-label" for="billReference">เลขบิล / โต๊ะ</label>
+              <input
+                id="billReference"
+                type="text"
+                class="app-input"
+                formControlName="billReference"
+                placeholder="เช่น BILL-1002 หรือ T-12"
+                autocomplete="off"
+              />
+              @if (form.controls.billReference.touched && form.controls.billReference.invalid) {
+                <p class="record-drinks-field-error">กรุณาระบุเลขบิลหรือหมายเลขโต๊ะ</p>
+              }
+            </div>
+
+            <div class="record-drinks-bill-field">
+              <label class="record-drinks-label" for="billAmount">ยอดบิล (รายได้)</label>
+              <input
+                id="billAmount"
+                type="number"
+                class="app-input"
+                formControlName="billAmount"
+                min="0"
+                step="1"
+                inputmode="decimal"
+              />
+              @if (form.controls.billAmount.touched && form.controls.billAmount.invalid) {
+                <p class="record-drinks-field-error">กรุณาระบุยอดบิล</p>
+              }
+            </div>
+
+            <div class="record-drinks-bill-field">
+              <label class="record-drinks-label" for="businessDate">วันที่ทำรายการ</label>
+              <input
+                id="businessDate"
+                type="date"
+                class="app-input"
+                formControlName="businessDate"
+              />
+              @if (form.controls.businessDate.touched && form.controls.businessDate.invalid) {
+                <p class="record-drinks-field-error">กรุณาเลือกวันที่</p>
+              }
+            </div>
+          </div>
         </div>
       </section>
 
       <section class="app-card app-card-section record-drinks-lines">
         <div class="app-card-header record-drinks-lines-header">
-          <h2 class="app-card-title">ลงดื่ม</h2>
+          <div>
+            <h2 class="app-card-title">ลงดื่ม</h2>
+            <p class="record-drinks-lines-hint">ไม่บังคับ — บันทึกเฉพาะยอดบิลได้ หรือกด + เพื่อเพิ่มรายการดื่ม</p>
+          </div>
           <button
             type="button"
             class="record-drinks-add-btn"
@@ -50,61 +98,66 @@
               class="record-drinks-lines-scroll"
               [class.record-drinks-lines-scroll--multi]="rows.length >= 2"
             >
+              @if (rows.length === 0) {
+                <p class="record-drinks-empty">ยังไม่มีรายการดื่ม — กด + เพื่อเพิ่ม (ถ้ามี)</p>
+              }
               <div class="record-drinks-rows" formArrayName="rows">
                 @for (row of rows.controls; track row; let i = $index) {
                   <div class="record-drinks-row" [formGroupName]="i">
-                <div class="record-drinks-row-field record-drinks-row-role">
-                  <label class="record-drinks-label">เลือกประเภทตำแหน่ง</label>
-                  <app-custom-dropdown
-                    formControlName="roleId"
-                    [options]="roleDropdownOptions()"
-                    placeholder="เลือกตำแหน่ง"
-                  />
-                  @if (row.controls.roleId.touched && row.controls.roleId.invalid) {
-                    <p class="record-drinks-field-error">กรุณาเลือกประเภทตำแหน่ง</p>
-                  }
-                </div>
+                    <div class="record-drinks-row-field record-drinks-row-role">
+                      <label class="record-drinks-label">เลือกประเภทตำแหน่ง</label>
+                      <app-custom-dropdown
+                        formControlName="roleId"
+                        [options]="roleDropdownOptions()"
+                        placeholder="เลือกตำแหน่ง"
+                      />
+                      @if (row.controls.roleId.touched && row.controls.roleId.invalid) {
+                        <p class="record-drinks-field-error">กรุณาเลือกประเภทตำแหน่ง</p>
+                      }
+                    </div>
 
-                <div class="record-drinks-row-field record-drinks-row-employee">
-                  <label class="record-drinks-label">เลือกพนักงาน</label>
-                  <app-custom-dropdown
-                    formControlName="employeeId"
-                    [options]="employeeOptionsForRow(row)"
-                    [placeholder]="hasRoleSelected(row) ? 'เลือกพนักงาน' : 'เลือกตำแหน่งก่อน'"
-                  />
-                  @if (row.controls.employeeId.touched && row.controls.employeeId.invalid) {
-                    <p class="record-drinks-field-error">กรุณาเลือกพนักงาน</p>
-                  }
-                </div>
+                    <div class="record-drinks-row-field record-drinks-row-employee">
+                      <label class="record-drinks-label">เลือกพนักงาน</label>
+                      <app-custom-dropdown
+                        formControlName="employeeId"
+                        [options]="employeeOptionsForRow(row)"
+                        [placeholder]="hasRoleSelected(row) ? 'เลือกพนักงาน' : 'เลือกตำแหน่งก่อน'"
+                      />
+                      @if (row.controls.employeeId.touched && row.controls.employeeId.invalid) {
+                        <p class="record-drinks-field-error">กรุณาเลือกพนักงาน</p>
+                      }
+                    </div>
 
-                <div class="record-drinks-row-field record-drinks-row-qty">
-                  <label class="record-drinks-label">จำนวนดื่ม</label>
-                  <input
-                    type="number"
-                    class="app-input app-input-number"
-                    formControlName="quantity"
-                    min="1"
-                    max="999"
-                  />
-                </div>
+                    <div class="record-drinks-row-field record-drinks-row-qty">
+                      <label class="record-drinks-label">จำนวนดื่ม</label>
+                      <input
+                        type="number"
+                        class="app-input app-input-number"
+                        formControlName="quantity"
+                        min="0"
+                        max="999"
+                        placeholder="0"
+                      />
+                      @if (row.controls.quantity.touched && row.controls.quantity.invalid) {
+                        <p class="record-drinks-field-error">จำนวนดื่มต้องอย่างน้อย 1</p>
+                      }
+                    </div>
 
-                <div class="record-drinks-row-total">
-                  <span class="record-drinks-label">ยอดแถว</span>
-                  <strong class="record-drinks-line-amount">
-                    ฿{{ lineAmountForRow(row) | number: '1.0-2' }}
-                  </strong>
-                </div>
+                    <div class="record-drinks-row-total">
+                      <span class="record-drinks-label">ยอดแถว</span>
+                      <strong class="record-drinks-line-amount">
+                        ฿{{ lineAmountForRow(row) | number: '1.0-2' }}
+                      </strong>
+                    </div>
 
-                @if (rows.length > 1) {
-                  <button
-                    type="button"
-                    class="app-btn-ghost record-drinks-remove"
-                    (click)="removeRow(i)"
-                    aria-label="ลบแถว"
-                  >
-                    ✕
-                  </button>
-                }
+                    <button
+                      type="button"
+                      class="app-btn-ghost record-drinks-remove"
+                      (click)="removeRow(i)"
+                      aria-label="ลบแถว"
+                    >
+                      ✕
+                    </button>
                   </div>
                 }
               </div>
@@ -113,7 +166,6 @@
 
           <div class="record-drinks-summary">
             <span>รวม {{ grandDrinks() }} ดื่ม</span>
-            <strong>฿{{ grandTotal() | number: '1.0-2' }}</strong>
           </div>
         </div>
       </section>

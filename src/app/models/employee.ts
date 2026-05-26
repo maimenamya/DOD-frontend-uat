@@ -1,4 +1,4 @@
-import type { EmployeeRole } from './role';
+import type { EmployeeRole, RoleCategory } from './role';
 
 export interface Employee {
   id: number;
@@ -9,6 +9,7 @@ export interface Employee {
   role?: {
     id: number;
     name: EmployeeRole;
+    category?: RoleCategory;
     startDrinks?: number;
     nextHourDrinks?: number;
     defaultPricePerDrink?: number;

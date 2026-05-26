@@ -8,19 +8,28 @@ import {
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
 import {
+  CustomDropdownComponent,
+  type DropdownOption,
+} from '../../components/custom-dropdown/custom-dropdown.component';
+import {
   DEFAULT_PR_NEXT_HOUR_DRINKS,
   DEFAULT_PR_PRICE_PER_DRINK,
   DEFAULT_PR_START_DRINKS,
 } from '../../constants/role-drink';
-import type { Role } from '../../models/role';
+import type { Role, RoleCategory } from '../../models/role';
 import { AuthService } from '../../services/auth.service';
 import { RoleService } from '../../services/role.service';
 import { ToastService } from '../../services/toast.service';
 import { roleLabelThai } from '../../utils/employee-team.util';
 
+const CATEGORY_DROPDOWN_OPTIONS: DropdownOption[] = [
+  { value: 'STAFF', label: 'พนักงาน (Sale, Admin, Manager)' },
+  { value: 'ENTERTAINER', label: 'เด็กนั่งดริ๊งค์ (PR)' },
+];
+
 @Component({
   selector: 'app-master-role-page',
-  imports: [ReactiveFormsModule, AppModalComponent, DecimalPipe],
+  imports: [ReactiveFormsModule, AppModalComponent, DecimalPipe, CustomDropdownComponent],
   templateUrl: './master-role-page.component.html',
 })
 export class MasterRolePageComponent implements OnInit {
@@ -28,6 +37,8 @@ export class MasterRolePageComponent implements OnInit {
   private readonly roleService = inject(RoleService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
+
+  readonly categoryDropdownOptions = CATEGORY_DROPDOWN_OPTIONS;
 
   readonly canManage = computed(() => this.auth.canAccessTeamManagement());
   readonly roles = signal<Role[]>([]);
@@ -38,6 +49,7 @@ export class MasterRolePageComponent implements OnInit {
 
   readonly createForm = this.fb.group({
     name: ['', Validators.required],
+    category: ['STAFF' as RoleCategory, Validators.required],
     startDrinks: [DEFAULT_PR_START_DRINKS, [Validators.required, Validators.min(0)]],
     nextHourDrinks: [DEFAULT_PR_NEXT_HOUR_DRINKS, [Validators.required, Validators.min(0)]],
     defaultPricePerDrink: [DEFAULT_PR_PRICE_PER_DRINK, [Validators.required, Validators.min(0)]],
@@ -45,6 +57,7 @@ export class MasterRolePageComponent implements OnInit {
 
   readonly editForm = this.fb.group({
     name: ['', Validators.required],
+    category: ['STAFF' as RoleCategory, Validators.required],
     startDrinks: [0, [Validators.required, Validators.min(0)]],
     nextHourDrinks: [0, [Validators.required, Validators.min(0)]],
     defaultPricePerDrink: [0, [Validators.required, Validators.min(0)]],
@@ -73,6 +86,7 @@ export class MasterRolePageComponent implements OnInit {
     if (this.loading()) return;
     this.createForm.reset({
       name: '',
+      category: 'STAFF',
       startDrinks: DEFAULT_PR_START_DRINKS,
       nextHourDrinks: DEFAULT_PR_NEXT_HOUR_DRINKS,
       defaultPricePerDrink: DEFAULT_PR_PRICE_PER_DRINK,
@@ -87,6 +101,7 @@ export class MasterRolePageComponent implements OnInit {
   openEdit(role: Role): void {
     this.editForm.reset({
       name: role.name,
+      category: role.category ?? (role.name === 'PR' ? 'ENTERTAINER' : 'STAFF'),
       startDrinks: role.startDrinks,
       nextHourDrinks: role.nextHourDrinks,
       defaultPricePerDrink: role.defaultPricePerDrink,
@@ -105,6 +120,7 @@ export class MasterRolePageComponent implements OnInit {
     this.roleService
       .createRole({
         name: raw.name.trim().toUpperCase(),
+        category: raw.category,
         startDrinks: raw.startDrinks,
         nextHourDrinks: raw.nextHourDrinks,
         defaultPricePerDrink: raw.defaultPricePerDrink,
@@ -131,6 +147,7 @@ export class MasterRolePageComponent implements OnInit {
     this.roleService
       .updateRole(role.id, {
         name: raw.name.trim().toUpperCase(),
+        category: raw.category,
         startDrinks: raw.startDrinks,
         nextHourDrinks: raw.nextHourDrinks,
         defaultPricePerDrink: raw.defaultPricePerDrink,
@@ -164,5 +181,9 @@ export class MasterRolePageComponent implements OnInit {
 
   roleLabel(name: string): string {
     return roleLabelThai(name);
+  }
+
+  categoryLabel(category?: RoleCategory): string {
+    return category === 'ENTERTAINER' ? 'เด็กนั่งดริ๊งค์' : 'พนักงาน';
   }
 }

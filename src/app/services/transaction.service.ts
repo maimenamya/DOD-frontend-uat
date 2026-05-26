@@ -12,11 +12,18 @@ export interface BatchDrinkLinePayload {
 
 export interface BatchDrinkPayload {
   billReference: string;
+  saleEmployeeId: string;
+  billAmount: number;
+  businessDate: string;
   transactions: BatchDrinkLinePayload[];
 }
 
 export interface BatchDrinkResult {
   billReference: string;
+  billId: number;
+  saleEmployeeId: string;
+  billAmount: number;
+  businessDate: string;
   shopId: number;
   count: number;
   totalAmount: number;
