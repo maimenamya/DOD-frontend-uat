@@ -1951,7 +1951,11 @@
   }
 
   .dashboard-bill-bar-picker {
-    @apply w-full min-w-[12rem] max-w-xs shrink-0;
+    @apply w-auto min-w-[7rem] max-w-[9.5rem] shrink-0 sm:min-w-[12rem] sm:max-w-xs;
+  }
+
+  .dashboard-bill-bar-picker .app-dropdown-root {
+    @apply w-full;
   }
 
   .dashboard-bill-bar-empty,
@@ -1987,6 +1991,38 @@
   @media (max-width: 639px) {
     .record-drinks-bill-bar {
       grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* Title on its own line; dropdown + amount share the next line */
+    .dashboard-bill-bar-row--manager {
+      display: grid;
+      grid-template-columns: minmax(7rem, 9.5rem) minmax(0, 1fr);
+      column-gap: 0.75rem;
+      row-gap: 0.5rem;
+      align-items: center;
+    }
+
+    .dashboard-bill-bar-row--manager .dashboard-bill-bar-title {
+      grid-column: 1 / -1;
+      width: auto;
+    }
+
+    .dashboard-bill-bar-row--manager .dashboard-bill-bar-picker {
+      grid-column: 1;
+      max-width: 9.5rem;
+    }
+
+    .dashboard-bill-bar-row--manager .dashboard-bill-bar-amount {
+      grid-column: 2;
+      justify-self: start;
+    }
+
+    .dashboard-bill-bar-row--manager .dashboard-bill-bar-empty {
+      grid-column: 1 / -1;
+    }
+
+    .dashboard-bill-bar-amount-value {
+      @apply text-xl;
     }
   }
 
