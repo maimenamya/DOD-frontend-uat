@@ -21,6 +21,10 @@
           <p class="app-field-hint">ระบบจะแปลงเป็นตัวพิมพ์ใหญ่อัตโนมัติ</p>
         </div>
         <div class="app-form-group">
+          <label class="app-label">ชื่อแสดง (ภาษาไทย)</label>
+          <input type="text" formControlName="displayNameTh" class="app-input" placeholder="เช่น พีอาร์, เซลล์" />
+        </div>
+        <div class="app-form-group">
           <label class="app-label">ประเภท</label>
           <app-custom-dropdown
             formControlName="category"
@@ -30,17 +34,38 @@
         </div>
         <div class="app-form-group">
           <label class="app-label">สตาร์ทดื่ม</label>
-          <input type="number" formControlName="startDrinks" class="app-input" min="0" step="1" />
+          <input
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            formControlName="startDrinks"
+            class="app-input"
+            (input)="sanitizeIntegerInput('create', 'startDrinks', $event)"
+          />
           <p class="app-field-hint">จำนวนหน่วยดื่มชั่วโมงแรก / เปิดโต๊ะ</p>
         </div>
         <div class="app-form-group">
           <label class="app-label">ชั่วโมงต่อไป</label>
-          <input type="number" formControlName="nextHourDrinks" class="app-input" min="0" step="1" />
+          <input
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            formControlName="nextHourDrinks"
+            class="app-input"
+            (input)="sanitizeIntegerInput('create', 'nextHourDrinks', $event)"
+          />
           <p class="app-field-hint">หน่วยดื่มที่คิดเพิ่มทุกชั่วโมงถัดไป</p>
         </div>
         <div class="app-form-group">
           <label class="app-label">ราคาต่อดื่ม</label>
-          <input type="number" formControlName="defaultPricePerDrink" class="app-input" min="0" step="1" />
+          <input
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            formControlName="defaultPricePerDrink"
+            class="app-input"
+            (input)="sanitizeIntegerInput('create', 'defaultPricePerDrink', $event)"
+          />
           <p class="app-field-hint">มูลค่า 1 หน่วยดื่ม PR สำหรับคำนวณยอดอัตโนมัติ</p>
         </div>
         <div class="app-form-actions">
@@ -65,6 +90,10 @@
           <input type="text" formControlName="name" class="app-input" />
         </div>
         <div class="app-form-group">
+          <label class="app-label">ชื่อแสดง (ภาษาไทย)</label>
+          <input type="text" formControlName="displayNameTh" class="app-input" />
+        </div>
+        <div class="app-form-group">
           <label class="app-label">ประเภท</label>
           <app-custom-dropdown
             formControlName="category"
@@ -74,15 +103,36 @@
         </div>
         <div class="app-form-group">
           <label class="app-label">สตาร์ทดื่ม</label>
-          <input type="number" formControlName="startDrinks" class="app-input" min="0" step="1" />
+          <input
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            formControlName="startDrinks"
+            class="app-input"
+            (input)="sanitizeIntegerInput('edit', 'startDrinks', $event)"
+          />
         </div>
         <div class="app-form-group">
           <label class="app-label">ชั่วโมงต่อไป</label>
-          <input type="number" formControlName="nextHourDrinks" class="app-input" min="0" step="1" />
+          <input
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            formControlName="nextHourDrinks"
+            class="app-input"
+            (input)="sanitizeIntegerInput('edit', 'nextHourDrinks', $event)"
+          />
         </div>
         <div class="app-form-group">
           <label class="app-label">ราคาต่อดื่ม</label>
-          <input type="number" formControlName="defaultPricePerDrink" class="app-input" min="0" step="1" />
+          <input
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            formControlName="defaultPricePerDrink"
+            class="app-input"
+            (input)="sanitizeIntegerInput('edit', 'defaultPricePerDrink', $event)"
+          />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
@@ -118,7 +168,7 @@
               </colgroup>
               <thead>
                 <tr>
-                  <th>รหัส</th>
+                  <th>No.</th>
                   <th>ชื่อระบบ</th>
                   <th>ชื่อแสดง</th>
                   <th>ประเภท</th>
@@ -147,11 +197,11 @@
                 }
               </colgroup>
               <tbody>
-                @for (role of roles(); track role.id) {
+                @for (role of roles(); track role.id; let i = $index) {
                   <tr>
-                    <td class="app-cell-mono">{{ role.id }}</td>
+                    <td class="app-cell-mono">{{ i + 1 }}</td>
                     <td class="app-cell-primary">{{ role.name }}</td>
-                    <td>{{ roleLabel(role.name) }}</td>
+                    <td>{{ roleDisplayNameTh(role) }}</td>
                     <td>{{ categoryLabel(role.category) }}</td>
                     <td class="app-cell-right">{{ role.startDrinks }}</td>
                     <td class="app-cell-right">{{ role.nextHourDrinks }}</td>
@@ -164,7 +214,7 @@
                           <button type="button" class="app-btn-secondary-sm" (click)="openEdit(role)">
                             แก้ไข
                           </button>
-                          <button type="button" class="app-btn-danger" (click)="confirmDelete(role)">
+                          <button type="button" class="app-btn-danger-sm" (click)="confirmDelete(role)">
                             ลบ
                           </button>
                         </div>

@@ -14,9 +14,10 @@ export const STAFF_MANAGEABLE_ROLES: readonly EmployeeRole[] = ['SALE', 'PR'];
 /** Shown in the Management table (never includes OWNER) */
 export const MANAGEMENT_TABLE_ROLES: readonly EmployeeRole[] = ['ADMIN', 'MANAGER'];
 
-export interface Role {
+export interface MstRole {
   id: number;
   name: string;
+  displayNameTh?: string | null;
   category?: RoleCategory;
   startDrinks: number;
   nextHourDrinks: number;
@@ -24,8 +25,9 @@ export interface Role {
   createdAt?: string;
 }
 
-export interface RoleWritePayload {
+export interface MstRoleWritePayload {
   name: string;
+  displayNameTh: string;
   category?: RoleCategory;
   startDrinks: number;
   nextHourDrinks: number;

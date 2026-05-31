@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import {
   NonNullableFormBuilder,
@@ -10,10 +10,12 @@ import {
   CustomDropdownComponent,
   type DropdownOption,
 } from '../../components/custom-dropdown/custom-dropdown.component';
-import type { Employee } from '../../models/employee';
+import type { MstEmployee } from '../../models/employee';
 import type { EmployeeTeam } from '../../models/employee';
-import type { Role } from '../../models/role';
+import type { MstRole } from '../../models/role';
 import { AuthService } from '../../services/auth.service';
+import { ConfirmDialogService } from '../../services/confirm-dialog.service';
+import { roleBadgeClass, roleDisplayNameTh, roleOptionLabel } from '../../utils/role-display.util';
 import { EmployeeService } from '../../services/employee.service';
 import { RoleService } from '../../services/role.service';
 
@@ -34,17 +36,18 @@ export class EmployeeTeamPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly employeeService = inject(EmployeeService);
   private readonly roleService = inject(RoleService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   readonly config = this.route.snapshot.data as TeamPageConfig;
   readonly user = this.auth.getUser();
 
-  readonly employees = signal<Employee[]>([]);
-  readonly dbRoles = signal<Role[]>([]);
+  readonly employees = signal<MstEmployee[]>([]);
+  readonly dbRoles = signal<MstRole[]>([]);
   readonly loading = signal(true);
   readonly submitting = signal(false);
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
-  readonly editingEmployee = signal<Employee | null>(null);
+  readonly editingEmployee = signal<MstEmployee | null>(null);
   readonly showCreateForm = signal(false);
 
   readonly canManage = computed(() => {
@@ -57,14 +60,14 @@ export class EmployeeTeamPageComponent implements OnInit {
   readonly roleDropdownOptions = computed<DropdownOption[]>(() => {
     const roles = this.dbRoles();
     if (this.config.team === 'sale') {
-      return roles.filter((r) => r.name === 'SALE').map((r) => ({ value: r.id, label: r.name }));
+      return roles.filter((r) => r.name === 'SALE').map((r) => ({ value: r.id, label: roleOptionLabel(r) }));
     }
     if (this.config.team === 'pr') {
-      return roles.filter((r) => r.name === 'PR').map((r) => ({ value: r.id, label: r.name }));
+      return roles.filter((r) => r.name === 'PR').map((r) => ({ value: r.id, label: roleOptionLabel(r) }));
     }
     return roles
       .filter((r) => r.name === 'ADMIN' || r.name === 'MANAGER')
-      .map((r) => ({ value: r.id, label: r.name }));
+      .map((r) => ({ value: r.id, label: roleOptionLabel(r) }));
   });
 
   readonly statusDropdownOptions: DropdownOption[] = [
@@ -101,19 +104,10 @@ export class EmployeeTeamPageComponent implements OnInit {
     this.loadEmployees();
   }
 
-  roleBadgeClass(role?: string): string {
-    const map: Record<string, string> = {
-      OWNER: 'app-badge-owner',
-      ADMIN: 'app-badge-admin',
-      MANAGER: 'app-badge-manager',
-      SALE: 'app-badge-sale',
-      PR: 'app-badge-pr',
-    };
-    const variant = map[role ?? ''] ?? 'app-badge-default';
-    return `app-badge ${variant}`;
-  }
+  readonly roleBadgeClass = roleBadgeClass;
+  readonly roleDisplayNameTh = roleDisplayNameTh;
 
-  canMutateRow(employee: Employee): boolean {
+  canMutateRow(employee: MstEmployee): boolean {
     if (employee.role?.name === 'OWNER') {
       return false;
     }
@@ -164,7 +158,7 @@ export class EmployeeTeamPageComponent implements OnInit {
     this.showCreateForm.set(false);
   }
 
-  openEdit(employee: Employee): void {
+  openEdit(employee: MstEmployee): void {
     if (!this.canMutateRow(employee)) return;
     this.editingEmployee.set(employee);
     this.showCreateForm.set(false);
@@ -253,13 +247,15 @@ export class EmployeeTeamPageComponent implements OnInit {
       });
   }
 
-  confirmDelete(employee: Employee): void {
+  async confirmDelete(employee: MstEmployee): Promise<void> {
     if (!this.canMutateRow(employee)) return;
 
-    const confirmed = window.confirm(
-      `ต้องการลบพนักงาน "${employee.nickname}" (${employee.employeeId}) ใช่หรือไม่?`,
-    );
-    if (!confirmed) return;
+    const ok = await this.confirmDialog.confirm({
+      title: 'ยืนยันการลบ',
+      message: `ต้องการลบพนักงาน "${employee.nickname}" (${employee.employeeId}) ใช่หรือไม่?`,
+      confirmLabel: 'ลบ',
+    });
+    if (!ok) return;
 
     this.error.set(null);
     this.success.set(null);

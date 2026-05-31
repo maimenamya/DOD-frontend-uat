@@ -21,7 +21,47 @@
         </div>
         <div class="app-form-group">
           <label class="app-label">ราคา</label>
-          <input type="number" formControlName="price" class="app-input" min="0" step="1" />
+          <input
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            formControlName="price"
+            class="app-input"
+            (input)="sanitizeIntegerInput('create', 'price', $event)"
+          />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label" for="create-unit-label">หน่วยนับ</label>
+          <input
+            id="create-unit-label"
+            type="text"
+            formControlName="unitLabelTh"
+            class="app-input"
+            maxlength="32"
+            placeholder="พิมพ์เอง เช่น ขวด, กระป๋อง, แก้ว"
+            autocomplete="off"
+          />
+          <p class="app-field-hint mt-1">กรอกหน่วยที่ต้องการแสดงในบิล — ไม่จำกัดรายการคงที่</p>
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">มิกซ์เซอร์</label>
+          <label class="app-toggle" aria-label="เปิดหรือปิดมิกซ์เซอร์">
+            <input type="checkbox" class="app-toggle-input" formControlName="isMixer" />
+            <span class="app-toggle-track"></span>
+            <span class="app-toggle-text">{{
+              createForm.controls.isMixer.value ? 'ใช่มิกซ์เซอร์' : 'ไม่ใช่มิกซ์เซอร์'
+            }}</span>
+          </label>
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">คืนได้ที่เปิดโต๊ะ</label>
+          <label class="app-toggle" aria-label="เปิดหรือปิดการคืนเครื่องดื่ม">
+            <input type="checkbox" class="app-toggle-input" formControlName="canReturn" />
+            <span class="app-toggle-track"></span>
+            <span class="app-toggle-text">{{
+              createForm.controls.canReturn.value ? 'เปิดใช้งาน' : 'ปิดใช้งาน'
+            }}</span>
+          </label>
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
@@ -46,7 +86,47 @@
         </div>
         <div class="app-form-group">
           <label class="app-label">ราคา</label>
-          <input type="number" formControlName="price" class="app-input" min="0" step="1" />
+          <input
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            formControlName="price"
+            class="app-input"
+            (input)="sanitizeIntegerInput('edit', 'price', $event)"
+          />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label" for="edit-unit-label">หน่วยนับ</label>
+          <input
+            id="edit-unit-label"
+            type="text"
+            formControlName="unitLabelTh"
+            class="app-input"
+            maxlength="32"
+            placeholder="พิมพ์เอง เช่น ขวด, กระป๋อง, แก้ว"
+            autocomplete="off"
+          />
+          <p class="app-field-hint mt-1">กรอกหน่วยที่ต้องการแสดงในบิล — ไม่จำกัดรายการคงที่</p>
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">มิกซ์เซอร์</label>
+          <label class="app-toggle" aria-label="เปิดหรือปิดมิกซ์เซอร์">
+            <input type="checkbox" class="app-toggle-input" formControlName="isMixer" />
+            <span class="app-toggle-track"></span>
+            <span class="app-toggle-text">{{
+              editForm.controls.isMixer.value ? 'ใช่มิกซ์เซอร์' : 'ไม่ใช่มิกซ์เซอร์'
+            }}</span>
+          </label>
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">คืนได้ที่เปิดโต๊ะ</label>
+          <label class="app-toggle" aria-label="เปิดหรือปิดการคืนเครื่องดื่ม">
+            <input type="checkbox" class="app-toggle-input" formControlName="canReturn" />
+            <span class="app-toggle-track"></span>
+            <span class="app-toggle-text">{{
+              editForm.controls.canReturn.value ? 'เปิดใช้งาน' : 'ปิดใช้งาน'
+            }}</span>
+          </label>
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
@@ -71,6 +151,9 @@
               <colgroup>
                 <col class="app-col-id" />
                 <col />
+                <col class="app-col-narrow" />
+                <col class="app-col-narrow" />
+                <col class="app-col-narrow" />
                 <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
@@ -78,8 +161,11 @@
               </colgroup>
               <thead>
                 <tr>
-                  <th>รหัส</th>
+                  <th>No.</th>
                   <th>ชื่อ</th>
+                  <th class="app-cell-center">หน่วย</th>
+                  <th class="app-cell-center">มิกซ์</th>
+                  <th class="app-cell-center">คืนได้</th>
                   <th class="app-cell-right">ราคา</th>
                   @if (canManage()) {
                     <th class="app-cell-right">จัดการ</th>
@@ -93,16 +179,26 @@
               <colgroup>
                 <col class="app-col-id" />
                 <col />
+                <col class="app-col-narrow" />
+                <col class="app-col-narrow" />
+                <col class="app-col-narrow" />
                 <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
               </colgroup>
               <tbody>
-                @for (item of beverages(); track item.id) {
+                @for (item of beverages(); track item.id; let i = $index) {
                   <tr>
-                    <td class="app-cell-mono">{{ item.id }}</td>
+                    <td class="app-cell-mono">{{ i + 1 }}</td>
                     <td class="app-cell-primary">{{ item.name }}</td>
+                    <td class="app-cell-center text-text-secondary">{{ item.unitLabelTh }}</td>
+                    <td class="app-cell-center text-text-secondary">
+                      {{ item.isMixer ? 'ใช่' : 'ไม่ใช่' }}
+                    </td>
+                    <td class="app-cell-center text-text-secondary">
+                      {{ item.canReturn ? 'ใช่' : 'ไม่ใช่' }}
+                    </td>
                     <td class="app-cell-right app-cell-highlight-violet">
                       {{ item.price | number: '1.0-0' }}
                     </td>
@@ -112,7 +208,7 @@
                           <button type="button" class="app-btn-secondary-sm" (click)="openEdit(item)">
                             แก้ไข
                           </button>
-                          <button type="button" class="app-btn-danger" (click)="confirmDelete(item)">
+                          <button type="button" class="app-btn-danger-sm" (click)="confirmDelete(item)">
                             ลบ
                           </button>
                         </div>

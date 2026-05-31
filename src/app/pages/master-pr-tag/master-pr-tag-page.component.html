@@ -1,0 +1,271 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">แพ็กเกจแท็ก PR</h1>
+      <p class="app-page-subtitle">ตั้งค่าวันทำงาน โควตาดื่ม และเงินประกัน / เงินเมื่อตกแท็ก</p>
+    </div>
+    @if (canManage() && !loading()) {
+      <button type="button" (click)="openCreate()" class="app-btn-primary">+ เพิ่มแพ็กเกจ</button>
+    }
+  </div>
+
+  @if (showCreateModal() && canManage() && !loading()) {
+    <app-modal (dismiss)="closeCreate()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">เพิ่มแพ็กเกจแท็ก</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeCreate()">✕</button>
+      </div>
+      <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
+        <div class="app-form-group">
+          <label class="app-label">ชื่อแท็ก</label>
+          <input type="text" formControlName="name" class="app-input" placeholder="เช่น แท็กนักเรียน 10 วัน" />
+        </div>
+        <div class="app-form-row">
+          <div class="app-form-group">
+            <label class="app-label">วันทำงานที่ต้องครบ</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              formControlName="requiredWorkingDays"
+              class="app-input"
+              (input)="sanitizeIntegerInput('create', 'requiredWorkingDays', $event)"
+            />
+          </div>
+          <div class="app-form-group">
+            <label class="app-label">วันหยุดสูงสุด</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              formControlName="allowedOffDays"
+              class="app-input"
+              (input)="sanitizeIntegerInput('create', 'allowedOffDays', $event)"
+            />
+          </div>
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">โควตาดื่มเป้าหมาย</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            formControlName="targetDrinks"
+            class="app-input"
+            (input)="sanitizeIntegerInput('create', 'targetDrinks', $event)"
+          />
+        </div>
+        <div class="app-form-row">
+          <div class="app-form-group">
+            <label class="app-label">เงินประกันเมื่อผ่าน (บาท)</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              formControlName="guaranteeAmount"
+              class="app-input"
+              (input)="sanitizeIntegerInput('create', 'guaranteeAmount', $event)"
+            />
+          </div>
+          <div class="app-form-group">
+            <label class="app-label">เงินจ่ายเมื่อตกแท็ก (บาท)</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              formControlName="dropoutPayoutAmount"
+              class="app-input"
+              (input)="sanitizeIntegerInput('create', 'dropoutPayoutAmount', $event)"
+            />
+          </div>
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">สถานะ</label>
+          <label class="app-toggle" aria-label="เปิดหรือปิดแพ็กเกจ">
+            <input type="checkbox" class="app-toggle-input" formControlName="isActive" />
+            <span class="app-toggle-track"></span>
+            <span class="app-toggle-text">{{
+              createForm.controls.isActive.value ? 'ใช้งาน' : 'ปิดใช้งาน'
+            }}</span>
+          </label>
+        </div>
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
+          <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+            {{ submitting() ? 'กำลังบันทึก...' : 'บันทึก' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+
+  @if (editingItem(); as item) {
+    <app-modal (dismiss)="closeEdit()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">แก้ไขแพ็กเกจแท็ก</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
+      </div>
+      <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
+        <div class="app-form-group">
+          <label class="app-label">ชื่อแท็ก</label>
+          <input type="text" formControlName="name" class="app-input" />
+        </div>
+        <div class="app-form-row">
+          <div class="app-form-group">
+            <label class="app-label">วันทำงานที่ต้องครบ</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              formControlName="requiredWorkingDays"
+              class="app-input"
+              (input)="sanitizeIntegerInput('edit', 'requiredWorkingDays', $event)"
+            />
+          </div>
+          <div class="app-form-group">
+            <label class="app-label">วันหยุดสูงสุด</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              formControlName="allowedOffDays"
+              class="app-input"
+              (input)="sanitizeIntegerInput('edit', 'allowedOffDays', $event)"
+            />
+          </div>
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">โควตาดื่มเป้าหมาย</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            formControlName="targetDrinks"
+            class="app-input"
+            (input)="sanitizeIntegerInput('edit', 'targetDrinks', $event)"
+          />
+        </div>
+        <div class="app-form-row">
+          <div class="app-form-group">
+            <label class="app-label">เงินประกันเมื่อผ่าน (บาท)</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              formControlName="guaranteeAmount"
+              class="app-input"
+              (input)="sanitizeIntegerInput('edit', 'guaranteeAmount', $event)"
+            />
+          </div>
+          <div class="app-form-group">
+            <label class="app-label">เงินจ่ายเมื่อตกแท็ก (บาท)</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              formControlName="dropoutPayoutAmount"
+              class="app-input"
+              (input)="sanitizeIntegerInput('edit', 'dropoutPayoutAmount', $event)"
+            />
+          </div>
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">สถานะ</label>
+          <label class="app-toggle" aria-label="เปิดหรือปิดแพ็กเกจ">
+            <input type="checkbox" class="app-toggle-input" formControlName="isActive" />
+            <span class="app-toggle-track"></span>
+            <span class="app-toggle-text">{{
+              editForm.controls.isActive.value ? 'ใช้งาน' : 'ปิดใช้งาน'
+            }}</span>
+          </label>
+        </div>
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
+          <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+            {{ submitting() ? 'กำลังบันทึก...' : 'บันทึกการแก้ไข' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+
+  @if (loading()) {
+    <p class="app-loading-text">กำลังโหลด...</p>
+  } @else if (items().length === 0) {
+    <p class="app-empty-state">ยังไม่มีแพ็กเกจแท็ก</p>
+  } @else {
+    <section class="app-card app-card-flush">
+      <div class="app-data-table-shell">
+        <div class="app-split-table">
+          <div class="app-split-table-header">
+            <table class="app-data-table app-split-table-grid">
+              <colgroup>
+                <col class="app-col-id" />
+                <col />
+                <col class="app-col-narrow" />
+                <col class="app-col-narrow" />
+                <col class="app-col-narrow" />
+                <col class="app-col-narrow" />
+                <col class="app-col-narrow" />
+                <col />
+                @if (canManage()) {
+                  <col class="app-col-actions" />
+                }
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>ชื่อแท็ก</th>
+                  <th class="app-cell-center">วันทำงาน</th>
+                  <th class="app-cell-center">วันหยุด</th>
+                  <th class="app-cell-center">โควตาดื่ม</th>
+                  <th class="app-cell-right">ประกัน</th>
+                  <th class="app-cell-right">ตกแท็ก</th>
+                  <th class="app-cell-center">สถานะ</th>
+                  @if (canManage()) {
+                    <th class="app-cell-right">จัดการ</th>
+                  }
+                </tr>
+              </thead>
+            </table>
+          </div>
+          <div class="app-split-table-body app-scroll-region">
+            <table class="app-data-table app-split-table-grid">
+              <colgroup>
+                <col class="app-col-id" />
+                <col />
+                <col class="app-col-narrow" />
+                <col class="app-col-narrow" />
+                <col class="app-col-narrow" />
+                <col class="app-col-narrow" />
+                <col class="app-col-narrow" />
+                <col />
+                @if (canManage()) {
+                  <col class="app-col-actions" />
+                }
+              </colgroup>
+              <tbody>
+                @for (row of items(); track row.id; let i = $index) {
+                  <tr>
+                    <td class="app-cell-mono">{{ i + 1 }}</td>
+                    <td class="app-cell-primary">{{ row.name }}</td>
+                    <td class="app-cell-center">{{ row.requiredWorkingDays }}</td>
+                    <td class="app-cell-center">{{ row.allowedOffDays }}</td>
+                    <td class="app-cell-center">{{ row.targetDrinks }}</td>
+                    <td class="app-cell-right app-cell-highlight-violet">
+                      {{ row.guaranteeAmount | number: '1.0-0' }}
+                    </td>
+                    <td class="app-cell-right">{{ row.dropoutPayoutAmount | number: '1.0-0' }}</td>
+                    <td class="app-cell-center text-text-secondary">{{ activeLabel(row.isActive) }}</td>
+                    @if (canManage()) {
+                      <td class="app-cell-right">
+                        <div class="app-table-actions">
+                          <button type="button" class="app-btn-secondary-sm" (click)="openEdit(row)">
+                            แก้ไข
+                          </button>
+                          <button type="button" class="app-btn-danger-sm" (click)="confirmDelete(row)">
+                            ลบ
+                          </button>
+                        </div>
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  }
+</div>

@@ -1,0 +1,171 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">ประเภทที่นั่ง</h1>
+      <p class="app-page-subtitle">กำหนดประเภท เช่น โต๊ะโถง ห้อง VIP KTV — พร้อมกติกาคิดค่าเวลาและราคา</p>
+    </div>
+    @if (canManage() && !loading()) {
+      <button type="button" (click)="openCreate()" class="app-btn-primary">+ เพิ่มประเภท</button>
+    }
+  </div>
+
+  @if (showCreateModal() && canManage() && !loading()) {
+    <app-modal (dismiss)="closeCreate()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">เพิ่มประเภทที่นั่ง</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeCreate()">✕</button>
+      </div>
+      <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
+        <div class="app-form-group">
+          <label class="app-label">ชื่อประเภท</label>
+          <input type="text" formControlName="name" class="app-input" placeholder="เช่น ห้อง VIP, โต๊ะโถง" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">รหัส (ภาษาอังกฤษ)</label>
+          <input type="text" formControlName="code" class="app-input" placeholder="เช่น VIP, TABLE" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">คำอธิบาย</label>
+          <input type="text" formControlName="description" class="app-input" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">การคิดค่าเวลา</label>
+          <app-custom-dropdown formControlName="rateType" [options]="rateTypeOptions" />
+        </div>
+        @if (showsPriceField(createRateTypeView())) {
+          <div class="app-form-group">
+            <label class="app-label">{{ priceFieldLabel(createRateTypeView()) }}</label>
+            <input type="text" inputmode="numeric" formControlName="basePrice" class="app-input" />
+          </div>
+        }
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
+          <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+            {{ submitting() ? 'กำลังบันทึก...' : 'บันทึก' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+
+  @if (editingItem(); as item) {
+    <app-modal (dismiss)="closeEdit()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">แก้ไขประเภทที่นั่ง</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
+      </div>
+      <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
+        <div class="app-form-group">
+          <label class="app-label">ชื่อประเภท</label>
+          <input type="text" formControlName="name" class="app-input" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">รหัส</label>
+          <input type="text" formControlName="code" class="app-input" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">คำอธิบาย</label>
+          <input type="text" formControlName="description" class="app-input" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">การคิดค่าเวลา</label>
+          <app-custom-dropdown formControlName="rateType" [options]="rateTypeOptions" />
+        </div>
+        @if (showsPriceField(editRateTypeView())) {
+          <div class="app-form-group">
+            <label class="app-label">{{ priceFieldLabel(editRateTypeView()) }}</label>
+            <input type="text" inputmode="numeric" formControlName="basePrice" class="app-input" />
+          </div>
+        }
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
+          <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+            {{ submitting() ? 'กำลังบันทึก...' : 'บันทึกการแก้ไข' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+
+  @if (loading()) {
+    <p class="app-loading-text">กำลังโหลด...</p>
+  } @else if (items().length === 0) {
+    <p class="app-empty-state">ยังไม่มีประเภทที่นั่ง — เพิ่มประเภทก่อนสร้างโซนที่นั่ง</p>
+  } @else {
+    <section class="app-card app-card-flush">
+      <div class="app-data-table-shell">
+        <div class="app-split-table">
+          <div class="app-split-table-header">
+            <table class="app-data-table app-split-table-grid">
+              <colgroup>
+                <col class="app-col-id" />
+                <col />
+                <col />
+                <col />
+                <col />
+                @if (canManage()) {
+                  <col class="app-col-actions" />
+                }
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>ชื่อประเภท</th>
+                  <th>รหัส</th>
+                  <th>คิดค่าเวลา</th>
+                  <th class="app-cell-right">ราคา</th>
+                  @if (canManage()) {
+                    <th class="app-cell-right">จัดการ</th>
+                  }
+                </tr>
+              </thead>
+            </table>
+          </div>
+          <div class="app-split-table-body app-scroll-region">
+            <table class="app-data-table app-split-table-grid">
+              <colgroup>
+                <col class="app-col-id" />
+                <col />
+                <col />
+                <col />
+                <col />
+                @if (canManage()) {
+                  <col class="app-col-actions" />
+                }
+              </colgroup>
+              <tbody>
+                @for (item of items(); track item.id; let i = $index) {
+                  <tr>
+                    <td class="app-cell-mono">{{ i + 1 }}</td>
+                    <td class="app-cell-primary">{{ item.name }}</td>
+                    <td class="app-cell-mono">{{ item.code }}</td>
+                    <td>{{ rateTypeLabel(item.rateType) }}</td>
+                    <td class="app-cell-right">
+                      @if (item.rateType === 'NONE') {
+                        <span class="text-text-secondary">—</span>
+                      } @else {
+                        {{ item.basePrice | number }}
+                      }
+                    </td>
+                    @if (canManage()) {
+                      <td class="app-cell-right">
+                        <div class="app-table-actions">
+                          <button type="button" class="app-btn-secondary-sm" (click)="openEdit(item)">
+                            แก้ไข
+                          </button>
+                          <button type="button" class="app-btn-danger-sm" (click)="confirmDelete(item)">
+                            ลบ
+                          </button>
+                        </div>
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  }
+</div>

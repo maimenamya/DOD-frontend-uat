@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import {
   NonNullableFormBuilder,
@@ -16,11 +16,12 @@ import {
   DEFAULT_PR_PRICE_PER_DRINK,
   DEFAULT_PR_START_DRINKS,
 } from '../../constants/role-drink';
-import type { Role, RoleCategory } from '../../models/role';
+import type { MstRole, RoleCategory } from '../../models/role';
 import { AuthService } from '../../services/auth.service';
 import { RoleService } from '../../services/role.service';
+import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
-import { roleLabelThai } from '../../utils/employee-team.util';
+import { roleDisplayNameTh } from '../../utils/role-display.util';
 
 const CATEGORY_DROPDOWN_OPTIONS: DropdownOption[] = [
   { value: 'STAFF', label: 'พนักงาน (Sale, Admin, Manager)' },
@@ -37,30 +38,34 @@ export class MasterRolePageComponent implements OnInit {
   private readonly roleService = inject(RoleService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   readonly categoryDropdownOptions = CATEGORY_DROPDOWN_OPTIONS;
+  readonly roleDisplayNameTh = roleDisplayNameTh;
 
   readonly canManage = computed(() => this.auth.canAccessTeamManagement());
-  readonly roles = signal<Role[]>([]);
+  readonly roles = signal<MstRole[]>([]);
   readonly loading = signal(true);
   readonly submitting = signal(false);
-  readonly editingRole = signal<Role | null>(null);
+  readonly editingRole = signal<MstRole | null>(null);
   readonly showCreateModal = signal(false);
 
   readonly createForm = this.fb.group({
     name: ['', Validators.required],
+    displayNameTh: ['', Validators.required],
     category: ['STAFF' as RoleCategory, Validators.required],
-    startDrinks: [DEFAULT_PR_START_DRINKS, [Validators.required, Validators.min(0)]],
-    nextHourDrinks: [DEFAULT_PR_NEXT_HOUR_DRINKS, [Validators.required, Validators.min(0)]],
-    defaultPricePerDrink: [DEFAULT_PR_PRICE_PER_DRINK, [Validators.required, Validators.min(0)]],
+    startDrinks: [String(DEFAULT_PR_START_DRINKS), [Validators.required, Validators.pattern(/^\d+$/)]],
+    nextHourDrinks: [String(DEFAULT_PR_NEXT_HOUR_DRINKS), [Validators.required, Validators.pattern(/^\d+$/)]],
+    defaultPricePerDrink: [String(DEFAULT_PR_PRICE_PER_DRINK), [Validators.required, Validators.pattern(/^\d+$/)]],
   });
 
   readonly editForm = this.fb.group({
     name: ['', Validators.required],
+    displayNameTh: ['', Validators.required],
     category: ['STAFF' as RoleCategory, Validators.required],
-    startDrinks: [0, [Validators.required, Validators.min(0)]],
-    nextHourDrinks: [0, [Validators.required, Validators.min(0)]],
-    defaultPricePerDrink: [0, [Validators.required, Validators.min(0)]],
+    startDrinks: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    nextHourDrinks: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    defaultPricePerDrink: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
   });
 
   ngOnInit(): void {
@@ -86,10 +91,11 @@ export class MasterRolePageComponent implements OnInit {
     if (this.loading()) return;
     this.createForm.reset({
       name: '',
+      displayNameTh: '',
       category: 'STAFF',
-      startDrinks: DEFAULT_PR_START_DRINKS,
-      nextHourDrinks: DEFAULT_PR_NEXT_HOUR_DRINKS,
-      defaultPricePerDrink: DEFAULT_PR_PRICE_PER_DRINK,
+      startDrinks: String(DEFAULT_PR_START_DRINKS),
+      nextHourDrinks: String(DEFAULT_PR_NEXT_HOUR_DRINKS),
+      defaultPricePerDrink: String(DEFAULT_PR_PRICE_PER_DRINK),
     });
     this.showCreateModal.set(true);
   }
@@ -98,13 +104,14 @@ export class MasterRolePageComponent implements OnInit {
     this.showCreateModal.set(false);
   }
 
-  openEdit(role: Role): void {
+  openEdit(role: MstRole): void {
     this.editForm.reset({
       name: role.name,
+      displayNameTh: role.displayNameTh ?? roleDisplayNameTh(role),
       category: role.category ?? (role.name === 'PR' ? 'ENTERTAINER' : 'STAFF'),
-      startDrinks: role.startDrinks,
-      nextHourDrinks: role.nextHourDrinks,
-      defaultPricePerDrink: role.defaultPricePerDrink,
+      startDrinks: String(role.startDrinks),
+      nextHourDrinks: String(role.nextHourDrinks),
+      defaultPricePerDrink: String(role.defaultPricePerDrink),
     });
     this.editingRole.set(role);
   }
@@ -120,10 +127,11 @@ export class MasterRolePageComponent implements OnInit {
     this.roleService
       .createRole({
         name: raw.name.trim().toUpperCase(),
+        displayNameTh: raw.displayNameTh.trim(),
         category: raw.category,
-        startDrinks: raw.startDrinks,
-        nextHourDrinks: raw.nextHourDrinks,
-        defaultPricePerDrink: raw.defaultPricePerDrink,
+        startDrinks: Number.parseInt(raw.startDrinks, 10),
+        nextHourDrinks: Number.parseInt(raw.nextHourDrinks, 10),
+        defaultPricePerDrink: Number.parseInt(raw.defaultPricePerDrink, 10),
       })
       .subscribe({
         next: () => {
@@ -147,10 +155,11 @@ export class MasterRolePageComponent implements OnInit {
     this.roleService
       .updateRole(role.id, {
         name: raw.name.trim().toUpperCase(),
+        displayNameTh: raw.displayNameTh.trim(),
         category: raw.category,
-        startDrinks: raw.startDrinks,
-        nextHourDrinks: raw.nextHourDrinks,
-        defaultPricePerDrink: raw.defaultPricePerDrink,
+        startDrinks: Number.parseInt(raw.startDrinks, 10),
+        nextHourDrinks: Number.parseInt(raw.nextHourDrinks, 10),
+        defaultPricePerDrink: Number.parseInt(raw.defaultPricePerDrink, 10),
       })
       .subscribe({
         next: () => {
@@ -166,8 +175,9 @@ export class MasterRolePageComponent implements OnInit {
       });
   }
 
-  confirmDelete(role: Role): void {
-    if (!confirm(`ลบตำแหน่ง "${role.name}" ใช่หรือไม่?`)) return;
+  async confirmDelete(role: MstRole): Promise<void> {
+    const ok = await this.confirmDialog.confirmDelete(`ตำแหน่ง "${role.name}"`);
+    if (!ok) return;
     this.roleService.deleteRole(role.id).subscribe({
       next: () => {
         this.toast.showSuccess('ลบตำแหน่งเรียบร้อย');
@@ -179,11 +189,18 @@ export class MasterRolePageComponent implements OnInit {
     });
   }
 
-  roleLabel(name: string): string {
-    return roleLabelThai(name);
-  }
-
   categoryLabel(category?: RoleCategory): string {
     return category === 'ENTERTAINER' ? 'เด็กนั่งดริ๊งค์' : 'พนักงาน';
+  }
+
+  sanitizeIntegerInput(
+    form: 'create' | 'edit',
+    controlName: 'startDrinks' | 'nextHourDrinks' | 'defaultPricePerDrink',
+    event: Event,
+  ): void {
+    const input = event.target as HTMLInputElement;
+    const sanitized = input.value.replace(/\D+/g, '');
+    const targetForm = form === 'create' ? this.createForm : this.editForm;
+    targetForm.controls[controlName].setValue(sanitized, { emitEvent: false });
   }
 }

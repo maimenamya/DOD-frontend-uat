@@ -2,7 +2,6 @@ import { Component, computed, inject, output } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AuthService } from '../../services/auth.service';
-import { roleLabelThai } from '../../utils/employee-team.util';
 
 @Component({
   selector: 'app-header',
@@ -21,6 +20,12 @@ export class AppHeaderComponent {
     return nick !== '—' ? nick.charAt(0).toUpperCase() : '?';
   });
 
+  readonly roleDisplayLabel = computed(() => {
+    const user = this.user();
+    if (!user) return '—';
+    return user.roleDisplayNameTh?.trim() || '—';
+  });
+
   onMenuClick(): void {
     this.menuToggle.emit();
   }
@@ -29,7 +34,4 @@ export class AppHeaderComponent {
     void this.router.navigate(['/dashboard/my-profile']);
   }
 
-  roleLabel(roleName: string): string {
-    return roleName ? roleLabelThai(roleName) : '—';
-  }
 }

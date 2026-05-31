@@ -1,3 +1,6 @@
+@import 'flatpickr/dist/flatpickr.min.css';
+@import 'flatpickr/dist/plugins/confirmDate/confirmDate.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -537,7 +540,38 @@
   }
 
   .app-page-header {
-    @apply flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between;
+    @apply flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .app-page-header > div:first-child {
+    @apply flex min-w-0 flex-1 flex-col justify-center;
+  }
+
+  .app-page-header .app-page-title {
+    @apply m-0;
+  }
+
+  /*
+   * หัวข้อบรรทัดเดียว + ปุ่มเพิ่ม: สูงแถวเท่าปุ่ม (h-11) ชิดขอบบนเดียวกัน
+   * (items-center ทำให้ตัวอักษรใหญ่ดูลอยสูงกว่าหน้าปุ่มเล็กน้อย)
+   */
+  @media (min-width: 640px) {
+    .app-page-header:has(> .app-btn-primary, > .app-btn-secondary):not(:has(.app-page-subtitle)) {
+      @apply items-start;
+    }
+
+    .app-page-header:has(> .app-btn-primary, > .app-btn-secondary):not(:has(.app-page-subtitle))
+      > div:first-child {
+      @apply justify-start;
+    }
+
+    .app-page-header:has(> .app-btn-primary, > .app-btn-secondary):not(:has(.app-page-subtitle))
+      > div:first-child
+      > .app-page-title:only-child {
+      display: block;
+      min-height: 2.75rem;
+      line-height: 2.75rem;
+    }
   }
 
   .app-page-header .app-btn-primary,
@@ -652,7 +686,38 @@
   }
 
   .app-sidebar-nav {
-    @apply flex-1 space-y-1 p-3;
+    @apply flex-1 space-y-1 overflow-y-auto p-3;
+  }
+
+  .app-sidebar-group {
+    @apply flex flex-col gap-0.5;
+  }
+
+  .app-sidebar-group-toggle {
+    @apply flex w-full items-center gap-2 rounded-input px-3 py-2.5 text-left text-sm font-medium text-text-secondary transition-all duration-200;
+    line-height: 1.4;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-sidebar-group-toggle:hover {
+    background: var(--surface-hover);
+    color: var(--text-primary);
+  }
+
+  .app-sidebar-group-label {
+    @apply min-w-0 flex-1 truncate;
+  }
+
+  .app-sidebar-group-chevron {
+    @apply shrink-0 text-xs opacity-70;
+  }
+
+  .app-sidebar-subnav {
+    @apply ml-1 flex flex-col gap-0.5 border-l border-theme-border pl-2;
+  }
+
+  .app-sidebar-sublink {
+    @apply py-2 pl-7 text-[0.8125rem];
   }
 
   .app-sidebar-link {
@@ -1158,21 +1223,22 @@
       @apply min-w-0 flex-row flex-nowrap justify-center gap-1.5;
     }
 
+    .app-table-actions .app-btn-primary-sm,
     .app-table-actions .app-btn-secondary-sm,
-    .app-table-actions .app-btn-danger {
+    .app-table-actions .app-btn-danger-sm {
       @apply shrink-0 px-2;
     }
 
-    .dashboard-rank-table-header th,
-    .dashboard-rank-table-body .app-data-table td {
+    .dashboard-rank-split .app-split-table-header th,
+    .dashboard-rank-split .app-split-table-body .app-data-table td {
       @apply px-2.5 text-xs;
     }
 
-    .dashboard-rank-col-rank {
+    .dashboard-rank-split .app-split-table-grid col.dashboard-rank-col-rank {
       width: 2.75rem;
     }
 
-    .dashboard-rank-col-num {
+    .dashboard-rank-split .app-split-table-grid col.dashboard-rank-col-num {
       width: 5.5rem;
     }
 
@@ -1242,6 +1308,55 @@
     box-shadow:
       0 0 0 3px rgba(47, 128, 255, 0.15),
       var(--shadow-glow-sm);
+  }
+
+  .app-toggle {
+    @apply inline-flex items-center gap-3;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-toggle-input {
+    @apply sr-only;
+  }
+
+  .app-toggle-track {
+    @apply relative inline-block h-6 w-11 rounded-pill border border-theme-border transition-all duration-200;
+    background: var(--surface);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  .app-toggle-track::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 1.125rem;
+    height: 1.125rem;
+    border-radius: 9999px;
+    background: #ffffff;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+    transition: transform var(--transition-smooth);
+  }
+
+  .app-toggle-text {
+    @apply text-sm font-medium text-text-secondary;
+    line-height: 1.4;
+  }
+
+  .app-toggle-input:checked + .app-toggle-track {
+    border-color: color-mix(in srgb, var(--primary) 55%, var(--border));
+    background: linear-gradient(90deg, var(--primary-light) 0%, var(--primary) 100%);
+    box-shadow: var(--shadow-glow-sm);
+  }
+
+  .app-toggle-input:checked + .app-toggle-track::after {
+    transform: translateX(1.25rem);
+  }
+
+  .app-toggle-input:focus-visible + .app-toggle-track {
+    outline: 2px solid color-mix(in srgb, var(--primary-light) 70%, #ffffff);
+    outline-offset: 2px;
   }
 
   .app-segmented-control {
@@ -1431,12 +1546,80 @@
     color: var(--primary-light);
   }
 
+  .app-combobox-menu {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .app-combobox-search-wrap {
+    @apply shrink-0 border-b border-theme-border p-2;
+    background: var(--surface);
+  }
+
+  .app-combobox-search {
+    @apply w-full border border-theme-border px-3 py-2 text-sm text-text-primary;
+    border-radius: var(--radius-input);
+    background: var(--surface-strong);
+  }
+
+  .app-combobox-search:focus {
+    border-color: var(--border-focus);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(47, 128, 255, 0.15);
+  }
+
+  .app-combobox-search::placeholder {
+    color: var(--text-secondary);
+  }
+
+  .app-combobox-list {
+    @apply app-scroll-region min-h-0 flex-1 overflow-y-auto py-1;
+  }
+
+  .app-combobox-item {
+    @apply flex flex-col gap-0.5;
+  }
+
+  .app-combobox-item-label {
+    @apply block text-sm;
+  }
+
+  .app-combobox-item-hint {
+    @apply block text-xs text-text-secondary;
+  }
+
   .app-form-actions {
     @apply flex flex-wrap justify-end gap-2 sm:col-span-2;
   }
 
   .app-form-actions-top {
     @apply pt-2;
+  }
+
+  /** Modal / sheet footers: primary, secondary, and danger share one height. */
+  .app-form-actions > .app-btn-primary,
+  .app-form-actions > .app-btn-secondary,
+  .app-form-actions > .app-btn-danger {
+    @apply h-11 min-h-11 px-5 text-sm;
+  }
+
+  .app-form-actions > .app-btn-danger {
+    @apply font-semibold;
+  }
+
+  /** Compact toolbar (e.g. open-table drawer). */
+  .app-action-bar .app-btn-primary,
+  .app-action-bar .app-btn-secondary,
+  .app-action-bar .app-btn-danger,
+  .app-action-bar .app-btn-success {
+    @apply h-11 min-h-11 w-full px-3 text-sm;
+  }
+
+  .app-action-bar .app-btn-danger,
+  .app-action-bar .app-btn-success {
+    @apply font-semibold;
   }
 
   .app-field-error {
@@ -1450,27 +1633,14 @@
     line-height: 1.4;
   }
 
-  .app-badge-owner {
-    background: rgba(251, 191, 36, 0.15);
-    color: var(--warning);
-  }
-
-  .app-badge-admin {
-    background: rgba(56, 189, 248, 0.15);
-    color: #7dd3fc;
-  }
-
-  .app-badge-manager {
-    background: rgba(47, 128, 255, 0.15);
-    color: var(--primary-light);
-  }
-
-  .app-badge-sale {
+  /** Master Role.category = STAFF (Sale, Admin, Manager, …) */
+  .app-badge-staff {
     background: rgba(52, 211, 153, 0.15);
     color: var(--stat-revenue);
   }
 
-  .app-badge-pr {
+  /** Master Role.category = ENTERTAINER (PR, Model, Coyoty, …) */
+  .app-badge-entertainer {
     background: rgba(30, 200, 255, 0.15);
     color: var(--stat-drinks);
   }
@@ -1502,7 +1672,7 @@
   }
 
   .app-btn-secondary {
-    @apply inline-flex h-10 items-center justify-center rounded-input border border-theme-border px-4 text-sm font-medium text-text-primary transition-all duration-200 active:scale-[0.98];
+    @apply inline-flex h-11 items-center justify-center rounded-input border border-theme-border px-5 text-sm font-medium text-text-primary transition-all duration-200 active:scale-[0.98];
     background: var(--surface);
     line-height: 1.4;
   }
@@ -1513,9 +1683,10 @@
   }
 
   .app-btn-secondary-sm {
-    @apply inline-flex h-9 items-center justify-center rounded-input border border-theme-border px-3 text-xs font-medium text-text-primary transition-all duration-200 active:scale-[0.98];
+    @apply inline-flex h-9 items-center justify-center rounded-input border border-theme-border px-3 text-xs font-medium text-text-primary transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
     background: var(--surface);
     line-height: 1.4;
+    white-space: nowrap;
   }
 
   .app-btn-secondary-sm:hover {
@@ -1523,8 +1694,22 @@
     background: var(--surface-hover);
   }
 
+  .app-btn-primary-sm {
+    @apply inline-flex h-9 items-center justify-center rounded-input border px-3 text-xs font-medium transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+    border-color: color-mix(in srgb, var(--primary) 55%, var(--border));
+    background: color-mix(in srgb, var(--primary) 14%, var(--surface));
+    color: var(--primary-light);
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  .app-btn-primary-sm:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--primary) 75%, var(--border));
+    background: color-mix(in srgb, var(--primary) 22%, var(--surface));
+  }
+
   .app-btn-danger {
-    @apply inline-flex h-9 items-center justify-center rounded-input border px-3 text-xs font-medium transition-all duration-200 active:scale-[0.98];
+    @apply inline-flex h-11 items-center justify-center rounded-input border px-5 text-sm font-semibold transition-all duration-200 active:scale-[0.98];
     border-color: var(--danger-border);
     background: var(--danger-surface);
     color: var(--danger);
@@ -1533,6 +1718,44 @@
 
   .app-btn-danger:hover {
     background: rgba(239, 68, 68, 0.18);
+  }
+
+  .app-btn-success {
+    @apply inline-flex h-11 items-center justify-center rounded-input border-0 px-5 text-sm font-semibold text-white transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
+    background: linear-gradient(90deg, #34d399 0%, #059669 100%);
+    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
+    line-height: 1.4;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-btn-success:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(5, 150, 105, 0.45);
+  }
+
+  /** Table row actions + inline controls (smaller than modal buttons). */
+  .app-btn-danger-sm {
+    @apply inline-flex h-9 items-center justify-center rounded-input border px-3 text-xs font-medium transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+    border-color: var(--danger-border);
+    background: var(--danger-surface);
+    color: var(--danger);
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  .app-btn-danger-sm:hover {
+    background: rgba(239, 68, 68, 0.18);
+  }
+
+  .app-btn-inline {
+    @apply inline-flex h-[1.125rem] min-h-0 shrink-0 items-center justify-center rounded border border-theme-border px-1 text-[0.625rem] font-medium leading-none text-text-secondary transition-colors active:scale-[0.98] disabled:opacity-50;
+    background: var(--surface);
+    vertical-align: baseline;
+  }
+
+  .app-btn-inline:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+    color: var(--text-primary);
   }
 
   .app-btn-ghost {
@@ -1554,7 +1777,7 @@
 
   /* ── Top toast (no backdrop blur) ── */
   .app-toast-host {
-    @apply pointer-events-none fixed inset-x-0 top-4 z-[60] flex justify-center px-4;
+    @apply pointer-events-none fixed inset-x-0 top-4 z-[100050] flex justify-center px-4;
   }
 
   .app-toast {
@@ -1684,10 +1907,14 @@
 
   /* ── Modal ── */
   .app-modal-overlay {
-    @apply fixed inset-0 z-50 flex items-center justify-center p-4;
-    background: rgba(6, 8, 22, 0.78);
-    backdrop-filter: blur(16px) saturate(1.15);
-    -webkit-backdrop-filter: blur(16px) saturate(1.15);
+    @apply fixed inset-0 z-[70] flex items-center justify-center p-4;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  .app-modal-overlay--sheet {
+    @apply items-end p-0 sm:items-center sm:p-4;
   }
 
   .app-modal {
@@ -1697,6 +1924,16 @@
     -webkit-backdrop-filter: blur(var(--glass-blur));
     box-shadow: var(--shadow-card);
     border-radius: var(--radius-glass);
+  }
+
+  .app-modal-overlay--sheet .app-modal {
+    @apply max-w-none rounded-b-none border-b-0 sm:max-w-lg sm:rounded-card sm:border-b;
+    border-top-left-radius: 1.25rem;
+    border-top-right-radius: 1.25rem;
+  }
+
+  .app-modal-overlay--sheet .app-modal-scroll {
+    max-height: min(88vh, 52rem);
   }
 
   .app-modal-scroll {
@@ -1807,54 +2044,24 @@
     overflow: hidden;
   }
 
-  .dashboard-rank-table {
+  /** Dashboard ranking tables — same split header/body alignment as master pages */
+  .dashboard-rank-split {
     --dashboard-rank-row: 2.75rem;
     --dashboard-rank-body: calc(5 * var(--dashboard-rank-row));
-    background-color: var(--table-body-bg);
   }
 
-  .dashboard-rank-table-header {
-    scrollbar-gutter: stable;
-    background-color: var(--table-head-sticky-bg);
-    border-bottom: 1px solid var(--table-head-border);
-  }
-
-  .dashboard-rank-table-header th {
-    @apply px-5 py-2.5 text-center text-xs font-semibold uppercase tracking-wider;
-    color: var(--table-head-text);
-    background-color: var(--table-head-sticky-bg) !important;
-    line-height: 1.4;
-  }
-
-  .dashboard-rank-table-grid {
-    @apply w-full table-fixed text-sm;
-  }
-
-  .dashboard-rank-col-rank {
+  .dashboard-rank-split .app-split-table-grid col.dashboard-rank-col-rank {
     width: 4.5rem;
   }
 
-  .dashboard-rank-col-name {
-    width: auto;
-  }
-
-  .dashboard-rank-col-num {
+  .dashboard-rank-split .app-split-table-grid col.dashboard-rank-col-num {
     width: 7.5rem;
   }
 
-  .dashboard-rank-table-body {
-    scrollbar-gutter: stable;
-    @apply app-scroll-region;
+  .dashboard-rank-split .app-split-table-body.dashboard-rank-split-body {
     height: var(--dashboard-rank-body);
     min-height: var(--dashboard-rank-body);
     max-height: var(--dashboard-rank-body);
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-
-  .dashboard-rank-table-body .app-data-table td {
-    @apply box-border py-2.5 text-center;
-    vertical-align: middle;
   }
 
   .dashboard-rank-table-empty {
@@ -2166,4 +2373,284 @@
     @apply mt-2 text-sm text-danger;
   }
 
+}
+
+/* ── Flatpickr: shop datetime (neon dark — matches app-card / app-input) ── */
+.app-flatpickr-calendar.flatpickr-calendar {
+  z-index: 10050 !important;
+  width: 19.5rem;
+  margin-top: 0.35rem;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border-strong);
+  background: linear-gradient(165deg, rgba(15, 22, 45, 0.98) 0%, rgba(6, 8, 22, 0.98) 100%);
+  backdrop-filter: blur(var(--glass-blur-sm));
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+  box-shadow:
+    var(--shadow-card),
+    0 0 32px var(--glow),
+    var(--shadow-inset-highlight);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+.app-flatpickr-calendar.flatpickr-calendar::before,
+.app-flatpickr-calendar.flatpickr-calendar::after,
+.app-flatpickr-calendar.arrowTop::before,
+.app-flatpickr-calendar.arrowTop::after,
+.app-flatpickr-calendar.arrowBottom::before,
+.app-flatpickr-calendar.arrowBottom::after {
+  display: none !important;
+}
+
+.app-flatpickr-calendar .flatpickr-months {
+  padding: 0.75rem 0.5rem 0.25rem;
+  background: transparent;
+}
+
+.app-flatpickr-calendar .flatpickr-months .flatpickr-month {
+  height: 2.25rem;
+  color: var(--text-primary);
+  background: transparent;
+  fill: var(--text-primary);
+}
+
+.app-flatpickr-calendar .flatpickr-current-month {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Static month label (no native white dropdown) */
+.app-flatpickr-calendar .flatpickr-current-month .flatpickr-monthDropdown-months {
+  font-weight: 600;
+  color: var(--primary-light);
+  background: transparent;
+  border: none;
+  appearance: none;
+  pointer-events: none;
+  padding: 0;
+  margin: 0 0.2rem;
+}
+
+.app-flatpickr-calendar .flatpickr-current-month input.cur-year {
+  font-weight: 600;
+  color: var(--primary-light);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.15rem 0.35rem;
+  min-width: 4rem;
+}
+
+.app-flatpickr-calendar .flatpickr-current-month input.cur-year:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+.app-flatpickr-calendar .flatpickr-months .flatpickr-prev-month,
+.app-flatpickr-calendar .flatpickr-months .flatpickr-next-month {
+  top: 0.85rem;
+  padding: 0.35rem;
+  border-radius: 10px;
+  fill: var(--primary-light);
+  transition:
+    background var(--transition-smooth),
+    box-shadow var(--transition-smooth);
+}
+
+.app-flatpickr-calendar .flatpickr-months .flatpickr-prev-month:hover,
+.app-flatpickr-calendar .flatpickr-months .flatpickr-next-month:hover {
+  background: var(--surface-hover);
+  box-shadow: var(--shadow-glow-sm);
+}
+
+.app-flatpickr-calendar .flatpickr-weekdays {
+  height: 2rem;
+  background: transparent;
+}
+
+.app-flatpickr-calendar .flatpickr-weekday {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.app-flatpickr-calendar .flatpickr-days {
+  padding: 0 0.5rem 0.5rem;
+}
+
+.app-flatpickr-calendar .flatpickr-day {
+  max-width: 2.25rem;
+  height: 2.25rem;
+  line-height: 2.25rem;
+  margin: 0.1rem;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  color: var(--text-primary);
+  transition:
+    background var(--transition-smooth),
+    border-color var(--transition-smooth),
+    box-shadow var(--transition-smooth);
+}
+
+.app-flatpickr-calendar .flatpickr-day:hover,
+.app-flatpickr-calendar .flatpickr-day:focus {
+  background: var(--surface-hover);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+
+.app-flatpickr-calendar .flatpickr-day.today {
+  border-color: color-mix(in srgb, var(--primary-light) 65%, transparent);
+  color: var(--primary-light);
+}
+
+.app-flatpickr-calendar .flatpickr-day.today:hover,
+.app-flatpickr-calendar .flatpickr-day.today:focus {
+  border-color: var(--primary-light);
+  background: var(--surface-hover);
+  color: var(--primary-light);
+}
+
+.app-flatpickr-calendar .flatpickr-day.selected,
+.app-flatpickr-calendar .flatpickr-day.startRange,
+.app-flatpickr-calendar .flatpickr-day.endRange,
+.app-flatpickr-calendar .flatpickr-day.selected.inRange,
+.app-flatpickr-calendar .flatpickr-day.startRange.inRange,
+.app-flatpickr-calendar .flatpickr-day.endRange.inRange {
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: var(--shadow-glow-sm);
+}
+
+.app-flatpickr-calendar .flatpickr-day.flatpickr-disabled,
+.app-flatpickr-calendar .flatpickr-day.prevMonthDay,
+.app-flatpickr-calendar .flatpickr-day.nextMonthDay {
+  color: color-mix(in srgb, var(--text-secondary) 55%, transparent);
+}
+
+.app-flatpickr-calendar .flatpickr-time {
+  height: auto !important;
+  min-height: 3.75rem;
+  max-height: none !important;
+  line-height: 1.5 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  overflow: visible;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 0 0 var(--radius-card) var(--radius-card);
+  padding: 0.75rem 0.65rem 0.85rem;
+  box-sizing: border-box;
+}
+
+.app-flatpickr-calendar .flatpickr-time .numInputWrapper {
+  height: 3rem !important;
+  min-width: 3.25rem;
+  flex: 0 0 auto;
+  background: var(--surface-strong);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  box-sizing: border-box;
+  transition:
+    border-color var(--transition-smooth),
+    box-shadow var(--transition-smooth);
+}
+
+.app-flatpickr-calendar .flatpickr-time .numInputWrapper:hover {
+  border-color: var(--border-strong);
+}
+
+.app-flatpickr-calendar .flatpickr-time .numInputWrapper:focus-within {
+  border-color: var(--border-focus);
+  box-shadow:
+    0 0 0 3px rgba(47, 128, 255, 0.15),
+    var(--shadow-glow-sm);
+}
+
+.app-flatpickr-calendar .flatpickr-time input {
+  height: 100% !important;
+  line-height: 2.75rem !important;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  background: transparent;
+  padding: 0 0.35rem;
+  box-sizing: border-box;
+}
+
+.app-flatpickr-calendar .flatpickr-time input:hover,
+.app-flatpickr-calendar .flatpickr-time input:focus {
+  background: transparent;
+}
+
+.app-flatpickr-calendar .flatpickr-time .flatpickr-time-separator {
+  align-self: center;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--primary-light);
+}
+
+.app-flatpickr-calendar .flatpickr-time .numInputWrapper span {
+  opacity: 1;
+  border: none;
+  line-height: 1.1rem;
+}
+
+.app-flatpickr-calendar .flatpickr-time .arrowUp,
+.app-flatpickr-calendar .flatpickr-time .arrowDown {
+  opacity: 1;
+}
+
+.app-flatpickr-calendar .flatpickr-time .arrowUp:after {
+  border-bottom-color: var(--primary-light);
+}
+
+.app-flatpickr-calendar .flatpickr-time .arrowDown:after {
+  border-top-color: var(--primary-light);
+}
+
+.app-flatpickr-calendar .flatpickr-time .arrowUp:hover,
+.app-flatpickr-calendar .flatpickr-time .arrowDown:hover {
+  background: var(--surface-hover);
+}
+
+.app-flatpickr-calendar .flatpickr-confirm {
+  max-height: none;
+  height: auto;
+  min-height: 2.5rem;
+  visibility: visible;
+  margin: 0 0.65rem 0.65rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-input);
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.app-flatpickr-calendar .flatpickr-confirm:hover {
+  filter: brightness(1.08);
+}
+
+.app-flatpickr-calendar .flatpickr-confirm.darkTheme {
+  color: #fff;
+  fill: #fff;
+}
+
+/* Input field when picker is open */
+input.app-input.app-shop-datetime-input.flatpickr-input.active {
+  border-color: var(--border-focus);
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow:
+    0 0 0 3px rgba(47, 128, 255, 0.15),
+    var(--shadow-glow-sm);
 }

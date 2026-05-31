@@ -1,0 +1,164 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">ห้อง</h1>
+    </div>
+    @if (canManage() && !loading()) {
+      <button type="button" (click)="openCreate()" class="app-btn-primary">+ เพิ่มห้อง</button>
+    }
+  </div>
+
+  @if (showCreateModal() && canManage() && !loading()) {
+    <app-modal (dismiss)="closeCreate()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">เพิ่มห้อง</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeCreate()">✕</button>
+      </div>
+      <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
+        <div class="app-form-group">
+          <label class="app-label">รหัสห้อง</label>
+          <input type="text" formControlName="roomCode" class="app-input" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">ราคา</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            formControlName="price"
+            class="app-input"
+            (input)="sanitizeIntegerInput('create', 'price', $event)"
+          />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">ประเภทราคา</label>
+          <app-custom-dropdown
+            formControlName="pricingType"
+            [options]="pricingTypeOptions"
+            placeholder="เลือกประเภทราคา"
+          />
+        </div>
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
+          <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+            {{ submitting() ? 'กำลังบันทึก...' : 'บันทึก' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+
+  @if (editingItem(); as item) {
+    <app-modal (dismiss)="closeEdit()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">แก้ไขห้อง</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
+      </div>
+      <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
+        <div class="app-form-group">
+          <label class="app-label">รหัสห้อง</label>
+          <input type="text" formControlName="roomCode" class="app-input" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">ราคา</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            formControlName="price"
+            class="app-input"
+            (input)="sanitizeIntegerInput('edit', 'price', $event)"
+          />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">ประเภทราคา</label>
+          <app-custom-dropdown
+            formControlName="pricingType"
+            [options]="pricingTypeOptions"
+            placeholder="เลือกประเภทราคา"
+          />
+        </div>
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
+          <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+            {{ submitting() ? 'กำลังบันทึก...' : 'บันทึกการแก้ไข' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+
+  @if (loading()) {
+    <p class="app-loading-text">กำลังโหลด...</p>
+  } @else if (rooms().length === 0) {
+    <p class="app-empty-state">ยังไม่มีข้อมูลห้อง</p>
+  } @else {
+    <section class="app-card app-card-flush">
+      <div class="app-data-table-shell">
+        <div class="app-split-table app-split-table--wide">
+          <div class="app-split-table-header">
+            <table class="app-data-table app-split-table-grid">
+              <colgroup>
+                <col class="app-col-id" />
+                <col />
+                <col />
+                <col />
+                @if (canManage()) {
+                  <col class="app-col-actions" />
+                }
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>รหัสห้อง</th>
+                  <th class="app-cell-right">ราคา</th>
+                  <th>ประเภทราคา</th>
+                  @if (canManage()) {
+                    <th class="app-cell-right">จัดการ</th>
+                  }
+                </tr>
+              </thead>
+            </table>
+          </div>
+          <div class="app-split-table-body app-scroll-region">
+            <table class="app-data-table app-split-table-grid">
+              <colgroup>
+                <col class="app-col-id" />
+                <col />
+                <col />
+                <col />
+                @if (canManage()) {
+                  <col class="app-col-actions" />
+                }
+              </colgroup>
+              <tbody>
+                @for (item of rooms(); track item.id; let i = $index) {
+                  <tr>
+                    <td class="app-cell-mono">{{ i + 1 }}</td>
+                    <td class="app-cell-primary">{{ item.roomCode }}</td>
+                    <td class="app-cell-right app-cell-highlight-violet">
+                      {{ item.price | number: '1.0-0' }}
+                    </td>
+                    <td>{{ pricingTypeLabel(item.pricingType) }}</td>
+                    @if (canManage()) {
+                      <td class="app-cell-right">
+                        <div class="app-table-actions">
+                          <button type="button" class="app-btn-secondary-sm" (click)="openEdit(item)">
+                            แก้ไข
+                          </button>
+                          <button type="button" class="app-btn-danger-sm" (click)="confirmDelete(item)">
+                            ลบ
+                          </button>
+                        </div>
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  }
+</div>

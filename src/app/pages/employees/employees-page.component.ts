@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import type { Employee } from '../../models/employee';
+﻿import { Component, OnInit, inject, signal } from '@angular/core';
+import type { MstEmployee } from '../../models/employee';
 import { EmployeeService } from '../../services/employee.service';
 import { EmployeeTableComponent } from '../../components/employee-table/employee-table.component';
 
@@ -11,7 +11,7 @@ import { EmployeeTableComponent } from '../../components/employee-table/employee
 export class EmployeesPageComponent implements OnInit {
   private readonly employeeService = inject(EmployeeService);
 
-  readonly employees = signal<Employee[]>([]);
+  readonly employees = signal<MstEmployee[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
 

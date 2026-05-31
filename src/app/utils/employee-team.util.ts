@@ -1,40 +1,47 @@
-import type { EmployeeTeam } from '../models/employee';
-import type { EmployeeRole } from '../models/role';
+﻿import type { EmployeeTeam } from '../models/employee';
+import type { MstRole, RoleCategory } from '../models/role';
 
-/** Maps API role name to legacy `team` param required by employee create API. */
-export function teamForRole(roleName: string): EmployeeTeam {
-  const normalized = roleName.toUpperCase();
+/** Maps role (name + category from master) to legacy `team` param for employee API. */
+export function teamForRole(role: Pick<MstRole, 'name' | 'category'>): EmployeeTeam {
+  const normalized = role.name.toUpperCase();
   if (normalized === 'SALE') return 'sale';
   if (normalized === 'PR') return 'pr';
   if (normalized === 'ADMIN' || normalized === 'MANAGER') return 'managers';
+  if (role.category === 'ENTERTAINER') return 'pr';
   return 'sale';
 }
 
+/** @deprecated Prefer teamForRole with category. */
+export function teamForRoleName(roleName: string, category?: RoleCategory): EmployeeTeam {
+  return teamForRole({ name: roleName, category: category ?? 'STAFF' });
+}
+
 export function isRoleMutableByViewer(
-  targetRoleName: string | undefined,
+  targetRole: Pick<MstRole, 'name' | 'category'> | string | undefined,
   viewerIsOwner: boolean,
   viewerCanManage: boolean,
 ): boolean {
-  if (!targetRoleName || targetRoleName === 'OWNER') {
+  const name = typeof targetRole === 'string' ? targetRole : targetRole?.name;
+  if (!name || name === 'OWNER') {
     return false;
   }
+  if (name === 'ADMIN' || name === 'MANAGER') {
+    return viewerIsOwner;
+  }
   if (viewerIsOwner) {
-    return targetRoleName === 'ADMIN' || targetRoleName === 'MANAGER' || targetRoleName === 'SALE' || targetRoleName === 'PR';
+    return true;
   }
   if (!viewerCanManage) {
     return false;
   }
-  return targetRoleName === 'SALE' || targetRoleName === 'PR';
+  return name === 'SALE' || name === 'PR' || typeof targetRole !== 'string';
 }
 
-export const ROLE_LABEL_TH: Record<string, string> = {
-  OWNER: 'เจ้าของร้าน',
-  ADMIN: 'ผู้ดูแลระบบ',
-  MANAGER: 'ผู้จัดการ',
-  SALE: 'เซลส์',
-  PR: 'พีอาร์',
-};
-
-export function roleLabelThai(roleName: string): string {
-  return ROLE_LABEL_TH[roleName.toUpperCase()] ?? roleName;
-}
+export {
+  roleBadgeClass,
+  roleDisplayNameEn,
+  roleDisplayNameTh,
+  roleLabelThai,
+  roleOptionLabel,
+  compareRolesByThaiLabel,
+} from './role-display.util';

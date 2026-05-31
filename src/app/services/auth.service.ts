@@ -11,7 +11,8 @@ import type {
   UpdateProfileRequest,
 } from '../models/auth';
 import { ApiConfig } from '../core/api-config';
-import { FIELD_STAFF_ROLES, MANAGEMENT_ROLES, type EmployeeRole } from '../models/role';
+import type { RoleCategory } from '../models/role';
+import { roleDisplayNameTh } from '../utils/role-display.util';
 
 const STORAGE_KEY = 'dod_auth_session';
 
@@ -59,7 +60,6 @@ export class AuthService {
     return this.sessionSignal()?.user ?? null;
   }
 
-  /** Display label for header/UI — prefers nickname, falls back to employeeId. */
   getDisplayNickname(): string {
     const user = this.getUser();
     if (!user) {
@@ -76,31 +76,62 @@ export class AuthService {
     return this.getUser()?.shopId ?? null;
   }
 
-  getRole(): EmployeeRole | null {
+  getRole(): string | null {
     return this.getUser()?.role ?? null;
   }
 
+  getRoleDisplayNameTh(): string | null {
+    return this.getUser()?.roleDisplayNameTh ?? null;
+  }
+
+  getRoleCategory(): RoleCategory | null {
+    return this.getUser()?.roleCategory ?? null;
+  }
+
   isOwner(): boolean {
-    return this.getRole() === 'OWNER';
+    return this.getRole()?.toUpperCase() === 'OWNER';
+  }
+
+  isManagerRole(): boolean {
+    const role = this.getRole()?.toUpperCase();
+    return role === 'ADMIN' || role === 'MANAGER';
   }
 
   isFieldStaff(): boolean {
-    const role = this.getRole();
-    return role ? FIELD_STAFF_ROLES.includes(role) : false;
+    if (this.isOwner() || this.isManagerRole()) {
+      return false;
+    }
+    const role = this.getRole()?.toUpperCase();
+    if (role === 'SALE' || role === 'PR') {
+      return true;
+    }
+    const category = this.getRoleCategory();
+    return category === 'STAFF' || category === 'ENTERTAINER';
   }
 
-  /** SALE Team & PR Team navigation */
+  isEntertainerRole(): boolean {
+    if (this.getRole()?.toUpperCase() === 'PR') {
+      return true;
+    }
+    return this.getRoleCategory() === 'ENTERTAINER';
+  }
+
+  isSaleTeamRole(): boolean {
+    if (this.getRole()?.toUpperCase() === 'SALE') {
+      return true;
+    }
+    return this.getRoleCategory() === 'STAFF' && !this.isManagerRole() && !this.isOwner();
+  }
+
   canAccessTeamManagement(): boolean {
-    const role = this.getRole();
-    return role ? MANAGEMENT_ROLES.includes(role) : false;
+    return this.isOwner() || this.isManagerRole();
   }
 
-  /** Row-level Edit/Delete — OWNER accounts are never mutable */
   canMutateEmployeeRow(targetRoleName?: string): boolean {
     if (!targetRoleName || targetRoleName === 'OWNER') {
       return false;
     }
-    return this.canAccessTeamManagement() || this.isOwner();
+    return this.canAccessTeamManagement();
   }
 
   canMutateOnManagersPage(targetRoleName?: string): boolean {
@@ -158,15 +189,30 @@ export class AuthService {
       shopId: employee.shopId,
       roleId: employee.roleId,
       role: employee.role.name,
+      roleDisplayNameTh: this.resolveRoleDisplayNameTh(
+        employee.role.name,
+        employee.role.displayNameTh,
+      ),
+      roleCategory: employee.role.category,
       shopName: employee.shop.name,
     });
     return { token, user };
   }
 
-  /** Supports sessions saved before `name` was removed from the API. */
   private normalizeUser(user: AuthUser & { name?: string }): AuthUser {
     const nickname =
       user.nickname?.trim() || user.name?.trim() || user.employeeId?.trim() || '';
+    const role =
+      typeof user.role === 'string'
+        ? user.role
+        : ((user as { role?: { name?: string } }).role?.name ?? '');
+    const roleCategory =
+      user.roleCategory ??
+      (role.toUpperCase() === 'PR' ? 'ENTERTAINER' : 'STAFF');
+    const roleDisplayNameTh = this.resolveRoleDisplayNameTh(
+      role,
+      user.roleDisplayNameTh,
+    );
     return {
       id: user.id,
       employeeId: user.employeeId,
@@ -174,8 +220,19 @@ export class AuthService {
       nickname,
       shopId: user.shopId,
       roleId: user.roleId,
-      role: user.role,
+      role,
+      roleDisplayNameTh,
+      roleCategory,
       shopName: user.shopName,
     };
+  }
+
+  private resolveRoleDisplayNameTh(
+    roleName: string,
+    fromSession?: string | null,
+  ): string {
+    const trimmed = fromSession?.trim();
+    if (trimmed) return trimmed;
+    return roleDisplayNameTh({ name: roleName });
   }
 }

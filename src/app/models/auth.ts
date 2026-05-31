@@ -1,4 +1,4 @@
-import type { EmployeeRole } from './role';
+﻿import type { RoleCategory } from './role';
 
 export interface LoginRequest {
   employeeId: string;
@@ -9,7 +9,7 @@ export interface RegisterRequest {
   employeeId: string;
   password: string;
   shopId: number;
-  role: EmployeeRole;
+  role: string;
   email?: string;
   nickname: string;
 }
@@ -21,7 +21,11 @@ export interface AuthUser {
   nickname: string;
   shopId: number;
   roleId: number;
-  role: EmployeeRole;
+  /** MstRole name from master (e.g. SALE, PR, COYOTY). */
+  role: string;
+  /** Thai label for header/profile (from JWT / login response). */
+  roleDisplayNameTh: string;
+  roleCategory: RoleCategory;
   shopName: string;
 }
 
@@ -34,7 +38,12 @@ export interface AuthResponse {
     nickname: string;
     shopId: number;
     roleId: number;
-    role: { id: number; name: EmployeeRole };
+    role: {
+      id: number;
+      name: string;
+      displayNameTh?: string | null;
+      category: RoleCategory;
+    };
     shop: { id: number; name: string };
   };
 }

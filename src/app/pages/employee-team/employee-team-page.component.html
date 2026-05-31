@@ -135,7 +135,7 @@
               </colgroup>
               <thead>
                 <tr>
-                  <th>ID</th>
+                  <th>No.</th>
                   <th>ชื่อเล่น</th>
                   <th>Role</th>
                   <th>Status</th>
@@ -158,12 +158,12 @@
                 }
               </colgroup>
               <tbody>
-                @for (emp of employees(); track emp.id) {
+                @for (emp of employees(); track emp.id; let i = $index) {
                   <tr>
-                    <td class="app-cell-mono">{{ emp.employeeId }}</td>
+                    <td class="app-cell-mono">{{ i + 1 }}</td>
                     <td class="app-cell-primary">{{ emp.nickname }}</td>
                     <td>
-                      <span [class]="roleBadgeClass(emp.role?.name)">{{ emp.role?.name }}</span>
+                      <span [class]="roleBadgeClass(emp.role)">{{ roleDisplayNameTh(emp.role!) }}</span>
                     </td>
                     <td>{{ emp.status }}</td>
                     @if (canManage()) {
@@ -173,7 +173,7 @@
                             <button type="button" class="app-btn-secondary-sm" (click)="openEdit(emp)">
                               Edit
                             </button>
-                            <button type="button" class="app-btn-danger" (click)="confirmDelete(emp)">
+                            <button type="button" class="app-btn-danger-sm" (click)="confirmDelete(emp)">
                               Delete
                             </button>
                           </div>

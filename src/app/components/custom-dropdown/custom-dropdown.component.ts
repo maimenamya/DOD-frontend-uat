@@ -223,15 +223,31 @@ export class CustomDropdownComponent implements ControlValueAccessor {
     const spaceBelow = window.innerHeight - rect.bottom - MENU_GAP_PX - viewportPadding;
     const spaceAbove = rect.top - MENU_GAP_PX - viewportPadding;
 
-    let top = rect.bottom + MENU_GAP_PX;
-    let maxHeight = Math.min(maxMenuHeight, spaceBelow);
+    const contentHeight = menu.scrollHeight;
+    const naturalHeight = Math.min(
+      maxMenuHeight,
+      Math.max(contentHeight, this.options.length === 0 ? 48 : 40),
+    );
 
-    if (maxHeight < 120 && spaceAbove > spaceBelow) {
-      maxHeight = Math.min(maxMenuHeight, spaceAbove);
+    const fitsBelow = spaceBelow >= naturalHeight;
+    const fitsAbove = spaceAbove >= naturalHeight;
+    let openBelow = fitsBelow || !fitsAbove;
+    if (fitsBelow && fitsAbove) {
+      openBelow = true;
+    }
+
+    let top: number;
+    let maxHeight: number;
+
+    if (openBelow) {
+      top = rect.bottom + MENU_GAP_PX;
+      maxHeight = Math.min(maxMenuHeight, spaceBelow, naturalHeight);
+    } else {
+      maxHeight = Math.min(maxMenuHeight, spaceAbove, naturalHeight);
       top = Math.max(viewportPadding, rect.top - MENU_GAP_PX - maxHeight);
     }
 
-    maxHeight = Math.max(120, Math.min(maxMenuHeight, maxHeight));
+    maxHeight = Math.max(48, maxHeight);
 
     menu.style.position = 'fixed';
     menu.style.top = `${top}px`;

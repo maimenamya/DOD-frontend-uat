@@ -1,0 +1,178 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">อื่นๆ</h1>
+    </div>
+    @if (canManage() && !loading()) {
+      <button type="button" (click)="openCreate()" class="app-btn-primary">+ เพิ่มรายการ</button>
+    }
+  </div>
+
+  @if (showCreateModal() && canManage() && !loading()) {
+    <app-modal (dismiss)="closeCreate()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">เพิ่มรายการอื่นๆ</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeCreate()">✕</button>
+      </div>
+      <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
+        <div class="app-form-group">
+          <label class="app-label">ชื่อรายการ</label>
+          <input type="text" formControlName="name" class="app-input" placeholder="เช่น ผ้าเย็น, สแน็ค 1 จาน" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">ราคา (บาท)</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            formControlName="price"
+            class="app-input"
+            (input)="sanitizeIntegerInput('create', $event)"
+          />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">หน่วยนับ</label>
+          <input type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">สถานะ</label>
+          <label class="app-toggle" aria-label="เปิดหรือปิดรายการ">
+            <input type="checkbox" class="app-toggle-input" formControlName="isActive" />
+            <span class="app-toggle-track"></span>
+            <span class="app-toggle-text">{{
+              createForm.controls.isActive.value ? 'ใช้งาน' : 'ปิดใช้งาน'
+            }}</span>
+          </label>
+        </div>
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
+          <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+            {{ submitting() ? 'กำลังบันทึก...' : 'บันทึก' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+
+  @if (editingItem(); as item) {
+    <app-modal (dismiss)="closeEdit()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">แก้ไขรายการอื่นๆ</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
+      </div>
+      <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
+        <div class="app-form-group">
+          <label class="app-label">ชื่อรายการ</label>
+          <input type="text" formControlName="name" class="app-input" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">ราคา (บาท)</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            formControlName="price"
+            class="app-input"
+            (input)="sanitizeIntegerInput('edit', $event)"
+          />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">หน่วยนับ</label>
+          <input type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">สถานะ</label>
+          <label class="app-toggle" aria-label="เปิดหรือปิดรายการ">
+            <input type="checkbox" class="app-toggle-input" formControlName="isActive" />
+            <span class="app-toggle-track"></span>
+            <span class="app-toggle-text">{{
+              editForm.controls.isActive.value ? 'ใช้งาน' : 'ปิดใช้งาน'
+            }}</span>
+          </label>
+        </div>
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
+          <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+            {{ submitting() ? 'กำลังบันทึก...' : 'บันทึกการแก้ไข' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+
+  @if (loading()) {
+    <p class="app-loading-text">กำลังโหลด...</p>
+  } @else if (items().length === 0) {
+    <p class="app-empty-state">ยังไม่มีรายการอื่นๆ</p>
+  } @else {
+    <section class="app-card app-card-flush">
+      <div class="app-data-table-shell">
+        <div class="app-split-table">
+          <div class="app-split-table-header">
+            <table class="app-data-table app-split-table-grid">
+              <colgroup>
+                <col class="app-col-id" />
+                <col />
+                <col class="app-col-narrow" />
+                <col class="app-col-narrow" />
+                <col />
+                @if (canManage()) {
+                  <col class="app-col-actions" />
+                }
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>ชื่อ</th>
+                  <th class="app-cell-right">ราคา</th>
+                  <th class="app-cell-center">หน่วย</th>
+                  <th class="app-cell-center">สถานะ</th>
+                  @if (canManage()) {
+                    <th class="app-cell-right">จัดการ</th>
+                  }
+                </tr>
+              </thead>
+            </table>
+          </div>
+          <div class="app-split-table-body app-scroll-region">
+            <table class="app-data-table app-split-table-grid">
+              <colgroup>
+                <col class="app-col-id" />
+                <col />
+                <col class="app-col-narrow" />
+                <col class="app-col-narrow" />
+                <col />
+                @if (canManage()) {
+                  <col class="app-col-actions" />
+                }
+              </colgroup>
+              <tbody>
+                @for (row of items(); track row.id; let i = $index) {
+                  <tr>
+                    <td class="app-cell-mono">{{ i + 1 }}</td>
+                    <td class="app-cell-primary">{{ row.name }}</td>
+                    <td class="app-cell-right app-cell-highlight-violet">
+                      {{ row.price | number: '1.0-0' }}
+                    </td>
+                    <td class="app-cell-center text-text-secondary">{{ row.unitLabelTh }}</td>
+                    <td class="app-cell-center text-text-secondary">{{ activeLabel(row.isActive) }}</td>
+                    @if (canManage()) {
+                      <td class="app-cell-right">
+                        <div class="app-table-actions">
+                          <button type="button" class="app-btn-secondary-sm" (click)="openEdit(row)">
+                            แก้ไข
+                          </button>
+                          <button type="button" class="app-btn-danger-sm" (click)="confirmDelete(row)">
+                            ลบ
+                          </button>
+                        </div>
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  }
+</div>

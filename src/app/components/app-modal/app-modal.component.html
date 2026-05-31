@@ -1,9 +1,11 @@
 <div
   class="app-modal-overlay"
+  [class.app-modal-overlay--sheet]="layout() === 'sheet'"
   role="dialog"
   aria-modal="true"
-  (click)="onBackdropClick()"
-  (keydown.escape)="onBackdropClick()"
+  (pointerdown)="onBackdropPointerDown($event)"
+  (click)="onBackdropClick($event)"
+  (keydown.escape)="onBackdropEscape()"
 >
   <div class="app-modal" (click)="$event.stopPropagation()">
     <div class="app-modal-scroll">

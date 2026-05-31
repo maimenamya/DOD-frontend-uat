@@ -1,0 +1,838 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">เปิดโต๊ะ</h1>
+    </div>
+  </div>
+
+  <div class="flex w-full transition-all duration-300 ease-in-out">
+    <section
+      class="app-card app-card-flush min-w-0 p-4 transition-all duration-300 ease-in-out sm:p-5"
+      [class.w-full]="!drawerOpen()"
+      [class.xl:w-[65%]]="drawerOpen()"
+      [class.xl:shrink-0]="drawerOpen()"
+    >
+      <div class="space-y-4">
+        <input
+          type="text"
+          class="app-input"
+          placeholder="ค้นหาเลขโต๊ะ, ห้อง, เซลล์..."
+          [value]="search()"
+          (input)="search.set($any($event.target).value)"
+        />
+
+        <div class="app-filter-bar" role="tablist" aria-label="ประเภทที่นั่ง">
+          <button
+            type="button"
+            class="app-filter-chip"
+            [class.app-filter-chip-active]="typeFilter() === 'ALL'"
+            (click)="setTypeFilter('ALL')"
+          >
+            ทั้งหมด
+          </button>
+          @for (zone of seatingTypeZones(); track zone.id) {
+            <button
+              type="button"
+              class="app-filter-chip"
+              [class.app-filter-chip-active]="typeFilter() === zone.id"
+              (click)="setTypeFilter(zone.id)"
+            >
+              {{ zone.name }}
+            </button>
+          }
+        </div>
+
+        <div class="app-filter-bar" role="tablist" aria-label="สถานะโต๊ะ">
+          <button
+            type="button"
+            class="app-filter-chip"
+            [class.app-filter-chip-active]="statusFilter() === 'ALL'"
+            (click)="setStatusFilter('ALL')"
+          >
+            สถานะ: ทั้งหมด
+          </button>
+          <button
+            type="button"
+            class="app-filter-chip open-table-filter-swatch open-table-filter-swatch--available"
+            [class.app-filter-chip-active]="statusFilter() === 'AVAILABLE'"
+            [attr.aria-label]="'ว่าง'"
+            title="ว่าง"
+            (click)="setStatusFilter('AVAILABLE')"
+          >
+            <span class="open-table-filter-swatch-inner" aria-hidden="true"></span>
+          </button>
+          <button
+            type="button"
+            class="app-filter-chip open-table-filter-swatch open-table-filter-swatch--occupied"
+            [class.app-filter-chip-active]="statusFilter() === 'OCCUPIED'"
+            [attr.aria-label]="'มีลูกค้า'"
+            title="มีลูกค้า"
+            (click)="setStatusFilter('OCCUPIED')"
+          >
+            <span class="open-table-filter-swatch-inner" aria-hidden="true"></span>
+          </button>
+          <button
+            type="button"
+            class="app-filter-chip open-table-filter-swatch open-table-filter-swatch--awaiting-clear"
+            [class.app-filter-chip-active]="statusFilter() === 'AWAITING_CLEAR'"
+            [attr.aria-label]="'รอเคลียโต๊ะ'"
+            title="รอเคลียโต๊ะ"
+            (click)="setStatusFilter('AWAITING_CLEAR')"
+          >
+            <span class="open-table-filter-swatch-inner" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        @if (loading()) {
+          <p class="text-sm text-text-secondary">กำลังโหลดแผนผังโต๊ะ...</p>
+        } @else {
+          <div class="space-y-5">
+            @for (zone of seatZones(); track zone.typeId) {
+              <section class="space-y-2">
+                <h2 class="text-sm font-semibold text-text-primary">{{ zone.label }}</h2>
+                <div class="grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
+                  @for (seat of zone.seats; track seat.key) {
+                    <button
+                      type="button"
+                      class="rounded-input px-1.5 py-2.5 text-center transition-all duration-200"
+                      [ngClass]="seatTileClasses(seat)"
+                      [attr.aria-label]="seat.code + ' — ' + statusText(seat.status)"
+                      [title]="statusText(seat.status)"
+                      (click)="selectSeat(seat)"
+                    >
+                      <p class="text-xs font-semibold leading-tight">{{ seat.code }}</p>
+                    </button>
+                  }
+                </div>
+              </section>
+            } @empty {
+              <p class="text-sm text-text-secondary">ไม่มีที่นั่ง — ตั้งค่าที่เมนู จัดการที่นั่ง</p>
+            }
+          </div>
+        }
+      </div>
+    </section>
+
+    @if (drawerOpen()) {
+      <aside
+        class="hidden min-w-0 shrink-0 border-l border-theme-border xl:block xl:w-[35%] transition-all duration-300 ease-in-out"
+      >
+        <div
+          class="sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto pl-4 transition-all duration-300 ease-in-out"
+        >
+          <ng-container *ngTemplateOutlet="sessionPanel"></ng-container>
+        </div>
+      </aside>
+    }
+  </div>
+
+  @if (showMobileSheet() && selectedSeat() && !anyModalOpen()) {
+    <div
+      class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ease-in-out xl:hidden"
+      (click)="closeDrawer()"
+    ></div>
+    <div
+      class="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-[1.25rem] border border-theme-border p-4 shadow-card transition-transform duration-300 ease-in-out xl:hidden"
+      style="background: var(--surface-strong)"
+    >
+      <ng-container *ngTemplateOutlet="sessionPanel"></ng-container>
+    </div>
+  }
+</div>
+
+<ng-template #sessionPanel>
+  <section class="app-card app-card-flush">
+    <div class="space-y-4 p-4">
+      @if (selectedSeat(); as seat) {
+        <div class="flex items-start justify-between gap-3 border-b border-theme-border pb-3">
+          <div class="min-w-0">
+            <h3 class="flex items-center gap-2 text-base font-semibold text-text-primary">
+              <span [ngClass]="statusDotClass(seat.status)" aria-hidden="true"></span>
+              <span>{{ seat.zoneLabel }} · {{ seat.code }}</span>
+              <span class="sr-only">{{ statusText(seat.status) }}</span>
+            </h3>
+            <p class="text-sm text-text-secondary">
+              เซลล์ผู้ดูแล: {{ sessionDetail()?.saleName ?? seat.saleName ?? '—' }}
+            </p>
+            @if (
+              !seatAwaitingClear() &&
+              sessionDetail()?.sessionStatus === 'BILLED' &&
+              sessionDetail()?.lastCheckedOutLabel
+            ) {
+              <p class="mt-1 text-xs font-medium text-primary-light">
+                เช็กบิลแล้ว · {{ sessionDetail()!.lastCheckedOutLabel }}
+              </p>
+            }
+          </div>
+          <button
+            type="button"
+            class="app-btn-ghost shrink-0 rounded-input p-2 text-text-secondary hover:border-primary/40 hover:text-text-primary"
+            aria-label="ปิดแผงบิล"
+            (click)="closeDrawer()"
+          >
+            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path
+                d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
+              />
+            </svg>
+          </button>
+        </div>
+
+        @if (seat.status === 'AVAILABLE') {
+          <div class="space-y-3 rounded-input border border-theme-border bg-surface px-3 py-3">
+            <div class="space-y-1">
+              <span class="text-sm text-text-secondary">เซลล์</span>
+              <app-custom-dropdown
+                [options]="saleEmployeeOptions()"
+                [ngModel]="checkInSalesId()"
+                (ngModelChange)="onCheckInSalesChange($event)"
+                placeholder="เลือกเซลล์"
+              />
+            </div>
+            <button
+              type="button"
+              class="app-btn-primary w-full"
+              [disabled]="actionBusy() || checkInSalesId() == null"
+              (click)="checkInSelectedSeat()"
+            >
+              {{ actionBusy() ? 'กำลังเปิดโต๊ะ...' : 'เปิดโต๊ะ' }}
+            </button>
+          </div>
+        } @else if (sessionDetailLoading()) {
+          <div
+            class="flex min-h-[14rem] flex-col items-center justify-center gap-3 rounded-input border border-dashed border-theme-border bg-surface/50 py-10"
+            aria-busy="true"
+            aria-live="polite"
+          >
+            <div class="h-8 w-8 animate-spin rounded-full border-2 border-theme-border border-t-primary-light"></div>
+            <p class="app-loading-text">กำลังโหลดรายการบิล...</p>
+          </div>
+        } @else if (seatAwaitingClear()) {
+          <p class="rounded-input border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
+            เช็กบิลแล้ว
+            @if (sessionDetail()?.lastCheckedOutLabel) {
+              ({{ sessionDetail()!.lastCheckedOutLabel }})
+            }
+            ลูกค้ายังนั่งอยู่
+          </p>
+          <button
+            type="button"
+            class="app-btn-primary w-full"
+            [disabled]="actionBusy()"
+            (click)="releaseCustomerFromSeat()"
+          >
+            ลูกค้ากลับแล้ว
+          </button>
+        } @else {
+          <div>
+            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">รายการในบิล</p>
+            <div class="space-y-1 text-sm text-text-primary">
+              @for (
+                item of sessionDetail()?.items ?? [];
+                track item.itemId + item.itemType + item.unitPrice + item.isFreeMixer
+              ) {
+                <p class="flex flex-wrap items-baseline gap-x-1 gap-y-0.5 leading-snug">
+                  <span class="min-w-0">
+                    - {{ item.label }}
+                    @if (item.hostLabel) {
+                      <span class="text-text-secondary">({{ item.hostLabel }})</span>
+                    }
+                    x {{ item.quantity }} {{ item.unitLabel }}
+                    @if (item.isFreeMixer) {
+                      <span class="text-primary-light">(ฟรีมิกซ์)</span>
+                    }
+                  </span>
+                  @if (item.canReturn) {
+                    <button
+                      type="button"
+                      class="app-btn-inline shrink-0"
+                      [disabled]="actionBusy()"
+                      (click)="openReturnBeverageModal(item)"
+                    >
+                      คืนของ
+                    </button>
+                  }
+                  <span class="ml-auto shrink-0 font-medium text-primary-light">
+                    {{ itemLineTotal(item) | number: '1.0-0' }} บาท
+                  </span>
+                </p>
+              } @empty {
+                <p class="text-text-secondary">ยังไม่มีรายการ</p>
+              }
+            </div>
+          </div>
+
+          @if ((sessionDetail()?.roomCharges?.length ?? 0) > 0) {
+            <div>
+              <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">ค่าห้อง</p>
+              <div class="space-y-1 text-sm text-text-primary">
+                @for (row of sessionDetail()?.roomCharges ?? []; track row.roomChargeId) {
+                  <p class="flex flex-wrap items-baseline gap-x-1 gap-y-0.5 leading-snug">
+                    <span>
+                      - {{ row.roomCode }} x {{ row.quantity }} {{ row.unitLabel }}
+                    </span>
+                    <span class="whitespace-nowrap text-[0.8125rem] text-text-secondary">
+                      เริ่มใช้ {{ row.seatStartedLabel }}
+                    </span>
+                    @if (row.canStop) {
+                      <button
+                        type="button"
+                        class="app-btn-inline shrink-0"
+                        [disabled]="actionBusy()"
+                        (click)="openStopRoomModal(row)"
+                      >
+                        สต็อป
+                      </button>
+                    }
+                    <span class="ml-auto shrink-0 font-medium text-primary-light">
+                      {{ row.lineAmount | number: '1.0-0' }} บาท
+                    </span>
+                  </p>
+                }
+              </div>
+            </div>
+          }
+
+          <div>
+            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">รายการรันดื่ม</p>
+            <div class="space-y-1 text-sm text-text-primary">
+              @for (row of sessionDetail()?.staffDrinks ?? []; track row.staffDrinkId) {
+                <p class="flex flex-wrap items-baseline gap-x-1 gap-y-0.5 leading-snug">
+                  <span class="min-w-0">
+                    - {{ row.employeeName }}
+                    <span class="text-text-secondary">({{ row.roleDisplayNameTh }})</span>:
+                    {{ row.drinks }} ดื่ม
+                  </span>
+                  @if (row.seatStartedLabel) {
+                    <span class="whitespace-nowrap text-[0.8125rem] text-text-secondary">
+                      เริ่มนั่ง {{ row.seatStartedLabel }}
+                    </span>
+                  }
+                  @if (row.canStopDrinks) {
+                    <button
+                      type="button"
+                      class="app-btn-inline shrink-0"
+                      [disabled]="actionBusy()"
+                      (click)="openStopDrinkModal(row)"
+                    >
+                      สต็อป
+                    </button>
+                  }
+                  @if (row.note) {
+                    <span class="text-text-secondary">{{ row.note }}</span>
+                  }
+                  <span class="ml-auto shrink-0 font-medium text-primary-light">
+                    {{ row.drinkAmount | number: '1.0-0' }} บาท
+                  </span>
+                </p>
+              } @empty {
+                <p class="text-text-secondary">ยังไม่มีรายการรันดื่ม</p>
+              }
+            </div>
+          </div>
+
+          <div class="rounded-input border border-theme-border bg-surface px-3 py-2">
+            <p class="text-sm text-text-secondary">
+              รวมยอดดริ้งสะสม:
+              <span class="font-semibold text-text-primary">{{ totalDrinks() }} ดื่ม</span>
+            </p>
+            <p class="mt-1 text-sm text-text-secondary">
+              ยอดเงินรวมบิล:
+              <span class="font-semibold text-primary-light">{{ totalAmount() | number: '1.0-0' }} บาท</span>
+            </p>
+          </div>
+
+          @if (ledgerCanMutate()) {
+            <div class="app-action-bar grid w-full grid-cols-3 gap-2">
+              <button
+                type="button"
+                class="app-btn-primary"
+                [disabled]="actionBusy()"
+                (click)="openAddItemModal()"
+              >
+                เพิ่มรายการ
+              </button>
+              <button
+                type="button"
+                class="app-btn-secondary"
+                [disabled]="actionBusy()"
+                (click)="handleSeatTransfer()"
+              >
+                ย้าย
+              </button>
+              <button
+                type="button"
+                class="app-btn-success"
+                [disabled]="actionBusy()"
+                (click)="openCheckoutModal()"
+              >
+                เช็กบิล
+              </button>
+            </div>
+          }
+        }
+      }
+    </div>
+  </section>
+</ng-template>
+
+@if (showAddModal()) {
+  <app-modal layout="center" (dismiss)="closeAddModal()">
+    <div class="app-modal-header">
+      <h2 class="app-modal-title">เพิ่มรายการ</h2>
+      <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeAddModal()">✕</button>
+    </div>
+
+    <div class="app-filter-bar mb-4" role="tablist" aria-label="ประเภทการเพิ่มรายการ">
+      <button
+        type="button"
+        class="app-filter-chip flex-1 text-center"
+        [class.app-filter-chip-active]="addModalMode() === 'ORDER_LEDGER'"
+        (click)="setAddModalMode('ORDER_LEDGER')"
+      >
+        รายการลงโต๊ะ
+      </button>
+      <button
+        type="button"
+        class="app-filter-chip flex-1 text-center"
+        [class.app-filter-chip-active]="addModalMode() === 'STAFF_LEDGER'"
+        (click)="setAddModalMode('STAFF_LEDGER')"
+      >
+        รันดื่ม
+      </button>
+    </div>
+
+    <div class="app-form-stack">
+      @if (addModalMode() === 'ORDER_LEDGER') {
+        <div class="app-form-group">
+          <label class="app-label">หมวดการลงรายการ</label>
+          <app-custom-dropdown
+            [options]="orderMasterCategoryOptions()"
+            [ngModel]="orderLedgerCategory()"
+            (ngModelChange)="onOrderLedgerCategoryChange($event)"
+            placeholder="เลือกหมวดการลงรายการ"
+          />
+        </div>
+
+        @if (orderLedgerCategory() === 'FOOD') {
+          <div class="app-form-group">
+            <label class="app-label">หมวดหมู่อาหาร</label>
+            <app-custom-dropdown
+              [options]="foodCategoryDropdownOptions()"
+              [ngModel]="selectedFoodCategoryId()"
+              (ngModelChange)="onFoodCategoryChange($event)"
+              placeholder="เลือกหมวดหมู่อาหาร"
+            />
+          </div>
+          <div class="app-form-group">
+            <label class="app-label">เลือกรายการอาหาร</label>
+            @for (catId of [selectedFoodCategoryId()]; track catId) {
+              <app-custom-dropdown
+                [options]="foodItemDropdownOptions()"
+                [ngModel]="selectedFoodId()"
+                (ngModelChange)="onFoodItemChange($event)"
+                placeholder="เลือกรายการอาหาร"
+              />
+            }
+          </div>
+        }
+
+        @if (orderLedgerCategory() === 'BEVERAGE') {
+          <div class="app-form-group">
+            <label class="app-label">เลือกเครื่องดื่ม</label>
+            <app-custom-dropdown
+              [options]="beverageDropdownOptions()"
+              [ngModel]="selectedBeverageId()"
+              (ngModelChange)="onBeverageChange($event)"
+              placeholder="เลือกเครื่องดื่ม"
+            />
+          </div>
+        }
+
+        @if (orderLedgerCategory() === 'COCKTAIL') {
+          <div class="app-form-group">
+            <label class="app-label">เลือกค็อกเทล</label>
+            <app-custom-dropdown
+              [options]="cocktailDropdownOptions()"
+              [ngModel]="selectedCocktailId()"
+              (ngModelChange)="onCocktailChange($event)"
+              placeholder="เลือกค็อกเทล"
+            />
+          </div>
+          <div class="app-form-group">
+            <label class="app-label">เลือกตำแหน่งพนักงาน</label>
+            <app-custom-dropdown
+              [options]="cocktailHostRoleOptions()"
+              [ngModel]="orderCocktailStaffRoleId()"
+              (ngModelChange)="onOrderCocktailRoleChange($event)"
+              placeholder="เลือกตำแหน่ง"
+            />
+          </div>
+          <div class="app-form-group">
+            <label class="app-label">เลือกพนักงานพ่วงดื่ม</label>
+            @for (roleId of [orderCocktailStaffRoleId()]; track roleId) {
+              <app-custom-dropdown
+                [options]="cocktailHostEmployeeOptions()"
+                [ngModel]="orderCocktailStaffEmployeeId()"
+                (ngModelChange)="onOrderCocktailEmployeeChange($event)"
+                placeholder="เลือกพนักงาน"
+              />
+            }
+          </div>
+        }
+
+        @if (orderLedgerCategory() === 'PROMOTION') {
+          <div class="app-form-group">
+            <label class="app-label">เลือกโปรโมชั่น</label>
+            <app-custom-dropdown
+              [options]="promotionDropdownOptions()"
+              [ngModel]="selectedPromotionId()"
+              (ngModelChange)="onPromotionChange($event)"
+              placeholder="เลือกโปรโมชั่น"
+            />
+          </div>
+        }
+
+        @if (orderLedgerCategory() === 'MEMBER') {
+          <div class="app-form-group">
+            <label class="app-label">เลือกแพ็กเกจสมาชิก</label>
+            <app-custom-dropdown
+              [options]="membershipDropdownOptions()"
+              [ngModel]="selectedMembershipId()"
+              (ngModelChange)="onMembershipChange($event)"
+              placeholder="เลือกแพ็กเกจสมาชิก"
+            />
+          </div>
+        }
+
+        @if (orderLedgerCategory() === 'OTHER') {
+          <div class="app-form-group">
+            <label class="app-label">เลือกรายการอื่นๆ</label>
+            <app-custom-dropdown
+              [options]="otherChargeDropdownOptions()"
+              [ngModel]="selectedOtherChargeId()"
+              (ngModelChange)="onOtherChargeChange($event)"
+              placeholder="เลือกรายการ (สแน็ค ผ้าเย็น ฯลฯ)"
+            />
+          </div>
+        }
+
+        <div class="app-form-group">
+          <label class="app-label">จำนวน</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            autocomplete="off"
+            class="app-input"
+            [ngModel]="orderQtyText()"
+            (ngModelChange)="onOrderQtyTextChange($event)"
+            (keydown)="blockNonNumericKey($event)"
+            placeholder="1"
+          />
+        </div>
+      } @else {
+        <div class="app-form-group">
+          <label class="app-label">เลือกตำแหน่งพนักงาน</label>
+          <app-custom-dropdown
+            [options]="staffLedgerRoleOptions()"
+            [ngModel]="staffLedgerRoleId()"
+            (ngModelChange)="onStaffLedgerRoleChange($event)"
+            placeholder="เลือกตำแหน่ง"
+          />
+        </div>
+
+        <div class="app-form-group">
+          <label class="app-label">เลือกพนักงาน</label>
+          @for (roleId of [staffLedgerRoleId()]; track roleId) {
+            <app-custom-dropdown
+              [options]="staffLedgerEmployeeOptions()"
+              [ngModel]="staffLedgerEmployeeId()"
+              (ngModelChange)="onStaffLedgerEmployeeChange($event)"
+              placeholder="เลือกพนักงาน"
+            />
+          }
+        </div>
+
+        @if (showStaffFixedDrinkQty()) {
+          <div class="app-form-group">
+            <label class="app-label">ระบุจำนวนดื่ม</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              class="app-input"
+              [ngModel]="staffLedgerQtyText()"
+              (ngModelChange)="onStaffLedgerQtyTextChange($event)"
+              (keydown)="blockNonNumericKey($event)"
+              placeholder="1"
+            />
+          </div>
+        }
+
+        @if (showStaffSeatStartTime()) {
+          <div class="app-form-group">
+            <label class="app-label">เวลาเริ่มนั่งโต๊ะ</label>
+            <app-shop-datetime-input
+              inputId="staff-seat-started-at"
+              [ngModel]="staffSeatStartedAt()"
+              (ngModelChange)="staffSeatStartedAt.set($event)"
+            />
+            <p class="app-field-hint">ระบบบันทึกเวลาเริ่มต้นอัตโนมัติเมื่อเปิดแท็บนี้ — ปรับได้หากจำเป็น</p>
+          </div>
+        }
+      }
+    </div>
+
+    <div class="app-form-actions app-form-actions-top">
+      <button type="button" class="app-btn-secondary" (click)="closeAddModal()">ยกเลิก</button>
+      <button type="button" class="app-btn-primary" [disabled]="actionBusy()" (click)="submitAddItems()">
+        {{ actionBusy() ? 'กำลังบันทึก...' : 'บันทึก' }}
+      </button>
+    </div>
+  </app-modal>
+}
+
+@if (showTransferModal()) {
+  <app-modal layout="center" (dismiss)="closeTransferModal()">
+    <div class="app-modal-header">
+      <h2 class="app-modal-title">ย้ายที่นั่ง</h2>
+      <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeTransferModal()">✕</button>
+    </div>
+    <div class="app-form-stack">
+      <div class="app-form-group">
+        <label class="app-label">ประเภทที่นั่ง</label>
+        <app-custom-dropdown
+          [options]="transferSeatingTypeOptions()"
+          [ngModel]="transferSeatingTypeId()"
+          (ngModelChange)="onTransferSeatingTypeChange($event)"
+          placeholder="เลือกประเภท"
+        />
+      </div>
+      @if (transferSeatingTypeId() != null) {
+        <div class="app-form-group">
+          <label class="app-label">ที่นั่งปลายทาง (ว่าง)</label>
+          <app-custom-dropdown
+            [options]="transferDestinationOptions()"
+            [ngModel]="transferDestinationKey()"
+            (ngModelChange)="onTransferDestinationChange($event)"
+            placeholder="เลือกที่นั่ง"
+          />
+          @if (transferTimeChargeHint()) {
+            <p class="app-field-hint">{{ transferTimeChargeHint() }}</p>
+          }
+        </div>
+      }
+    </div>
+    <div class="app-form-actions app-form-actions-top">
+      <button type="button" class="app-btn-secondary" (click)="closeTransferModal()">ยกเลิก</button>
+      <button
+        type="button"
+        class="app-btn-primary"
+        [disabled]="actionBusy() || transferDestinationOptions().length === 0"
+        (click)="submitTransfer()"
+      >
+        {{ actionBusy() ? 'กำลังย้าย...' : 'ย้าย' }}
+      </button>
+    </div>
+  </app-modal>
+}
+
+@if (showStopDrinkModal()) {
+  <app-modal layout="center" (dismiss)="closeStopDrinkModal()">
+    <div class="app-modal-header">
+      <h2 class="app-modal-title">
+        สต็อปดื่ม — {{ stopDrinkTarget()?.employeeName }}
+        @if (stopDrinkTarget()?.roleDisplayNameTh) {
+          <span class="text-text-secondary">({{ stopDrinkTarget()!.roleDisplayNameTh }})</span>
+        }
+      </h2>
+      <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeStopDrinkModal()">
+        ✕
+      </button>
+    </div>
+    @if (stopDrinkTarget()?.seatStartedLabel) {
+      <label class="app-label" for="stop-seat-time">เวลาเริ่มนั่ง</label>
+      <div class="mb-3 rounded-input border border-theme-border bg-surface px-3 py-2">
+        <p class="mt-0.5 text-sm font-semibold text-text-primary">
+          {{ stopDrinkTarget()!.seatStartedLabel }}
+        </p>
+      </div>
+    }
+    <div class="app-form-group">
+      <label class="app-label" for="stop-seat-time">เวลาสต็อป</label>
+      <app-shop-datetime-input
+        inputId="stop-seat-time"
+        [ngModel]="stopSeatTime()"
+        (ngModelChange)="stopSeatTime.set($event)"
+      />
+    </div>
+    <div class="app-form-actions app-form-actions-top">
+      <button type="button" class="app-btn-secondary" (click)="closeStopDrinkModal()">ยกเลิก</button>
+      <button
+        type="button"
+        class="app-btn-primary"
+        [disabled]="actionBusy()"
+        (click)="confirmStopDrink()"
+      >
+        {{ actionBusy() ? 'กำลังบันทึก...' : 'ยืนยันสต็อป' }}
+      </button>
+    </div>
+  </app-modal>
+}
+
+@if (showStopRoomModal()) {
+  <app-modal layout="center" (dismiss)="closeStopRoomModal()">
+    <div class="app-modal-header">
+      <h2 class="app-modal-title">สต็อปห้อง — {{ stopRoomTarget()?.roomCode }}</h2>
+      <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeStopRoomModal()">✕</button>
+    </div>
+    @if (stopRoomTarget()?.seatStartedLabel) {
+      <label class="app-label" for="stop-room-time">เวลาเริ่มใช้ห้อง</label>
+      <div class="mb-3 rounded-input border border-theme-border bg-surface px-3 py-2">
+        <p class="mt-0.5 text-sm font-semibold text-text-primary">
+          {{ stopRoomTarget()!.seatStartedLabel }}
+        </p>
+      </div>
+    }
+    <div class="app-form-group">
+      <label class="app-label" for="stop-room-time">เวลาสต็อป</label>
+      <app-shop-datetime-input
+        inputId="stop-room-time"
+        [ngModel]="stopSeatTime()"
+        (ngModelChange)="stopSeatTime.set($event)"
+      />
+    </div>
+    <div class="app-form-actions app-form-actions-top">
+      <button type="button" class="app-btn-secondary" (click)="closeStopRoomModal()">ยกเลิก</button>
+      <button type="button" class="app-btn-primary" [disabled]="actionBusy()" (click)="confirmStopRoom()">
+        {{ actionBusy() ? 'กำลังบันทึก...' : 'ยืนยันสต็อป' }}
+      </button>
+    </div>
+  </app-modal>
+}
+
+@if (showReturnBeverageModal()) {
+  <app-modal layout="center" (dismiss)="closeReturnBeverageModal()">
+    <div class="app-modal-header">
+      <h2 class="app-modal-title">
+        คืน{{ returnBeverageTarget()?.unitLabel }} — {{ returnBeverageTarget()?.label }}
+      </h2>
+      <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeReturnBeverageModal()">
+        ✕
+      </button>
+    </div>
+    <p class="app-field-hint mb-3">
+      สั่งไว้ {{ returnBeverageTarget()?.quantity }} {{ returnBeverageTarget()?.unitLabel }}
+      — ระบุจำนวนที่ลูกค้าคืน
+    </p>
+    <div class="app-form-group">
+      <label class="app-label" for="return-beverage-qty">จำนวนคืน ({{ returnBeverageTarget()?.unitLabel }})</label>
+      <input
+        id="return-beverage-qty"
+        type="text"
+        inputmode="numeric"
+        autocomplete="off"
+        class="app-input"
+        [ngModel]="returnBeverageQtyText()"
+        (ngModelChange)="onReturnBeverageQtyChange($event)"
+        (keydown)="blockNonNumericKey($event)"
+      />
+    </div>
+    <div class="app-form-actions app-form-actions-top">
+      <button type="button" class="app-btn-secondary" (click)="closeReturnBeverageModal()">ยกเลิก</button>
+      <button
+        type="button"
+        class="app-btn-primary"
+        [disabled]="actionBusy()"
+        (click)="confirmReturnBeverage()"
+      >
+        {{ actionBusy() ? 'กำลังบันทึก...' : 'ยืนยันคืน' }}
+      </button>
+    </div>
+  </app-modal>
+}
+
+@if (showCheckoutModal()) {
+  <app-modal layout="center" (dismiss)="closeCheckoutModal()">
+    <div class="checkout-modal-panel">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">เช็กบิล</h2>
+        <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeCheckoutModal()">✕</button>
+      </div>
+      <div class="app-form-group">
+        <label class="app-label" for="checkout-at">เวลาเช็กบิล</label>
+        <app-shop-datetime-input
+          inputId="checkout-at"
+          [requireConfirm]="true"
+          [ngModel]="checkoutAt()"
+          (ngModelChange)="onCheckoutAtChange($event)"
+        />
+      </div>
+
+      <p class="checkout-preview-heading">สรุปยอด</p>
+
+      <div class="checkout-preview-shell">
+        @if (checkoutPreviewLoading()) {
+          <p class="app-loading-text">กำลังคำนวณยอด...</p>
+        } @else if (checkoutPreview()) {
+          <div class="checkout-preview-sections">
+            @if (checkoutPreview()!.ledgerLines.length) {
+              <section class="checkout-preview-zone">
+                @for (line of checkoutPreview()!.ledgerLines; track line.label + line.detail) {
+                  <div class="checkout-preview-line">
+                    <p class="checkout-preview-line-desc">
+                      <span class="checkout-preview-line-label">{{ line.label }}</span>
+                      <span class="checkout-preview-line-detail">{{ line.detail }}</span>
+                    </p>
+                    <span class="checkout-preview-line-amount">{{ line.amount | number: '1.0-0' }} บาท</span>
+                  </div>
+                }
+              </section>
+            }
+
+            @if (checkoutPreview()!.drinkLines.length) {
+              <section
+                class="checkout-preview-zone"
+                [class.checkout-preview-zone--separated]="checkoutPreview()!.ledgerLines.length > 0"
+              >
+                @for (line of checkoutPreview()!.drinkLines; track line.label + line.detail) {
+                  <div class="checkout-preview-line">
+                    <p class="checkout-preview-line-desc">
+                      <span class="checkout-preview-line-label">{{ line.label }}</span>
+                      <span class="checkout-preview-line-detail">{{ line.detail }}</span>
+                    </p>
+                    <span class="checkout-preview-line-amount">{{ line.amount | number: '1.0-0' }} บาท</span>
+                  </div>
+                }
+              </section>
+            }
+          </div>
+
+          <div class="checkout-preview-total">
+            <p class="text-sm text-text-secondary">
+              ดื่มรวม <span class="font-semibold text-text-primary">{{ checkoutPreview()!.totalDrinks }}</span> ดื่ม
+            </p>
+            <p class="text-base font-semibold text-primary-light mt-1">
+              ยอดรวม {{ checkoutPreview()!.billAmount | number: '1.0-0' }} บาท
+            </p>
+          </div>
+        } @else {
+          <p class="text-sm text-text-secondary">ระบุเวลาเช็กบิลเพื่อดูสรุปยอด</p>
+        }
+      </div>
+
+      <div class="app-form-actions app-form-actions-top">
+        <button type="button" class="app-btn-secondary" (click)="closeCheckoutModal()">ยกเลิก</button>
+        <button
+          type="button"
+          class="app-btn-primary"
+          [disabled]="actionBusy() || checkoutPreviewLoading() || !checkoutPreview()"
+          (click)="confirmCheckout()"
+        >
+          {{ actionBusy() ? 'กำลังบันทึก...' : 'ยืนยันเช็กบิล' }}
+        </button>
+      </div>
+    </div>
+  </app-modal>
+}
+

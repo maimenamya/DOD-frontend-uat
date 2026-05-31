@@ -1,0 +1,165 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">โซนที่นั่ง</h1>
+    </div>
+    @if (canManage() && !loading() && selectedSeatingType()) {
+      <button type="button" (click)="openCreate()" class="app-btn-primary">+ เพิ่มที่นั่ง</button>
+    }
+  </div>
+
+  @if (!loading() && seatingTypes().length === 0) {
+    <p class="app-empty-state">
+      ยังไม่มีประเภทที่นั่ง —
+      <a routerLink="/dashboard/master-seating-types" class="text-primary underline">ไปตั้งค่าประเภทที่นั่ง</a>
+      ก่อน
+    </p>
+  }
+
+  @if (!loading() && seatingTypes().length > 0) {
+    <div class="app-filter-bar app-role-tabs" role="tablist" aria-label="กรองตามประเภทที่นั่ง">
+      @for (type of seatingTypes(); track type.id) {
+        <button
+          type="button"
+          role="tab"
+          class="app-filter-chip"
+          [class.app-filter-chip-active]="selectedSeatingTypeId() === type.id"
+          [attr.aria-selected]="selectedSeatingTypeId() === type.id"
+          (click)="selectSeatingType(type.id)"
+        >
+          {{ type.name }}
+        </button>
+      }
+    </div>
+  }
+
+  @if (showCreateModal() && canManage()) {
+    <app-modal (dismiss)="closeCreate()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">เพิ่มที่นั่ง — {{ selectedSeatingType()?.name }}</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeCreate()">✕</button>
+      </div>
+      <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
+        <div class="app-form-group">
+          <label class="app-label">ประเภทที่นั่ง</label>
+          <p class="text-sm text-text-primary">
+            {{ selectedSeatingType()?.name }}
+            <span class="text-text-secondary">({{ selectedSeatingType()?.code }})</span>
+          </p>
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">รหัสที่นั่ง</label>
+          <input type="text" formControlName="code" class="app-input" placeholder="เช่น A1, V3" />
+        </div>
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
+          <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+            {{ submitting() ? 'กำลังบันทึก...' : 'บันทึก' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+
+  @if (editingItem(); as item) {
+    <app-modal (dismiss)="closeEdit()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">แก้ไขที่นั่ง — {{ seatingTypeName(item) }}</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
+      </div>
+      <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
+        <div class="app-form-group">
+          <label class="app-label">ประเภทที่นั่ง</label>
+          <p class="text-sm text-text-primary">
+            {{ seatingTypeName(item) }}
+            <span class="text-text-secondary">({{ item.seatingType?.code }})</span>
+          </p>
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">รหัสที่นั่ง</label>
+          <input type="text" formControlName="code" class="app-input" />
+        </div>
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
+          <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+            {{ submitting() ? 'กำลังบันทึก...' : 'บันทึกการแก้ไข' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+
+  @if (loading()) {
+    <p class="app-loading-text">กำลังโหลด...</p>
+  } @else if (seatingTypes().length > 0 && filteredSeatings().length === 0) {
+    <p class="app-empty-state">
+      @if (seatings().length === 0) {
+        ยังไม่มีที่นั่ง — กดเพิ่มที่นั่งเพื่อสร้างในประเภท «{{ selectedSeatingType()?.name }}»
+      } @else {
+        ไม่มีที่นั่งในประเภท «{{ selectedSeatingType()?.name }}»
+      }
+    </p>
+  } @else if (filteredSeatings().length > 0) {
+    <section class="app-card app-card-flush">
+      <div class="app-data-table-shell">
+        <div class="app-split-table">
+          <div class="app-split-table-header">
+            <table class="app-data-table app-split-table-grid">
+              <colgroup>
+                <col class="app-col-id" />
+                <col />
+                <col />
+                @if (canManage()) {
+                  <col class="app-col-actions" />
+                }
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>รหัส</th>
+                  <th>สถานะ</th>
+                  @if (canManage()) {
+                    <th class="app-cell-right">จัดการ</th>
+                  }
+                </tr>
+              </thead>
+            </table>
+          </div>
+          <div class="app-split-table-body app-scroll-region">
+            <table class="app-data-table app-split-table-grid">
+              <colgroup>
+                <col class="app-col-id" />
+                <col />
+                <col />
+                @if (canManage()) {
+                  <col class="app-col-actions" />
+                }
+              </colgroup>
+              <tbody>
+                @for (item of filteredSeatings(); track item.id; let i = $index) {
+                  <tr>
+                    <td class="app-cell-mono">{{ i + 1 }}</td>
+                    <td class="app-cell-primary">{{ item.code }}</td>
+                    <td>{{ statusLabel(item.status) }}</td>
+                    @if (canManage()) {
+                      <td class="app-cell-right">
+                        <div class="app-table-actions">
+                          <button type="button" class="app-btn-secondary-sm" (click)="openEdit(item)">
+                            แก้ไข
+                          </button>
+                          <button type="button" class="app-btn-danger-sm" (click)="confirmDelete(item)">
+                            ลบ
+                          </button>
+                        </div>
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  }
+</div>

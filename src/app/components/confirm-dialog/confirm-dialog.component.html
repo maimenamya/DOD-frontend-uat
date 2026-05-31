@@ -1,0 +1,17 @@
+@if (open()) {
+  <app-modal layout="center" (dismiss)="cancel.emit()">
+    <div class="app-modal-header">
+      <h2 class="app-modal-title">{{ title() }}</h2>
+      <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="cancel.emit()">✕</button>
+    </div>
+    <p class="text-sm leading-relaxed text-text-secondary">{{ message() }}</p>
+    <div class="app-form-actions app-form-actions-top">
+      <button type="button" class="app-btn-secondary" [disabled]="busy()" (click)="cancel.emit()">
+        {{ cancelLabel() }}
+      </button>
+      <button type="button" class="app-btn-primary" [disabled]="busy()" (click)="confirm.emit()">
+        {{ busy() ? 'กำลังดำเนินการ...' : confirmLabel() }}
+      </button>
+    </div>
+  </app-modal>
+}

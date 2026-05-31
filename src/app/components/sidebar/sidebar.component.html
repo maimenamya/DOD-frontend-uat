@@ -13,7 +13,7 @@
       routerLink="/dashboard"
       routerLinkActive="app-sidebar-link-active"
       [routerLinkActiveOptions]="{ exact: true }"
-      (click)="mobileClose.emit()"
+      (click)="collapseAllSubmenus(); mobileClose.emit()"
       class="app-sidebar-link"
     >
       <span class="app-sidebar-icon" aria-hidden="true">📊</span>
@@ -22,41 +22,55 @@
 
     @if (showManagementLinks) {
       <a
-        routerLink="/dashboard/record-drinks"
+        routerLink="/dashboard/open-table"
         routerLinkActive="app-sidebar-link-active"
-        (click)="mobileClose.emit()"
+        (click)="collapseAllSubmenus(); mobileClose.emit()"
         class="app-sidebar-link"
       >
-        <span class="app-sidebar-icon" aria-hidden="true">🍹</span>
-        ลงบิล
+        <span class="app-sidebar-icon" aria-hidden="true">🪑</span>
+        เปิดโต๊ะ
       </a>
+
       <a
-        routerLink="/dashboard/employees"
+        routerLink="/dashboard/pr-tag-operations"
         routerLinkActive="app-sidebar-link-active"
-        (click)="mobileClose.emit()"
+        (click)="collapseAllSubmenus(); mobileClose.emit()"
         class="app-sidebar-link"
       >
-        <span class="app-sidebar-icon" aria-hidden="true">👥</span>
-        จัดการพนักงาน
+        <span class="app-sidebar-icon" aria-hidden="true">🏷️</span>
+        จัดการ tag
       </a>
-      <a
-        routerLink="/dashboard/master-roles"
-        routerLinkActive="app-sidebar-link-active"
-        (click)="mobileClose.emit()"
-        class="app-sidebar-link"
-      >
-        <span class="app-sidebar-icon" aria-hidden="true">🛡️</span>
-        ตำแหน่ง
-      </a>
-      <a
-        routerLink="/dashboard/master-drinks"
-        routerLinkActive="app-sidebar-link-active"
-        (click)="mobileClose.emit()"
-        class="app-sidebar-link"
-      >
-        <span class="app-sidebar-icon" aria-hidden="true">🍸</span>
-        เครื่องดื่ม
-      </a>
+
+      @for (group of navGroups; track group.id) {
+        <div class="app-sidebar-group">
+          <button
+            type="button"
+            class="app-sidebar-group-toggle"
+            [attr.aria-expanded]="isGroupExpanded(group.id)"
+            (click)="toggleSubmenu(group.id)"
+          >
+            <span class="app-sidebar-icon" aria-hidden="true">{{ group.icon }}</span>
+            <span class="app-sidebar-group-label">{{ group.label }}</span>
+            <span class="app-sidebar-group-chevron" aria-hidden="true">
+              {{ isGroupExpanded(group.id) ? '▾' : '▸' }}
+            </span>
+          </button>
+          @if (isGroupExpanded(group.id)) {
+            <div class="app-sidebar-subnav">
+              @for (item of group.children; track item.path) {
+                <a
+                  [routerLink]="item.path"
+                  routerLinkActive="app-sidebar-link-active"
+                  (click)="mobileClose.emit()"
+                  class="app-sidebar-link app-sidebar-sublink"
+                >
+                  {{ item.label }}
+                </a>
+              }
+            </div>
+          }
+        </div>
+      }
     }
   </nav>
 

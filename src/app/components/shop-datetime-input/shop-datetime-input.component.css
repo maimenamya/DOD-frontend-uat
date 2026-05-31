@@ -1,0 +1,7 @@
+:host {
+  display: block;
+}
+
+.app-shop-datetime-field ::ng-deep input.app-shop-datetime-input {
+  cursor: pointer;
+}

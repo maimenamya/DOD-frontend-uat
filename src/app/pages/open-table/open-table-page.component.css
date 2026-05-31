@@ -1,0 +1,213 @@
+/* Floor-plan seat tiles — status by color only (no sub-label text). */
+
+.open-table-seat-tile {
+  border-width: 1px;
+  border-style: solid;
+}
+
+.open-table-seat-tile--available {
+  background: #202533;
+  border-color: #2f3646;
+  color: #64748b;
+}
+
+.open-table-seat-tile--occupied {
+  background: rgb(59 130 246 / 0.18);
+  border-color: #60a5fa;
+  color: #93c5fd;
+}
+
+.open-table-seat-tile--awaiting-clear {
+  background: rgb(245 158 11 / 0.18);
+  border-color: #fbbf24;
+  color: #fde68a;
+}
+
+/* Selected ring matches status — no blue halo on amber “รอเคลีย” tiles. */
+.open-table-seat-tile--available.open-table-seat-tile--selected {
+  border-color: #94a3b8;
+  color: #cbd5e1;
+  box-shadow:
+    0 0 0 2px rgb(148 163 184 / 0.55),
+    0 0 12px rgb(100 116 139 / 0.2);
+}
+
+.open-table-seat-tile--occupied.open-table-seat-tile--selected {
+  background: rgb(59 130 246 / 0.32);
+  border-color: #93c5fd;
+  color: #ffffff;
+  box-shadow:
+    0 0 0 2px #60a5fa,
+    0 0 16px rgb(96 165 250 / 0.45);
+}
+
+.open-table-seat-tile--awaiting-clear.open-table-seat-tile--selected {
+  background: rgb(245 158 11 / 0.32);
+  border-color: #fcd34d;
+  color: #fffbeb;
+  box-shadow:
+    0 0 0 2px #fbbf24,
+    0 0 16px rgb(251 191 36 / 0.42);
+}
+
+.open-table-status-dot {
+  display: inline-block;
+  height: 0.5rem;
+  width: 0.5rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+}
+
+.open-table-status-dot--available {
+  background: #64748b;
+  box-shadow: 0 0 0 1px #2f3646;
+}
+
+.open-table-status-dot--occupied {
+  background: #60a5fa;
+  box-shadow: 0 0 6px rgb(96 165 250 / 0.7);
+}
+
+.open-table-status-dot--awaiting-clear {
+  background: #fbbf24;
+  box-shadow: 0 0 6px rgb(251 191 36 / 0.55);
+}
+
+/* Filter row: color swatches (text in aria-label / title only). */
+.open-table-filter-swatch {
+  display: inline-flex;
+  height: 1.75rem;
+  min-width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-input);
+  border: 1px solid transparent;
+  padding: 0 0.5rem;
+  transition:
+    border-color var(--transition-smooth),
+    box-shadow var(--transition-smooth);
+}
+
+.open-table-filter-swatch--available {
+  background: #202533;
+  border-color: #2f3646;
+}
+
+.open-table-filter-swatch--available.app-filter-chip-active {
+  border-color: #64748b;
+  box-shadow: 0 0 0 2px rgb(100 116 139 / 0.45);
+}
+
+.open-table-filter-swatch--occupied {
+  background: rgb(59 130 246 / 0.18);
+  border-color: #60a5fa;
+}
+
+.open-table-filter-swatch--occupied.app-filter-chip-active {
+  box-shadow: 0 0 0 2px #60a5fa;
+}
+
+.open-table-filter-swatch--awaiting-clear {
+  background: rgb(245 158 11 / 0.18);
+  border-color: #fbbf24;
+}
+
+.open-table-filter-swatch--awaiting-clear.app-filter-chip-active {
+  box-shadow: 0 0 0 2px #fbbf24;
+}
+
+.open-table-filter-swatch-inner {
+  display: block;
+  height: 0.65rem;
+  width: 0.65rem;
+  border-radius: 9999px;
+}
+
+.open-table-filter-swatch--available .open-table-filter-swatch-inner {
+  background: #64748b;
+}
+
+.open-table-filter-swatch--occupied .open-table-filter-swatch-inner {
+  background: #60a5fa;
+}
+
+.open-table-filter-swatch--awaiting-clear .open-table-filter-swatch-inner {
+  background: #fbbf24;
+}
+
+.checkout-modal-panel {
+  width: min(100%, 28rem);
+  max-width: 100%;
+}
+
+.checkout-preview-heading {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.checkout-preview-shell {
+  margin-bottom: 1rem;
+  max-height: min(50vh, 22rem);
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input, 0.5rem);
+  background: var(--surface);
+  padding: 0.75rem;
+}
+
+.checkout-preview-sections {
+  display: flex;
+  flex-direction: column;
+}
+
+.checkout-preview-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.checkout-preview-zone--separated {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.checkout-preview-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.checkout-preview-line-desc {
+  margin: 0;
+  min-width: 0;
+  flex: 1;
+}
+
+.checkout-preview-line-label {
+  color: var(--text-primary);
+}
+
+.checkout-preview-line-detail {
+  margin-left: 0.35rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.checkout-preview-line-amount {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: var(--primary-light);
+  white-space: nowrap;
+}
+
+.checkout-preview-total {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}

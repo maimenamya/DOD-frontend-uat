@@ -21,7 +21,7 @@
           [attr.aria-selected]="selectedRoleName() === role.name"
           (click)="selectRole(role.name)"
         >
-          {{ roleLabel(role.name) }}
+          {{ roleTabLabel(role) }}
         </button>
       }
     </div>
@@ -30,10 +30,22 @@
   @if (showCreateForm() && canManage() && !loading()) {
     <app-modal (dismiss)="closeCreateForm()">
       <div class="app-modal-header">
-        <h2 class="app-modal-title">เพิ่มพนักงาน — {{ roleLabel(selectedRole()!.name) }}</h2>
+        <h2 class="app-modal-title">เพิ่มพนักงาน — {{ roleTabLabel(selectedRole()!) }}</h2>
         <button type="button" class="app-btn-ghost" (click)="closeCreateForm()">✕</button>
       </div>
       <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
+        <div class="app-form-group">
+          <label class="app-label">ตำแหน่ง</label>
+          @if (showCreateRolePicker()) {
+            <app-custom-dropdown
+              formControlName="roleId"
+              [options]="createRoleDropdownOptions()"
+              placeholder="เลือกตำแหน่ง"
+            />
+          } @else if (selectedRole()) {
+            <p class="text-sm text-text-primary">{{ roleTabLabel(selectedRole()!) }}</p>
+          }
+        </div>
         <div class="app-form-group">
           <label class="app-label">รหัสพนักงาน</label>
           <input type="text" formControlName="employeeId" class="app-input" />
@@ -49,14 +61,6 @@
         <div class="app-form-group">
           <label class="app-label">อีเมล (ไม่บังคับ)</label>
           <input type="email" formControlName="email" class="app-input" />
-        </div>
-        <div class="app-form-group">
-          <label class="app-label">ตำแหน่ง</label>
-          <app-custom-dropdown
-            formControlName="roleId"
-            [options]="createRoleDropdownOptions()"
-            placeholder="เลือกตำแหน่ง"
-          />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreateForm()">ยกเลิก</button>
@@ -79,6 +83,14 @@
       </p>
       <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
           <div class="app-form-group">
+            <label class="app-label">ตำแหน่ง</label>
+            <app-custom-dropdown
+              formControlName="roleId"
+              [options]="editRoleDropdownOptions()"
+              placeholder="เลือกตำแหน่ง"
+            />
+          </div>
+          <div class="app-form-group">
             <label class="app-label">ชื่อเล่น</label>
             <input type="text" formControlName="nickname" class="app-input" />
           </div>
@@ -92,14 +104,6 @@
               formControlName="status"
               [options]="statusDropdownOptions"
               placeholder="เลือกสถานะ"
-            />
-          </div>
-          <div class="app-form-group">
-            <label class="app-label">ตำแหน่ง</label>
-            <app-custom-dropdown
-              formControlName="roleId"
-              [options]="editRoleDropdownOptions()"
-              placeholder="เลือกตำแหน่ง"
             />
           </div>
           <div class="app-form-group">
@@ -130,17 +134,15 @@
                 <col class="app-col-id" />
                 <col />
                 <col />
-                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
               </colgroup>
               <thead>
                 <tr>
-                  <th>รหัส</th>
+                  <th>No.</th>
                   <th>ชื่อเล่น</th>
                   <th>ตำแหน่ง</th>
-                  <th>สถานะ</th>
                   @if (canManage()) {
                     <th class="app-cell-right">จัดการ</th>
                   }
@@ -154,20 +156,18 @@
                 <col class="app-col-id" />
                 <col />
                 <col />
-                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
               </colgroup>
               <tbody>
-                @for (emp of filteredEmployees(); track emp.id) {
+                @for (emp of filteredEmployees(); track emp.id; let i = $index) {
                   <tr>
-                    <td class="app-cell-mono">{{ emp.employeeId }}</td>
+                    <td class="app-cell-mono">{{ i + 1 }}</td>
                     <td class="app-cell-primary">{{ emp.nickname }}</td>
                     <td>
-                      <span [class]="roleBadgeClass(emp.role?.name)">{{ roleLabel(emp.role?.name ?? '') }}</span>
+                      <span [class]="roleBadgeClassForEmployee(emp)">{{ roleBadgeLabel(emp) }}</span>
                     </td>
-                    <td>{{ emp.status === 'Active' ? 'ใช้งาน' : 'ไม่ใช้งาน' }}</td>
                     @if (canManage()) {
                       <td class="app-cell-right">
                         @if (canMutateRow(emp)) {
@@ -175,7 +175,7 @@
                             <button type="button" class="app-btn-secondary-sm" (click)="openEdit(emp)">
                               แก้ไข
                             </button>
-                            <button type="button" class="app-btn-danger" (click)="confirmDelete(emp)">
+                            <button type="button" class="app-btn-danger-sm" (click)="confirmDelete(emp)">
                               ลบ
                             </button>
                           </div>

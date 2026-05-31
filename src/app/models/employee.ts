@@ -1,6 +1,10 @@
-import type { EmployeeRole, RoleCategory } from './role';
+import type { RoleCategory } from './role';
+import type {
+  EmployeeAttendanceStatus,
+  EmployeeTableSeatStatus,
+} from '../utils/employee-status-label.util';
 
-export interface Employee {
+export interface MstEmployee {
   id: number;
   employeeId: string;
   email: string | null;
@@ -8,7 +12,8 @@ export interface Employee {
   roleId: number;
   role?: {
     id: number;
-    name: EmployeeRole;
+    name: string;
+    displayNameTh?: string | null;
     category?: RoleCategory;
     startDrinks?: number;
     nextHourDrinks?: number;
@@ -17,6 +22,8 @@ export interface Employee {
   };
   shopId: number;
   status: string;
+  tableSeatStatus?: EmployeeTableSeatStatus;
+  attendanceStatus?: EmployeeAttendanceStatus;
   createdAt: string;
   shop?: {
     id: number;

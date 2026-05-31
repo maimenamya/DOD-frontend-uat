@@ -1,12 +1,12 @@
-import { Injectable, inject } from '@angular/core';
+﻿import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { ApiConfig } from '../core/api-config';
 import type {
-  Beverage,
-  CreateBeveragePayload,
-  UpdateBeveragePayload,
+  MstBeverage,
+  MstBeverageCreatePayload,
+  MstBeverageUpdatePayload,
 } from '../models/beverage';
 
 @Injectable({
@@ -16,16 +16,16 @@ export class BeverageService {
   private readonly http = inject(HttpClient);
   private readonly api = inject(ApiConfig);
 
-  getBeverages(): Observable<Beverage[]> {
-    return this.http.get<Beverage[]>(this.api.resource('beverages'));
+  getBeverages(): Observable<MstBeverage[]> {
+    return this.http.get<MstBeverage[]>(this.api.resource('beverages'));
   }
 
-  createBeverage(payload: CreateBeveragePayload): Observable<Beverage> {
-    return this.http.post<Beverage>(this.api.resource('beverages'), payload);
+  createBeverage(payload: MstBeverageCreatePayload): Observable<MstBeverage> {
+    return this.http.post<MstBeverage>(this.api.resource('beverages'), payload);
   }
 
-  updateBeverage(id: number, payload: UpdateBeveragePayload): Observable<Beverage> {
-    return this.http.put<Beverage>(this.api.resource(`beverages/${id}`), payload);
+  updateBeverage(id: number, payload: MstBeverageUpdatePayload): Observable<MstBeverage> {
+    return this.http.put<MstBeverage>(this.api.resource(`beverages/${id}`), payload);
   }
 
   deleteBeverage(id: number): Observable<void> {

@@ -1,0 +1,167 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">จัดการ tag</h1>
+    </div>
+    @if (canManage() && !loading()) {
+      <button type="button" class="app-btn-primary" (click)="openAssignModal()">+ ตั้งแท็ก</button>
+    }
+  </div>
+
+  @if (showAssignModal() && canManage()) {
+    <app-modal (dismiss)="closeAssignModal()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">ตั้งแท็ก</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeAssignModal()">✕</button>
+      </div>
+      <form class="app-form-stack" [formGroup]="assignForm" (ngSubmit)="submitAssign()">
+        <div class="app-form-group">
+          <label class="app-label">พนักงาน PR</label>
+          <app-custom-dropdown
+            formControlName="employeeId"
+            [options]="employeeOptions()"
+            placeholder="เลือกพนักงาน"
+          />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">แพ็กเกจแท็ก</label>
+          <app-custom-dropdown
+            formControlName="prTagId"
+            [options]="tagDropdownOptions()"
+            placeholder="เลือกแพ็กเกจ"
+          />
+        </div>
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeAssignModal()">ยกเลิก</button>
+          <button type="submit" class="app-btn-primary" [disabled]="acting()">
+            {{ acting() ? 'กำลังบันทึก...' : 'ตั้งแท็ก' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+
+  @if (loading()) {
+    <p class="app-loading-text">กำลังโหลด...</p>
+  } @else if (rows().length === 0) {
+    <p class="app-empty-state">ยังไม่มี PR ที่ตั้งแท็กอยู่ — กด «+ ตั้งแท็ก» เพื่อเริ่ม</p>
+  } @else {
+    <section class="app-card app-card-flush">
+      <div class="app-data-table-shell">
+        <div class="app-split-table app-split-table--wide">
+          <div class="app-split-table-header">
+            <table class="app-data-table app-split-table-grid">
+              <colgroup>
+                <col class="app-col-id" />
+                <col />
+                <col />
+                <col class="app-col-narrow" />
+                <col class="app-col-narrow" />
+                <col class="app-col-narrow" />
+                @if (canManage()) {
+                  <col class="app-col-narrow" />
+                  <col class="app-col-narrow" />
+                  <col class="app-col-narrow" />
+                }
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>ชื่อ PR</th>
+                  <th>แพ็กเกจแท็ก</th>
+                  <th class="app-cell-center">วันทำงาน</th>
+                  <th class="app-cell-center">วันหยุด</th>
+                  <th class="app-cell-center">ดื่มสะสม</th>
+                  @if (canManage()) {
+                    <th class="app-cell-center">+ วันทำงาน</th>
+                    <th class="app-cell-center">+ วันหยุด</th>
+                    <th class="app-cell-center">ตัดแท็ก</th>
+                  }
+                </tr>
+              </thead>
+            </table>
+          </div>
+          <div class="app-split-table-body app-scroll-region">
+            <table class="app-data-table app-split-table-grid">
+              <colgroup>
+                <col class="app-col-id" />
+                <col />
+                <col />
+                <col class="app-col-narrow" />
+                <col class="app-col-narrow" />
+                <col class="app-col-narrow" />
+                @if (canManage()) {
+                  <col class="app-col-narrow" />
+                  <col class="app-col-narrow" />
+                  <col class="app-col-narrow" />
+                }
+              </colgroup>
+              <tbody>
+                @for (row of rows(); track row.employeeId; let i = $index) {
+                  <tr>
+                    <td class="app-cell-mono">{{ i + 1 }}</td>
+                    <td class="app-cell-primary">{{ row.nickname }}</td>
+                    <td class="app-cell-primary">
+                      @if (row.enrollment; as e) {
+                        {{ e.tagName }}
+                      }
+                    </td>
+                    <td class="app-cell-center app-cell-mono">
+                      @if (row.enrollment; as e) {
+                        {{ e.workingDaysCount }}/{{ e.requiredWorkingDays }}
+                      }
+                    </td>
+                    <td class="app-cell-center app-cell-mono">
+                      @if (row.enrollment; as e) {
+                        {{ e.offDaysCount }}/{{ e.allowedOffDays }}
+                      }
+                    </td>
+                    <td class="app-cell-center app-cell-mono">
+                      @if (row.enrollment; as e) {
+                        {{ e.accumulatedDrinks }}/{{ e.targetDrinks }}
+                      }
+                    </td>
+                    @if (canManage()) {
+                      @if (row.enrollment; as e) {
+                        <td class="app-cell-center">
+                          <button
+                            type="button"
+                            class="app-btn-primary-sm"
+                            [disabled]="acting() || !e.canCheckIn"
+                            (click)="checkIn(row)"
+                          >
+                            + วันทำงาน
+                          </button>
+                        </td>
+                        <td class="app-cell-center">
+                          <button
+                            type="button"
+                            class="app-btn-secondary-sm"
+                            [disabled]="acting() || !e.canRecordOffDay"
+                            (click)="recordOffDay(row)"
+                          >
+                            + วันหยุด
+                          </button>
+                        </td>
+                        <td class="app-cell-center">
+                          <button
+                            type="button"
+                            class="app-btn-danger-sm"
+                            [disabled]="acting() || !e.canForceCut"
+                            (click)="forceCut(row)"
+                          >
+                            ตัดแท็ก
+                          </button>
+                        </td>
+                      }
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  }
+</div>

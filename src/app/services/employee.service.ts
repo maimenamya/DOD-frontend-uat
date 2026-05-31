@@ -1,11 +1,11 @@
-import { Injectable, inject } from '@angular/core';
+﻿import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { ApiConfig } from '../core/api-config';
 import type {
   CreateEmployeePayload,
-  Employee,
+  MstEmployee,
   EmployeeTeam,
   UpdateEmployeePayload,
 } from '../models/employee';
@@ -18,28 +18,28 @@ export class EmployeeService {
   private readonly api = inject(ApiConfig);
   private readonly employeesUrl = this.api.resource('employees');
 
-  getEmployeesByShop(shopId: number, team?: EmployeeTeam): Observable<Employee[]> {
+  getEmployeesByShop(shopId: number, team?: EmployeeTeam): Observable<MstEmployee[]> {
     const params: Record<string, string> = { shopId: shopId.toString() };
     if (team) {
       params['team'] = team;
     }
-    return this.http.get<Employee[]>(this.employeesUrl, { params });
+    return this.http.get<MstEmployee[]>(this.employeesUrl, { params });
   }
 
   /** @deprecated Use getEmployeesByShop — kept for legacy team routes */
-  getEmployeesByTeam(shopId: number, team: EmployeeTeam): Observable<Employee[]> {
+  getEmployeesByTeam(shopId: number, team: EmployeeTeam): Observable<MstEmployee[]> {
     return this.getEmployeesByShop(shopId, team);
   }
 
-  createEmployee(payload: CreateEmployeePayload): Observable<Employee> {
-    return this.http.post<Employee>(this.employeesUrl, payload);
+  createEmployee(payload: CreateEmployeePayload): Observable<MstEmployee> {
+    return this.http.post<MstEmployee>(this.employeesUrl, payload);
   }
 
-  updateEmployee(id: number, payload: UpdateEmployeePayload): Observable<Employee> {
-    return this.http.put<Employee>(`${this.employeesUrl}/${id}`, payload);
+  updateEmployee(id: number, payload: UpdateEmployeePayload): Observable<MstEmployee> {
+    return this.http.put<MstEmployee>(`${this.employeesUrl}/${id}`, payload);
   }
 
-  deleteEmployee(id: number): Observable<Employee> {
-    return this.http.delete<Employee>(`${this.employeesUrl}/${id}`);
+  deleteEmployee(id: number): Observable<MstEmployee> {
+    return this.http.delete<MstEmployee>(`${this.employeesUrl}/${id}`);
   }
 }

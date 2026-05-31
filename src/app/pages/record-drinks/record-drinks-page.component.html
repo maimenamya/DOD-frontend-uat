@@ -48,12 +48,12 @@
               <label class="record-drinks-label" for="billAmount">ยอดบิล (รายได้)</label>
               <input
                 id="billAmount"
-                type="number"
+                type="text"
                 class="app-input"
                 formControlName="billAmount"
-                min="0"
-                step="1"
-                inputmode="decimal"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                (input)="sanitizeBillAmount($event)"
               />
               @if (form.controls.billAmount.touched && form.controls.billAmount.invalid) {
                 <p class="record-drinks-field-error">กรุณาระบุยอดบิล</p>
@@ -130,12 +130,13 @@
                     <div class="record-drinks-row-field record-drinks-row-qty">
                       <label class="record-drinks-label">จำนวนดื่ม</label>
                       <input
-                        type="number"
+                        type="text"
                         class="app-input app-input-number"
                         formControlName="quantity"
-                        min="0"
-                        max="999"
+                        inputmode="numeric"
+                        pattern="[0-9]*"
                         placeholder="0"
+                        (input)="sanitizeRowQuantity(i, $event)"
                       />
                       @if (row.controls.quantity.touched && row.controls.quantity.invalid) {
                         <p class="record-drinks-field-error">จำนวนดื่มต้องอย่างน้อย 1</p>
@@ -145,7 +146,7 @@
                     <div class="record-drinks-row-total">
                       <span class="record-drinks-label">ยอดแถว</span>
                       <strong class="record-drinks-line-amount">
-                        ฿{{ lineAmountForRow(row) | number: '1.0-2' }}
+                        ฿{{ lineAmountForRow(row) | number: '1.0-0' }}
                       </strong>
                     </div>
 

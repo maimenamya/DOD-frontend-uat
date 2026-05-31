@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   NonNullableFormBuilder,
@@ -11,15 +11,18 @@ import {
   CustomDropdownComponent,
   type DropdownOption,
 } from '../../components/custom-dropdown/custom-dropdown.component';
-import type { Employee } from '../../models/employee';
-import type { Role } from '../../models/role';
+import type { MstEmployee } from '../../models/employee';
+import type { MstRole } from '../../models/role';
 import { AuthService } from '../../services/auth.service';
 import { EmployeeService } from '../../services/employee.service';
 import { RoleService } from '../../services/role.service';
+import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
 import {
   isRoleMutableByViewer,
-  roleLabelThai,
+  roleBadgeClass,
+  roleDisplayNameTh,
+  roleOptionLabel,
   teamForRole,
 } from '../../utils/employee-team.util';
 
@@ -36,16 +39,17 @@ export class EmployeeManagementPageComponent implements OnInit {
   private readonly employeeService = inject(EmployeeService);
   private readonly roleService = inject(RoleService);
   private readonly toast = inject(ToastService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   readonly user = this.auth.getUser();
   readonly canManage = computed(() => this.auth.canAccessTeamManagement());
 
-  readonly roles = signal<Role[]>([]);
-  readonly allEmployees = signal<Employee[]>([]);
+  readonly roles = signal<MstRole[]>([]);
+  readonly allEmployees = signal<MstEmployee[]>([]);
   readonly selectedRoleName = signal<string | null>(null);
   readonly loading = signal(true);
   readonly submitting = signal(false);
-  readonly editingEmployee = signal<Employee | null>(null);
+  readonly editingEmployee = signal<MstEmployee | null>(null);
   readonly showCreateForm = signal(false);
 
   readonly tabRoles = computed(() => {
@@ -98,19 +102,22 @@ export class EmployeeManagementPageComponent implements OnInit {
     if (this.auth.isOwner() && (selected.name === 'ADMIN' || selected.name === 'MANAGER')) {
       return this.tabRoles()
         .filter((r) => r.name === 'ADMIN' || r.name === 'MANAGER')
-        .map((r) => ({ value: r.id, label: roleLabelThai(r.name) }));
+        .map((r) => ({ value: r.id, label: roleOptionLabel(r) }));
     }
-    return [{ value: selected.id, label: roleLabelThai(selected.name) }];
+    return [{ value: selected.id, label: roleOptionLabel(selected) }];
   });
+
+  /** Dropdown only when owner picks ADMIN vs MANAGER; other tabs lock to tab role. */
+  readonly showCreateRolePicker = computed(() => this.createRoleDropdownOptions().length > 1);
 
   readonly editRoleDropdownOptions = computed<DropdownOption[]>(() =>
     this.tabRoles()
       .filter(
         (r) =>
           r.name !== 'OWNER' &&
-          isRoleMutableByViewer(r.name, this.auth.isOwner(), this.auth.canAccessTeamManagement()),
+          isRoleMutableByViewer(r, this.auth.isOwner(), this.auth.canAccessTeamManagement()),
       )
-      .map((r) => ({ value: r.id, label: roleLabelThai(r.name) })),
+      .map((r) => ({ value: r.id, label: roleOptionLabel(r) })),
   );
 
   ngOnInit(): void {
@@ -131,12 +138,14 @@ export class EmployeeManagementPageComponent implements OnInit {
     this.loadEmployees();
   }
 
-  roleLabel(roleName: string): string {
-    return roleLabelThai(roleName);
+  roleTabLabel(role: MstRole): string {
+    return roleDisplayNameTh(role);
   }
 
   selectRole(roleName: string, updateUrl = true): void {
     this.selectedRoleName.set(roleName);
+    this.showCreateForm.set(false);
+    this.editingEmployee.set(null);
     const role = this.roles().find((r) => r.name === roleName);
     if (role) {
       this.createForm.patchValue({ roleId: role.id });
@@ -150,20 +159,20 @@ export class EmployeeManagementPageComponent implements OnInit {
     }
   }
 
-  roleBadgeClass(role?: string): string {
-    const map: Record<string, string> = {
-      OWNER: 'app-badge-owner',
-      ADMIN: 'app-badge-admin',
-      MANAGER: 'app-badge-manager',
-      SALE: 'app-badge-sale',
-      PR: 'app-badge-pr',
-    };
-    return `app-badge ${map[role ?? ''] ?? 'app-badge-default'}`;
+  roleBadgeClassForEmployee(emp: MstEmployee): string {
+    return roleBadgeClass(emp.role ?? null);
   }
 
-  canMutateRow(employee: Employee): boolean {
+  roleBadgeLabel(emp: MstEmployee): string {
+    if (!emp.role) return '—';
+    return roleDisplayNameTh(emp.role);
+  }
+
+  canMutateRow(employee: MstEmployee): boolean {
+    const role = employee.role;
+    if (!role) return false;
     return isRoleMutableByViewer(
-      employee.role?.name,
+      { name: role.name, category: role.category ?? 'STAFF' },
       this.auth.isOwner(),
       this.auth.canAccessTeamManagement(),
     );
@@ -212,7 +221,7 @@ export class EmployeeManagementPageComponent implements OnInit {
     this.showCreateForm.set(false);
   }
 
-  openEdit(employee: Employee): void {
+  openEdit(employee: MstEmployee): void {
     if (!this.canMutateRow(employee)) return;
     this.editingEmployee.set(employee);
     this.showCreateForm.set(false);
@@ -236,8 +245,12 @@ export class EmployeeManagementPageComponent implements OnInit {
     }
 
     const shopId = this.auth.getShopId();
-    const role = this.roles().find((r) => r.id === this.createForm.controls.roleId.value);
-    if (shopId == null || !role) return;
+    const tabRole = this.selectedRole();
+    const roleId = this.showCreateRolePicker()
+      ? this.createForm.controls.roleId.value
+      : tabRole?.id;
+    const role = this.roles().find((r) => r.id === roleId);
+    if (shopId == null || !role || !tabRole) return;
 
     const raw = this.createForm.getRawValue();
     this.submitting.set(true);
@@ -247,9 +260,9 @@ export class EmployeeManagementPageComponent implements OnInit {
         employeeId: raw.employeeId,
         password: raw.password,
         nickname: raw.nickname,
-        roleId: raw.roleId,
+        roleId: role.id,
         shopId,
-        team: teamForRole(role.name),
+        team: teamForRole(role),
         email: raw.email || undefined,
       })
       .subscribe({
@@ -298,13 +311,15 @@ export class EmployeeManagementPageComponent implements OnInit {
       });
   }
 
-  confirmDelete(employee: Employee): void {
+  async confirmDelete(employee: MstEmployee): Promise<void> {
     if (!this.canMutateRow(employee)) return;
 
-    const confirmed = window.confirm(
-      `ต้องการลบพนักงาน "${employee.nickname}" (${employee.employeeId}) ใช่หรือไม่?`,
-    );
-    if (!confirmed) return;
+    const ok = await this.confirmDialog.confirm({
+      title: 'ยืนยันการลบ',
+      message: `ต้องการลบพนักงาน "${employee.nickname}" (${employee.employeeId}) ใช่หรือไม่?`,
+      confirmLabel: 'ลบ',
+    });
+    if (!ok) return;
 
     this.employeeService.deleteEmployee(employee.id).subscribe({
       next: () => {

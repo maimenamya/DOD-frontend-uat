@@ -1,5 +1,5 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import type { Beverage } from '../../models/beverage';
+﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import type { MstBeverage } from '../../models/beverage';
 import { BeverageService } from '../../services/beverage.service';
 
 @Component({
@@ -9,7 +9,7 @@ import { BeverageService } from '../../services/beverage.service';
 export class ResourcesPageComponent implements OnInit {
   private readonly beverageService = inject(BeverageService);
 
-  readonly beverages = signal<Beverage[]>([]);
+  readonly beverages = signal<MstBeverage[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
 

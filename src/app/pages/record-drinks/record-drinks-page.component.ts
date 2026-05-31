@@ -1,4 +1,4 @@
-import { DecimalPipe } from '@angular/common';
+﻿import { DecimalPipe } from '@angular/common';
 import { Component, DestroyRef, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -15,15 +15,16 @@ import {
   CustomDropdownComponent,
   type DropdownOption,
 } from '../../components/custom-dropdown/custom-dropdown.component';
-import type { Employee } from '../../models/employee';
-import type { Role } from '../../models/role';
+import type { MstEmployee } from '../../models/employee';
+import type { MstRole } from '../../models/role';
 import { AuthService } from '../../services/auth.service';
 import { EmployeeService } from '../../services/employee.service';
 import { RoleService } from '../../services/role.service';
 import { TransactionService } from '../../services/transaction.service';
 import { ToastService } from '../../services/toast.service';
 import { hideActionOverlay, showActionOverlay } from '../../utils/action-overlay.util';
-import { roleLabelThai } from '../../utils/employee-team.util';
+import { roleOptionLabel } from '../../utils/role-display.util';
+import { shopCalendarTodayInput } from '../open-table/open-table-ledger.util';
 
 type DrinkRowForm = FormGroup<{
   roleId: FormControl<number | ''>;
@@ -34,8 +35,8 @@ type DrinkRowForm = FormGroup<{
 /** Roles excluded from drink entry (no field billing). */
 const EXCLUDED_DRINK_ROLE_NAMES = new Set(['OWNER']);
 
-function rolesFromEmployees(employees: Employee[]): Role[] {
-  const byId = new Map<number, Role>();
+function rolesFromEmployees(employees: MstEmployee[]): MstRole[] {
+  const byId = new Map<number, MstRole>();
   for (const employee of employees) {
     const role = employee.role;
     if (!role || EXCLUDED_DRINK_ROLE_NAMES.has(role.name)) {
@@ -55,14 +56,6 @@ function rolesFromEmployees(employees: Employee[]): Role[] {
   return Array.from(byId.values()).sort((a, b) => a.id - b.id);
 }
 
-function todayDateInputValue(): string {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
 @Component({
   selector: 'app-record-drinks-page',
   imports: [DecimalPipe, ReactiveFormsModule, CustomDropdownComponent],
@@ -79,8 +72,8 @@ export class RecordDrinksPageComponent implements OnInit {
 
   readonly loading = signal(true);
   readonly submitting = signal(false);
-  readonly staff = signal<Employee[]>([]);
-  readonly allRoles = signal<Role[]>([]);
+  readonly staff = signal<MstEmployee[]>([]);
+  readonly allRoles = signal<MstRole[]>([]);
 
   readonly form = this.fb.group({
     saleEmployeeId: this.fb.control('', Validators.required),
@@ -90,7 +83,7 @@ export class RecordDrinksPageComponent implements OnInit {
     billAmount: this.fb.control(0, {
       validators: [Validators.required, Validators.min(0)],
     }),
-    businessDate: this.fb.control(todayDateInputValue(), Validators.required),
+    businessDate: this.fb.control(shopCalendarTodayInput(), Validators.required),
     rows: this.fb.array<DrinkRowForm>([]),
   });
 
@@ -106,7 +99,7 @@ export class RecordDrinksPageComponent implements OnInit {
   readonly roleDropdownOptions = computed((): DropdownOption[] => {
     return this.allRoles().map((role) => ({
       value: role.id,
-      label: roleLabelThai(role.name),
+      label: roleOptionLabel(role),
     }));
   });
 
@@ -284,6 +277,28 @@ export class RecordDrinksPageComponent implements OnInit {
       });
   }
 
+  sanitizeBillAmount(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/\D+/g, '');
+    this.form.controls.billAmount.setValue(digits ? Number.parseInt(digits, 10) : 0, {
+      emitEvent: false,
+    });
+    input.value = digits;
+    this.refreshSummary();
+  }
+
+  sanitizeRowQuantity(index: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/\D+/g, '');
+    const row = this.rows.at(index);
+    if (!row) return;
+    row.controls.quantity.setValue(digits ? Number.parseInt(digits, 10) : 0, {
+      emitEvent: false,
+    });
+    input.value = digits;
+    this.refreshSummary();
+  }
+
   private refreshSummary(): void {
     let drinks = 0;
     for (const row of this.rows.controls) {
@@ -302,7 +317,7 @@ export class RecordDrinksPageComponent implements OnInit {
       saleEmployeeId: saleId,
       billReference: '',
       billAmount: 0,
-      businessDate: todayDateInputValue(),
+      businessDate: shopCalendarTodayInput(),
     });
     this.rows.clear();
     this.refreshSummary();

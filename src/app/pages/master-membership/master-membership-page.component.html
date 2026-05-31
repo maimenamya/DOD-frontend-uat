@@ -1,0 +1,240 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">เมมเบอร์</h1>
+    </div>
+    @if (canManage() && !loading()) {
+      <button type="button" (click)="openCreate()" class="app-btn-primary">+ เพิ่มเมมเบอร์</button>
+    }
+  </div>
+
+  @if (showCreateModal() && canManage() && !loading()) {
+    <app-modal (dismiss)="closeCreate()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">เพิ่มเมมเบอร์</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeCreate()">✕</button>
+      </div>
+      <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
+        <div class="app-form-group">
+          <label class="app-label">ชื่อเมมเบอร์</label>
+          <input type="text" formControlName="name" class="app-input" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">เครื่องดื่ม</label>
+          <app-custom-dropdown
+            formControlName="drinkId"
+            [options]="drinkOptions()"
+            placeholder="เลือกเครื่องดื่ม"
+          />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">จำนวน</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            formControlName="quantity"
+            class="app-input"
+            (input)="sanitizeIntegerInput('create', 'quantity', $event)"
+          />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">ราคาแพ็กเกจ</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            formControlName="packagePrice"
+            class="app-input"
+            (input)="sanitizeIntegerInput('create', 'packagePrice', $event)"
+          />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">ฟรีมิกซ์เซอร์</label>
+          <label class="app-toggle" aria-label="เปิดหรือปิดฟรีมิกซ์เซอร์">
+            <input type="checkbox" class="app-toggle-input" formControlName="isFreeMixer" />
+            <span class="app-toggle-track"></span>
+            <span class="app-toggle-text">{{
+              createForm.controls.isFreeMixer.value ? 'เปิดใช้งาน' : 'ปิดใช้งาน'
+            }}</span>
+          </label>
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">จำนวนฟรี PR ดริ้งก์</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            formControlName="freeDrinks"
+            class="app-input"
+            (input)="sanitizeIntegerInput('create', 'freeDrinks', $event)"
+          />
+        </div>
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
+          <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+            {{ submitting() ? 'กำลังบันทึก...' : 'บันทึก' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+
+  @if (editingItem(); as item) {
+    <app-modal (dismiss)="closeEdit()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">แก้ไขเมมเบอร์</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
+      </div>
+      <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
+        <div class="app-form-group">
+          <label class="app-label">ชื่อเมมเบอร์</label>
+          <input type="text" formControlName="name" class="app-input" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">เครื่องดื่ม</label>
+          <app-custom-dropdown
+            formControlName="drinkId"
+            [options]="drinkOptions()"
+            placeholder="เลือกเครื่องดื่ม"
+          />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">จำนวน</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            formControlName="quantity"
+            class="app-input"
+            (input)="sanitizeIntegerInput('edit', 'quantity', $event)"
+          />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">ราคาแพ็กเกจ</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            formControlName="packagePrice"
+            class="app-input"
+            (input)="sanitizeIntegerInput('edit', 'packagePrice', $event)"
+          />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">ฟรีมิกซ์เซอร์</label>
+          <label class="app-toggle" aria-label="เปิดหรือปิดฟรีมิกซ์เซอร์">
+            <input type="checkbox" class="app-toggle-input" formControlName="isFreeMixer" />
+            <span class="app-toggle-track"></span>
+            <span class="app-toggle-text">{{
+              editForm.controls.isFreeMixer.value ? 'เปิดใช้งาน' : 'ปิดใช้งาน'
+            }}</span>
+          </label>
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">จำนวนฟรี PR ดริ้งก์</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            formControlName="freeDrinks"
+            class="app-input"
+            (input)="sanitizeIntegerInput('edit', 'freeDrinks', $event)"
+          />
+        </div>
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
+          <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+            {{ submitting() ? 'กำลังบันทึก...' : 'บันทึกการแก้ไข' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+
+  @if (loading()) {
+    <p class="app-loading-text">กำลังโหลด...</p>
+  } @else if (memberships().length === 0) {
+    <p class="app-empty-state">ยังไม่มีข้อมูลเมมเบอร์</p>
+  } @else {
+    <section class="app-card app-card-flush">
+      <div class="app-data-table-shell">
+        <div class="app-split-table app-split-table--wide">
+          <div class="app-split-table-header">
+            <table class="app-data-table app-split-table-grid">
+              <colgroup>
+                <col class="app-col-id" />
+                <col />
+                <col />
+                <col />
+                <col />
+                <col />
+                <col />
+                @if (canManage()) {
+                  <col class="app-col-actions" />
+                }
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>ชื่อ</th>
+                  <th>เครื่องดื่ม</th>
+                  <th class="app-cell-right">จำนวน</th>
+                  <th class="app-cell-right">ราคาแพ็กเกจ</th>
+                  <th>ฟรีมิกซ์เซอร์</th>
+                  <th class="app-cell-right">ฟรี PR ดริ้งก์</th>
+                  @if (canManage()) {
+                    <th class="app-cell-right">จัดการ</th>
+                  }
+                </tr>
+              </thead>
+            </table>
+          </div>
+          <div class="app-split-table-body app-scroll-region">
+            <table class="app-data-table app-split-table-grid">
+              <colgroup>
+                <col class="app-col-id" />
+                <col />
+                <col />
+                <col />
+                <col />
+                <col />
+                <col />
+                @if (canManage()) {
+                  <col class="app-col-actions" />
+                }
+              </colgroup>
+              <tbody>
+                @for (item of memberships(); track item.id; let i = $index) {
+                  <tr>
+                    <td class="app-cell-mono">{{ i + 1 }}</td>
+                    <td class="app-cell-primary">{{ item.name }}</td>
+                    <td>{{ drinkName(item) }}</td>
+                    <td class="app-cell-right">{{ item.quantity }}</td>
+                    <td class="app-cell-right app-cell-highlight-violet">
+                      {{ item.packagePrice | number: '1.0-0' }}
+                    </td>
+                    <td>{{ freeMixerLabel(item.isFreeMixer) }}</td>
+                    <td class="app-cell-right">{{ item.freeDrinks ?? 0 }}</td>
+                    @if (canManage()) {
+                      <td class="app-cell-right">
+                        <div class="app-table-actions">
+                          <button type="button" class="app-btn-secondary-sm" (click)="openEdit(item)">
+                            แก้ไข
+                          </button>
+                          <button type="button" class="app-btn-danger-sm" (click)="confirmDelete(item)">
+                            ลบ
+                          </button>
+                        </div>
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  }
+</div>

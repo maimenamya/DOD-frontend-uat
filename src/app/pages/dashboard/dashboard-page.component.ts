@@ -1,6 +1,6 @@
-import { DecimalPipe } from '@angular/common';
+﻿import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { finalize } from 'rxjs';
+import { finalize, forkJoin, of } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 
 import {
@@ -13,7 +13,7 @@ import type {
   DashboardSummary,
   EmployeePerformanceRank,
 } from '../../models/dashboard';
-import type { Employee } from '../../models/employee';
+import type { MstEmployee } from '../../models/employee';
 import { AuthService } from '../../services/auth.service';
 import { DashboardService } from '../../services/dashboard.service';
 import { EmployeeService } from '../../services/employee.service';
@@ -30,8 +30,8 @@ export class DashboardPageComponent implements OnInit {
   private readonly employeeService = inject(EmployeeService);
 
   readonly displayNickname = computed(() => this.auth.getDisplayNickname());
-  readonly isSaleRole = computed(() => this.auth.getRole() === 'SALE');
-  readonly isPrRole = computed(() => this.auth.getRole() === 'PR');
+  readonly isSaleRole = computed(() => this.auth.isSaleTeamRole());
+  readonly isPrRole = computed(() => this.auth.isEntertainerRole());
   readonly canPickBillSale = computed(
     () => this.auth.canAccessTeamManagement() || this.auth.isOwner(),
   );
@@ -56,7 +56,7 @@ export class DashboardPageComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly summary = signal<DashboardSummary | null>(null);
   readonly billStatus = signal<DashboardBillStatus | null>(null);
-  readonly saleStaff = signal<Employee[]>([]);
+  readonly saleStaff = signal<MstEmployee[]>([]);
 
   readonly datePreset = signal<DashboardPreset>('today');
   readonly customFrom = signal('');
@@ -155,29 +155,42 @@ export class DashboardPageComponent implements OnInit {
 
     this.loading.set(true);
     this.error.set(null);
+    this.billStatus.set(null);
 
-    this.dashboardService
-      .getSummary({
-        shopId,
-        preset,
-        from: preset === 'custom' ? this.customFrom() : undefined,
-        to: preset === 'custom' ? this.customTo() : undefined,
-      })
-      .subscribe({
-        next: (data) => {
-          this.summary.set(data);
-          this.loading.set(false);
-          if (this.canPickBillSale()) {
-            this.loadBillStatus();
-          } else {
-            this.billStatus.set(data.billStatus);
-          }
-        },
-        error: () => {
-          this.error.set('ไม่สามารถโหลดข้อมูล Dashboard ได้');
-          this.loading.set(false);
-        },
-      });
+    const dateParams = {
+      shopId,
+      preset,
+      from: preset === 'custom' ? this.customFrom() : undefined,
+      to: preset === 'custom' ? this.customTo() : undefined,
+    };
+
+    const billEmployeeId = this.canPickBillSale()
+      ? this.selectedSaleEmployeeId().trim()
+      : undefined;
+
+    const bill$ =
+      this.canPickBillSale() && billEmployeeId
+        ? this.dashboardService.getBillStatus({ ...dateParams, billEmployeeId })
+        : of(null);
+
+    forkJoin({
+      summary: this.dashboardService.getSummary(dateParams),
+      bill: bill$,
+    }).subscribe({
+      next: ({ summary, bill }) => {
+        this.summary.set(summary);
+        if (this.canPickBillSale()) {
+          this.billStatus.set(bill);
+        } else {
+          this.billStatus.set(summary.billStatus);
+        }
+        this.loading.set(false);
+      },
+      error: () => {
+        this.error.set('ไม่สามารถโหลดข้อมูล Dashboard ได้');
+        this.loading.set(false);
+      },
+    });
   }
 
   loadBillStatus(): void {
@@ -263,11 +276,6 @@ export class DashboardPageComponent implements OnInit {
     if (!term) {
       return rows;
     }
-    return rows.filter(
-      (row) =>
-        row.nickname.toLowerCase().includes(term) ||
-        row.employeeId.toLowerCase().includes(term) ||
-        row.role.toLowerCase().includes(term),
-    );
+    return rows.filter((row) => row.nickname.toLowerCase().includes(term));
   }
 }
