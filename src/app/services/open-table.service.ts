@@ -8,6 +8,7 @@ import type {
   AddItemsPayload,
   CheckInPayload,
   CheckoutPayload,
+  CheckoutPreviewPayload,
   CheckoutPreview,
   CheckoutResult,
   ReleaseCustomerPayload,
@@ -73,7 +74,7 @@ export class OpenTableService {
     );
   }
 
-  previewCheckout(payload: CheckoutPayload): Observable<CheckoutPreview> {
+  previewCheckout(payload: CheckoutPreviewPayload): Observable<CheckoutPreview> {
     return this.http.post<CheckoutPreview>(
       this.api.resource('open-table', 'checkout-preview'),
       payload,

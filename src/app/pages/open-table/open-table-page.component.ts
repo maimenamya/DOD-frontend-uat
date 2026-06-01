@@ -2,6 +2,7 @@
 import { Component, DestroyRef, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { catchError, finalize, forkJoin, of } from 'rxjs';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
@@ -67,6 +68,7 @@ type SeatTile = {
   zoneLabel: string;
   status: SeatStatus;
   sessionId: number | null;
+  sessionRevision: number | null;
   saleName?: string;
 };
 
@@ -510,11 +512,16 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   /** อัปเดตโต๊ะทันทีหลังเปิดสำเร็จ — กัน UI ค้างแบบ "ว่าง" และกดเปิดซ้ำ */
-  private applySeatCheckIn(seatKey: string, sessionId: number, saleName: string): void {
+  private applySeatCheckIn(
+    seatKey: string,
+    sessionId: number,
+    saleName: string,
+    sessionRevision: number,
+  ): void {
     this.seats.update((tiles) =>
       tiles.map((s) =>
         s.key === seatKey
-          ? { ...s, status: 'OCCUPIED', sessionId, saleName }
+          ? { ...s, status: 'OCCUPIED', sessionId, sessionRevision, saleName }
           : s,
       ),
     );
@@ -530,6 +537,7 @@ export class OpenTablePageComponent implements OnInit {
     this.showAddModal.set(false);
     this.sessionDetail.set({
       sessionId,
+      revision: this.sessionDetail()?.revision ?? this.selectedSeat()?.sessionRevision ?? 1,
       sessionStatus: 'BILLED',
       lastCheckedOutLabel: checkedOutLabel,
       canMutateLedger: false,
@@ -581,6 +589,7 @@ export class OpenTablePageComponent implements OnInit {
             zoneLabel: type.name,
             status: s.status,
             sessionId: s.sessionId,
+            sessionRevision: s.sessionRevision ?? null,
             saleName: s.saleName ?? undefined,
           })),
         );
@@ -684,7 +693,41 @@ export class OpenTablePageComponent implements OnInit {
         if (requestSeq !== this.sessionDetailRequestSeq) return;
         if (this.selectedSeat()?.sessionId !== sessionId) return;
         this.sessionDetail.set(detail);
+        if (detail) {
+          this.syncSeatRevisionFromDetail(detail);
+        }
       });
+  }
+
+  private expectedRevision(): number | null {
+    const fromDetail = this.sessionDetail()?.revision;
+    if (fromDetail != null && fromDetail >= 1) return fromDetail;
+    const fromSeat = this.selectedSeat()?.sessionRevision;
+    if (fromSeat != null && fromSeat >= 1) return fromSeat;
+    return null;
+  }
+
+  private requireExpectedRevision(): number | null {
+    const revision = this.expectedRevision();
+    if (revision != null) return revision;
+    this.toast.showError('กรุณารอโหลดบิลโต๊ะสักครู่ หรือรีเฟรชหน้า');
+    const sessionId = this.selectedSeat()?.sessionId;
+    if (sessionId != null) {
+      this.loadSessionDetail(sessionId, { showLoading: false });
+    }
+    return null;
+  }
+
+  private syncSeatRevisionFromDetail(detail: OpenTableSessionDetail): void {
+    const key = this.selectedSeatKey();
+    if (!key) return;
+    this.seats.update((tiles) =>
+      tiles.map((s) => (s.key === key ? { ...s, sessionRevision: detail.revision } : s)),
+    );
+  }
+
+  private onMutationConflict(): void {
+    this.refreshFloorPlan(this.selectedSeatKey(), { silent: true });
   }
 
   private resetOrderLedgerForm(): void {
@@ -1096,7 +1139,7 @@ export class OpenTablePageComponent implements OnInit {
       }),
       'เปิดโต๊ะสำเร็จ',
       (session) => {
-        this.applySeatCheckIn(seat.key, session.id, saleName);
+        this.applySeatCheckIn(seat.key, session.id, saleName, session.revision ?? 1);
         this.refreshFloorPlan(seat.key, { silent: true });
       },
       () => {
@@ -1137,8 +1180,9 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
     const sessionId = this.selectedSeat()?.sessionId;
-    if (!sessionId) {
-      this.toast.showError('ไม่พบเซสชัน');
+    const expectedRevision = this.requireExpectedRevision();
+    if (!sessionId || expectedRevision == null) {
+      if (!sessionId) this.toast.showError('ไม่พบเซสชัน');
       return;
     }
 
@@ -1165,6 +1209,7 @@ export class OpenTablePageComponent implements OnInit {
       this.openTableService.addOrderItems({
         shopId: this.shopId,
         sessionId,
+        expectedRevision,
         items,
         staffDrinks,
       }),
@@ -1201,13 +1246,16 @@ export class OpenTablePageComponent implements OnInit {
     const seat = this.selectedSeat();
     const destKey = this.transferDestinationKey();
     const destination = destKey ? this.seats().find((s) => s.key === destKey) : null;
-    if (!seat?.sessionId || !destination) {
+    const expectedRevision = this.requireExpectedRevision();
+    if (!seat?.sessionId || !destination || expectedRevision == null) {
       this.toast.showError('กรุณาเลือกปลายทาง');
       return;
     }
     this.runAction(
       this.openTableService.transferSeat({
         shopId: this.shopId,
+        sessionId: seat.sessionId,
+        expectedRevision,
         sourceSeatingId: seat.seatId,
         destinationSeatingId: destination.seatId,
       }),
@@ -1238,8 +1286,9 @@ export class OpenTablePageComponent implements OnInit {
 
   confirmStopRoom(): void {
     const sessionId = this.selectedSeat()?.sessionId;
+    const expectedRevision = this.requireExpectedRevision();
     const row = this.stopRoomTarget();
-    if (!sessionId || !row) {
+    if (!sessionId || !row || expectedRevision == null) {
       this.toast.showError('ไม่พบรายการห้อง');
       return;
     }
@@ -1252,6 +1301,7 @@ export class OpenTablePageComponent implements OnInit {
       this.openTableService.stopRoomCharge({
         shopId: this.shopId,
         sessionId,
+        expectedRevision,
         roomChargeId: row.roomChargeId,
         seatStoppedAt,
       }),
@@ -1285,8 +1335,9 @@ export class OpenTablePageComponent implements OnInit {
 
   confirmStopDrink(): void {
     const sessionId = this.selectedSeat()?.sessionId;
+    const expectedRevision = this.requireExpectedRevision();
     const row = this.stopDrinkTarget();
-    if (!sessionId || !row) {
+    if (!sessionId || !row || expectedRevision == null) {
       this.toast.showError('ไม่พบรายการรันดื่ม');
       return;
     }
@@ -1299,6 +1350,7 @@ export class OpenTablePageComponent implements OnInit {
       this.openTableService.stopStaffDrink({
         shopId: this.shopId,
         sessionId,
+        expectedRevision,
         staffDrinkId: row.staffDrinkId,
         seatStoppedAt,
       }),
@@ -1336,8 +1388,9 @@ export class OpenTablePageComponent implements OnInit {
 
   confirmReturnBeverage(): void {
     const sessionId = this.selectedSeat()?.sessionId;
+    const expectedRevision = this.requireExpectedRevision();
     const item = this.returnBeverageTarget();
-    if (!sessionId || !item) {
+    if (!sessionId || !item || expectedRevision == null) {
       this.toast.showError('ไม่พบรายการเครื่องดื่ม');
       return;
     }
@@ -1354,6 +1407,7 @@ export class OpenTablePageComponent implements OnInit {
       this.openTableService.returnBeverage({
         shopId: this.shopId,
         sessionId,
+        expectedRevision,
         itemId: item.itemId,
         unitPrice: item.unitPrice,
         isFreeMixer: Boolean(item.isFreeMixer),
@@ -1434,7 +1488,8 @@ export class OpenTablePageComponent implements OnInit {
 
   confirmCheckout(): void {
     const sessionId = this.selectedSeat()?.sessionId;
-    if (!sessionId) {
+    const expectedRevision = this.requireExpectedRevision();
+    if (!sessionId || expectedRevision == null) {
       this.toast.showError('ไม่พบบิลที่เปิดอยู่');
       return;
     }
@@ -1448,6 +1503,7 @@ export class OpenTablePageComponent implements OnInit {
       this.openTableService.checkoutBill({
         shopId: this.shopId,
         sessionId,
+        expectedRevision,
         checkedOutAt,
         releaseSeat: false,
       }),
@@ -1476,7 +1532,8 @@ export class OpenTablePageComponent implements OnInit {
 
   async releaseCustomerFromSeat(): Promise<void> {
     const sessionId = this.selectedSeat()?.sessionId;
-    if (!sessionId) {
+    const expectedRevision = this.requireExpectedRevision();
+    if (!sessionId || expectedRevision == null) {
       this.toast.showError('ไม่พบบิลที่เปิดอยู่');
       return;
     }
@@ -1496,7 +1553,11 @@ export class OpenTablePageComponent implements OnInit {
     }
 
     this.runAction(
-      this.openTableService.releaseCustomer({ shopId: this.shopId, sessionId }),
+      this.openTableService.releaseCustomer({
+        shopId: this.shopId,
+        sessionId,
+        expectedRevision,
+      }),
       'ปล่อยโต๊ะแล้ว',
       () => {
         this.closeDrawer();
@@ -1515,8 +1576,15 @@ export class OpenTablePageComponent implements OnInit {
     this.actionBusy.set(true);
     request$
       .pipe(
-        catchError((err: { error?: { error?: string } }) => {
-          this.toast.showError(err?.error?.error ?? 'เกิดข้อผิดพลาด');
+        catchError((err: unknown) => {
+          const httpErr = err instanceof HttpErrorResponse ? err : null;
+          const msg =
+            (httpErr?.error as { error?: string } | undefined)?.error ??
+            'เกิดข้อผิดพลาด';
+          this.toast.showError(msg);
+          if (httpErr?.status === 409) {
+            this.onMutationConflict();
+          }
           return of(null);
         }),
         finalize(() => this.actionBusy.set(false)),

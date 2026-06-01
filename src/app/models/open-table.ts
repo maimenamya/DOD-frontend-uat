@@ -8,6 +8,7 @@ export type FloorPlanSeat = {
   status: SeatStatus;
   seatingTypeId: number;
   sessionId: number | null;
+  sessionRevision: number | null;
   saleName: string | null;
 };
 
@@ -40,9 +41,13 @@ export type SessionOrderItem = {
   canReturn?: boolean;
 };
 
-export type ReturnBeveragePayload = {
+export type SessionMutationBase = {
   shopId: number;
   sessionId: number;
+  expectedRevision: number;
+};
+
+export type ReturnBeveragePayload = SessionMutationBase & {
   itemId: number;
   unitPrice: number;
   isFreeMixer: boolean;
@@ -62,9 +67,7 @@ export type SessionRoomCharge = {
   canStop: boolean;
 };
 
-export type StopRoomChargePayload = {
-  shopId: number;
-  sessionId: number;
+export type StopRoomChargePayload = SessionMutationBase & {
   roomChargeId: number;
   seatStoppedAt: string;
 };
@@ -82,9 +85,7 @@ export type SessionStaffDrink = {
   note?: string;
 };
 
-export type StopStaffDrinkPayload = {
-  shopId: number;
-  sessionId: number;
+export type StopStaffDrinkPayload = SessionMutationBase & {
   staffDrinkId: number;
   seatStoppedAt: string;
 };
@@ -93,6 +94,7 @@ export type TxnActiveSessionStatus = 'OPEN' | 'BILLED';
 
 export type OpenTableSessionDetail = {
   sessionId: number;
+  revision: number;
   sessionStatus?: TxnActiveSessionStatus;
   lastCheckedOutLabel?: string;
   canReleaseCustomer?: boolean;
@@ -125,9 +127,7 @@ export type SessionOrderItemType =
   | 'MEMBERSHIP'
   | 'OTHER';
 
-export type AddItemsPayload = {
-  shopId: number;
-  sessionId: number;
+export type AddItemsPayload = SessionMutationBase & {
   items: Array<{
     itemId: number;
     quantity: number;
@@ -143,15 +143,18 @@ export type AddItemsPayload = {
   }>;
 };
 
-export type TransferSeatPayload = {
-  shopId: number;
+export type TransferSeatPayload = SessionMutationBase & {
   sourceSeatingId: number;
   destinationSeatingId: number;
 };
 
-export type CheckoutPayload = {
+export type CheckoutPreviewPayload = {
   shopId: number;
   sessionId: number;
+  checkedOutAt: string;
+};
+
+export type CheckoutPayload = SessionMutationBase & {
   checkedOutAt: string;
   releaseSeat?: boolean;
 };
@@ -182,15 +185,13 @@ export type CheckoutResult = {
   sessionClosed: boolean;
 };
 
-export type ReleaseCustomerPayload = {
-  shopId: number;
-  sessionId: number;
-};
+export type ReleaseCustomerPayload = SessionMutationBase;
 
 export type TxnActiveSessionRecord = {
   id: number;
   shopId: number;
   seatingId: number | null;
   saleEmployeeId: string;
+  revision: number;
   createdAt: string;
 };
