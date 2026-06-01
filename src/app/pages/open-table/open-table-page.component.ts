@@ -1223,9 +1223,12 @@ export class OpenTablePageComponent implements OnInit {
         staffDrinks,
       }),
       successMessage,
-      () => {
+      (detail) => {
         this.closeAddModal();
-        this.loadSessionDetail(sessionId, { showLoading: false });
+        if (this.selectedSeat()?.sessionId === sessionId) {
+          this.sessionDetail.set(detail);
+          this.syncSeatRevisionFromDetail(detail);
+        }
         if (staffDrinks.length > 0) {
           this.reloadStaffEmployees();
         }

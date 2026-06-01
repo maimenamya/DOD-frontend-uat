@@ -14,11 +14,9 @@ export function portalElementToBody(element: HTMLElement): () => void {
   parent.insertBefore(placeholder, element);
   document.body.appendChild(element);
   return () => {
-    if (placeholder.parentNode) {
-      placeholder.parentNode.insertBefore(element, placeholder);
-      placeholder.remove();
-    } else if (element.parentNode === document.body) {
-      element.remove();
-    }
+    // Do not re-insert into the template — that leaves a detached DOM shell on screen
+    // (frozen "กำลังบันทึก..." while Angular already destroyed the component).
+    placeholder.remove();
+    element.remove();
   };
 }
