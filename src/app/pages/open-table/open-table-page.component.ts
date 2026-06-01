@@ -1155,7 +1155,9 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
     if (!this.ledgerCanMutate()) {
-      this.toast.showError('เช็กบิลแล้ว — ไม่สามารถเพิ่มรายการได้');
+      this.toast.showError(
+        'โต๊ะนี้ถูกเช็กบิลแล้ว ไม่สามารถเพิ่มรายการได้ — ถ้าลูกค้าออกจากโต๊ะแล้วให้กดลูกค้ากลับ',
+      );
       return;
     }
     this.showMobileSheet.set(false);
@@ -1175,7 +1177,9 @@ export class OpenTablePageComponent implements OnInit {
 
   submitAddItems(): void {
     if (!this.ledgerCanMutate()) {
-      this.toast.showError('เช็กบิลแล้ว — ไม่สามารถเพิ่มรายการได้');
+      this.toast.showError(
+        'โต๊ะนี้ถูกเช็กบิลแล้ว ไม่สามารถเพิ่มรายการได้ — ถ้าลูกค้าออกจากโต๊ะแล้วให้กดลูกค้ากลับ',
+      );
       this.closeAddModal();
       return;
     }
