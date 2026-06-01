@@ -2527,11 +2527,71 @@
   }
 
   /* ── Modal ── */
+  app-modal {
+    @apply block;
+  }
+
+  body.app-modal-open,
+  body.open-table-mobile-sheet-open {
+    overflow: hidden;
+  }
+
   .app-modal-overlay {
-    @apply fixed inset-0 z-[70] flex items-center justify-center p-4;
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    margin: 0;
+    padding: 1rem;
+    box-sizing: border-box;
     background: var(--overlay-scrim);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+  }
+
+  /* Open-table mobile sheet — portaled to body (above app header) */
+  .open-table-mobile-layer {
+    display: block;
+  }
+
+  .open-table-mobile-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    cursor: pointer;
+    background: var(--overlay-scrim);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: opacity 300ms ease-in-out;
+  }
+
+  .open-table-mobile-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 56;
+    max-height: min(85dvh, 85vh);
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-bottom: 0;
+    border-top-left-radius: 1.25rem;
+    border-top-right-radius: 1.25rem;
+    padding: 1rem;
+    background: var(--surface-strong);
+    box-shadow: var(--shadow-card);
+    transition: transform 300ms ease-in-out;
   }
 
   .app-modal-overlay--sheet {

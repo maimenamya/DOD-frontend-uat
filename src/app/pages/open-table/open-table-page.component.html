@@ -128,14 +128,19 @@
 
   @if (showMobileSheet() && selectedSeat() && !anyModalOpen()) {
     <div
-      class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ease-in-out xl:hidden"
-      (click)="closeDrawer()"
-    ></div>
-    <div
-      class="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-[1.25rem] border border-theme-border p-4 shadow-card transition-transform duration-300 ease-in-out xl:hidden"
-      style="background: var(--surface-strong)"
+      class="open-table-mobile-layer xl:hidden"
+      appPortalToBody
+      [bodyLockClass]="openTableMobileSheetBodyLockClass"
     >
-      <ng-container *ngTemplateOutlet="sessionPanel"></ng-container>
+      <button
+        type="button"
+        class="open-table-mobile-scrim"
+        aria-label="ปิดแผงบิล"
+        (click)="closeDrawer()"
+      ></button>
+      <div class="open-table-mobile-sheet" role="dialog" aria-modal="true">
+        <ng-container *ngTemplateOutlet="sessionPanel"></ng-container>
+      </div>
     </div>
   }
 </div>

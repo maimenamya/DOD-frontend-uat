@@ -6,6 +6,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { catchError, finalize, forkJoin, of } from 'rxjs';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { PortalToBodyDirective } from '../../directives/portal-to-body.directive';
+import { OPEN_TABLE_MOBILE_SHEET_BODY_LOCK_CLASS } from '../../utils/body-portal.util';
 import { ShopDatetimeInputComponent } from '../../components/shop-datetime-input/shop-datetime-input.component';
 import {
   CustomDropdownComponent,
@@ -80,12 +82,15 @@ type SeatTile = {
     FormsModule,
     AppModalComponent,
     CustomDropdownComponent,
+    PortalToBodyDirective,
     ShopDatetimeInputComponent,
   ],
   templateUrl: './open-table-page.component.html',
   styleUrl: './open-table-page.component.css',
 })
 export class OpenTablePageComponent implements OnInit {
+  readonly openTableMobileSheetBodyLockClass = OPEN_TABLE_MOBILE_SHEET_BODY_LOCK_CLASS;
+
   private readonly destroyRef = inject(DestroyRef);
   private readonly openTableService = inject(OpenTableService);
   private readonly shopMaster = inject(ShopMasterService);

@@ -1,5 +1,14 @@
-import { Component, input, output } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  DestroyRef,
+  ElementRef,
+  inject,
+  input,
+  output,
+} from '@angular/core';
 
+import { APP_MODAL_BODY_LOCK_CLASS, portalElementToBody } from '../../utils/body-portal.util';
 import { closeOpenShopFlatpickrCalendars } from '../../utils/flatpickr-shop.util';
 
 export type AppModalLayout = 'center' | 'sheet';
@@ -13,6 +22,10 @@ export type AppModalLayout = 'center' | 'sheet';
   },
 })
 export class AppModalComponent {
+  private readonly hostEl = inject(ElementRef<HTMLElement>);
+  private readonly destroyRef = inject(DestroyRef);
+  private restorePortal: (() => void) | null = null;
+
   readonly closeOnBackdrop = input(true);
   /** `sheet` = bottom sheet on small screens; `center` = master CRUD dialog. */
   readonly layout = input<AppModalLayout>('center');
@@ -20,6 +33,18 @@ export class AppModalComponent {
 
   /** First backdrop tap closes datetime picker only; second tap closes modal. */
   private closedFlatpickrOnBackdrop = false;
+
+  constructor() {
+    afterNextRender(() => {
+      this.restorePortal = portalElementToBody(this.hostEl.nativeElement);
+      document.body.classList.add(APP_MODAL_BODY_LOCK_CLASS);
+    });
+    this.destroyRef.onDestroy(() => {
+      this.restorePortal?.();
+      this.restorePortal = null;
+      document.body.classList.remove(APP_MODAL_BODY_LOCK_CLASS);
+    });
+  }
 
   onBackdropPointerDown(event: PointerEvent): void {
     this.closedFlatpickrOnBackdrop = false;
