@@ -441,6 +441,29 @@ export class OpenTablePageComponent implements OnInit {
   ngOnInit(): void {
     this.refreshFloorPlan();
     this.loadMasterData();
+    this.startFloorPlanSync();
+  }
+
+  /** Keep floor tiles in sync when multiple staff use open-table (demo until Socket.io). */
+  private startFloorPlanSync(): void {
+    const intervalMs = 20_000;
+    const timer = setInterval(() => {
+      if (!this.anyModalOpen()) {
+        this.refreshFloorPlan(this.selectedSeatKey(), { silent: true });
+      }
+    }, intervalMs);
+
+    const onVisibility = (): void => {
+      if (document.visibilityState === 'visible') {
+        this.refreshFloorPlan(this.selectedSeatKey(), { silent: true });
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    this.destroyRef.onDestroy(() => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisibility);
+    });
   }
 
   private get shopId(): number {
@@ -1075,6 +1098,9 @@ export class OpenTablePageComponent implements OnInit {
       (session) => {
         this.applySeatCheckIn(seat.key, session.id, saleName);
         this.refreshFloorPlan(seat.key, { silent: true });
+      },
+      () => {
+        this.refreshFloorPlan(this.selectedSeatKey(), { silent: true });
       },
     );
   }
