@@ -26,7 +26,7 @@ export interface AuthUser {
   /** Thai label for header/profile (from JWT / login response). */
   roleDisplayNameTh: string;
   roleCategory: RoleCategory;
-  shopName: string;
+  shop: { id: number; name: string };
 }
 
 export interface AuthResponse {

@@ -42,17 +42,17 @@ export class MasterPromotionPageComponent implements OnInit {
 
   readonly createForm = this.fb.group({
     name: ['', Validators.required],
-    packagePrice: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    packagePrice: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     drinkId: [0, [Validators.required, Validators.min(1)]],
-    quantity: ['1', [Validators.required, Validators.pattern(/^\d+$/)]],
+    quantity: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     isFreeMixer: [false],
   });
 
   readonly editForm = this.fb.group({
     name: ['', Validators.required],
-    packagePrice: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    packagePrice: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     drinkId: [0, [Validators.required, Validators.min(1)]],
-    quantity: ['1', [Validators.required, Validators.pattern(/^\d+$/)]],
+    quantity: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     isFreeMixer: [false],
   });
 
@@ -91,12 +91,11 @@ export class MasterPromotionPageComponent implements OnInit {
 
   openCreate(): void {
     if (this.loading()) return;
-    const firstDrinkId = this.drinkOptions()[0]?.value as number | undefined;
     this.createForm.reset({
       name: '',
-      packagePrice: '0',
-      drinkId: firstDrinkId ?? 0,
-      quantity: '1',
+      packagePrice: '',
+      drinkId: 0,
+      quantity: '',
       isFreeMixer: false,
     });
     this.showCreateModal.set(true);

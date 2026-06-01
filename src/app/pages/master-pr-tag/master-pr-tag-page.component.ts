@@ -34,21 +34,21 @@ export class MasterPrTagPageComponent implements OnInit {
 
   readonly createForm = this.fb.group({
     name: ['', Validators.required],
-    requiredWorkingDays: ['10', [Validators.required, Validators.pattern(/^\d+$/)]],
-    allowedOffDays: ['2', [Validators.required, Validators.pattern(/^\d+$/)]],
-    targetDrinks: ['100', [Validators.required, Validators.pattern(/^\d+$/)]],
-    guaranteeAmount: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
-    dropoutPayoutAmount: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    requiredWorkingDays: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    allowedOffDays: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    targetDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    guaranteeAmount: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    dropoutPayoutAmount: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     isActive: [true],
   });
 
   readonly editForm = this.fb.group({
     name: ['', Validators.required],
-    requiredWorkingDays: ['10', [Validators.required, Validators.pattern(/^\d+$/)]],
-    allowedOffDays: ['2', [Validators.required, Validators.pattern(/^\d+$/)]],
-    targetDrinks: ['100', [Validators.required, Validators.pattern(/^\d+$/)]],
-    guaranteeAmount: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
-    dropoutPayoutAmount: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    requiredWorkingDays: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    allowedOffDays: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    targetDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    guaranteeAmount: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    dropoutPayoutAmount: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     isActive: [true],
   });
 
@@ -79,11 +79,11 @@ export class MasterPrTagPageComponent implements OnInit {
     if (this.loading()) return;
     this.createForm.reset({
       name: '',
-      requiredWorkingDays: '10',
-      allowedOffDays: '2',
-      targetDrinks: '100',
-      guaranteeAmount: '0',
-      dropoutPayoutAmount: '0',
+      requiredWorkingDays: '',
+      allowedOffDays: '',
+      targetDrinks: '',
+      guaranteeAmount: '',
+      dropoutPayoutAmount: '',
       isActive: true,
     });
     this.showCreateModal.set(true);

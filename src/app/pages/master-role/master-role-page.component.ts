@@ -11,11 +11,6 @@ import {
   CustomDropdownComponent,
   type DropdownOption,
 } from '../../components/custom-dropdown/custom-dropdown.component';
-import {
-  DEFAULT_PR_NEXT_HOUR_DRINKS,
-  DEFAULT_PR_PRICE_PER_DRINK,
-  DEFAULT_PR_START_DRINKS,
-} from '../../constants/role-drink';
 import type { MstRole, RoleCategory } from '../../models/role';
 import { AuthService } from '../../services/auth.service';
 import { RoleService } from '../../services/role.service';
@@ -54,18 +49,18 @@ export class MasterRolePageComponent implements OnInit {
     name: ['', Validators.required],
     displayNameTh: ['', Validators.required],
     category: ['STAFF' as RoleCategory, Validators.required],
-    startDrinks: [String(DEFAULT_PR_START_DRINKS), [Validators.required, Validators.pattern(/^\d+$/)]],
-    nextHourDrinks: [String(DEFAULT_PR_NEXT_HOUR_DRINKS), [Validators.required, Validators.pattern(/^\d+$/)]],
-    defaultPricePerDrink: [String(DEFAULT_PR_PRICE_PER_DRINK), [Validators.required, Validators.pattern(/^\d+$/)]],
+    startDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    nextHourDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    defaultPricePerDrink: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
   });
 
   readonly editForm = this.fb.group({
     name: ['', Validators.required],
     displayNameTh: ['', Validators.required],
     category: ['STAFF' as RoleCategory, Validators.required],
-    startDrinks: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
-    nextHourDrinks: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
-    defaultPricePerDrink: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    startDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    nextHourDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    defaultPricePerDrink: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
   });
 
   ngOnInit(): void {
@@ -93,9 +88,9 @@ export class MasterRolePageComponent implements OnInit {
       name: '',
       displayNameTh: '',
       category: 'STAFF',
-      startDrinks: String(DEFAULT_PR_START_DRINKS),
-      nextHourDrinks: String(DEFAULT_PR_NEXT_HOUR_DRINKS),
-      defaultPricePerDrink: String(DEFAULT_PR_PRICE_PER_DRINK),
+      startDrinks: '',
+      nextHourDrinks: '',
+      defaultPricePerDrink: '',
     });
     this.showCreateModal.set(true);
   }

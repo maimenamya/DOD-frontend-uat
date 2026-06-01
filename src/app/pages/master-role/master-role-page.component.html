@@ -42,7 +42,6 @@
             class="app-input"
             (input)="sanitizeIntegerInput('create', 'startDrinks', $event)"
           />
-          <p class="app-field-hint">จำนวนหน่วยดื่มชั่วโมงแรก / เปิดโต๊ะ</p>
         </div>
         <div class="app-form-group">
           <label class="app-label">ชั่วโมงต่อไป</label>
@@ -54,7 +53,6 @@
             class="app-input"
             (input)="sanitizeIntegerInput('create', 'nextHourDrinks', $event)"
           />
-          <p class="app-field-hint">หน่วยดื่มที่คิดเพิ่มทุกชั่วโมงถัดไป</p>
         </div>
         <div class="app-form-group">
           <label class="app-label">ราคาต่อดื่ม</label>
@@ -66,7 +64,6 @@
             class="app-input"
             (input)="sanitizeIntegerInput('create', 'defaultPricePerDrink', $event)"
           />
-          <p class="app-field-hint">มูลค่า 1 หน่วยดื่ม PR สำหรับคำนวณยอดอัตโนมัติ</p>
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>

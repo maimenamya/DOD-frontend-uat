@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <title>DOD admin</title>
@@ -10,7 +10,19 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body data-theme="dark">
+<body data-theme="dark" class="dark-theme">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('dod-ui-theme');
+        if (t === 'light' || t === 'dark') {
+          document.documentElement.setAttribute('data-theme', t);
+          document.body.setAttribute('data-theme', t);
+          document.body.classList.toggle('dark-theme', t === 'dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
   <app-root></app-root>
   <div id="app-dropdown-overlay-root" class="app-dropdown-overlay-root" aria-hidden="true"></div>
 </body>

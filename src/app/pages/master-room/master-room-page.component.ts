@@ -45,13 +45,13 @@ export class MasterRoomPageComponent implements OnInit {
 
   readonly createForm = this.fb.group({
     roomCode: ['', Validators.required],
-    price: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     pricingType: ['HOURLY' as RoomPricingType, Validators.required],
   });
 
   readonly editForm = this.fb.group({
     roomCode: ['', Validators.required],
-    price: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     pricingType: ['HOURLY' as RoomPricingType, Validators.required],
   });
 
@@ -80,7 +80,7 @@ export class MasterRoomPageComponent implements OnInit {
 
   openCreate(): void {
     if (this.loading()) return;
-    this.createForm.reset({ roomCode: '', price: '0', pricingType: 'HOURLY' });
+    this.createForm.reset({ roomCode: '', price: '', pricingType: 'HOURLY' });
     this.showCreateModal.set(true);
   }
 

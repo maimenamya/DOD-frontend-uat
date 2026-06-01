@@ -34,14 +34,14 @@ export class MasterOtherChargePageComponent implements OnInit {
 
   readonly createForm = this.fb.group({
     name: ['', Validators.required],
-    price: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     unitLabelTh: ['ครั้ง', Validators.required],
     isActive: [true],
   });
 
   readonly editForm = this.fb.group({
     name: ['', Validators.required],
-    price: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     unitLabelTh: ['ครั้ง', Validators.required],
     isActive: [true],
   });
@@ -73,7 +73,7 @@ export class MasterOtherChargePageComponent implements OnInit {
     if (this.loading()) return;
     this.createForm.reset({
       name: '',
-      price: '0',
+      price: '',
       unitLabelTh: 'ครั้ง',
       isActive: true,
     });

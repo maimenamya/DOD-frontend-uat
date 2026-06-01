@@ -50,12 +50,12 @@ export class MasterFoodPageComponent implements OnInit {
 
   readonly createForm = this.fb.group({
     name: ['', Validators.required],
-    price: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
   });
 
   readonly editForm = this.fb.group({
     name: ['', Validators.required],
-    price: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
   });
 
   ngOnInit(): void {
@@ -104,7 +104,7 @@ export class MasterFoodPageComponent implements OnInit {
 
   openCreate(): void {
     if (this.loading() || !this.selectedCategory()) return;
-    this.createForm.reset({ name: '', price: '0' });
+    this.createForm.reset({ name: '', price: '' });
     this.showCreateModal.set(true);
   }
 

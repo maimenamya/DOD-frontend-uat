@@ -52,7 +52,7 @@ export class MasterSeatingTypePageComponent implements OnInit {
     code: ['', Validators.required],
     description: [''],
     rateType: ['NONE' as SeatingRateType, Validators.required],
-    basePrice: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    basePrice: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
   });
 
   readonly editForm = this.fb.group({
@@ -60,7 +60,7 @@ export class MasterSeatingTypePageComponent implements OnInit {
     code: ['', Validators.required],
     description: [''],
     rateType: ['NONE' as SeatingRateType, Validators.required],
-    basePrice: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    basePrice: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
   });
 
   ngOnInit(): void {
@@ -118,7 +118,7 @@ export class MasterSeatingTypePageComponent implements OnInit {
     const priceControl = form.controls.basePrice;
     if (rateType === 'NONE') {
       priceControl.clearValidators();
-      priceControl.setValue('0');
+      priceControl.setValue('');
     } else {
       priceControl.setValidators([Validators.required, Validators.pattern(/^\d+$/)]);
     }
@@ -132,7 +132,7 @@ export class MasterSeatingTypePageComponent implements OnInit {
       code: '',
       description: '',
       rateType: 'NONE',
-      basePrice: '0',
+      basePrice: '',
     });
     this.createRateTypeView.set('NONE');
     this.applyPriceFieldRules(this.createForm, 'NONE');

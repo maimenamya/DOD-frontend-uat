@@ -34,12 +34,12 @@ export class MasterCocktailPageComponent implements OnInit {
 
   readonly createForm = this.fb.group({
     name: ['', Validators.required],
-    drinkValue: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    drinkValue: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
   });
 
   readonly editForm = this.fb.group({
     name: ['', Validators.required],
-    drinkValue: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    drinkValue: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
   });
 
   ngOnInit(): void {
@@ -63,7 +63,7 @@ export class MasterCocktailPageComponent implements OnInit {
 
   openCreate(): void {
     if (this.loading()) return;
-    this.createForm.reset({ name: '', drinkValue: '0' });
+    this.createForm.reset({ name: '', drinkValue: '' });
     this.showCreateModal.set(true);
   }
 

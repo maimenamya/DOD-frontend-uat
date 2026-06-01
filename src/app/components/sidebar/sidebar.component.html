@@ -4,8 +4,7 @@
   [class.app-sidebar--open]="mobileOpen()"
 >
   <div class="app-sidebar-brand">
-    <p class="app-sidebar-brand-label">DOD System</p>
-    <p class="app-sidebar-brand-title">for fun</p>
+    <p class="app-sidebar-brand-title">{{ shopDisplayName() }}</p>
   </div>
 
   <nav class="app-sidebar-nav">
@@ -16,7 +15,7 @@
       (click)="collapseAllSubmenus(); mobileClose.emit()"
       class="app-sidebar-link"
     >
-      <span class="app-sidebar-icon" aria-hidden="true">📊</span>
+      <app-sidebar-icon name="dashboard" />
       แดชบอร์ด
     </a>
 
@@ -27,7 +26,7 @@
         (click)="collapseAllSubmenus(); mobileClose.emit()"
         class="app-sidebar-link"
       >
-        <span class="app-sidebar-icon" aria-hidden="true">🪑</span>
+        <app-sidebar-icon name="open-table" />
         เปิดโต๊ะ
       </a>
 
@@ -37,7 +36,7 @@
         (click)="collapseAllSubmenus(); mobileClose.emit()"
         class="app-sidebar-link"
       >
-        <span class="app-sidebar-icon" aria-hidden="true">🏷️</span>
+        <app-sidebar-icon name="tag" />
         จัดการ tag
       </a>
 
@@ -49,11 +48,12 @@
             [attr.aria-expanded]="isGroupExpanded(group.id)"
             (click)="toggleSubmenu(group.id)"
           >
-            <span class="app-sidebar-icon" aria-hidden="true">{{ group.icon }}</span>
+            <app-sidebar-icon [name]="group.icon" />
             <span class="app-sidebar-group-label">{{ group.label }}</span>
-            <span class="app-sidebar-group-chevron" aria-hidden="true">
-              {{ isGroupExpanded(group.id) ? '▾' : '▸' }}
-            </span>
+            <app-sidebar-icon
+              class="app-sidebar-group-chevron"
+              [name]="isGroupExpanded(group.id) ? 'chevron-down' : 'chevron-right'"
+            />
           </button>
           @if (isGroupExpanded(group.id)) {
             <div class="app-sidebar-subnav">
@@ -76,7 +76,7 @@
 
   <div class="app-sidebar-footer">
     <button type="button" class="app-sidebar-logout" (click)="logout(); mobileClose.emit()">
-      <span class="app-sidebar-icon" aria-hidden="true">🚪</span>
+      <app-sidebar-icon name="logout" />
       ออกจากระบบ
     </button>
   </div>

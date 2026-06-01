@@ -1,7 +1,8 @@
-﻿import { Component, inject, input, output, signal } from '@angular/core';
+﻿import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { AuthService } from '../../services/auth.service';
+import { SidebarIconComponent, type SidebarIconName } from './sidebar-icon.component';
 
 export interface SidebarNavLink {
   path: string;
@@ -11,7 +12,7 @@ export interface SidebarNavLink {
 export interface SidebarNavGroup {
   id: string;
   label: string;
-  icon: string;
+  icon: SidebarIconName;
   children: SidebarNavLink[];
 }
 
@@ -19,7 +20,7 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
   {
     id: 'employees',
     label: 'จัดการพนักงาน',
-    icon: '👥',
+    icon: 'employees',
     children: [
       { path: '/dashboard/employees', label: 'พนักงาน' },
       { path: '/dashboard/master-roles', label: 'ตำแหน่ง' },
@@ -28,7 +29,7 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
   {
     id: 'drinks',
     label: 'เครื่องดื่ม',
-    icon: '🍸',
+    icon: 'drinks',
     children: [
       { path: '/dashboard/master-drinks', label: 'เครื่องดื่ม' },
       { path: '/dashboard/master-cocktails', label: 'ค็อกเทล' },
@@ -37,7 +38,7 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
   {
     id: 'food',
     label: 'อาหาร',
-    icon: '🍽️',
+    icon: 'food',
     children: [
       { path: '/dashboard/master-foods', label: 'อาหาร' },
       { path: '/dashboard/master-food-categories', label: 'ประเภทอาหาร' },
@@ -46,7 +47,7 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
   {
     id: 'seatings',
     label: 'จัดการที่นั่ง',
-    icon: '🪑',
+    icon: 'seatings',
     children: [
       { path: '/dashboard/master-seatings', label: 'โซนที่นั่ง' },
       { path: '/dashboard/master-seating-types', label: 'ประเภทโซนที่นั่ง' },
@@ -55,29 +56,29 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
   {
     id: 'marketing',
     label: 'MstPromotion/Member',
-    icon: '🎁',
+    icon: 'marketing',
     children: [
       { path: '/dashboard/master-promotions', label: 'โปรโมชั่น' },
       { path: '/dashboard/master-memberships', label: 'เมมเบอร์' },
     ],
   },
   {
-    id: 'other-charges',
-    label: 'อื่นๆ',
-    icon: '🧾',
-    children: [{ path: '/dashboard/master-other-charges', label: 'รายการอื่นๆ' }],
-  },
-  {
     id: 'pr-tag-master',
     label: 'แพ็กเกจแท็ก',
-    icon: '📋',
+    icon: 'package',
     children: [{ path: '/dashboard/master-pr-tags', label: 'แพ็กเกจแท็ก PR' }],
+  },
+  {
+    id: 'other-charges',
+    label: 'อื่นๆ',
+    icon: 'receipt',
+    children: [{ path: '/dashboard/master-other-charges', label: 'รายการอื่นๆ' }],
   },
 ];
 
 @Component({
   selector: 'app-sidebar',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, SidebarIconComponent],
   templateUrl: './sidebar.component.html',
 })
 export class SidebarComponent {
@@ -86,6 +87,8 @@ export class SidebarComponent {
 
   readonly mobileOpen = input(false);
   readonly mobileClose = output<void>();
+
+  readonly shopDisplayName = computed(() => this.auth.getShopDisplayName());
 
   readonly showManagementLinks = this.auth.canAccessTeamManagement();
   readonly navGroups = MANAGEMENT_NAV_GROUPS;

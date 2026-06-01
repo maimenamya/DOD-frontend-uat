@@ -76,6 +76,11 @@ export class AuthService {
     return this.getUser()?.shopId ?? null;
   }
 
+  getShopDisplayName(): string {
+    const label = this.getUser()?.shop?.name?.trim();
+    return label || '—';
+  }
+
   getRole(): string | null {
     return this.getUser()?.role ?? null;
   }
@@ -194,7 +199,7 @@ export class AuthService {
         employee.role.displayNameTh,
       ),
       roleCategory: employee.role.category,
-      shopName: employee.shop.name,
+      shop: { id: employee.shop.id, name: employee.shop.name },
     });
     return { token, user };
   }
@@ -223,7 +228,16 @@ export class AuthService {
       role,
       roleDisplayNameTh,
       roleCategory,
-      shopName: user.shopName,
+      shop:
+        user.shop ??
+        (user.shopId
+          ? {
+              id: user.shopId,
+              name:
+                (user as AuthUser & { shopName?: string }).shopName?.trim() ||
+                '',
+            }
+          : { id: 0, name: '' }),
     };
   }
 

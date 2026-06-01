@@ -159,7 +159,7 @@
               sessionDetail()?.sessionStatus === 'BILLED' &&
               sessionDetail()?.lastCheckedOutLabel
             ) {
-              <p class="mt-1 text-xs font-medium text-primary-light">
+              <p class="mt-1 text-xs font-medium text-theme-accent">
                 เช็กบิลแล้ว · {{ sessionDetail()!.lastCheckedOutLabel }}
               </p>
             }
@@ -204,11 +204,11 @@
             aria-busy="true"
             aria-live="polite"
           >
-            <div class="h-8 w-8 animate-spin rounded-full border-2 border-theme-border border-t-primary-light"></div>
+            <div class="h-8 w-8 animate-spin rounded-full border-2 border-theme-border border-t-primary"></div>
             <p class="app-loading-text">กำลังโหลดรายการบิล...</p>
           </div>
         } @else if (seatAwaitingClear()) {
-          <p class="rounded-input border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
+          <p class="app-alert-warning" role="status">
             เช็กบิลแล้ว
             @if (sessionDetail()?.lastCheckedOutLabel) {
               ({{ sessionDetail()!.lastCheckedOutLabel }})
@@ -239,7 +239,7 @@
                     }
                     x {{ item.quantity }} {{ item.unitLabel }}
                     @if (item.isFreeMixer) {
-                      <span class="text-primary-light">(ฟรีมิกซ์)</span>
+                      <span class="text-theme-accent">(ฟรีมิกซ์)</span>
                     }
                   </span>
                   @if (item.canReturn) {
@@ -252,7 +252,7 @@
                       คืนของ
                     </button>
                   }
-                  <span class="ml-auto shrink-0 font-medium text-primary-light">
+                  <span class="ml-auto shrink-0 font-medium text-theme-accent">
                     {{ itemLineTotal(item) | number: '1.0-0' }} บาท
                   </span>
                 </p>
@@ -284,7 +284,7 @@
                         สต็อป
                       </button>
                     }
-                    <span class="ml-auto shrink-0 font-medium text-primary-light">
+                    <span class="ml-auto shrink-0 font-medium text-theme-accent">
                       {{ row.lineAmount | number: '1.0-0' }} บาท
                     </span>
                   </p>
@@ -321,7 +321,7 @@
                   @if (row.note) {
                     <span class="text-text-secondary">{{ row.note }}</span>
                   }
-                  <span class="ml-auto shrink-0 font-medium text-primary-light">
+                  <span class="ml-auto shrink-0 font-medium text-theme-accent">
                     {{ row.drinkAmount | number: '1.0-0' }} บาท
                   </span>
                 </p>
@@ -338,7 +338,7 @@
             </p>
             <p class="mt-1 text-sm text-text-secondary">
               ยอดเงินรวมบิล:
-              <span class="font-semibold text-primary-light">{{ totalAmount() | number: '1.0-0' }} บาท</span>
+              <span class="font-semibold text-theme-accent-strong">{{ totalAmount() | number: '1.0-0' }} บาท</span>
             </p>
           </div>
 
@@ -354,7 +354,7 @@
               </button>
               <button
                 type="button"
-                class="app-btn-secondary"
+                class="app-btn-accent"
                 [disabled]="actionBusy()"
                 (click)="handleSeatTransfer()"
               >
@@ -362,7 +362,7 @@
               </button>
               <button
                 type="button"
-                class="app-btn-success"
+                class="app-btn-checkout"
                 [disabled]="actionBusy()"
                 (click)="openCheckoutModal()"
               >
@@ -812,7 +812,7 @@
             <p class="text-sm text-text-secondary">
               ดื่มรวม <span class="font-semibold text-text-primary">{{ checkoutPreview()!.totalDrinks }}</span> ดื่ม
             </p>
-            <p class="text-base font-semibold text-primary-light mt-1">
+            <p class="text-base font-semibold text-theme-accent mt-1">
               ยอดรวม {{ checkoutPreview()!.billAmount | number: '1.0-0' }} บาท
             </p>
           </div>

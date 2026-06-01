@@ -34,7 +34,7 @@ export class MasterDrinkPageComponent implements OnInit {
 
   readonly createForm = this.fb.group({
     name: ['', Validators.required],
-    price: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     unitLabelTh: ['', Validators.required],
     isMixer: [false],
     canReturn: [false],
@@ -42,7 +42,7 @@ export class MasterDrinkPageComponent implements OnInit {
 
   readonly editForm = this.fb.group({
     name: ['', Validators.required],
-    price: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     unitLabelTh: ['', Validators.required],
     isMixer: [false],
     canReturn: [false],
@@ -69,7 +69,7 @@ export class MasterDrinkPageComponent implements OnInit {
 
   openCreate(): void {
     if (this.loading()) return;
-    this.createForm.reset({ name: '', price: '0', unitLabelTh: '', isMixer: false, canReturn: false });
+    this.createForm.reset({ name: '', price: '', unitLabelTh: '', isMixer: false, canReturn: false });
     this.showCreateModal.set(true);
   }
 

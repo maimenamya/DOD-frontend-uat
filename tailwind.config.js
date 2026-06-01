@@ -11,11 +11,18 @@ module.exports = {
         'surface-strong': 'var(--surface-strong)',
         'theme-border': 'var(--border)',
         'text-primary': 'var(--text-primary)',
+        'text-primary-dark': 'var(--text-primary-dark)',
         'text-secondary': 'var(--text-secondary)',
+        'text-label': 'var(--text-label)',
         primary: {
           DEFAULT: 'var(--primary)',
           light: 'var(--primary-light)',
         },
+        'theme-accent': {
+          DEFAULT: 'var(--text-accent)',
+          strong: 'var(--text-accent-strong)',
+        },
+        'on-warning': 'var(--text-on-warning)',
         glow: 'var(--glow)',
         accent: 'var(--accent)',
         danger: 'var(--danger)',

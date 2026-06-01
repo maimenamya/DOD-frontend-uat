@@ -135,12 +135,12 @@
     @if (showTripleStatCards()) {
       <div class="app-grid-stats-triple">
         <div class="app-stat-card app-stat-card-drinks-total">
-          <p class="app-stat-label app-stat-label-drinks">ยอดดื่มรวม</p>
+          <p class="app-stat-label app-stat-label-drinks-total">ยอดดื่มรวม</p>
           <p class="app-stat-value">{{ s.totalDrinks | number: '1.0-0' }}</p>
           <p class="app-stat-hint">รวมทั้งพนักงานและเด็กนั่งดริ๊งค์</p>
         </div>
         <div class="app-stat-card app-stat-card-drinks">
-          <p class="app-stat-label app-stat-label-drinks">ยอดดื่มพนักงาน</p>
+          <p class="app-stat-label app-stat-label-staff">ยอดดื่มพนักงาน</p>
           <p class="app-stat-value">{{ s.totalStaffDrinks | number: '1.0-0' }}</p>
           <p class="app-stat-hint">Sale, Admin, Manager</p>
         </div>

@@ -1,8 +1,7 @@
 <div class="app-page">
   <div class="app-page-header">
     <div>
-      <h1 class="app-page-title">แพ็กเกจแท็ก PR</h1>
-      <p class="app-page-subtitle">ตั้งค่าวันทำงาน โควตาดื่ม และเงินประกัน / เงินเมื่อตกแท็ก</p>
+      <h1 class="app-page-title">แท็ก PR</h1>
     </div>
     @if (canManage() && !loading()) {
       <button type="button" (click)="openCreate()" class="app-btn-primary">+ เพิ่มแพ็กเกจ</button>
@@ -18,11 +17,11 @@
       <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
           <label class="app-label">ชื่อแท็ก</label>
-          <input type="text" formControlName="name" class="app-input" placeholder="เช่น แท็กนักเรียน 10 วัน" />
+          <input type="text" formControlName="name" class="app-input" placeholder="เช่น แท็ก10วัน" />
         </div>
         <div class="app-form-row">
           <div class="app-form-group">
-            <label class="app-label">วันทำงานที่ต้องครบ</label>
+            <label class="app-label">จำนวนวันลงแท็ก</label>
             <input
               type="text"
               inputmode="numeric"
@@ -43,7 +42,7 @@
           </div>
         </div>
         <div class="app-form-group">
-          <label class="app-label">โควตาดื่มเป้าหมาย</label>
+          <label class="app-label">จำนวนยอดดื่มที่ต้องทำ</label>
           <input
             type="text"
             inputmode="numeric"
@@ -54,7 +53,7 @@
         </div>
         <div class="app-form-row">
           <div class="app-form-group">
-            <label class="app-label">เงินประกันเมื่อผ่าน (บาท)</label>
+            <label class="app-label">เงินการันตีจบแท็ก (บาท)</label>
             <input
               type="text"
               inputmode="numeric"
@@ -107,7 +106,7 @@
         </div>
         <div class="app-form-row">
           <div class="app-form-group">
-            <label class="app-label">วันทำงานที่ต้องครบ</label>
+            <label class="app-label">จำนวนวันลงแท็ก</label>
             <input
               type="text"
               inputmode="numeric"
@@ -128,7 +127,7 @@
           </div>
         </div>
         <div class="app-form-group">
-          <label class="app-label">โควตาดื่มเป้าหมาย</label>
+          <label class="app-label">จำนวนยอดดื่มที่ต้องทำ</label>
           <input
             type="text"
             inputmode="numeric"
@@ -139,7 +138,7 @@
         </div>
         <div class="app-form-row">
           <div class="app-form-group">
-            <label class="app-label">เงินประกันเมื่อผ่าน (บาท)</label>
+            <label class="app-label">เงินการันตีจบแท็ก (บาท)</label>
             <input
               type="text"
               inputmode="numeric"
@@ -208,8 +207,8 @@
                   <th>ชื่อแท็ก</th>
                   <th class="app-cell-center">วันทำงาน</th>
                   <th class="app-cell-center">วันหยุด</th>
-                  <th class="app-cell-center">โควตาดื่ม</th>
-                  <th class="app-cell-right">ประกัน</th>
+                  <th class="app-cell-center">ยอดดื่ม</th>
+                  <th class="app-cell-right">การันตี</th>
                   <th class="app-cell-right">ตกแท็ก</th>
                   <th class="app-cell-center">สถานะ</th>
                   @if (canManage()) {

@@ -3,51 +3,57 @@
 .open-table-seat-tile {
   border-width: 1px;
   border-style: solid;
+  transition:
+    background var(--transition-smooth),
+    border-color var(--transition-smooth),
+    color var(--transition-smooth),
+    box-shadow var(--transition-smooth);
 }
 
 .open-table-seat-tile--available {
-  background: #202533;
-  border-color: #2f3646;
-  color: #64748b;
+  background: var(--seat-available-bg);
+  border-color: var(--seat-available-border);
+  color: var(--seat-available-text);
+  font-weight: 600;
 }
 
 .open-table-seat-tile--occupied {
-  background: rgb(59 130 246 / 0.18);
-  border-color: #60a5fa;
-  color: #93c5fd;
+  background: var(--seat-occupied-bg);
+  border-color: var(--seat-occupied-border);
+  color: var(--seat-occupied-text);
 }
 
 .open-table-seat-tile--awaiting-clear {
-  background: rgb(245 158 11 / 0.18);
-  border-color: #fbbf24;
-  color: #fde68a;
+  background: var(--seat-awaiting-bg);
+  border-color: var(--seat-awaiting-border);
+  color: var(--seat-awaiting-text);
 }
 
 /* Selected ring matches status — no blue halo on amber “รอเคลีย” tiles. */
 .open-table-seat-tile--available.open-table-seat-tile--selected {
-  border-color: #94a3b8;
-  color: #cbd5e1;
+  border-color: color-mix(in srgb, var(--seat-available-text) 75%, #ffffff);
+  color: var(--text-primary);
   box-shadow:
-    0 0 0 2px rgb(148 163 184 / 0.55),
-    0 0 12px rgb(100 116 139 / 0.2);
+    0 0 0 2px color-mix(in srgb, var(--seat-available-text) 45%, transparent),
+    0 0 12px color-mix(in srgb, var(--seat-available-text) 18%, transparent);
 }
 
 .open-table-seat-tile--occupied.open-table-seat-tile--selected {
-  background: rgb(59 130 246 / 0.32);
-  border-color: #93c5fd;
-  color: #ffffff;
+  background: color-mix(in srgb, var(--primary) 28%, var(--seat-occupied-bg));
+  border-color: var(--seat-occupied-border);
+  color: var(--seat-occupied-text);
   box-shadow:
-    0 0 0 2px #60a5fa,
-    0 0 16px rgb(96 165 250 / 0.45);
+    0 0 0 2px var(--primary),
+    0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
 }
 
 .open-table-seat-tile--awaiting-clear.open-table-seat-tile--selected {
-  background: rgb(245 158 11 / 0.32);
-  border-color: #fcd34d;
-  color: #fffbeb;
+  background: color-mix(in srgb, var(--seat-awaiting-border) 32%, var(--seat-awaiting-bg));
+  border-color: var(--seat-awaiting-border);
+  color: var(--text-on-warning);
   box-shadow:
-    0 0 0 2px #fbbf24,
-    0 0 16px rgb(251 191 36 / 0.42);
+    0 0 0 2px var(--seat-awaiting-border),
+    0 0 16px color-mix(in srgb, var(--seat-awaiting-border) 40%, transparent);
 }
 
 .open-table-status-dot {
@@ -59,18 +65,18 @@
 }
 
 .open-table-status-dot--available {
-  background: #64748b;
-  box-shadow: 0 0 0 1px #2f3646;
+  background: var(--seat-available-text);
+  box-shadow: 0 0 0 1px var(--seat-available-border);
 }
 
 .open-table-status-dot--occupied {
-  background: #60a5fa;
-  box-shadow: 0 0 6px rgb(96 165 250 / 0.7);
+  background: var(--seat-occupied-border);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--primary) 55%, transparent);
 }
 
 .open-table-status-dot--awaiting-clear {
-  background: #fbbf24;
-  box-shadow: 0 0 6px rgb(251 191 36 / 0.55);
+  background: var(--seat-awaiting-border);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--seat-awaiting-border) 50%, transparent);
 }
 
 /* Filter row: color swatches (text in aria-label / title only). */
@@ -89,31 +95,42 @@
 }
 
 .open-table-filter-swatch--available {
-  background: #202533;
-  border-color: #2f3646;
+  background: var(--seat-available-bg);
+  border-color: var(--seat-available-border);
+}
+
+.open-table-filter-swatch.app-filter-chip-active {
+  color: inherit;
+  font-weight: 600;
+  box-shadow: none;
 }
 
 .open-table-filter-swatch--available.app-filter-chip-active {
-  border-color: #64748b;
-  box-shadow: 0 0 0 2px rgb(100 116 139 / 0.45);
+  background: var(--seat-available-bg);
+  border-color: var(--seat-available-text);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--seat-available-text) 35%, transparent);
 }
 
 .open-table-filter-swatch--occupied {
-  background: rgb(59 130 246 / 0.18);
-  border-color: #60a5fa;
+  background: var(--seat-occupied-bg);
+  border-color: var(--seat-occupied-border);
 }
 
 .open-table-filter-swatch--occupied.app-filter-chip-active {
-  box-shadow: 0 0 0 2px #60a5fa;
+  background: var(--seat-occupied-bg);
+  border-color: var(--seat-occupied-border);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--seat-occupied-border) 45%, transparent);
 }
 
 .open-table-filter-swatch--awaiting-clear {
-  background: rgb(245 158 11 / 0.18);
-  border-color: #fbbf24;
+  background: var(--seat-awaiting-bg);
+  border-color: var(--seat-awaiting-border);
 }
 
 .open-table-filter-swatch--awaiting-clear.app-filter-chip-active {
-  box-shadow: 0 0 0 2px #fbbf24;
+  background: var(--seat-awaiting-bg);
+  border-color: var(--seat-awaiting-border);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--seat-awaiting-border) 40%, transparent);
 }
 
 .open-table-filter-swatch-inner {
@@ -124,15 +141,15 @@
 }
 
 .open-table-filter-swatch--available .open-table-filter-swatch-inner {
-  background: #64748b;
+  background: var(--seat-available-text);
 }
 
 .open-table-filter-swatch--occupied .open-table-filter-swatch-inner {
-  background: #60a5fa;
+  background: var(--seat-occupied-border);
 }
 
 .open-table-filter-swatch--awaiting-clear .open-table-filter-swatch-inner {
-  background: #fbbf24;
+  background: var(--seat-awaiting-border);
 }
 
 .checkout-modal-panel {
@@ -154,6 +171,8 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-input, 0.5rem);
   background: var(--surface);
+  backdrop-filter: blur(var(--glass-blur-sm));
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
   padding: 0.75rem;
 }
 
@@ -202,7 +221,7 @@
 .checkout-preview-line-amount {
   flex-shrink: 0;
   font-weight: 600;
-  color: var(--primary-light);
+  color: var(--text-accent-strong);
   white-space: nowrap;
 }
 
