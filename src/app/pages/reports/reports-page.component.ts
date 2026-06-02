@@ -195,7 +195,8 @@ export class ReportsPageComponent implements OnInit {
       )
       .subscribe((result) => {
         if (!result) return;
-        this.toast.showSuccess(`ส่งสรุปรายงานทาง LINE ถึง ${result.sentTo} แล้ว`);
+        const fileHint = result.filename ? ` (แนบ ${result.filename})` : '';
+        this.toast.showSuccess(`ส่งรายงานทาง LINE ถึง ${result.sentTo} แล้ว${fileHint}`);
       });
   }
 

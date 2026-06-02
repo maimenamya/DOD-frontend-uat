@@ -87,4 +87,5 @@ export interface SendReportLinePayload extends ReportPreviewParams {
 export interface SendReportLineResult {
   ok: boolean;
   sentTo: string;
+  filename?: string;
 }
