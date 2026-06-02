@@ -18,6 +18,7 @@ export interface AuthUser {
   id: number;
   employeeId: string;
   email: string | null;
+  lineUserId: string | null;
   nickname: string;
   shopId: number;
   roleId: number;
@@ -35,6 +36,7 @@ export interface AuthResponse {
     id: number;
     employeeId: string;
     email: string | null;
+    lineUserId: string | null;
     nickname: string;
     shopId: number;
     roleId: number;
@@ -55,6 +57,7 @@ export interface AuthSession {
 
 export interface UpdateProfileRequest {
   email?: string | null;
+  lineUserId?: string | null;
   nickname?: string;
   password?: string;
 }

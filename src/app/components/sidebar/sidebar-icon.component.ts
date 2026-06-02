@@ -10,8 +10,11 @@ export type SidebarIconName =
   | 'seatings'
   | 'marketing'
   | 'receipt'
+  | 'more'
+  | 'report'
   | 'package'
   | 'logout'
+  | 'help'
   | 'chevron-down'
   | 'chevron-right';
 
@@ -94,6 +97,11 @@ export type SidebarIconName =
           <path d="M16 13H8" />
           <path d="M16 17H8" />
         }
+        @case ('more') {
+          <circle cx="5" cy="12" r="1.75" fill="currentColor" stroke="none" />
+          <circle cx="12" cy="12" r="1.75" fill="currentColor" stroke="none" />
+          <circle cx="19" cy="12" r="1.75" fill="currentColor" stroke="none" />
+        }
         @case ('package') {
           <path
             d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"
@@ -102,10 +110,22 @@ export type SidebarIconName =
           <path d="m3.3 7 7.7 4 7.7-4" />
           <path d="m7.5 4.27 9 5.15" />
         }
+        @case ('report') {
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+          <path d="M14 2v6h6" />
+          <path d="M16 13H8" />
+          <path d="M16 17H8" />
+          <path d="M10 9H8" />
+        }
         @case ('logout') {
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
           <path d="m16 17 5-5-5-5" />
           <path d="M21 12H9" />
+        }
+        @case ('help') {
+          <circle cx="12" cy="12" r="10" />
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+          <path d="M12 17h.01" />
         }
         @case ('chevron-down') {
           <path d="m6 9 6 6 6-6" />

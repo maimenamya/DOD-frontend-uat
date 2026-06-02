@@ -809,6 +809,13 @@
       var(--sidebar-icon-pill-glow);
   }
 
+  [data-theme='dark'] .app-sidebar-link-active .app-sidebar-icon,
+  [data-theme='dark'] .app-sidebar-sublink.app-sidebar-link-active .app-sidebar-icon,
+  body.dark-theme .app-sidebar-link-active .app-sidebar-icon,
+  body.dark-theme .app-sidebar-sublink.app-sidebar-link-active .app-sidebar-icon {
+    color: var(--sidebar-icon-active, #ffffff);
+  }
+
   .app-sidebar-group-chevron.app-sidebar-icon {
     width: auto;
     height: auto;
@@ -1083,7 +1090,28 @@
   }
 
   .app-sidebar-footer {
-    @apply border-t border-theme-border p-3;
+    @apply flex flex-col gap-1 border-t border-theme-border p-3;
+  }
+
+  .app-sidebar-help {
+    @apply flex w-full items-center gap-3 rounded-input border-0 bg-transparent px-3 py-2.5 text-left text-sm font-medium no-underline transition-all duration-200;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-sidebar-help:hover {
+    background: var(--surface-hover);
+    color: var(--text-primary);
+  }
+
+  .app-sidebar-help .app-sidebar-icon {
+    width: var(--sidebar-icon-box);
+    height: var(--sidebar-icon-box);
+    color: inherit;
+    background: transparent;
+    box-shadow: none;
   }
 
   .app-sidebar-logout {
@@ -2632,6 +2660,10 @@
 
   .app-field-hint {
     @apply mt-1 text-xs text-text-secondary;
+  }
+
+  .app-field-hint-link {
+    @apply font-semibold text-theme-accent underline-offset-2 hover:underline;
   }
 
   /* ── Grids & profile ── */

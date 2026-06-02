@@ -19,6 +19,7 @@ import { MasterSeatingListPageComponent } from './pages/master-seating-list/mast
 import { MasterSeatingTypePageComponent } from './pages/master-seating-type/master-seating-type-page.component';
 import { MyProfileComponent } from './pages/my-profile/my-profile.component';
 import { OpenTablePageComponent } from './pages/open-table/open-table-page.component';
+import { ReportsPageComponent } from './pages/reports/reports-page.component';
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
   {
@@ -103,6 +104,11 @@ export const routes: Routes = [
       {
         path: 'pr-tag-operations',
         component: PrTagOperationsPageComponent,
+        canActivate: [teamManagementGuard],
+      },
+      {
+        path: 'reports',
+        component: ReportsPageComponent,
         canActivate: [teamManagementGuard],
       },
       { path: 'my-profile', component: MyProfileComponent },

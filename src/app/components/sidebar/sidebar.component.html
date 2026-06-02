@@ -40,6 +40,16 @@
         จัดการ tag
       </a>
 
+      <a
+        routerLink="/dashboard/reports"
+        routerLinkActive="app-sidebar-link-active"
+        (click)="collapseAllSubmenus(); mobileClose.emit()"
+        class="app-sidebar-link"
+      >
+        <app-sidebar-icon name="report" />
+        ออกรายงาน
+      </a>
+
       @for (group of navGroups; track group.id) {
         <div class="app-sidebar-group">
           <button
@@ -75,6 +85,19 @@
   </nav>
 
   <div class="app-sidebar-footer">
+    @if (lineOaAddFriendUrl(); as oaUrl) {
+      <a
+        class="app-sidebar-help"
+        [href]="oaUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        title="เพิ่มเพื่อน LINE Official Account เพื่อรับรายงาน"
+        (click)="mobileClose.emit()"
+      >
+        <app-sidebar-icon name="help" />
+        เพิ่มเพื่อน LINE
+      </a>
+    }
     <button type="button" class="app-sidebar-logout" (click)="logout(); mobileClose.emit()">
       <app-sidebar-icon name="logout" />
       ออกจากระบบ

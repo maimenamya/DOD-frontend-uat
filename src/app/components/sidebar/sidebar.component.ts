@@ -1,7 +1,8 @@
-﻿import { Component, computed, inject, input, output, signal } from '@angular/core';
+﻿import { Component, computed, inject, input, OnInit, output, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { AuthService } from '../../services/auth.service';
+import { ConfigService } from '../../services/config.service';
 import { SidebarIconComponent, type SidebarIconName } from './sidebar-icon.component';
 
 export interface SidebarNavLink {
@@ -71,7 +72,7 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
   {
     id: 'other-charges',
     label: 'อื่นๆ',
-    icon: 'receipt',
+    icon: 'more',
     children: [{ path: '/dashboard/master-other-charges', label: 'รายการอื่นๆ' }],
   },
 ];
@@ -81,8 +82,9 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
   imports: [RouterLink, RouterLinkActive, SidebarIconComponent],
   templateUrl: './sidebar.component.html',
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit {
   private readonly auth = inject(AuthService);
+  private readonly configService = inject(ConfigService);
   private readonly router = inject(Router);
 
   readonly mobileOpen = input(false);
@@ -93,6 +95,13 @@ export class SidebarComponent {
   readonly showManagementLinks = this.auth.canAccessTeamManagement();
   readonly navGroups = MANAGEMENT_NAV_GROUPS;
   readonly activeSubmenu = signal<string | null>(this.getGroupIdByCurrentRoute());
+  readonly lineOaAddFriendUrl = signal<string | null>(null);
+
+  ngOnInit(): void {
+    this.configService.getClientConfig().subscribe((cfg) => {
+      this.lineOaAddFriendUrl.set(cfg.lineOaAddFriendUrl);
+    });
+  }
 
   toggleSubmenu(id: string): void {
     this.activeSubmenu.update((current) => (current === id ? null : id));
