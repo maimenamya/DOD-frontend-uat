@@ -88,4 +88,5 @@ export interface SendReportLineResult {
   ok: boolean;
   sentTo: string;
   filename?: string;
+  downloadLinkSent?: boolean;
 }

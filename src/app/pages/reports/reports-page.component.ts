@@ -195,8 +195,16 @@ export class ReportsPageComponent implements OnInit {
       )
       .subscribe((result) => {
         if (!result) return;
-        const fileHint = result.filename ? ` (แนบ ${result.filename})` : '';
-        this.toast.showSuccess(`ส่งรายงานทาง LINE ถึง ${result.sentTo} แล้ว${fileHint}`);
+        if (result.downloadLinkSent === false) {
+          this.toast.showSuccess(
+            `แจ้ง LINE ถึง ${result.sentTo} แล้ว (ลิงก์ไม่พร้อม — ใช้ดาวน์โหลด Excel ในเมนู)`,
+          );
+        } else {
+          const fileHint = result.filename ? ` (${result.filename})` : '';
+          this.toast.showSuccess(
+            `ส่งรายงานทาง LINE ถึง ${result.sentTo} แล้ว — กดปุ่มดาวน์โหลด Excel ในแชท${fileHint}`,
+          );
+        }
       });
   }
 

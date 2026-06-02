@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import {
   NonNullableFormBuilder,
   ReactiveFormsModule,
@@ -19,6 +20,7 @@ export class MyProfileComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly configService = inject(ConfigService);
   private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
 
   readonly user = this.auth.getUser();
   readonly submitting = signal(false);
@@ -72,7 +74,7 @@ export class MyProfileComponent implements OnInit {
         next: () => {
           this.submitting.set(false);
           this.toast.showSuccess('บันทึกโปรไฟล์เรียบร้อย');
-          this.form.patchValue({ password: '' });
+          void this.router.navigate(['/dashboard']);
         },
         error: (err: { error?: { error?: string } }) => {
           this.submitting.set(false);
