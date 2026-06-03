@@ -571,6 +571,51 @@
               (keydown)="blockNonNumericKey($event)"
               placeholder="1"
             />
+            <p class="app-field-hint">ใส่จำนวนเอง — ไม่คิดรันดื่มอัตโนมัติ</p>
+          </div>
+        }
+
+        @if (showStaffReopenChoice()) {
+          <div class="app-form-group">
+            <label class="app-label">นั่งต่อหลังสต็อปแล้ว</label>
+            <div class="flex flex-wrap gap-2">
+              <button
+                type="button"
+                class="app-filter-chip"
+                [class.app-filter-chip-active]="staffReopenMode() === 'CONTINUE'"
+                (click)="setStaffReopenMode('CONTINUE')"
+              >
+                รันต่อ (ไม่คิดสตาร์ทใหม่)
+              </button>
+              <button
+                type="button"
+                class="app-filter-chip"
+                [class.app-filter-chip-active]="staffReopenMode() === 'NEW_START'"
+                (click)="setStaffReopenMode('NEW_START')"
+              >
+                สตาร์ทใหม่
+              </button>
+            </div>
+            <p class="app-field-hint">
+              เลือกตามที่ตกลงกับลูกค้า — รันต่อจะไม่เพิ่มดื่มสตาร์ท แต่เริ่มนับชั่วโมงใหม่
+            </p>
+          </div>
+        }
+
+        @if (showStaffApplyStartToggle()) {
+          <div class="app-form-group">
+            <label class="flex cursor-pointer items-center gap-2 text-sm text-text-primary">
+              <input
+                type="checkbox"
+                class="size-4 rounded border-border-primary"
+                [ngModel]="staffApplyStartDrinks()"
+                (ngModelChange)="staffApplyStartDrinks.set($event)"
+              />
+              <span>คิดสตาร์ทดื่มเมื่อเริ่มนั่ง</span>
+            </label>
+            @if (staffStartDrinksHint()) {
+              <p class="app-field-hint">{{ staffStartDrinksHint() }}</p>
+            }
           </div>
         }
 

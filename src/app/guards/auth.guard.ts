@@ -14,24 +14,12 @@ export const authGuard: CanActivateFn = () => {
   return router.createUrlTree(['/login']);
 };
 
-/** SALE Team & PR Team — OWNER, ADMIN, MANAGER */
+/** @deprecated Use permissionGuard('master_data') or finer feature guards. */
 export const teamManagementGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
   if (auth.canAccessTeamManagement()) {
-    return true;
-  }
-
-  return router.createUrlTree(['/dashboard']);
-};
-
-/** Managers page — OWNER only */
-export const ownerOnlyGuard: CanActivateFn = () => {
-  const auth = inject(AuthService);
-  const router = inject(Router);
-
-  if (auth.isOwner()) {
     return true;
   }
 

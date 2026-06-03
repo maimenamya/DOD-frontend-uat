@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
-import { authGuard, guestGuard, teamManagementGuard } from './guards/auth.guard';
+import { authGuard, guestGuard } from './guards/auth.guard';
+import { permissionGuard } from './guards/permission.guard';
 import { MainShellComponent } from './layouts/main-shell/main-shell.component';
 import { DashboardPageComponent } from './pages/dashboard/dashboard-page.component';
 import { EmployeeManagementPageComponent } from './pages/employee-management/employee-management-page.component';
@@ -20,6 +21,7 @@ import { MasterSeatingTypePageComponent } from './pages/master-seating-type/mast
 import { MyProfileComponent } from './pages/my-profile/my-profile.component';
 import { OpenTablePageComponent } from './pages/open-table/open-table-page.component';
 import { ReportsPageComponent } from './pages/reports/reports-page.component';
+
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
   {
@@ -36,47 +38,47 @@ export const routes: Routes = [
       {
         path: 'open-table',
         component: OpenTablePageComponent,
-        canActivate: [teamManagementGuard],
+        canActivate: [permissionGuard('open_table')],
       },
       {
         path: 'employees',
         component: EmployeeManagementPageComponent,
-        canActivate: [teamManagementGuard],
+        canActivate: [permissionGuard('manage_employees')],
       },
       {
         path: 'master-roles',
         component: MasterRolePageComponent,
-        canActivate: [teamManagementGuard],
+        canActivate: [permissionGuard('manage_roles')],
       },
       {
         path: 'master-drinks',
         component: MasterDrinkPageComponent,
-        canActivate: [teamManagementGuard],
+        canActivate: [permissionGuard('master_data')],
       },
       {
         path: 'master-cocktails',
         component: MasterCocktailPageComponent,
-        canActivate: [teamManagementGuard],
+        canActivate: [permissionGuard('master_data')],
       },
       {
         path: 'master-food-categories',
         component: MasterFoodCategoryPageComponent,
-        canActivate: [teamManagementGuard],
+        canActivate: [permissionGuard('master_data')],
       },
       {
         path: 'master-foods',
         component: MasterFoodPageComponent,
-        canActivate: [teamManagementGuard],
+        canActivate: [permissionGuard('master_data')],
       },
       {
         path: 'master-seatings',
         component: MasterSeatingListPageComponent,
-        canActivate: [teamManagementGuard],
+        canActivate: [permissionGuard('master_data')],
       },
       {
         path: 'master-seating-types',
         component: MasterSeatingTypePageComponent,
-        canActivate: [teamManagementGuard],
+        canActivate: [permissionGuard('master_data')],
       },
       { path: 'record-drinks', redirectTo: 'open-table', pathMatch: 'full' },
       { path: 'master-tables', redirectTo: 'master-seatings', pathMatch: 'full' },
@@ -84,32 +86,32 @@ export const routes: Routes = [
       {
         path: 'master-promotions',
         component: MasterPromotionPageComponent,
-        canActivate: [teamManagementGuard],
+        canActivate: [permissionGuard('master_data')],
       },
       {
         path: 'master-memberships',
         component: MasterMembershipPageComponent,
-        canActivate: [teamManagementGuard],
+        canActivate: [permissionGuard('master_data')],
       },
       {
         path: 'master-other-charges',
         component: MasterOtherChargePageComponent,
-        canActivate: [teamManagementGuard],
+        canActivate: [permissionGuard('master_data')],
       },
       {
         path: 'master-pr-tags',
         component: MasterPrTagPageComponent,
-        canActivate: [teamManagementGuard],
+        canActivate: [permissionGuard('master_data')],
       },
       {
         path: 'pr-tag-operations',
         component: PrTagOperationsPageComponent,
-        canActivate: [teamManagementGuard],
+        canActivate: [permissionGuard('pr_tag_operations')],
       },
       {
         path: 'reports',
         component: ReportsPageComponent,
-        canActivate: [teamManagementGuard],
+        canActivate: [permissionGuard('reports')],
       },
       { path: 'my-profile', component: MyProfileComponent },
       { path: 'sale-team', redirectTo: 'employees', pathMatch: 'full' },

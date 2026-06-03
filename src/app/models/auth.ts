@@ -1,17 +1,13 @@
-﻿import type { RoleCategory } from './role';
+﻿import type { PermissionGroup } from './permission-group';
+import type { RoleCategory } from './role';
 
 export interface LoginRequest {
   employeeId: string;
   password: string;
 }
 
-export interface RegisterRequest {
-  employeeId: string;
-  password: string;
-  shopId: number;
-  role: string;
-  email?: string;
-  nickname: string;
+export interface CompleteRoleSetupRequest {
+  roleId: number;
 }
 
 export interface AuthUser {
@@ -21,13 +17,15 @@ export interface AuthUser {
   lineUserId: string | null;
   nickname: string;
   shopId: number;
-  roleId: number;
+  pendingRoleSetup: boolean;
+  roleId: number | null;
   /** MstRole name from master (e.g. SALE, PR, COYOTY). */
   role: string;
   /** Thai label for header/profile (from JWT / login response). */
   roleDisplayNameTh: string;
   roleCategory: RoleCategory;
-  shop: { id: number; name: string };
+  permissionGroup: PermissionGroup;
+  shop: { id: number; name: string; abbreviation: string };
 }
 
 export interface AuthResponse {
@@ -39,14 +37,16 @@ export interface AuthResponse {
     lineUserId: string | null;
     nickname: string;
     shopId: number;
-    roleId: number;
+    pendingRoleSetup: boolean;
+    roleId: number | null;
     role: {
       id: number;
       name: string;
       displayNameTh?: string | null;
       category: RoleCategory;
-    };
-    shop: { id: number; name: string };
+      permissionGroup: PermissionGroup;
+    } | null;
+    shop: { id: number; name: string; abbreviation: string };
   };
 }
 

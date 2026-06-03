@@ -140,6 +140,8 @@ export type AddItemsPayload = SessionMutationBase & {
     beverageId?: number;
     quantity?: number;
     seatStartedAt?: string;
+    /** Charge role startDrinks at seat-down (PR/entertainer). */
+    applyStartDrinks?: boolean;
   }>;
 };
 

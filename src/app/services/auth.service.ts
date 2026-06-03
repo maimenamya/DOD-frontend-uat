@@ -6,12 +6,21 @@ import type {
   AuthResponse,
   AuthSession,
   AuthUser,
+  CompleteRoleSetupRequest,
   LoginRequest,
-  RegisterRequest,
   UpdateProfileRequest,
 } from '../models/auth';
 import { ApiConfig } from '../core/api-config';
+import type { PermissionGroup } from '../models/permission-group';
 import type { RoleCategory } from '../models/role';
+import {
+  canManageEmployees,
+  canManageRoles,
+  canMutateEmployeeWithRoleGroup,
+  hasFeature,
+  usesSelfOnlyDashboard,
+  type AppFeature,
+} from '../utils/permission-group.util';
 import { roleDisplayNameTh } from '../utils/role-display.util';
 
 const STORAGE_KEY = 'dod_auth_session';
@@ -33,8 +42,14 @@ export class AuthService {
       .pipe(tap((response) => this.persistSession(response)));
   }
 
-  register(payload: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(this.api.resource('auth', 'register'), payload);
+  completeRoleSetup(payload: CompleteRoleSetupRequest): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(this.api.resource('auth', 'complete-role-setup'), payload)
+      .pipe(tap((response) => this.persistSession(response)));
+  }
+
+  needsRoleSetup(): boolean {
+    return this.getUser()?.pendingRoleSetup === true;
   }
 
   updateProfile(payload: UpdateProfileRequest): Observable<AuthResponse> {
@@ -81,6 +96,10 @@ export class AuthService {
     return label || '—';
   }
 
+  getShopAbbreviation(): string {
+    return this.getUser()?.shop?.abbreviation?.trim() ?? '';
+  }
+
   getRole(): string | null {
     return this.getUser()?.role ?? null;
   }
@@ -93,13 +112,27 @@ export class AuthService {
     return this.getUser()?.roleCategory ?? null;
   }
 
+  getPermissionGroup(): PermissionGroup | null {
+    return this.getUser()?.permissionGroup ?? null;
+  }
+
+  hasFeature(feature: AppFeature): boolean {
+    const group = this.getPermissionGroup();
+    if (!group) return false;
+    return hasFeature(group, feature);
+  }
+
+  usesSelfOnlyDashboard(): boolean {
+    const group = this.getPermissionGroup();
+    return group ? usesSelfOnlyDashboard(group) : false;
+  }
+
   isOwner(): boolean {
-    return this.getRole()?.toUpperCase() === 'OWNER';
+    return this.getPermissionGroup() === 'OWNER';
   }
 
   isManagerRole(): boolean {
-    const role = this.getRole()?.toUpperCase();
-    return role === 'ADMIN' || role === 'MANAGER';
+    return this.getPermissionGroup() === 'MANAGER';
   }
 
   isFieldStaff(): boolean {
@@ -129,14 +162,28 @@ export class AuthService {
   }
 
   canAccessTeamManagement(): boolean {
-    return this.isOwner() || this.isManagerRole();
+    const group = this.getPermissionGroup();
+    return group ? canManageEmployees(group) : false;
   }
 
-  canMutateEmployeeRow(targetRoleName?: string): boolean {
-    if (!targetRoleName || targetRoleName === 'OWNER') {
+  canAccessMasterData(): boolean {
+    return this.hasFeature('master_data');
+  }
+
+  canManageRoles(): boolean {
+    const group = this.getPermissionGroup();
+    return group ? canManageRoles(group) : false;
+  }
+
+  canMutateEmployeeRow(targetRole?: {
+    name?: string;
+    permissionGroup?: PermissionGroup;
+  }): boolean {
+    const viewer = this.getPermissionGroup();
+    if (!viewer || !targetRole?.permissionGroup) {
       return false;
     }
-    return this.canAccessTeamManagement();
+    return canMutateEmployeeWithRoleGroup(viewer, targetRole.permissionGroup);
   }
 
   canMutateOnManagersPage(targetRoleName?: string): boolean {
@@ -186,28 +233,72 @@ export class AuthService {
 
   private toSession(response: AuthResponse): AuthSession {
     const { employee, token } = response;
-    const user = this.normalizeUser({
-      id: employee.id,
-      employeeId: employee.employeeId,
-      email: employee.email,
-      lineUserId: employee.lineUserId ?? null,
-      nickname: employee.nickname,
-      shopId: employee.shopId,
-      roleId: employee.roleId,
-      role: employee.role.name,
-      roleDisplayNameTh: this.resolveRoleDisplayNameTh(
-        employee.role.name,
-        employee.role.displayNameTh,
-      ),
-      roleCategory: employee.role.category,
-      shop: { id: employee.shop.id, name: employee.shop.name },
-    });
+    const pendingRoleSetup = employee.pendingRoleSetup;
+    const user = pendingRoleSetup
+      ? this.normalizeUser({
+          id: employee.id,
+          employeeId: employee.employeeId,
+          email: employee.email,
+          lineUserId: employee.lineUserId ?? null,
+          nickname: employee.nickname,
+          shopId: employee.shopId,
+          pendingRoleSetup: true,
+          roleId: null,
+          role: '',
+          roleDisplayNameTh: 'กำลังตั้งค่าตำแหน่ง',
+          roleCategory: 'STAFF',
+          permissionGroup: 'OWNER',
+          shop: {
+            id: employee.shop.id,
+            name: employee.shop.name,
+            abbreviation: employee.shop.abbreviation,
+          },
+        })
+      : this.normalizeUser({
+          id: employee.id,
+          employeeId: employee.employeeId,
+          email: employee.email,
+          lineUserId: employee.lineUserId ?? null,
+          nickname: employee.nickname,
+          shopId: employee.shopId,
+          pendingRoleSetup: false,
+          roleId: employee.roleId,
+          role: employee.role!.name,
+          roleDisplayNameTh: this.resolveRoleDisplayNameTh(
+            employee.role!.name,
+            employee.role!.displayNameTh,
+          ),
+          roleCategory: employee.role!.category,
+          permissionGroup: employee.role!.permissionGroup,
+          shop: {
+            id: employee.shop.id,
+            name: employee.shop.name,
+            abbreviation: employee.shop.abbreviation,
+          },
+        });
     return { token, user };
   }
 
   private normalizeUser(user: AuthUser & { name?: string }): AuthUser {
     const nickname =
       user.nickname?.trim() || user.name?.trim() || user.employeeId?.trim() || '';
+    if (user.pendingRoleSetup) {
+      return {
+        id: user.id,
+        employeeId: user.employeeId,
+        email: user.email ?? null,
+        lineUserId: user.lineUserId ?? null,
+        nickname,
+        shopId: user.shopId,
+        pendingRoleSetup: true,
+        roleId: null,
+        role: '',
+        roleDisplayNameTh: user.roleDisplayNameTh?.trim() || 'กำลังตั้งค่าตำแหน่ง',
+        roleCategory: 'STAFF',
+        permissionGroup: 'OWNER',
+        shop: user.shop ?? { id: user.shopId, name: '', abbreviation: '' },
+      };
+    }
     const role =
       typeof user.role === 'string'
         ? user.role
@@ -215,6 +306,13 @@ export class AuthService {
     const roleCategory =
       user.roleCategory ??
       (role.toUpperCase() === 'PR' ? 'ENTERTAINER' : 'STAFF');
+    const permissionGroup =
+      user.permissionGroup ??
+      (role.toUpperCase() === 'OWNER'
+        ? 'OWNER'
+        : role === 'ADMIN' || role === 'MANAGER'
+          ? 'MANAGER'
+          : 'EMPLOYEE');
     const roleDisplayNameTh = this.resolveRoleDisplayNameTh(
       role,
       user.roleDisplayNameTh,
@@ -226,10 +324,12 @@ export class AuthService {
       lineUserId: user.lineUserId ?? null,
       nickname,
       shopId: user.shopId,
+      pendingRoleSetup: false,
       roleId: user.roleId,
       role,
       roleDisplayNameTh,
       roleCategory,
+      permissionGroup,
       shop:
         user.shop ??
         (user.shopId
@@ -238,8 +338,9 @@ export class AuthService {
               name:
                 (user as AuthUser & { shopName?: string }).shopName?.trim() ||
                 '',
+              abbreviation: '',
             }
-          : { id: 0, name: '' }),
+          : { id: 0, name: '', abbreviation: '' }),
     };
   }
 

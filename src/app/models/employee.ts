@@ -1,3 +1,4 @@
+import type { PermissionGroup } from './permission-group';
 import type { RoleCategory } from './role';
 import type {
   EmployeeAttendanceStatus,
@@ -15,6 +16,7 @@ export interface MstEmployee {
     name: string;
     displayNameTh?: string | null;
     category?: RoleCategory;
+    permissionGroup?: PermissionGroup;
     startDrinks?: number;
     nextHourDrinks?: number;
     defaultPricePerDrink?: number;

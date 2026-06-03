@@ -21,11 +21,9 @@ function readToken(): string | null {
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const api = inject(ApiConfig);
 
-  const isAuthEndpoint =
-    req.url.includes(api.resource('auth', 'login')) ||
-    req.url.includes(api.resource('auth', 'register'));
+  const isLoginEndpoint = req.url.includes(api.resource('auth', 'login'));
 
-  if (isAuthEndpoint) {
+  if (isLoginEndpoint) {
     return next(req);
   }
 

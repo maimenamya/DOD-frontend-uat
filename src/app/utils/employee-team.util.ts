@@ -1,5 +1,7 @@
 ﻿import type { EmployeeTeam } from '../models/employee';
 import type { MstRole, RoleCategory } from '../models/role';
+import type { PermissionGroup } from '../models/permission-group';
+import { canMutateEmployeeWithRoleGroup } from './permission-group.util';
 
 /** Maps role (name + category from master) to legacy `team` param for employee API. */
 export function teamForRole(role: Pick<MstRole, 'name' | 'category'>): EmployeeTeam {
@@ -17,24 +19,21 @@ export function teamForRoleName(roleName: string, category?: RoleCategory): Empl
 }
 
 export function isRoleMutableByViewer(
-  targetRole: Pick<MstRole, 'name' | 'category'> | string | undefined,
-  viewerIsOwner: boolean,
-  viewerCanManage: boolean,
+  targetRole: Pick<MstRole, 'name' | 'category' | 'permissionGroup'> | string | undefined,
+  viewerPermissionGroup: PermissionGroup | null,
 ): boolean {
-  const name = typeof targetRole === 'string' ? targetRole : targetRole?.name;
-  if (!name || name === 'OWNER') {
+  if (!viewerPermissionGroup) {
     return false;
   }
-  if (name === 'ADMIN' || name === 'MANAGER') {
-    return viewerIsOwner;
+  if (typeof targetRole === 'string' || !targetRole?.permissionGroup) {
+    const name = typeof targetRole === 'string' ? targetRole : targetRole?.name;
+    if (!name) return false;
+    if (name.toUpperCase() === 'OWNER') {
+      return viewerPermissionGroup === 'OWNER';
+    }
+    return canMutateEmployeeWithRoleGroup(viewerPermissionGroup, 'EMPLOYEE');
   }
-  if (viewerIsOwner) {
-    return true;
-  }
-  if (!viewerCanManage) {
-    return false;
-  }
-  return name === 'SALE' || name === 'PR' || typeof targetRole !== 'string';
+  return canMutateEmployeeWithRoleGroup(viewerPermissionGroup, targetRole.permissionGroup);
 }
 
 export {

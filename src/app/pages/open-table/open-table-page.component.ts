@@ -163,6 +163,10 @@ export class OpenTablePageComponent implements OnInit {
   readonly staffLedgerEmployeeId = signal<number | null>(null);
   readonly staffLedgerQtyText = signal('1');
   readonly staffSeatStartedAt = signal(currentDatetimeLocalValue());
+  /** Charge start drinks when PR sits (role.startDrinks > 0). */
+  readonly staffApplyStartDrinks = signal(true);
+  /** After stop on this table: continue run vs new start with start drinks. */
+  readonly staffReopenMode = signal<'CONTINUE' | 'NEW_START'>('CONTINUE');
 
   /** Destination seat key: `seating-12`. */
   transferDestinationKey = signal<string | null>(null);
@@ -405,6 +409,38 @@ export class OpenTablePageComponent implements OnInit {
     return role != null && isEntertainmentStaffRole(role);
   });
 
+  readonly staffReopenStoppedRowOnSession = computed(() => {
+    const employeeId = this.staffLedgerEmployeeId();
+    if (employeeId == null) return null;
+    const row = (this.sessionDetail()?.staffDrinks ?? []).find(
+      (r) => r.employeeRecordId === employeeId && r.seatStoppedLabel,
+    );
+    return row ?? null;
+  });
+
+  readonly showStaffReopenChoice = computed(() => {
+    const role = this.selectedStaffLedgerRole();
+    if (role == null || !isEntertainmentStaffRole(role)) return false;
+    return this.staffReopenStoppedRowOnSession() != null;
+  });
+
+  readonly showStaffApplyStartToggle = computed(() => {
+    const role = this.selectedStaffLedgerRole();
+    if (role == null || !isEntertainmentStaffRole(role)) return false;
+    if ((role.startDrinks ?? 0) < 1) return false;
+    if (this.showStaffReopenChoice()) {
+      return this.staffReopenMode() === 'NEW_START';
+    }
+    return true;
+  });
+
+  readonly staffStartDrinksHint = computed(() => {
+    const role = this.selectedStaffLedgerRole();
+    const n = role?.startDrinks ?? 0;
+    if (n < 1) return '';
+    return `ตำแหน่งนี้สตาร์ท ${n} ดื่ม`;
+  });
+
   readonly transferTypesWithAvailability = computed(() => {
     const targets = this.availableTransferTargets();
     const typeIds = new Set(targets.map((t) => t.seatingTypeId));
@@ -507,6 +543,7 @@ export class OpenTablePageComponent implements OnInit {
       roles.push({
         id: role.id,
         name: role.name,
+        permissionGroup: role.permissionGroup ?? 'EMPLOYEE',
         category: role.category,
         startDrinks: role.startDrinks ?? 0,
         nextHourDrinks: role.nextHourDrinks ?? 0,
@@ -798,6 +835,8 @@ export class OpenTablePageComponent implements OnInit {
   private resetStaffLedgerForm(): void {
     this.syncStaffLedgerRoles();
     this.staffLedgerQtyText.set('1');
+    this.staffApplyStartDrinks.set(true);
+    this.staffReopenMode.set('CONTINUE');
     this.stampStaffSeatStartTime();
   }
 
@@ -905,6 +944,15 @@ export class OpenTablePageComponent implements OnInit {
     this.syncStaffLedgerEmployee();
     if (isEntertainmentStaffRole(this.staffLedgerRoles().find((r) => r.id === roleId)!)) {
       this.stampStaffSeatStartTime();
+      this.staffApplyStartDrinks.set(true);
+      this.staffReopenMode.set('CONTINUE');
+    }
+  }
+
+  setStaffReopenMode(mode: 'CONTINUE' | 'NEW_START'): void {
+    this.staffReopenMode.set(mode);
+    if (mode === 'NEW_START') {
+      this.staffApplyStartDrinks.set(true);
     }
   }
 
@@ -916,6 +964,8 @@ export class OpenTablePageComponent implements OnInit {
     const id = Number(value);
     const valid = this.staffLedgerEmployees().some((e) => e.id === id);
     this.staffLedgerEmployeeId.set(valid ? id : null);
+    this.staffReopenMode.set('CONTINUE');
+    this.staffApplyStartDrinks.set(true);
   }
 
   onStaffLedgerQtyTextChange(value: string): void {
@@ -1009,7 +1059,25 @@ export class OpenTablePageComponent implements OnInit {
         this.toast.showError('กรุณาระบุเวลาเริ่มนั่งโต๊ะ');
         return null;
       }
-      return [{ employeeId, quantity: 0, seatStartedAt: seatLocal }];
+      const startDrinks = role.startDrinks ?? 0;
+      const isReopen = this.staffReopenStoppedRowOnSession() != null;
+      let applyStartDrinks = false;
+      if (startDrinks > 0) {
+        if (isReopen) {
+          applyStartDrinks =
+            this.staffReopenMode() === 'NEW_START' && this.staffApplyStartDrinks();
+        } else {
+          applyStartDrinks = this.staffApplyStartDrinks();
+        }
+      }
+      return [
+        {
+          employeeId,
+          quantity: 0,
+          seatStartedAt: seatLocal,
+          applyStartDrinks,
+        },
+      ];
     }
 
     const quantity = parsePositiveIntFromText(this.staffLedgerQtyText());

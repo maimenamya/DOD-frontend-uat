@@ -33,11 +33,11 @@
             formControlName="employeeId"
             autocomplete="username"
             class="glass-input"
-            placeholder="Username"
+            placeholder="รหัสเข้าระบบ เช่น ff1001"
           />
         </div>
         @if (form.controls.employeeId.touched && form.controls.employeeId.errors?.['required']) {
-          <p class="login-field-error">Employee ID is required</p>
+          <p class="login-field-error">กรุณาระบุรหัสเข้าระบบ</p>
         }
         @if (form.controls.employeeId.touched && form.controls.employeeId.errors?.['minlength']) {
           <p class="login-field-error">At least 3 characters required</p>

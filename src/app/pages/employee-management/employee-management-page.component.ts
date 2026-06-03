@@ -54,10 +54,11 @@ export class EmployeeManagementPageComponent implements OnInit {
 
   readonly tabRoles = computed(() => {
     const list = this.roles();
-    if (this.auth.isOwner()) {
+    const viewerGroup = this.auth.getPermissionGroup();
+    if (viewerGroup === 'OWNER') {
       return list;
     }
-    return list.filter((r) => r.name !== 'OWNER');
+    return list.filter((r) => r.permissionGroup !== 'OWNER');
   });
 
   readonly filteredEmployees = computed(() => {
@@ -77,8 +78,22 @@ export class EmployeeManagementPageComponent implements OnInit {
     { value: 'Inactive', label: 'ไม่ใช้งาน' },
   ];
 
+  readonly shopLoginPrefix = computed(() => {
+    const abbrev = this.auth.getShopAbbreviation();
+    return abbrev ? `${abbrev}` : '';
+  });
+
+  readonly createLoginPreview = computed(() => {
+    const prefix = this.shopLoginPrefix();
+    const local = this.createForm.controls.employeeId.value?.trim() ?? '';
+    if (!prefix) {
+      return local || '—';
+    }
+    return `${prefix}${local || '…'}`;
+  });
+
   readonly createForm = this.fb.group({
-    employeeId: ['', [Validators.required, Validators.minLength(3)]],
+    employeeId: ['', [Validators.required, Validators.minLength(2)]],
     password: ['', [Validators.required, Validators.minLength(6)]],
     nickname: ['', [Validators.required, Validators.minLength(1)]],
     email: [''],
@@ -115,7 +130,7 @@ export class EmployeeManagementPageComponent implements OnInit {
       .filter(
         (r) =>
           r.name !== 'OWNER' &&
-          isRoleMutableByViewer(r, this.auth.isOwner(), this.auth.canAccessTeamManagement()),
+          isRoleMutableByViewer(r, this.auth.getPermissionGroup()),
       )
       .map((r) => ({ value: r.id, label: roleOptionLabel(r) })),
   );
@@ -125,7 +140,11 @@ export class EmployeeManagementPageComponent implements OnInit {
       next: (roles) => {
         this.roles.set(roles);
         const fromQuery = this.route.snapshot.queryParamMap.get('role');
-        const tabs = this.auth.isOwner() ? roles : roles.filter((r) => r.name !== 'OWNER');
+        const viewerGroup = this.auth.getPermissionGroup();
+        const tabs =
+          viewerGroup === 'OWNER'
+            ? roles
+            : roles.filter((r) => r.permissionGroup !== 'OWNER');
         const initial =
           tabs.find((r) => r.name === fromQuery)?.name ?? tabs[0]?.name ?? null;
         if (initial) {
@@ -172,9 +191,12 @@ export class EmployeeManagementPageComponent implements OnInit {
     const role = employee.role;
     if (!role) return false;
     return isRoleMutableByViewer(
-      { name: role.name, category: role.category ?? 'STAFF' },
-      this.auth.isOwner(),
-      this.auth.canAccessTeamManagement(),
+      {
+        name: role.name,
+        category: role.category ?? 'STAFF',
+        permissionGroup: role.permissionGroup ?? 'EMPLOYEE',
+      },
+      this.auth.getPermissionGroup(),
     );
   }
 

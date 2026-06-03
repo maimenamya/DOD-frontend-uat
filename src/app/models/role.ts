@@ -1,3 +1,5 @@
+import type { PermissionGroup } from './permission-group';
+
 export const EMPLOYEE_ROLES = ['OWNER', 'ADMIN', 'MANAGER', 'SALE', 'PR'] as const;
 
 export type EmployeeRole = (typeof EMPLOYEE_ROLES)[number];
@@ -16,7 +18,9 @@ export const MANAGEMENT_TABLE_ROLES: readonly EmployeeRole[] = ['ADMIN', 'MANAGE
 
 export interface MstRole {
   id: number;
+  shopId?: number;
   name: string;
+  permissionGroup: PermissionGroup;
   displayNameTh?: string | null;
   category?: RoleCategory;
   startDrinks: number;
@@ -28,6 +32,7 @@ export interface MstRole {
 export interface MstRoleWritePayload {
   name: string;
   displayNameTh: string;
+  permissionGroup: PermissionGroup;
   category?: RoleCategory;
   startDrinks: number;
   nextHourDrinks: number;

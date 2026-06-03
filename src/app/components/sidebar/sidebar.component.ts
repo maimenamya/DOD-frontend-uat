@@ -92,7 +92,11 @@ export class SidebarComponent implements OnInit {
 
   readonly shopDisplayName = computed(() => this.auth.getShopDisplayName());
 
-  readonly showManagementLinks = this.auth.canAccessTeamManagement();
+  readonly showOpenTable = computed(() => this.auth.hasFeature('open_table'));
+  readonly showPrTagOps = computed(() => this.auth.hasFeature('pr_tag_operations'));
+  readonly showReports = computed(() => this.auth.hasFeature('reports'));
+  readonly showMasterNav = computed(() => this.auth.hasFeature('master_data'));
+
   readonly navGroups = MANAGEMENT_NAV_GROUPS;
   readonly activeSubmenu = signal<string | null>(this.getGroupIdByCurrentRoute());
   readonly lineOaAddFriendUrl = signal<string | null>(null);
@@ -121,9 +125,9 @@ export class SidebarComponent implements OnInit {
   }
 
   private getGroupIdByCurrentRoute(): string | null {
-    const currentUrl = this.router.url;
-    const group = this.navGroups.find((g) =>
-      g.children.some((c) => currentUrl.startsWith(c.path)),
+    const url = this.router.url;
+    const group = MANAGEMENT_NAV_GROUPS.find((g) =>
+      g.children.some((c) => url.startsWith(c.path)),
     );
     return group?.id ?? null;
   }

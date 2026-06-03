@@ -19,7 +19,7 @@
       แดชบอร์ด
     </a>
 
-    @if (showManagementLinks) {
+    @if (showOpenTable()) {
       <a
         routerLink="/dashboard/open-table"
         routerLinkActive="app-sidebar-link-active"
@@ -30,26 +30,31 @@
         เปิดโต๊ะ
       </a>
 
-      <a
-        routerLink="/dashboard/pr-tag-operations"
-        routerLinkActive="app-sidebar-link-active"
-        (click)="collapseAllSubmenus(); mobileClose.emit()"
-        class="app-sidebar-link"
-      >
-        <app-sidebar-icon name="tag" />
-        จัดการ tag
-      </a>
+      @if (showPrTagOps()) {
+        <a
+          routerLink="/dashboard/pr-tag-operations"
+          routerLinkActive="app-sidebar-link-active"
+          (click)="collapseAllSubmenus(); mobileClose.emit()"
+          class="app-sidebar-link"
+        >
+          <app-sidebar-icon name="tag" />
+          จัดการ tag
+        </a>
+      }
 
-      <a
-        routerLink="/dashboard/reports"
-        routerLinkActive="app-sidebar-link-active"
-        (click)="collapseAllSubmenus(); mobileClose.emit()"
-        class="app-sidebar-link"
-      >
-        <app-sidebar-icon name="report" />
-        ออกรายงาน
-      </a>
+      @if (showReports()) {
+        <a
+          routerLink="/dashboard/reports"
+          routerLinkActive="app-sidebar-link-active"
+          (click)="collapseAllSubmenus(); mobileClose.emit()"
+          class="app-sidebar-link"
+        >
+          <app-sidebar-icon name="report" />
+          ออกรายงาน
+        </a>
+      }
 
+      @if (showMasterNav()) {
       @for (group of navGroups; track group.id) {
         <div class="app-sidebar-group">
           <button
@@ -80,6 +85,7 @@
             </div>
           }
         </div>
+      }
       }
     }
   </nav>
