@@ -17,12 +17,20 @@
       <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
           <label class="app-label">ชื่อตำแหน่ง (ภาษาอังกฤษ)</label>
-          <input type="text" formControlName="name" class="app-input" placeholder="เช่น PR, SALE" />
-          <p class="app-field-hint">ระบบจะแปลงเป็นตัวพิมพ์ใหญ่อัตโนมัติ</p>
+          <input type="text" formControlName="name" class="app-input" placeholder="เช่น PR, SALE, MODEL" />
+          <p class="app-field-hint">ระบบจะแปลงเป็นตัวพิมพ์ใหญ่อัตโนมัติ · ชื่อต้องไม่ซ้ำในร้านเดียวกัน</p>
         </div>
         <div class="app-form-group">
           <label class="app-label">ชื่อแสดง (ภาษาไทย)</label>
-          <input type="text" formControlName="displayNameTh" class="app-input" placeholder="เช่น พีอาร์, เซลล์" />
+          <input type="text" formControlName="displayNameTh" class="app-input" placeholder="เช่น โมเดล, โฮสต์" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">กลุ่มสิทธิ์</label>
+          <app-custom-dropdown
+            formControlName="permissionGroup"
+            [options]="permissionGroupDropdownOptions()"
+            placeholder="เลือกกลุ่มสิทธิ์"
+          />
         </div>
         <div class="app-form-group">
           <label class="app-label">ประเภท</label>
@@ -89,6 +97,14 @@
         <div class="app-form-group">
           <label class="app-label">ชื่อแสดง (ภาษาไทย)</label>
           <input type="text" formControlName="displayNameTh" class="app-input" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">กลุ่มสิทธิ์</label>
+          <app-custom-dropdown
+            formControlName="permissionGroup"
+            [options]="permissionGroupDropdownOptions()"
+            placeholder="เลือกกลุ่มสิทธิ์"
+          />
         </div>
         <div class="app-form-group">
           <label class="app-label">ประเภท</label>
@@ -159,6 +175,7 @@
                 <col />
                 <col />
                 <col />
+                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -168,6 +185,7 @@
                   <th>No.</th>
                   <th>ชื่อระบบ</th>
                   <th>ชื่อแสดง</th>
+                  <th>กลุ่มสิทธิ์</th>
                   <th>ประเภท</th>
                   <th class="app-cell-right">สตาร์ทดื่ม</th>
                   <th class="app-cell-right">รันดื่ม</th>
@@ -189,6 +207,7 @@
                 <col />
                 <col />
                 <col />
+                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -199,6 +218,7 @@
                     <td class="app-cell-mono">{{ i + 1 }}</td>
                     <td class="app-cell-primary">{{ role.name }}</td>
                     <td>{{ roleDisplayNameTh(role) }}</td>
+                    <td>{{ permissionGroupLabel(role.permissionGroup) }}</td>
                     <td>{{ categoryLabel(role.category) }}</td>
                     <td class="app-cell-right">{{ role.startDrinks }}</td>
                     <td class="app-cell-right">{{ role.nextHourDrinks }}</td>
@@ -211,9 +231,11 @@
                           <button type="button" class="app-btn-secondary-sm" (click)="openEdit(role)">
                             แก้ไข
                           </button>
-                          <button type="button" class="app-btn-danger-sm" (click)="confirmDelete(role)">
-                            ลบ
-                          </button>
+                          @if (canDeleteRole(role)) {
+                            <button type="button" class="app-btn-danger-sm" (click)="confirmDelete(role)">
+                              ลบ
+                            </button>
+                          }
                         </div>
                       </td>
                     }

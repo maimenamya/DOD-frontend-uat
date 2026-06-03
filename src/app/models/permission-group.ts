@@ -9,3 +9,11 @@ export const PERMISSION_GROUP_LABEL_TH: Record<PermissionGroup, string> = {
   EMPLOYEE:
     'พนักงานหน้างาน — Sale: ยอดตัวเอง + ดื่มเซลล์/PR ร้าน; PR: ยอดตัวเอง + ตาราง PR',
 };
+
+/** Short labels for dropdowns and tables (no long descriptions). */
+export const PERMISSION_GROUP_SHORT_LABEL_TH: Record<PermissionGroup, string> = {
+  OWNER: 'เจ้าของร้าน',
+  MANAGER: 'ผู้จัดการ',
+  CASHIER: 'แคชเชียร์',
+  EMPLOYEE: 'พนักงาน',
+};
