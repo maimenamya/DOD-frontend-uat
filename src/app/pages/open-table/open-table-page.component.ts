@@ -438,7 +438,7 @@ export class OpenTablePageComponent implements OnInit {
     const role = this.selectedStaffLedgerRole();
     const n = role?.startDrinks ?? 0;
     if (n < 1) return '';
-    return `ตำแหน่งนี้สตาร์ท ${n} ดื่ม`;
+    return `คนนี้มีสตาร์ท ${n} ดื่ม`;
   });
 
   readonly transferTypesWithAvailability = computed(() => {
