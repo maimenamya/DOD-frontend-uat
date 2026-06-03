@@ -80,6 +80,8 @@ export const routes: Routes = [
         component: MasterSeatingTypePageComponent,
         canActivate: [permissionGuard('master_data')],
       },
+      { path: 'master-seating-price-types', redirectTo: 'open-table', pathMatch: 'full' },
+      { path: 'master-seating-prices', redirectTo: 'open-table', pathMatch: 'full' },
       { path: 'record-drinks', redirectTo: 'open-table', pathMatch: 'full' },
       { path: 'master-tables', redirectTo: 'master-seatings', pathMatch: 'full' },
       { path: 'master-rooms', redirectTo: 'master-seating-types', pathMatch: 'full' },

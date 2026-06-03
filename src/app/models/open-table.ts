@@ -54,9 +54,17 @@ export type ReturnBeveragePayload = SessionMutationBase & {
   quantity: number;
 };
 
+export type AddRoomChargePayload = SessionMutationBase & {
+  seatingId: number;
+  rateType: 'NONE' | 'HOURLY' | 'FLAT_RATE';
+  unitPrice: number;
+  seatStartedAt?: string;
+};
+
 export type SessionRoomCharge = {
   roomChargeId: number;
   roomCode: string;
+  priceLabel?: string;
   pricingType: SeatingRateType;
   quantity: number;
   unitLabel: string;

@@ -2,6 +2,7 @@
   <div class="app-page-header">
     <div>
       <h1 class="app-page-title">ประเภทที่นั่ง</h1>
+      <p class="app-page-subtitle">กำหนดประเภทห้อง/โต๊ะ — ค่าห้องกำหนดตอนเพิ่มรายการในเปิดโต๊ะ</p>
     </div>
     @if (canManage() && !loading()) {
       <button type="button" (click)="openCreate()" class="app-btn-primary">+ เพิ่มประเภท</button>
@@ -27,16 +28,6 @@
           <label class="app-label">คำอธิบาย</label>
           <input type="text" formControlName="description" class="app-input" />
         </div>
-        <div class="app-form-group">
-          <label class="app-label">การคิดค่าเวลา</label>
-          <app-custom-dropdown formControlName="rateType" [options]="rateTypeOptions" />
-        </div>
-        @if (showsPriceField(createRateTypeView())) {
-          <div class="app-form-group">
-            <label class="app-label">{{ priceFieldLabel(createRateTypeView()) }}</label>
-            <input type="text" inputmode="numeric" formControlName="basePrice" class="app-input" />
-          </div>
-        }
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
           <button type="submit" class="app-btn-primary" [disabled]="submitting()">
@@ -66,16 +57,6 @@
           <label class="app-label">คำอธิบาย</label>
           <input type="text" formControlName="description" class="app-input" />
         </div>
-        <div class="app-form-group">
-          <label class="app-label">การคิดค่าเวลา</label>
-          <app-custom-dropdown formControlName="rateType" [options]="rateTypeOptions" />
-        </div>
-        @if (showsPriceField(editRateTypeView())) {
-          <div class="app-form-group">
-            <label class="app-label">{{ priceFieldLabel(editRateTypeView()) }}</label>
-            <input type="text" inputmode="numeric" formControlName="basePrice" class="app-input" />
-          </div>
-        }
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
           <button type="submit" class="app-btn-primary" [disabled]="submitting()">
@@ -100,8 +81,6 @@
                 <col class="app-col-id" />
                 <col />
                 <col />
-                <col />
-                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -111,8 +90,6 @@
                   <th>No.</th>
                   <th>ชื่อประเภท</th>
                   <th>รหัส</th>
-                  <th>คิดค่าเวลา</th>
-                  <th class="app-cell-right">ราคา</th>
                   @if (canManage()) {
                     <th class="app-cell-right">จัดการ</th>
                   }
@@ -126,8 +103,6 @@
                 <col class="app-col-id" />
                 <col />
                 <col />
-                <col />
-                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -138,14 +113,6 @@
                     <td class="app-cell-mono">{{ i + 1 }}</td>
                     <td class="app-cell-primary">{{ item.name }}</td>
                     <td class="app-cell-mono">{{ item.code }}</td>
-                    <td>{{ rateTypeLabel(item.rateType) }}</td>
-                    <td class="app-cell-right">
-                      @if (item.rateType === 'NONE') {
-                        <span class="text-text-secondary">—</span>
-                      } @else {
-                        {{ item.basePrice | number }}
-                      }
-                    </td>
                     @if (canManage()) {
                       <td class="app-cell-right">
                         <div class="app-table-actions">

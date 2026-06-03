@@ -274,7 +274,8 @@
                 @for (row of sessionDetail()?.roomCharges ?? []; track row.roomChargeId) {
                   <p class="flex flex-wrap items-baseline gap-x-1 gap-y-0.5 leading-snug">
                     <span>
-                      - {{ row.roomCode }} x {{ row.quantity }} {{ row.unitLabel }}
+                      - {{ row.priceLabel ?? row.roomCode }} ({{ row.roomCode }}) x
+                      {{ row.quantity }} {{ row.unitLabel }}
                     </span>
                     <span class="whitespace-nowrap text-[0.8125rem] text-text-secondary">
                       เริ่มใช้ {{ row.seatStartedLabel }}
@@ -405,9 +406,71 @@
       >
         รันดื่ม
       </button>
+      <button
+        type="button"
+        class="app-filter-chip flex-1 text-center"
+        [class.app-filter-chip-active]="addModalMode() === 'ROOM_CHARGE'"
+        (click)="setAddModalMode('ROOM_CHARGE')"
+      >
+        ค่าห้อง
+      </button>
     </div>
 
     <div class="app-form-stack">
+      @if (addModalMode() === 'ROOM_CHARGE') {
+        <div class="app-form-group">
+          <label class="app-label">ประเภทที่นั่ง</label>
+          <app-custom-dropdown
+            [options]="roomChargeSeatingTypeOptions()"
+            [ngModel]="roomChargeSeatingTypeId()"
+            (ngModelChange)="onRoomChargeSeatingTypeChange($event)"
+            placeholder="เลือกประเภท"
+          />
+        </div>
+        @if (roomChargeSeatingTypeId() != null) {
+          <div class="app-form-group">
+            <label class="app-label">ที่นั่ง / ห้อง</label>
+            <app-custom-dropdown
+              [options]="roomChargeSeatOptions()"
+              [ngModel]="roomChargeSeatingId()"
+              (ngModelChange)="onRoomChargeSeatingChange($event)"
+              placeholder="เลือกที่นั่ง"
+            />
+          </div>
+        }
+        <div class="app-form-group">
+          <label class="app-label">ค่าห้อง</label>
+          <app-custom-dropdown
+            [options]="roomChargeRateTypeOptions"
+            [ngModel]="roomChargeRateType()"
+            (ngModelChange)="onRoomChargeRateTypeChange($event)"
+            placeholder="เลือกประเภท"
+          />
+        </div>
+        @if (roomChargeShowsPriceInput()) {
+          <div class="app-form-group">
+            <label class="app-label">ราคา (บาท)</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              class="app-input"
+              [ngModel]="roomChargeUnitPriceText()"
+              (ngModelChange)="roomChargeUnitPriceText.set($event)"
+              (input)="onRoomChargeUnitPriceInput($event)"
+              placeholder="ใส่ราคา"
+            />
+          </div>
+        }
+        <div class="app-form-group">
+          <label class="app-label" for="room-seat-start">เวลาเริ่มใช้</label>
+          <app-shop-datetime-input
+            inputId="room-seat-start"
+            [ngModel]="roomSeatStartedAt()"
+            (ngModelChange)="roomSeatStartedAt.set($event)"
+          />
+        </div>
+      }
+
       @if (addModalMode() === 'ORDER_LEDGER') {
         <div class="app-form-group">
           <label class="app-label">หมวดการลงรายการ</label>
@@ -675,9 +738,7 @@
             (ngModelChange)="onTransferDestinationChange($event)"
             placeholder="เลือกที่นั่ง"
           />
-          @if (transferTimeChargeHint()) {
-            <p class="app-field-hint">{{ transferTimeChargeHint() }}</p>
-          }
+          <p class="app-field-hint">ย้ายที่นั่งจะหยุดค่าห้องที่กำลังรันอยู่ — เพิ่มค่าห้องใหม่จากแท็บ «ค่าห้อง»</p>
         </div>
       }
     </div>

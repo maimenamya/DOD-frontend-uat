@@ -14,6 +14,7 @@ import type {
   ReleaseCustomerPayload,
   OpenTableFloorPlan,
   OpenTableSessionDetail,
+  AddRoomChargePayload,
   StopRoomChargePayload,
   ReturnBeveragePayload,
   StopStaffDrinkPayload,
@@ -56,6 +57,13 @@ export class OpenTableService {
   transferSeat(payload: TransferSeatPayload): Observable<{ sessionId: number }> {
     return this.http.post<{ sessionId: number }>(
       this.api.resource('open-table', 'transfer'),
+      payload,
+    );
+  }
+
+  addRoomCharge(payload: AddRoomChargePayload): Observable<OpenTableSessionDetail> {
+    return this.http.post<OpenTableSessionDetail>(
+      this.api.resource('open-table', 'add-room-charge'),
       payload,
     );
   }

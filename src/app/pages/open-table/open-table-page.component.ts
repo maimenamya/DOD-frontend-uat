@@ -26,6 +26,10 @@ import type {
   SessionStaffDrink,
 } from '../../models/open-table';
 import type { SeatingRateType } from '../../models/seating';
+import {
+  ROOM_CHARGE_MODE_OPTIONS,
+  type RoomChargeRateMode,
+} from '../../models/room-charge';
 import type { MstBeverage } from '../../models/beverage';
 import type { MstOtherCharge } from '../../models/other-charge';
 import { OtherChargeService } from '../../services/other-charge.service';
@@ -56,7 +60,7 @@ import {
 
 type SeatTypeFilter = number | 'ALL';
 type SeatStatusFilter = 'ALL' | 'AVAILABLE' | 'OCCUPIED' | 'AWAITING_CLEAR';
-type AddModalMode = 'ORDER_LEDGER' | 'STAFF_LEDGER';
+type AddModalMode = 'ORDER_LEDGER' | 'STAFF_LEDGER' | 'ROOM_CHARGE';
 
 const OWNER_ROLE = 'OWNER';
 
@@ -167,6 +171,19 @@ export class OpenTablePageComponent implements OnInit {
   readonly staffApplyStartDrinks = signal(true);
   /** After stop on this table: continue run vs new start with start drinks. */
   readonly staffReopenMode = signal<'CONTINUE' | 'NEW_START'>('CONTINUE');
+
+  readonly roomChargeSeatingTypeId = signal<number | null>(null);
+  readonly roomChargeSeatingId = signal<number | null>(null);
+  readonly roomChargeRateType = signal<RoomChargeRateMode>('NONE');
+  readonly roomChargeUnitPriceText = signal('');
+  readonly roomSeatStartedAt = signal(currentDatetimeLocalValue());
+  readonly roomChargeRateTypeOptions: DropdownOption[] = ROOM_CHARGE_MODE_OPTIONS.map((o) => ({
+    value: o.value,
+    label: o.label,
+  }));
+  readonly roomChargeShowsPriceInput = computed(
+    () => this.roomChargeRateType() === 'HOURLY' || this.roomChargeRateType() === 'FLAT_RATE',
+  );
 
   /** Destination seat key: `seating-12`. */
   transferDestinationKey = signal<string | null>(null);
@@ -463,21 +480,25 @@ export class OpenTablePageComponent implements OnInit {
     this.seatingTypeZones().find((z) => z.id === this.transferSeatingTypeId()) ?? null,
   );
 
-  readonly transferTimeChargeHint = computed(() => {
-    const rateType = this.selectedTransferSeatingType()?.rateType;
-    if (rateType === 'HOURLY' || rateType === 'FLAT_RATE') {
-      return 'ย้ายเข้าประเภทนี้จะเริ่มคิดเวลาอัตโนมัติ · ย้ายออกจะหยุดเวลา';
-    }
-    if (rateType === 'NONE') {
-      return 'ประเภทนี้ไม่คิดค่าเวลา';
-    }
-    return '';
+  readonly roomChargeSeatingTypeOptions = computed<DropdownOption[]>(() =>
+    this.seatingTypeZones().map((z) => ({ value: z.id, label: z.name })),
+  );
+
+  readonly roomChargeSeatOptions = computed<DropdownOption[]>(() => {
+    const typeId = this.roomChargeSeatingTypeId();
+    if (typeId == null) return [];
+    return this.seats()
+      .filter((s) => s.seatingTypeId === typeId)
+      .map((s) => ({ value: s.seatId, label: s.code }));
   });
 
   setAddModalMode(mode: AddModalMode): void {
     this.addModalMode.set(mode);
     if (mode === 'STAFF_LEDGER') {
       this.stampStaffSeatStartTime();
+    }
+    if (mode === 'ROOM_CHARGE') {
+      this.resetRoomChargeForm();
     }
   }
 
@@ -842,6 +863,54 @@ export class OpenTablePageComponent implements OnInit {
 
   private stampStaffSeatStartTime(): void {
     this.staffSeatStartedAt.set(currentDatetimeLocalValue());
+  }
+
+  private resetRoomChargeForm(): void {
+    const zones = this.seatingTypeZones();
+    const firstType = zones[0]?.id ?? null;
+    this.roomChargeSeatingTypeId.set(firstType);
+    this.roomChargeRateType.set('NONE');
+    this.roomChargeUnitPriceText.set('');
+    this.roomSeatStartedAt.set(currentDatetimeLocalValue());
+    this.syncRoomChargeSeating();
+  }
+
+  private syncRoomChargeSeating(): void {
+    const typeId = this.roomChargeSeatingTypeId();
+    const pool = this.seats().filter((s) => s.seatingTypeId === typeId);
+    const current = this.roomChargeSeatingId();
+    if (current != null && pool.some((s) => s.seatId === current)) return;
+    this.roomChargeSeatingId.set(pool[0]?.seatId ?? null);
+  }
+
+  onRoomChargeSeatingTypeChange(value: number | string | null): void {
+    const typeId = value === '' || value == null ? null : Number(value);
+    if (typeId == null || Number.isNaN(typeId)) {
+      this.roomChargeSeatingTypeId.set(null);
+      this.roomChargeSeatingId.set(null);
+      return;
+    }
+    this.roomChargeSeatingTypeId.set(typeId);
+    this.syncRoomChargeSeating();
+  }
+
+  onRoomChargeSeatingChange(value: number | string | null): void {
+    const seatId = value === '' || value == null ? null : Number(value);
+    this.roomChargeSeatingId.set(seatId != null && !Number.isNaN(seatId) ? seatId : null);
+  }
+
+  onRoomChargeRateTypeChange(value: number | string | null): void {
+    const rate = String(value ?? '') as RoomChargeRateMode;
+    if (rate !== 'NONE' && rate !== 'HOURLY' && rate !== 'FLAT_RATE') return;
+    this.roomChargeRateType.set(rate);
+    if (rate === 'NONE') {
+      this.roomChargeUnitPriceText.set('');
+    }
+  }
+
+  onRoomChargeUnitPriceInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.roomChargeUnitPriceText.set(sanitizeDigitsOnly(input.value));
   }
 
   private syncStaffLedgerEmployee(): void {
@@ -1238,6 +1307,7 @@ export class OpenTablePageComponent implements OnInit {
     this.syncStaffLedgerRoles();
     this.resetOrderLedgerForm();
     this.resetStaffLedgerForm();
+    this.resetRoomChargeForm();
     this.showAddModal.set(true);
   }
 
@@ -1260,6 +1330,44 @@ export class OpenTablePageComponent implements OnInit {
     const expectedRevision = this.requireExpectedRevision();
     if (!sessionId || expectedRevision == null) {
       if (!sessionId) this.toast.showError('ไม่พบเซสชัน');
+      return;
+    }
+
+    if (this.addModalMode() === 'ROOM_CHARGE') {
+      const seatingId = this.roomChargeSeatingId();
+      const rateType = this.roomChargeRateType();
+      if (seatingId == null) {
+        this.toast.showError('กรุณาเลือกประเภทและที่นั่ง');
+        return;
+      }
+      let unitPrice = 0;
+      if (rateType === 'HOURLY' || rateType === 'FLAT_RATE') {
+        const parsed = parsePositiveIntFromText(this.roomChargeUnitPriceText());
+        if (parsed == null) {
+          this.toast.showError('กรุณาใส่ราคา (บาท)');
+          return;
+        }
+        unitPrice = parsed;
+      }
+      this.runAction(
+        this.openTableService.addRoomCharge({
+          shopId: this.shopId,
+          sessionId,
+          expectedRevision,
+          seatingId,
+          rateType,
+          unitPrice,
+          seatStartedAt: this.roomSeatStartedAt(),
+        }),
+        'เพิ่มค่าห้องสำเร็จ',
+        (detail) => {
+          this.closeAddModal();
+          if (this.selectedSeat()?.sessionId === sessionId) {
+            this.sessionDetail.set(detail);
+            this.syncSeatRevisionFromDetail(detail);
+          }
+        },
+      );
       return;
     }
 
