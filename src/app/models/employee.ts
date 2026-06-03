@@ -7,7 +7,10 @@ import type {
 
 export interface MstEmployee {
   id: number;
+  /** Local code within shop (e.g. 1001). */
   employeeId: string;
+  /** Login username (shop prefix + local code, e.g. ff1001). */
+  username?: string;
   email: string | null;
   nickname: string;
   roleId: number;

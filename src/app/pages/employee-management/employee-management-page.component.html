@@ -65,7 +65,7 @@
               [attr.placeholder]="shopLoginPrefix() ? 'เช่น 1001' : 'รหัสพนักงาน'"
             />
           </div>
-          <p class="app-field-hint">รหัสเข้าระบบ (username): <strong>{{ createLoginPreview() }}</strong></p>
+          <p class="app-field-hint">ชื่อผู้ใช้ (username): <strong>{{ createLoginPreview() }}</strong></p>
         </div>
         <div class="app-form-group">
           <label class="app-label">ชื่อเล่น</label>
@@ -96,7 +96,9 @@
         <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
       </div>
       <p class="app-page-subtitle app-page-subtitle-spaced">
-        เข้าระบบ: <span class="app-cell-mono">{{ emp.employeeId }}</span>
+        รหัสในร้าน: <span class="app-cell-mono">{{ emp.employeeId }}</span>
+        · ชื่อผู้ใช้:
+        <span class="app-cell-mono">{{ emp.username ?? emp.employeeId }}</span>
       </p>
       <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
           <div class="app-form-group">
@@ -181,7 +183,12 @@
                 @for (emp of filteredEmployees(); track emp.id; let i = $index) {
                   <tr>
                     <td class="app-cell-mono">{{ i + 1 }}</td>
-                    <td class="app-cell-primary">{{ emp.nickname }}</td>
+                    <td class="app-cell-primary">
+                      {{ emp.nickname }}
+                      <span class="app-cell-meta block">
+                        {{ emp.username ?? (shopLoginPrefix() + emp.employeeId) }}
+                      </span>
+                    </td>
                     <td>
                       <span [class]="roleBadgeClassForEmployee(emp)">{{ roleBadgeLabel(emp) }}</span>
                     </td>

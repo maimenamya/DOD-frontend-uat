@@ -2,7 +2,7 @@
 import type { RoleCategory } from './role';
 
 export interface LoginRequest {
-  employeeId: string;
+  username: string;
   password: string;
 }
 
@@ -13,6 +13,7 @@ export interface CompleteRoleSetupRequest {
 export interface AuthUser {
   id: number;
   employeeId: string;
+  username: string;
   email: string | null;
   lineUserId: string | null;
   nickname: string;
@@ -33,6 +34,7 @@ export interface AuthResponse {
   employee: {
     id: number;
     employeeId: string;
+    username: string;
     email: string | null;
     lineUserId: string | null;
     nickname: string;

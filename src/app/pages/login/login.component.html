@@ -28,19 +28,19 @@
             />
           </svg>
           <input
-            id="employeeId"
+            id="username"
             type="text"
-            formControlName="employeeId"
+            formControlName="username"
             autocomplete="username"
             class="glass-input"
-            placeholder="รหัสเข้าระบบ เช่น ff1001"
+            placeholder="ชื่อผู้ใช้ เช่น ff1001"
           />
         </div>
-        @if (form.controls.employeeId.touched && form.controls.employeeId.errors?.['required']) {
-          <p class="login-field-error">กรุณาระบุรหัสเข้าระบบ</p>
+        @if (form.controls.username.touched && form.controls.username.errors?.['required']) {
+          <p class="login-field-error">กรุณาระบุชื่อผู้ใช้</p>
         }
-        @if (form.controls.employeeId.touched && form.controls.employeeId.errors?.['minlength']) {
-          <p class="login-field-error">At least 3 characters required</p>
+        @if (form.controls.username.touched && form.controls.username.errors?.['minlength']) {
+          <p class="login-field-error">อย่างน้อย 3 ตัวอักษร</p>
         }
       </div>
 

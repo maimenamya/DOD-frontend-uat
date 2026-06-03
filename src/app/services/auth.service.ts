@@ -238,6 +238,7 @@ export class AuthService {
       ? this.normalizeUser({
           id: employee.id,
           employeeId: employee.employeeId,
+          username: employee.username,
           email: employee.email,
           lineUserId: employee.lineUserId ?? null,
           nickname: employee.nickname,
@@ -257,6 +258,7 @@ export class AuthService {
       : this.normalizeUser({
           id: employee.id,
           employeeId: employee.employeeId,
+          username: employee.username,
           email: employee.email,
           lineUserId: employee.lineUserId ?? null,
           nickname: employee.nickname,
@@ -280,12 +282,15 @@ export class AuthService {
   }
 
   private normalizeUser(user: AuthUser & { name?: string }): AuthUser {
+    const username =
+      user.username?.trim() || user.employeeId?.trim() || '';
     const nickname =
-      user.nickname?.trim() || user.name?.trim() || user.employeeId?.trim() || '';
+      user.nickname?.trim() || user.name?.trim() || username || '';
     if (user.pendingRoleSetup) {
       return {
         id: user.id,
         employeeId: user.employeeId,
+        username,
         email: user.email ?? null,
         lineUserId: user.lineUserId ?? null,
         nickname,
@@ -320,6 +325,7 @@ export class AuthService {
     return {
       id: user.id,
       employeeId: user.employeeId,
+      username,
       email: user.email ?? null,
       lineUserId: user.lineUserId ?? null,
       nickname,

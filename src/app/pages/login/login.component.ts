@@ -23,7 +23,7 @@ export class LoginComponent {
   readonly showPassword = signal(false);
 
   readonly form = this.fb.group({
-    employeeId: ['', [Validators.required, Validators.minLength(3)]],
+    username: ['', [Validators.required, Validators.minLength(3)]],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
@@ -40,9 +40,9 @@ export class LoginComponent {
     this.loading.set(true);
     this.error.set(null);
 
-    const { employeeId, password } = this.form.getRawValue();
+    const { username, password } = this.form.getRawValue();
 
-    this.auth.login({ employeeId, password }).subscribe({
+    this.auth.login({ username, password }).subscribe({
       next: () => {
         this.loading.set(false);
         void this.router.navigate(['/dashboard']);
