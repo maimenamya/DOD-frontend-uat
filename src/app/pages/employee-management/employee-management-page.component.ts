@@ -78,20 +78,6 @@ export class EmployeeManagementPageComponent implements OnInit {
     { value: 'Inactive', label: 'ไม่ใช้งาน' },
   ];
 
-  readonly shopLoginPrefix = computed(() => {
-    const abbrev = this.auth.getShopAbbreviation();
-    return abbrev ? `${abbrev}` : '';
-  });
-
-  readonly createLoginPreview = computed(() => {
-    const prefix = this.shopLoginPrefix();
-    const local = this.createForm.controls.employeeId.value?.trim() ?? '';
-    if (!prefix) {
-      return local || '—';
-    }
-    return `${prefix}${local || '…'}`;
-  });
-
   readonly createForm = this.fb.group({
     employeeId: ['', [Validators.required, Validators.minLength(2)]],
     password: ['', [Validators.required, Validators.minLength(6)]],
@@ -198,6 +184,15 @@ export class EmployeeManagementPageComponent implements OnInit {
       },
       this.auth.getPermissionGroup(),
     );
+  }
+
+  canDeleteRow(employee: MstEmployee): boolean {
+    if (!this.canMutateRow(employee)) return false;
+    const roleName = employee.role?.name?.toUpperCase();
+    if (roleName === 'OWNER' || employee.role?.permissionGroup === 'OWNER') {
+      return false;
+    }
+    return true;
   }
 
   loadEmployees(): void {
@@ -334,7 +329,7 @@ export class EmployeeManagementPageComponent implements OnInit {
   }
 
   async confirmDelete(employee: MstEmployee): Promise<void> {
-    if (!this.canMutateRow(employee)) return;
+    if (!this.canDeleteRow(employee)) return;
 
     const ok = await this.confirmDialog.confirm({
       title: 'ยืนยันการลบ',

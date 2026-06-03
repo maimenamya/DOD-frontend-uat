@@ -25,15 +25,6 @@
           <input type="text" formControlName="displayNameTh" class="app-input" placeholder="เช่น พีอาร์, เซลล์" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">กลุ่มสิทธิ์</label>
-          <app-custom-dropdown
-            formControlName="permissionGroup"
-            [options]="permissionGroupDropdownOptions()"
-            placeholder="เลือกกลุ่มสิทธิ์"
-          />
-          <p class="app-field-hint">กำหนดว่าตำแหน่งนี้เข้าถึงเมนูและฟีเจอร์ใดได้</p>
-        </div>
-        <div class="app-form-group">
           <label class="app-label">ประเภท</label>
           <app-custom-dropdown
             formControlName="category"
@@ -53,7 +44,7 @@
           />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ชั่วโมงต่อไป</label>
+          <label class="app-label">รันดื่ม</label>
           <input
             type="text"
             inputmode="numeric"
@@ -100,14 +91,6 @@
           <input type="text" formControlName="displayNameTh" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">กลุ่มสิทธิ์</label>
-          <app-custom-dropdown
-            formControlName="permissionGroup"
-            [options]="permissionGroupDropdownOptions()"
-            placeholder="เลือกกลุ่มสิทธิ์"
-          />
-        </div>
-        <div class="app-form-group">
           <label class="app-label">ประเภท</label>
           <app-custom-dropdown
             formControlName="category"
@@ -127,7 +110,7 @@
           />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ชั่วโมงต่อไป</label>
+          <label class="app-label">รันดื่ม</label>
           <input
             type="text"
             inputmode="numeric"
@@ -176,7 +159,6 @@
                 <col />
                 <col />
                 <col />
-                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -186,7 +168,6 @@
                   <th>No.</th>
                   <th>ชื่อระบบ</th>
                   <th>ชื่อแสดง</th>
-                  <th>กลุ่มสิทธิ์</th>
                   <th>ประเภท</th>
                   <th class="app-cell-right">สตาร์ทดื่ม</th>
                   <th class="app-cell-right">รันดื่ม</th>
@@ -208,7 +189,6 @@
                 <col />
                 <col />
                 <col />
-                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -219,7 +199,6 @@
                     <td class="app-cell-mono">{{ i + 1 }}</td>
                     <td class="app-cell-primary">{{ role.name }}</td>
                     <td>{{ roleDisplayNameTh(role) }}</td>
-                    <td>{{ permissionGroupLabel(role.permissionGroup) }}</td>
                     <td>{{ categoryLabel(role.category) }}</td>
                     <td class="app-cell-right">{{ role.startDrinks }}</td>
                     <td class="app-cell-right">{{ role.nextHourDrinks }}</td>

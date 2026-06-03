@@ -11,11 +11,6 @@ import {
   CustomDropdownComponent,
   type DropdownOption,
 } from '../../components/custom-dropdown/custom-dropdown.component';
-import {
-  PERMISSION_GROUP_LABEL_TH,
-  PERMISSION_GROUPS,
-  type PermissionGroup,
-} from '../../models/permission-group';
 import type { MstRole, RoleCategory } from '../../models/role';
 import { AuthService } from '../../services/auth.service';
 import { RoleService } from '../../services/role.service';
@@ -24,8 +19,8 @@ import { ToastService } from '../../services/toast.service';
 import { roleDisplayNameTh } from '../../utils/role-display.util';
 
 const CATEGORY_DROPDOWN_OPTIONS: DropdownOption[] = [
-  { value: 'STAFF', label: 'พนักงาน (Sale, Admin, Manager)' },
-  { value: 'ENTERTAINER', label: 'เด็กนั่งดริ๊งค์ (PR)' },
+  { value: 'STAFF', label: 'พนักงาน' },
+  { value: 'ENTERTAINER', label: 'เด็กนั่งดริ้ง' },
 ];
 
 const SYSTEM_ROLE_NAMES = new Set(['OWNER', 'ADMIN', 'MANAGER', 'SALE', 'PR']);
@@ -46,16 +41,6 @@ export class MasterRolePageComponent implements OnInit {
 
   readonly canManage = computed(() => this.auth.canManageRoles());
 
-  readonly permissionGroupDropdownOptions = computed<DropdownOption[]>(() => {
-    const options = PERMISSION_GROUPS.map((g) => ({
-      value: g,
-      label: PERMISSION_GROUP_LABEL_TH[g],
-    }));
-    if (this.auth.isOwner()) {
-      return options;
-    }
-    return options.filter((o) => o.value !== 'OWNER');
-  });
   readonly roles = signal<MstRole[]>([]);
   readonly loading = signal(true);
   readonly submitting = signal(false);
@@ -65,7 +50,6 @@ export class MasterRolePageComponent implements OnInit {
   readonly createForm = this.fb.group({
     name: ['', Validators.required],
     displayNameTh: ['', Validators.required],
-    permissionGroup: ['EMPLOYEE' as PermissionGroup, Validators.required],
     category: ['STAFF' as RoleCategory, Validators.required],
     startDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     nextHourDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
@@ -75,7 +59,6 @@ export class MasterRolePageComponent implements OnInit {
   readonly editForm = this.fb.group({
     name: ['', Validators.required],
     displayNameTh: ['', Validators.required],
-    permissionGroup: ['EMPLOYEE' as PermissionGroup, Validators.required],
     category: ['STAFF' as RoleCategory, Validators.required],
     startDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     nextHourDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
@@ -106,7 +89,6 @@ export class MasterRolePageComponent implements OnInit {
     this.createForm.reset({
       name: '',
       displayNameTh: '',
-      permissionGroup: 'EMPLOYEE',
       category: 'STAFF',
       startDrinks: '',
       nextHourDrinks: '',
@@ -120,30 +102,19 @@ export class MasterRolePageComponent implements OnInit {
   }
 
   openEdit(role: MstRole): void {
-    const lockPermissionGroup = SYSTEM_ROLE_NAMES.has(role.name.toUpperCase());
     this.editForm.reset({
       name: role.name,
       displayNameTh: role.displayNameTh ?? roleDisplayNameTh(role),
-      permissionGroup: role.permissionGroup,
       category: role.category ?? (role.name === 'PR' ? 'ENTERTAINER' : 'STAFF'),
       startDrinks: String(role.startDrinks),
       nextHourDrinks: String(role.nextHourDrinks),
       defaultPricePerDrink: String(role.defaultPricePerDrink),
     });
     this.editingRole.set(role);
-    if (lockPermissionGroup) {
-      this.editForm.controls.permissionGroup.disable();
-    } else {
-      this.editForm.controls.permissionGroup.enable();
-    }
   }
 
   isSystemRole(role: MstRole): boolean {
     return SYSTEM_ROLE_NAMES.has(role.name.toUpperCase());
-  }
-
-  permissionGroupLabel(group: PermissionGroup): string {
-    return PERMISSION_GROUP_LABEL_TH[group];
   }
 
   closeEdit(): void {
@@ -158,7 +129,7 @@ export class MasterRolePageComponent implements OnInit {
       .createRole({
         name: raw.name.trim().toUpperCase(),
         displayNameTh: raw.displayNameTh.trim(),
-        permissionGroup: raw.permissionGroup,
+        permissionGroup: 'EMPLOYEE',
         category: raw.category,
         startDrinks: Number.parseInt(raw.startDrinks, 10),
         nextHourDrinks: Number.parseInt(raw.nextHourDrinks, 10),
@@ -187,7 +158,7 @@ export class MasterRolePageComponent implements OnInit {
       .updateRole(role.id, {
         name: raw.name.trim().toUpperCase(),
         displayNameTh: raw.displayNameTh.trim(),
-        permissionGroup: raw.permissionGroup,
+        permissionGroup: role.permissionGroup,
         category: raw.category,
         startDrinks: Number.parseInt(raw.startDrinks, 10),
         nextHourDrinks: Number.parseInt(raw.nextHourDrinks, 10),
@@ -222,7 +193,7 @@ export class MasterRolePageComponent implements OnInit {
   }
 
   categoryLabel(category?: RoleCategory): string {
-    return category === 'ENTERTAINER' ? 'เด็กนั่งดริ๊งค์' : 'พนักงาน';
+    return category === 'ENTERTAINER' ? 'เด็กนั่งดริ้ง' : 'พนักงาน';
   }
 
   sanitizeIntegerInput(

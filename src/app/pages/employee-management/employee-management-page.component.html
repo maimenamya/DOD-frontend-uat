@@ -47,25 +47,13 @@
           }
         </div>
         <div class="app-form-group">
-          <label class="app-label">รหัสในร้าน</label>
-          <div class="app-input-group" style="display: flex; gap: 0">
-            @if (shopLoginPrefix()) {
-              <span
-                class="app-input"
-                style="width: auto; flex: 0 0 auto; border-right: 0; opacity: 0.85"
-                aria-hidden="true"
-                >{{ shopLoginPrefix() }}</span
-              >
-            }
-            <input
-              type="text"
-              formControlName="employeeId"
-              class="app-input"
-              style="flex: 1"
-              [attr.placeholder]="shopLoginPrefix() ? 'เช่น 1001' : 'รหัสพนักงาน'"
-            />
-          </div>
-          <p class="app-field-hint">ชื่อผู้ใช้ (username): <strong>{{ createLoginPreview() }}</strong></p>
+          <label class="app-label">รหัสพนักงาน</label>
+          <input
+            type="text"
+            formControlName="employeeId"
+            class="app-input"
+            placeholder="เช่น 1001"
+          />
         </div>
         <div class="app-form-group">
           <label class="app-label">ชื่อเล่น</label>
@@ -96,9 +84,7 @@
         <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
       </div>
       <p class="app-page-subtitle app-page-subtitle-spaced">
-        รหัสในร้าน: <span class="app-cell-mono">{{ emp.employeeId }}</span>
-        · ชื่อผู้ใช้:
-        <span class="app-cell-mono">{{ emp.username ?? emp.employeeId }}</span>
+        รหัสพนักงาน: <span class="app-cell-mono">{{ emp.employeeId }}</span>
       </p>
       <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
           <div class="app-form-group">
@@ -153,6 +139,7 @@
                 <col class="app-col-id" />
                 <col />
                 <col />
+                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -160,6 +147,7 @@
               <thead>
                 <tr>
                   <th>No.</th>
+                  <th>รหัสพนักงาน</th>
                   <th>ชื่อเล่น</th>
                   <th>ตำแหน่ง</th>
                   @if (canManage()) {
@@ -175,6 +163,7 @@
                 <col class="app-col-id" />
                 <col />
                 <col />
+                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -183,25 +172,25 @@
                 @for (emp of filteredEmployees(); track emp.id; let i = $index) {
                   <tr>
                     <td class="app-cell-mono">{{ i + 1 }}</td>
-                    <td class="app-cell-primary">
-                      {{ emp.nickname }}
-                      <span class="app-cell-meta block">
-                        {{ emp.username ?? (shopLoginPrefix() + emp.employeeId) }}
-                      </span>
-                    </td>
+                    <td class="app-cell-mono">{{ emp.employeeId }}</td>
+                    <td class="app-cell-primary">{{ emp.nickname }}</td>
                     <td>
                       <span [class]="roleBadgeClassForEmployee(emp)">{{ roleBadgeLabel(emp) }}</span>
                     </td>
                     @if (canManage()) {
                       <td class="app-cell-right">
-                        @if (canMutateRow(emp)) {
+                        @if (canMutateRow(emp) || canDeleteRow(emp)) {
                           <div class="app-table-actions">
-                            <button type="button" class="app-btn-secondary-sm" (click)="openEdit(emp)">
-                              แก้ไข
-                            </button>
-                            <button type="button" class="app-btn-danger-sm" (click)="confirmDelete(emp)">
-                              ลบ
-                            </button>
+                            @if (canMutateRow(emp)) {
+                              <button type="button" class="app-btn-secondary-sm" (click)="openEdit(emp)">
+                                แก้ไข
+                              </button>
+                            }
+                            @if (canDeleteRow(emp)) {
+                              <button type="button" class="app-btn-danger-sm" (click)="confirmDelete(emp)">
+                                ลบ
+                              </button>
+                            }
                           </div>
                         } @else {
                           <span class="app-cell-meta">—</span>
