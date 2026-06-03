@@ -123,6 +123,7 @@ export class OpenTablePageComponent implements OnInit {
   readonly showStopDrinkModal = signal(false);
   readonly showStopRoomModal = signal(false);
   readonly showReturnBeverageModal = signal(false);
+  readonly showVoidItemModal = signal(false);
   readonly showCheckoutModal = signal(false);
   readonly checkoutAt = signal(currentDatetimeLocalValue());
   readonly checkoutPreview = signal<CheckoutPreview | null>(null);
@@ -132,6 +133,8 @@ export class OpenTablePageComponent implements OnInit {
   readonly stopRoomTarget = signal<SessionRoomCharge | null>(null);
   readonly returnBeverageTarget = signal<SessionOrderItem | null>(null);
   readonly returnBeverageQtyText = signal('1');
+  readonly voidItemTarget = signal<SessionOrderItem | null>(null);
+  readonly voidItemQtyText = signal('1');
   readonly stopSeatTime = signal(currentDatetimeLocalValue());
   readonly addModalMode = signal<AddModalMode>('ORDER_LEDGER');
 
@@ -253,6 +256,8 @@ export class OpenTablePageComponent implements OnInit {
       this.showTransferModal() ||
       this.showStopDrinkModal() ||
       this.showStopRoomModal() ||
+      this.showReturnBeverageModal() ||
+      this.showVoidItemModal() ||
       this.showCheckoutModal(),
   );
 
@@ -1572,6 +1577,76 @@ export class OpenTablePageComponent implements OnInit {
 
   onReturnBeverageQtyChange(value: string): void {
     this.returnBeverageQtyText.set(sanitizeDigitsOnly(value));
+  }
+
+  openVoidItemModal(item: SessionOrderItem): void {
+    this.voidItemTarget.set(item);
+    this.voidItemQtyText.set('1');
+    this.showVoidItemModal.set(true);
+    this.showMobileSheet.set(false);
+  }
+
+  closeVoidItemModal(): void {
+    this.showVoidItemModal.set(false);
+    this.voidItemTarget.set(null);
+    if (this.selectedSeatKey()) {
+      this.showMobileSheet.set(true);
+    }
+  }
+
+  onVoidItemQtyChange(value: string): void {
+    this.voidItemQtyText.set(sanitizeDigitsOnly(value));
+  }
+
+  confirmVoidItem(): void {
+    if (!this.ledgerCanMutate()) {
+      this.toast.showError('โต๊ะนี้ถูกเช็กบิลแล้ว ไม่สามารถแก้รายการได้');
+      this.closeVoidItemModal();
+      return;
+    }
+    const sessionId = this.selectedSeat()?.sessionId;
+    const expectedRevision = this.requireExpectedRevision();
+    const item = this.voidItemTarget();
+    if (!sessionId || !item || expectedRevision == null) {
+      this.toast.showError('ไม่พบรายการ');
+      return;
+    }
+    const quantity = parsePositiveIntFromText(this.voidItemQtyText());
+    if (quantity == null || quantity <= 0) {
+      this.toast.showError('กรุณาระบุจำนวนที่ต้องการลบ');
+      return;
+    }
+    if (quantity > item.quantity) {
+      this.toast.showError(`ลบได้ไม่เกิน ${item.quantity} ${item.unitLabel}`);
+      return;
+    }
+    this.runAction(
+      this.openTableService.voidSessionItems({
+        shopId: this.shopId,
+        sessionId,
+        expectedRevision,
+        items: [
+          {
+            itemType: item.itemType,
+            itemId: item.itemId,
+            unitPrice: item.unitPrice,
+            isFreeMixer: Boolean(item.isFreeMixer),
+            unitLabelTh: item.unitLabelTh ?? item.unitLabel,
+            ...(item.itemName ? { itemName: item.itemName } : {}),
+            quantity,
+          },
+        ],
+      }),
+      'ลบรายการสำเร็จ — เพิ่มโปรหรือรายการใหม่ได้จากปุ่มเพิ่มรายการ',
+      () => {
+        this.closeVoidItemModal();
+        this.loadSessionDetail(sessionId, { showLoading: false });
+      },
+      () => {
+        this.closeVoidItemModal();
+        this.loadSessionDetail(sessionId, { showLoading: false });
+      },
+    );
   }
 
   confirmReturnBeverage(): void {

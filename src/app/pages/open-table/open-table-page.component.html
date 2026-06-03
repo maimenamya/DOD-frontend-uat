@@ -247,6 +247,16 @@
                       <span class="text-theme-accent">(ฟรีมิกซ์)</span>
                     }
                   </span>
+                  @if (ledgerCanMutate() && item.canVoid) {
+                    <button
+                      type="button"
+                      class="app-btn-inline shrink-0"
+                      [disabled]="actionBusy()"
+                      (click)="openVoidItemModal(item)"
+                    >
+                      ลบ
+                    </button>
+                  }
                   @if (item.canReturn) {
                     <button
                       type="button"
@@ -825,6 +835,38 @@
       <button type="button" class="app-btn-secondary" (click)="closeStopRoomModal()">ยกเลิก</button>
       <button type="button" class="app-btn-primary" [disabled]="actionBusy()" (click)="confirmStopRoom()">
         {{ actionBusy() ? 'กำลังบันทึก...' : 'ยืนยันสต็อป' }}
+      </button>
+    </div>
+  </app-modal>
+}
+
+@if (showVoidItemModal()) {
+  <app-modal layout="center" (dismiss)="closeVoidItemModal()">
+    <div class="app-modal-header">
+      <h2 class="app-modal-title">ลบรายการ — {{ voidItemTarget()?.label }}</h2>
+      <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeVoidItemModal()">✕</button>
+    </div>
+    <p class="app-field-hint mb-3">
+      สั่งไว้ {{ voidItemTarget()?.quantity }} {{ voidItemTarget()?.unitLabel }}
+      — ลบแล้วเพิ่มโปรหรือรายการใหม่ได้จาก «เพิ่มรายการ»
+    </p>
+    <div class="app-form-group">
+      <label class="app-label" for="void-item-qty">จำนวนที่ลบ ({{ voidItemTarget()?.unitLabel }})</label>
+      <input
+        id="void-item-qty"
+        type="text"
+        inputmode="numeric"
+        autocomplete="off"
+        class="app-input"
+        [ngModel]="voidItemQtyText()"
+        (ngModelChange)="onVoidItemQtyChange($event)"
+        (keydown)="blockNonNumericKey($event)"
+      />
+    </div>
+    <div class="app-form-actions app-form-actions-top">
+      <button type="button" class="app-btn-secondary" (click)="closeVoidItemModal()">ยกเลิก</button>
+      <button type="button" class="app-btn-danger" [disabled]="actionBusy()" (click)="confirmVoidItem()">
+        {{ actionBusy() ? 'กำลังบันทึก...' : 'ยืนยันลบ' }}
       </button>
     </div>
   </app-modal>

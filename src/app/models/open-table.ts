@@ -31,14 +31,30 @@ export type OpenTableFloorPlan = {
 export type SessionOrderItem = {
   itemId: number;
   itemType: 'BEVERAGE' | 'FOOD' | 'PROMOTION' | 'MEMBERSHIP' | 'COCKTAIL' | 'OTHER';
+  /** Stored name for void matching (cocktails include host suffix). */
+  itemName?: string;
   label: string;
   hostLabel?: string;
   quantity: number;
   unitLabel: string;
+  unitLabelTh?: string;
   unitPrice: number;
   isFreeMixer?: boolean;
   isCocktailHost?: boolean;
   canReturn?: boolean;
+  canVoid?: boolean;
+};
+
+export type VoidSessionItemsPayload = SessionMutationBase & {
+  items: Array<{
+    itemType: SessionOrderItem['itemType'];
+    itemId: number;
+    unitPrice: number;
+    isFreeMixer: boolean;
+    unitLabelTh: string;
+    itemName?: string;
+    quantity: number;
+  }>;
 };
 
 export type SessionMutationBase = {
