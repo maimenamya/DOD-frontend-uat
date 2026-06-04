@@ -117,6 +117,24 @@ export type StopStaffDrinkPayload = SessionMutationBase & {
   seatStoppedAt: string;
 };
 
+export type StopStaffDrinkPreviewPayload = {
+  shopId: number;
+  sessionId: number;
+  staffDrinkId: number;
+  seatStoppedAt: string;
+};
+
+export type StopStaffDrinkPreview = {
+  seatStoppedLabel: string;
+  currentDrinks: number;
+  projectedDrinks: number;
+  projectedAmount: number;
+  completedHours: number;
+  baseDrinks: number;
+  hourDrinks: number;
+  detail: string;
+};
+
 export type TxnActiveSessionStatus = 'OPEN' | 'BILLED';
 
 export type OpenTableSessionDetail = {

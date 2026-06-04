@@ -50,6 +50,7 @@
             class="app-input"
             (input)="sanitizeIntegerInput('create', 'startDrinks', $event)"
           />
+          <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ (ไม่เกี่ยวกับชั่วโมง)</p>
         </div>
         <div class="app-form-group">
           <label class="app-label">รันดื่ม</label>
@@ -61,6 +62,7 @@
             class="app-input"
             (input)="sanitizeIntegerInput('create', 'nextHourDrinks', $event)"
           />
+          <p class="app-field-hint">ต่อชั่วโมงที่นั่ง — รวมดื่ม = ชม.ที่นั่ง × รันดื่ม (ปัดลงชม.)</p>
         </div>
         <div class="app-form-group">
           <label class="app-label">ราคาต่อดื่ม</label>
@@ -124,6 +126,7 @@
             class="app-input"
             (input)="sanitizeIntegerInput('edit', 'startDrinks', $event)"
           />
+          <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ (ไม่เกี่ยวกับชั่วโมง)</p>
         </div>
         <div class="app-form-group">
           <label class="app-label">รันดื่ม</label>
@@ -135,6 +138,7 @@
             class="app-input"
             (input)="sanitizeIntegerInput('edit', 'nextHourDrinks', $event)"
           />
+          <p class="app-field-hint">ต่อชั่วโมงที่นั่ง — รวมดื่ม = ชม.ที่นั่ง × รันดื่ม (ปัดลงชม.)</p>
         </div>
         <div class="app-form-group">
           <label class="app-label">ราคาต่อดื่ม</label>

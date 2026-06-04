@@ -695,9 +695,6 @@
                 }}
               </span>
             </label>
-            @if (staffStartDrinksHint()) {
-              <p class="app-field-hint">{{ staffStartDrinksHint() }} — แตะสวิตช์เพื่อเปลี่ยน</p>
-            }
           </div>
         }
 
@@ -709,7 +706,9 @@
               [ngModel]="staffSeatStartedAt()"
               (ngModelChange)="staffSeatStartedAt.set($event)"
             />
-            <p class="app-field-hint">ระบบบันทึกเวลาเริ่มต้นอัตโนมัติเมื่อเปิดแท็บนี้ — ปรับได้หากจำเป็น</p>
+            <p class="app-field-hint">
+              รันดื่ม = ชั่วโมงที่นั่ง × ค่ารันดื่มของตำแหน่ง (ปัดลงชม.) · สตาร์ทดื่มแยกตามสวิตช์ด้านบน
+            </p>
           </div>
         }
 
@@ -810,15 +809,61 @@
       <app-shop-datetime-input
         inputId="stop-seat-time"
         [ngModel]="stopSeatTime()"
-        (ngModelChange)="stopSeatTime.set($event)"
+        (ngModelChange)="onStopSeatTimeChange($event)"
       />
     </div>
+
+    <p class="checkout-preview-heading">สรุปดื่มหลังสต็อป</p>
+    <div class="checkout-preview-shell">
+      @if (stopDrinkPreviewLoading()) {
+        <p class="app-loading-text">กำลังคำนวณดื่ม...</p>
+      } @else if (stopDrinkPreview()) {
+        <div class="checkout-preview-sections">
+          <section class="checkout-preview-zone">
+            <div class="checkout-preview-line">
+              <p class="checkout-preview-line-desc">
+                <span class="checkout-preview-line-label">{{ stopDrinkTarget()?.employeeName }}</span>
+                <span class="checkout-preview-line-detail">{{ stopDrinkPreview()!.detail }}</span>
+              </p>
+              <span class="checkout-preview-line-amount">
+                {{ stopDrinkPreview()!.projectedDrinks }} ดื่ม
+              </span>
+            </div>
+          </section>
+        </div>
+        <div class="checkout-preview-total">
+          @if (stopDrinkPreview()!.currentDrinks !== stopDrinkPreview()!.projectedDrinks) {
+            <p class="text-sm text-text-secondary">
+              ตอนนี้
+              <span class="font-semibold text-text-primary">{{ stopDrinkPreview()!.currentDrinks }}</span>
+              ดื่ม → หลังสต็อป
+              <span class="font-semibold text-text-primary">{{ stopDrinkPreview()!.projectedDrinks }}</span>
+              ดื่ม
+            </p>
+          } @else {
+            <p class="text-sm text-text-secondary">
+              รวม
+              <span class="font-semibold text-text-primary">{{ stopDrinkPreview()!.projectedDrinks }}</span>
+              ดื่ม
+            </p>
+          }
+          @if (stopDrinkPreview()!.projectedAmount > 0) {
+            <p class="text-base font-semibold text-theme-accent mt-1">
+              {{ stopDrinkPreview()!.projectedAmount | number: '1.0-0' }} บาท
+            </p>
+          }
+        </div>
+      } @else {
+        <p class="text-sm text-text-secondary">ระบุเวลาสต็อปเพื่อดูจำนวนดื่ม</p>
+      }
+    </div>
+
     <div class="app-form-actions app-form-actions-top">
       <button type="button" class="app-btn-secondary" (click)="closeStopDrinkModal()">ยกเลิก</button>
       <button
         type="button"
         class="app-btn-primary"
-        [disabled]="actionBusy()"
+        [disabled]="actionBusy() || stopDrinkPreviewLoading() || !stopDrinkPreview()"
         (click)="confirmStopDrink()"
       >
         {{ actionBusy() ? 'กำลังบันทึก...' : 'ยืนยันสต็อป' }}

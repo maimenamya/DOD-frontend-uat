@@ -2,7 +2,6 @@
   <div class="app-page-header">
     <div>
       <h1 class="app-page-title">บันทึกค่าใช้จ่าย</h1>
-      <p class="app-page-subtitle">บันทึกรายจ่ายร้าน — เลือกวันย้อนหลังได้ถ้าลืมลง</p>
     </div>
     @if (!loading()) {
       <button type="button" class="app-btn-primary" (click)="openCreate()">+ บันทึกรายการ</button>
@@ -80,7 +79,6 @@
         <div class="app-form-group">
           <label class="app-label" for="expense-date-create">วันที่ (เผื่อลืมลง)</label>
           <input id="expense-date-create" type="date" formControlName="businessDate" class="app-input" />
-          <p class="app-field-hint">เลือกวันที่จ่ายจริง — ไม่จำเป็นต้องเป็นวันนี้</p>
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>

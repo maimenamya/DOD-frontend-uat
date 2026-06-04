@@ -22,6 +22,7 @@ import type { MstRole } from '../../models/role';
 import type {
   AddItemsPayload,
   CheckoutPreview,
+  StopStaffDrinkPreview,
   OpenTableSessionDetail,
   SeatStatus,
   SessionOrderItem,
@@ -134,6 +135,9 @@ export class OpenTablePageComponent implements OnInit {
   readonly checkoutPreviewLoading = signal(false);
   private checkoutPreviewTimer: ReturnType<typeof setTimeout> | null = null;
   readonly stopDrinkTarget = signal<SessionStaffDrink | null>(null);
+  readonly stopDrinkPreview = signal<StopStaffDrinkPreview | null>(null);
+  readonly stopDrinkPreviewLoading = signal(false);
+  private stopDrinkPreviewTimer: ReturnType<typeof setTimeout> | null = null;
   readonly stopRoomTarget = signal<SessionRoomCharge | null>(null);
   readonly returnBeverageTarget = signal<SessionOrderItem | null>(null);
   readonly returnBeverageQtyText = signal('1');
@@ -1552,17 +1556,70 @@ export class OpenTablePageComponent implements OnInit {
   openStopDrinkModal(row: SessionStaffDrink): void {
     this.stopDrinkTarget.set(row);
     this.stopSeatTime.set(currentDatetimeLocalValue());
+    this.stopDrinkPreview.set(null);
     this.showStopDrinkModal.set(true);
     this.showMobileSheet.set(false);
+    this.scheduleStopDrinkPreview();
   }
 
   closeStopDrinkModal(): void {
     closeOpenShopFlatpickrCalendars();
+    if (this.stopDrinkPreviewTimer != null) {
+      clearTimeout(this.stopDrinkPreviewTimer);
+      this.stopDrinkPreviewTimer = null;
+    }
+    this.stopDrinkPreview.set(null);
     this.showStopDrinkModal.set(false);
     this.stopDrinkTarget.set(null);
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
     }
+  }
+
+  onStopSeatTimeChange(value: string): void {
+    this.stopSeatTime.set(value);
+    this.scheduleStopDrinkPreview();
+  }
+
+  private scheduleStopDrinkPreview(): void {
+    if (this.stopDrinkPreviewTimer != null) {
+      clearTimeout(this.stopDrinkPreviewTimer);
+    }
+    this.stopDrinkPreviewTimer = setTimeout(() => {
+      this.stopDrinkPreviewTimer = null;
+      this.loadStopDrinkPreview();
+    }, 350);
+  }
+
+  private loadStopDrinkPreview(): void {
+    const sessionId = this.selectedSeat()?.sessionId;
+    const row = this.stopDrinkTarget();
+    const seatStoppedAt = this.stopSeatTime().trim();
+    if (!sessionId || !row || !isValidShopDatetimeLocal(seatStoppedAt)) {
+      this.stopDrinkPreview.set(null);
+      return;
+    }
+    this.stopDrinkPreviewLoading.set(true);
+    this.openTableService
+      .previewStopStaffDrink({
+        shopId: this.shopId,
+        sessionId,
+        staffDrinkId: row.staffDrinkId,
+        seatStoppedAt,
+      })
+      .pipe(
+        catchError((err: { error?: { error?: string } }) => {
+          this.stopDrinkPreview.set(null);
+          const msg = err.error?.error;
+          if (msg) this.toast.showError(msg);
+          return of(null);
+        }),
+        finalize(() => this.stopDrinkPreviewLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((preview) => {
+        if (preview) this.stopDrinkPreview.set(preview);
+      });
   }
 
   confirmStopDrink(): void {

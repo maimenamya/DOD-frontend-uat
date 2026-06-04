@@ -19,6 +19,8 @@ import type {
   ReturnBeveragePayload,
   VoidSessionItemsPayload,
   StopStaffDrinkPayload,
+  StopStaffDrinkPreview,
+  StopStaffDrinkPreviewPayload,
   TransferSeatPayload,
 } from '../models/open-table';
 
@@ -51,6 +53,15 @@ export class OpenTableService {
   stopStaffDrink(payload: StopStaffDrinkPayload): Observable<OpenTableSessionDetail> {
     return this.http.post<OpenTableSessionDetail>(
       this.api.resource('open-table', 'stop-staff-drink'),
+      payload,
+    );
+  }
+
+  previewStopStaffDrink(
+    payload: StopStaffDrinkPreviewPayload,
+  ): Observable<StopStaffDrinkPreview> {
+    return this.http.post<StopStaffDrinkPreview>(
+      this.api.resource('open-table', 'stop-staff-drink-preview'),
       payload,
     );
   }
