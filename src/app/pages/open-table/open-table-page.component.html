@@ -38,8 +38,19 @@
               (click)="setTypeFilter(zone.id)"
             >
               {{ zone.name }}
+              @if (seatingTypeIdsWithRoomCharge().has(zone.id)) {
+                <span class="text-theme-accent"> · ค่าห้อง</span>
+              }
             </button>
           }
+          <button
+            type="button"
+            class="app-filter-chip"
+            [class.app-filter-chip-active]="typeFilter() === 'ROOM_CHARGE'"
+            (click)="setTypeFilter('ROOM_CHARGE')"
+          >
+            คิดค่าห้อง
+          </button>
         </div>
 
         <div class="app-filter-bar" role="tablist" aria-label="สถานะโต๊ะ">
@@ -428,8 +439,13 @@
 
     <div class="app-form-stack">
       @if (addModalMode() === 'ROOM_CHARGE') {
+        @if (!hasChargeableSeats()) {
+          <p class="app-field-hint">
+            ยังไม่มีโซนที่เปิด «คิดค่าห้อง» — ตั้งที่เมนู ประเภทที่นั่ง
+          </p>
+        }
         <div class="app-form-group">
-          <label class="app-label">ประเภทที่นั่ง</label>
+          <label class="app-label">ประเภทที่นั่ง (เฉพาะโซนคิดค่าห้อง)</label>
           <app-custom-dropdown
             [options]="roomChargeSeatingTypeOptions()"
             [ngModel]="roomChargeSeatingTypeId()"
@@ -608,7 +624,9 @@
             placeholder="1"
           />
         </div>
-      } @else {
+      }
+
+      @if (addModalMode() === 'STAFF_LEDGER') {
         <div class="app-form-group">
           <label class="app-label">เลือกตำแหน่งพนักงาน</label>
           <app-custom-dropdown

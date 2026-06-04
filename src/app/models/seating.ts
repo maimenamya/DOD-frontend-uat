@@ -26,6 +26,7 @@ export interface MstSeating {
   code: string;
   status: 'AVAILABLE' | 'OCCUPIED' | 'AWAITING_CLEAR';
   seatingTypeId: number;
+  chargesRoomFee: boolean;
   createdAt: string;
   seatingType?: MstSeatingTypeSummary;
 }
@@ -33,13 +34,14 @@ export interface MstSeating {
 export interface MstSeatingWritePayload {
   code: string;
   seatingTypeId: number;
+  chargesRoomFee?: boolean;
 }
 
 export interface MstSeatingTypeWritePayload {
   name: string;
   code: string;
   description?: string | null;
-  rateType: SeatingRateType;
-  basePrice: number;
-  minimumSpend: number;
+  rateType?: SeatingRateType;
+  basePrice?: number;
+  minimumSpend?: number;
 }

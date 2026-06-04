@@ -7,6 +7,7 @@ export type FloorPlanSeat = {
   code: string;
   status: SeatStatus;
   seatingTypeId: number;
+  chargesRoomFee: boolean;
   sessionId: number | null;
   sessionRevision: number | null;
   saleName: string | null;

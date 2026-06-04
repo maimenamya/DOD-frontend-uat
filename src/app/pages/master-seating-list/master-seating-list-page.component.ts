@@ -47,10 +47,12 @@ export class MasterSeatingListPageComponent implements OnInit {
 
   readonly createForm = this.fb.group({
     code: ['', Validators.required],
+    chargesRoomFee: [false],
   });
 
   readonly editForm = this.fb.group({
     code: ['', Validators.required],
+    chargesRoomFee: [false],
   });
 
   ngOnInit(): void {
@@ -106,9 +108,13 @@ export class MasterSeatingListPageComponent implements OnInit {
     return 'ว่าง';
   }
 
+  billingModeLabel(chargesRoomFee: boolean): string {
+    return chargesRoomFee ? 'คิดค่าห้อง' : 'คิดค่าโต๊ะ';
+  }
+
   openCreate(): void {
     if (this.loading() || this.selectedSeatingTypeId() == null) return;
-    this.createForm.reset({ code: '' });
+    this.createForm.reset({ code: '', chargesRoomFee: false });
     this.showCreateModal.set(true);
   }
 
@@ -117,7 +123,7 @@ export class MasterSeatingListPageComponent implements OnInit {
   }
 
   openEdit(item: MstSeating): void {
-    this.editForm.reset({ code: item.code });
+    this.editForm.reset({ code: item.code, chargesRoomFee: item.chargesRoomFee });
     this.editingItem.set(item);
   }
 
@@ -132,9 +138,9 @@ export class MasterSeatingListPageComponent implements OnInit {
       this.toast.showError('กรุณาเลือกประเภทที่นั่ง');
       return;
     }
-    const { code } = this.createForm.getRawValue();
+    const { code, chargesRoomFee } = this.createForm.getRawValue();
     this.submitting.set(true);
-    this.shopMaster.createSeating({ code, seatingTypeId }).subscribe({
+    this.shopMaster.createSeating({ code, seatingTypeId, chargesRoomFee }).subscribe({
       next: () => {
         this.submitting.set(false);
         this.closeCreate();
@@ -151,20 +157,22 @@ export class MasterSeatingListPageComponent implements OnInit {
   submitEdit(): void {
     const item = this.editingItem();
     if (!item || this.editForm.invalid || this.submitting()) return;
-    const { code } = this.editForm.getRawValue();
+    const { code, chargesRoomFee } = this.editForm.getRawValue();
     this.submitting.set(true);
-    this.shopMaster.updateSeating(item.id, { code, seatingTypeId: item.seatingTypeId }).subscribe({
-      next: () => {
-        this.submitting.set(false);
-        this.closeEdit();
-        this.toast.showSuccess('บันทึกการแก้ไขเรียบร้อย');
-        this.loadAll();
-      },
-      error: (err: { error?: { error?: string } }) => {
-        this.submitting.set(false);
-        this.toast.showError(err.error?.error ?? 'ไม่สามารถแก้ไขที่นั่งได้');
-      },
-    });
+    this.shopMaster
+      .updateSeating(item.id, { code, seatingTypeId: item.seatingTypeId, chargesRoomFee })
+      .subscribe({
+        next: () => {
+          this.submitting.set(false);
+          this.closeEdit();
+          this.toast.showSuccess('บันทึกการแก้ไขเรียบร้อย');
+          this.loadAll();
+        },
+        error: (err: { error?: { error?: string } }) => {
+          this.submitting.set(false);
+          this.toast.showError(err.error?.error ?? 'ไม่สามารถแก้ไขที่นั่งได้');
+        },
+      });
   }
 
   async confirmDelete(item: MstSeating): Promise<void> {

@@ -58,7 +58,7 @@ import {
   sanitizeDigitsOnly,
 } from '../../utils/numeric-input.util';
 
-type SeatTypeFilter = number | 'ALL';
+type SeatTypeFilter = number | 'ALL' | 'ROOM_CHARGE';
 type SeatStatusFilter = 'ALL' | 'AVAILABLE' | 'OCCUPIED' | 'AWAITING_CLEAR';
 type AddModalMode = 'ORDER_LEDGER' | 'STAFF_LEDGER' | 'ROOM_CHARGE';
 
@@ -71,6 +71,7 @@ type SeatTile = {
   seatId: number;
   code: string;
   seatingTypeId: number;
+  chargesRoomFee: boolean;
   zoneLabel: string;
   status: SeatStatus;
   sessionId: number | null;
@@ -208,11 +209,25 @@ export class OpenTablePageComponent implements OnInit {
     });
   }
 
+  readonly hasChargeableSeats = computed(() => this.seats().some((s) => s.chargesRoomFee));
+
+  readonly seatingTypeIdsWithRoomCharge = computed(() => {
+    const ids = new Set<number>();
+    for (const seat of this.seats()) {
+      if (seat.chargesRoomFee) ids.add(seat.seatingTypeId);
+    }
+    return ids;
+  });
+
   readonly filteredSeats = computed(() => {
     const keyword = this.search().trim().toLowerCase();
     return this.seats().filter((seat) => {
       const typeFilter = this.typeFilter();
-      if (typeFilter !== 'ALL' && seat.seatingTypeId !== typeFilter) return false;
+      if (typeFilter === 'ROOM_CHARGE') {
+        if (!seat.chargesRoomFee) return false;
+      } else if (typeFilter !== 'ALL' && seat.seatingTypeId !== typeFilter) {
+        return false;
+      }
       if (this.statusFilter() === 'AVAILABLE' && seat.status !== 'AVAILABLE') return false;
       if (this.statusFilter() === 'OCCUPIED' && seat.status !== 'OCCUPIED') return false;
       if (this.statusFilter() === 'AWAITING_CLEAR' && seat.status !== 'AWAITING_CLEAR') {
@@ -226,8 +241,13 @@ export class OpenTablePageComponent implements OnInit {
   readonly seatZones = computed(() => {
     const typeFilter = this.typeFilter();
     const seats = this.filteredSeats();
+    const roomChargeTypeIds = this.seatingTypeIdsWithRoomCharge();
     return this.seatingTypeZones()
-      .filter((z) => typeFilter === 'ALL' || z.id === typeFilter)
+      .filter((z) => {
+        if (typeFilter === 'ROOM_CHARGE') return roomChargeTypeIds.has(z.id);
+        if (typeFilter === 'ALL') return true;
+        return z.id === typeFilter;
+      })
       .map((zone) => ({
         typeId: zone.id,
         label: zone.name,
@@ -485,15 +505,18 @@ export class OpenTablePageComponent implements OnInit {
     this.seatingTypeZones().find((z) => z.id === this.transferSeatingTypeId()) ?? null,
   );
 
-  readonly roomChargeSeatingTypeOptions = computed<DropdownOption[]>(() =>
-    this.seatingTypeZones().map((z) => ({ value: z.id, label: z.name })),
-  );
+  readonly roomChargeSeatingTypeOptions = computed<DropdownOption[]>(() => {
+    const typeIds = this.seatingTypeIdsWithRoomCharge();
+    return this.seatingTypeZones()
+      .filter((z) => typeIds.has(z.id))
+      .map((z) => ({ value: z.id, label: z.name }));
+  });
 
   readonly roomChargeSeatOptions = computed<DropdownOption[]>(() => {
     const typeId = this.roomChargeSeatingTypeId();
     if (typeId == null) return [];
     return this.seats()
-      .filter((s) => s.seatingTypeId === typeId)
+      .filter((s) => s.seatingTypeId === typeId && s.chargesRoomFee)
       .map((s) => ({ value: s.seatId, label: s.code }));
   });
 
@@ -654,6 +677,7 @@ export class OpenTablePageComponent implements OnInit {
             seatId: s.id,
             code: s.code,
             seatingTypeId: type.id,
+            chargesRoomFee: s.chargesRoomFee,
             zoneLabel: type.name,
             status: s.status,
             sessionId: s.sessionId,
@@ -871,8 +895,9 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   private resetRoomChargeForm(): void {
-    const zones = this.seatingTypeZones();
-    const firstType = zones[0]?.id ?? null;
+    const typeIds = this.seatingTypeIdsWithRoomCharge();
+    const firstType =
+      this.seatingTypeZones().find((z) => typeIds.has(z.id))?.id ?? null;
     this.roomChargeSeatingTypeId.set(firstType);
     this.roomChargeRateType.set('NONE');
     this.roomChargeUnitPriceText.set('');
@@ -882,7 +907,7 @@ export class OpenTablePageComponent implements OnInit {
 
   private syncRoomChargeSeating(): void {
     const typeId = this.roomChargeSeatingTypeId();
-    const pool = this.seats().filter((s) => s.seatingTypeId === typeId);
+    const pool = this.seats().filter((s) => s.seatingTypeId === typeId && s.chargesRoomFee);
     const current = this.roomChargeSeatingId();
     if (current != null && pool.some((s) => s.seatId === current)) return;
     this.roomChargeSeatingId.set(pool[0]?.seatId ?? null);
