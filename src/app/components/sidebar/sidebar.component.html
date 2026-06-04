@@ -54,6 +54,18 @@
         </a>
       }
 
+      @if (showDailyExpenses()) {
+        <a
+          routerLink="/dashboard/daily-expenses"
+          routerLinkActive="app-sidebar-link-active"
+          (click)="collapseAllSubmenus(); mobileClose.emit()"
+          class="app-sidebar-link"
+        >
+          <app-sidebar-icon name="receipt" />
+          บันทึกค่าใช้จ่าย
+        </a>
+      }
+
       @if (showMasterNav()) {
       @for (group of navGroups; track group.id) {
         <div class="app-sidebar-group">

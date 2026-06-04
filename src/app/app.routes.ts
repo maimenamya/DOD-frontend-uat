@@ -21,6 +21,7 @@ import { MasterSeatingTypePageComponent } from './pages/master-seating-type/mast
 import { MyProfileComponent } from './pages/my-profile/my-profile.component';
 import { OpenTablePageComponent } from './pages/open-table/open-table-page.component';
 import { ReportsPageComponent } from './pages/reports/reports-page.component';
+import { DailyExpensesPageComponent } from './pages/daily-expenses/daily-expenses-page.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -114,6 +115,11 @@ export const routes: Routes = [
         path: 'reports',
         component: ReportsPageComponent,
         canActivate: [permissionGuard('reports')],
+      },
+      {
+        path: 'daily-expenses',
+        component: DailyExpensesPageComponent,
+        canActivate: [permissionGuard('daily_expenses')],
       },
       { path: 'my-profile', component: MyProfileComponent },
       { path: 'sale-team', redirectTo: 'employees', pathMatch: 'full' },

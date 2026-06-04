@@ -1,0 +1,195 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">บันทึกค่าใช้จ่าย</h1>
+      <p class="app-page-subtitle">บันทึกรายจ่ายร้าน — เลือกวันย้อนหลังได้ถ้าลืมลง</p>
+    </div>
+    @if (!loading()) {
+      <button type="button" class="app-btn-primary" (click)="openCreate()">+ บันทึกรายการ</button>
+    }
+  </div>
+
+  <section class="app-card mb-4 p-4">
+    <h2 class="mb-3 text-sm font-semibold text-text-primary">ช่วงวันที่</h2>
+    <div class="flex flex-wrap items-end gap-3">
+      <label class="flex min-w-[10rem] flex-col gap-1">
+        <span class="text-xs text-text-secondary">ตั้งแต่</span>
+        <input
+          type="date"
+          class="app-input dashboard-date-input"
+          [ngModel]="rangeFrom()"
+          (ngModelChange)="rangeFrom.set($event)"
+        />
+      </label>
+      <label class="flex min-w-[10rem] flex-col gap-1">
+        <span class="text-xs text-text-secondary">ถึง</span>
+        <input
+          type="date"
+          class="app-input dashboard-date-input"
+          [ngModel]="rangeTo()"
+          (ngModelChange)="rangeTo.set($event)"
+        />
+      </label>
+      <button type="button" class="app-btn-secondary" (click)="applyRange()">แสดงรายการ</button>
+    </div>
+    @if (rangeLabelFrom() && rangeLabelTo()) {
+      <p class="mt-2 text-xs text-text-secondary">
+        แสดง {{ rangeLabelFrom() }} – {{ rangeLabelTo() }}
+      </p>
+    }
+  </section>
+
+  @if (!loading() && hasItems()) {
+    <div class="mb-4 rounded-input border border-theme-border bg-surface px-4 py-3">
+      <p class="text-sm text-text-secondary">
+        รวมค่าใช้จ่ายในช่วงที่เลือก:
+        <span class="ml-1 text-lg font-semibold text-theme-accent-strong">
+          {{ totalAmount() | number: '1.0-0' }} บาท
+        </span>
+      </p>
+    </div>
+  }
+
+  @if (showCreateModal()) {
+    <app-modal layout="center" (dismiss)="closeCreate()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">บันทึกค่าใช้จ่าย</h2>
+        <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeCreate()">✕</button>
+      </div>
+      <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
+        <div class="app-form-group">
+          <label class="app-label">รายการ / ค่าอะไร</label>
+          <input
+            type="text"
+            formControlName="description"
+            class="app-input"
+            placeholder="เช่น ค่าไฟ, น้ำดื่ม, ซ่อมแอร์"
+          />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">จำนวนเงิน (บาท)</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            formControlName="amount"
+            class="app-input"
+            placeholder="0"
+            (input)="sanitizeAmountInput('create', $event)"
+          />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label" for="expense-date-create">วันที่ (เผื่อลืมลง)</label>
+          <input id="expense-date-create" type="date" formControlName="businessDate" class="app-input" />
+          <p class="app-field-hint">เลือกวันที่จ่ายจริง — ไม่จำเป็นต้องเป็นวันนี้</p>
+        </div>
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
+          <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+            {{ submitting() ? 'กำลังบันทึก...' : 'บันทึก' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+
+  @if (editingItem(); as item) {
+    <app-modal layout="center" (dismiss)="closeEdit()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">แก้ไขค่าใช้จ่าย</h2>
+        <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeEdit()">✕</button>
+      </div>
+      <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
+        <div class="app-form-group">
+          <label class="app-label">รายการ / ค่าอะไร</label>
+          <input type="text" formControlName="description" class="app-input" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">จำนวนเงิน (บาท)</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            formControlName="amount"
+            class="app-input"
+            (input)="sanitizeAmountInput('edit', $event)"
+          />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label" for="expense-date-edit">วันที่</label>
+          <input id="expense-date-edit" type="date" formControlName="businessDate" class="app-input" />
+        </div>
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
+          <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+            {{ submitting() ? 'กำลังบันทึก...' : 'บันทึกการแก้ไข' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+
+  @if (loading()) {
+    <p class="app-loading-text">กำลังโหลด...</p>
+  } @else if (!hasItems()) {
+    <p class="app-empty-state">ยังไม่มีรายการในช่วงวันที่เลือก</p>
+  } @else {
+    <section class="app-card app-card-flush">
+      <div class="app-data-table-shell">
+        <div class="app-split-table">
+          <div class="app-split-table-header">
+            <table class="app-data-table app-split-table-grid">
+              <colgroup>
+                <col class="app-col-id" />
+                <col class="app-col-narrow" />
+                <col />
+                <col class="app-col-narrow" />
+                <col class="app-col-actions" />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>วันที่</th>
+                  <th>รายการ</th>
+                  <th class="app-cell-right">จำนวนเงิน</th>
+                  <th class="app-cell-right">จัดการ</th>
+                </tr>
+              </thead>
+            </table>
+          </div>
+          <div class="app-split-table-body app-scroll-region">
+            <table class="app-data-table app-split-table-grid">
+              <colgroup>
+                <col class="app-col-id" />
+                <col class="app-col-narrow" />
+                <col />
+                <col class="app-col-narrow" />
+                <col class="app-col-actions" />
+              </colgroup>
+              <tbody>
+                @for (row of items(); track row.id; let i = $index) {
+                  <tr>
+                    <td class="app-cell-mono">{{ i + 1 }}</td>
+                    <td class="whitespace-nowrap text-text-secondary">{{ row.businessDateLabel }}</td>
+                    <td class="app-cell-primary">{{ row.description }}</td>
+                    <td class="app-cell-right app-cell-highlight-violet">
+                      {{ row.amount | number: '1.0-0' }}
+                    </td>
+                    <td class="app-cell-right">
+                      <div class="app-table-actions">
+                        <button type="button" class="app-btn-secondary-sm" (click)="openEdit(row)">
+                          แก้ไข
+                        </button>
+                        <button type="button" class="app-btn-danger-sm" (click)="confirmDelete(row)">
+                          ลบ
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  }
+</div>

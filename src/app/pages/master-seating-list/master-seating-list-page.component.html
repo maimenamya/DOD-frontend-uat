@@ -53,14 +53,14 @@
         </div>
         <div class="app-form-group">
           <label class="app-label">การคิดค่าใช้จ่าย</label>
-          <label class="app-toggle" aria-label="คิดค่าห้องแทนค่าโต๊ะ">
+          <label class="app-toggle" aria-label="สลับคิดค่าบริการ">
             <input type="checkbox" class="app-toggle-input" formControlName="chargesRoomFee" />
             <span class="app-toggle-track" aria-hidden="true"></span>
             <span class="app-toggle-text">
               {{
                 createForm.controls.chargesRoomFee.value
-                  ? 'คิดค่าห้อง (ชั่วโมงละ / เหมาทั้งคืน ตอนเปิดโต๊ะ)'
-                  : 'คิดค่าโต๊ะ (ไม่เก็บค่าห้อง)'
+                  ? 'คิดค่าบริการ (ชั่วโมงละ / เหมาทั้งคืน ตอนเปิดโต๊ะ)'
+                  : 'ไม่คิดค่าบริการ (ไม่เก็บค่าบริการ)'
               }}
             </span>
           </label>
@@ -95,14 +95,14 @@
         </div>
         <div class="app-form-group">
           <label class="app-label">การคิดค่าใช้จ่าย</label>
-          <label class="app-toggle" aria-label="คิดค่าห้องแทนค่าโต๊ะ">
+          <label class="app-toggle" aria-label="สลับคิดค่าบริการ">
             <input type="checkbox" class="app-toggle-input" formControlName="chargesRoomFee" />
             <span class="app-toggle-track" aria-hidden="true"></span>
             <span class="app-toggle-text">
               {{
                 editForm.controls.chargesRoomFee.value
-                  ? 'คิดค่าห้อง (ชั่วโมงละ / เหมาทั้งคืน ตอนเปิดโต๊ะ)'
-                  : 'คิดค่าโต๊ะ (ไม่เก็บค่าห้อง)'
+                  ? 'คิดค่าบริการ (ชั่วโมงละ / เหมาทั้งคืน ตอนเปิดโต๊ะ)'
+                  : 'ไม่คิดค่าบริการ (ไม่เก็บค่าบริการ)'
               }}
             </span>
           </label>

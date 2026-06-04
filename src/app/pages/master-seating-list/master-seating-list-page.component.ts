@@ -109,7 +109,7 @@ export class MasterSeatingListPageComponent implements OnInit {
   }
 
   billingModeLabel(chargesRoomFee: boolean): string {
-    return chargesRoomFee ? 'คิดค่าห้อง' : 'คิดค่าโต๊ะ';
+    return chargesRoomFee ? 'คิดค่าบริการ' : 'ไม่คิดค่าบริการ';
   }
 
   openCreate(): void {

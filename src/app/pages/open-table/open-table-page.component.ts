@@ -7,7 +7,10 @@ import { catchError, finalize, forkJoin, of } from 'rxjs';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
 import { PortalToBodyDirective } from '../../directives/portal-to-body.directive';
-import { OPEN_TABLE_MOBILE_SHEET_BODY_LOCK_CLASS } from '../../utils/body-portal.util';
+import {
+  APP_MODAL_BODY_LOCK_CLASS,
+  OPEN_TABLE_MOBILE_SHEET_BODY_LOCK_CLASS,
+} from '../../utils/body-portal.util';
 import { ShopDatetimeInputComponent } from '../../components/shop-datetime-input/shop-datetime-input.component';
 import {
   CustomDropdownComponent,
@@ -1342,10 +1345,21 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   closeAddModal(): void {
+    closeOpenShopFlatpickrCalendars();
     this.showAddModal.set(false);
+    this.purgePortaledModalsWhenNoneOpen();
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
     }
+  }
+
+  /** Portaled `app-modal` hosts can outlive `@if` destroy — remove stale overlays. */
+  private purgePortaledModalsWhenNoneOpen(): void {
+    queueMicrotask(() => {
+      if (this.anyModalOpen()) return;
+      document.body.classList.remove(APP_MODAL_BODY_LOCK_CLASS);
+      document.querySelectorAll('body > app-modal').forEach((el) => el.remove());
+    });
   }
 
   submitAddItems(): void {
@@ -1883,8 +1897,8 @@ export class OpenTablePageComponent implements OnInit {
           onError?.();
           return;
         }
-        this.toast.showSuccess(successMessage);
         onSuccess(result);
+        this.toast.showSuccess(successMessage);
       });
   }
 }

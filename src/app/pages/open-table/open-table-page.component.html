@@ -49,7 +49,7 @@
             [class.app-filter-chip-active]="typeFilter() === 'ROOM_CHARGE'"
             (click)="setTypeFilter('ROOM_CHARGE')"
           >
-            คิดค่าห้อง
+            คิดค่าบริการ
           </button>
         </div>
 
@@ -441,11 +441,11 @@
       @if (addModalMode() === 'ROOM_CHARGE') {
         @if (!hasChargeableSeats()) {
           <p class="app-field-hint">
-            ยังไม่มีโซนที่เปิด «คิดค่าห้อง» — ตั้งที่เมนู ประเภทที่นั่ง
+            ยังไม่มีโซนที่เปิด «คิดค่าบริการ» — ตั้งที่เมนู โซนที่นั่ง
           </p>
         }
         <div class="app-form-group">
-          <label class="app-label">ประเภทที่นั่ง (เฉพาะโซนคิดค่าห้อง)</label>
+          <label class="app-label">ประเภทที่นั่ง (เฉพาะโซนคิดค่าบริการ)</label>
           <app-custom-dropdown
             [options]="roomChargeSeatingTypeOptions()"
             [ngModel]="roomChargeSeatingTypeId()"

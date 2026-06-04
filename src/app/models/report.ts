@@ -1,6 +1,6 @@
 export type ReportPreset = 'daily' | 'weekly' | 'monthly' | 'custom';
 
-export type ReportSection = 'bills' | 'drinks' | 'expenses';
+export type ReportSection = 'bills' | 'drinks' | 'expenses' | 'sale_breakdown';
 
 export interface ReportOwnerRecipient {
   nickname: string;
@@ -38,6 +38,57 @@ export interface ReportDrinkRankRow {
   transactionCount: number;
 }
 
+export interface ReportExpenseRow {
+  businessDate: string;
+  description: string;
+  amount: number;
+}
+
+export interface ReportSaleSummaryRow {
+  saleEmployeeId: string;
+  nickname: string;
+  billCount: number;
+  beerBottles: number;
+  liquorBottles: number;
+  promotionCount: number;
+  membershipCount: number;
+  cocktailCount: number;
+  entertainerDrinkTotal: number;
+}
+
+export interface ReportSaleEntertainerRow {
+  saleEmployeeId: string;
+  saleNickname: string;
+  entertainerEmployeeId: string;
+  entertainerNickname: string;
+  roleName: string;
+  totalDrinks: number;
+}
+
+export interface ReportSaleProductRow {
+  saleEmployeeId: string;
+  saleNickname: string;
+  category: string;
+  categoryLabel: string;
+  itemName: string;
+  quantity: number;
+  unitLabel: string;
+}
+
+export interface ReportSaleCocktailRow {
+  saleEmployeeId: string;
+  saleNickname: string;
+  cocktailName: string;
+  quantity: number;
+  unitLabel: string;
+}
+
+export interface ReportCocktailTotalRow {
+  cocktailName: string;
+  quantity: number;
+  unitLabel: string;
+}
+
 export interface ReportPreview {
   shopId: number;
   shopName: string;
@@ -65,10 +116,17 @@ export interface ReportPreview {
     entertainers: ReportDrinkRankRow[];
   } | null;
   expenses: {
-    available: false;
+    available: boolean;
     message: string;
     totalAmount: number;
-    rows: [];
+    rows: ReportExpenseRow[];
+  } | null;
+  saleBreakdown: {
+    summaries: ReportSaleSummaryRow[];
+    entertainerRows: ReportSaleEntertainerRow[];
+    productRows: ReportSaleProductRow[];
+    cocktailRows: ReportSaleCocktailRow[];
+    cocktailTotals: ReportCocktailTotalRow[];
   } | null;
 }
 

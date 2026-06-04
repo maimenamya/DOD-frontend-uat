@@ -15,7 +15,8 @@ import { blobApiErrorMessage } from '../../utils/excel-download.util';
 const SECTION_OPTIONS: { id: ReportSection; label: string }[] = [
   { id: 'bills', label: 'ยอดบิล' },
   { id: 'drinks', label: 'บอร์ดเครื่องดื่ม' },
-  { id: 'expenses', label: 'รายจ่าย' },
+  { id: 'expenses', label: 'รายจ่ายร้าน' },
+  { id: 'sale_breakdown', label: 'ยอดขายตามเซลล์ (เบียร์/เหล้า/โปร/เมม/ดื่มเด็ก)' },
 ];
 
 function shopCalendarMonthStartInput(): string {
@@ -39,7 +40,12 @@ export class ReportsPageComponent implements OnInit {
 
   readonly rangeFrom = signal(shopCalendarMonthStartInput());
   readonly rangeTo = signal(shopCalendarTodayInput());
-  readonly selectedSections = signal<ReportSection[]>(['bills', 'drinks']);
+  readonly selectedSections = signal<ReportSection[]>([
+    'bills',
+    'drinks',
+    'expenses',
+    'sale_breakdown',
+  ]);
 
   readonly metaLoading = signal(true);
   readonly previewLoading = signal(false);

@@ -95,6 +95,7 @@ export class SidebarComponent implements OnInit {
   readonly showOpenTable = computed(() => this.auth.hasFeature('open_table'));
   readonly showPrTagOps = computed(() => this.auth.hasFeature('pr_tag_operations'));
   readonly showReports = computed(() => this.auth.hasFeature('reports'));
+  readonly showDailyExpenses = computed(() => this.auth.hasFeature('daily_expenses'));
   readonly showMasterNav = computed(() => this.auth.hasFeature('master_data'));
 
   readonly navGroups = MANAGEMENT_NAV_GROUPS;
@@ -126,6 +127,9 @@ export class SidebarComponent implements OnInit {
 
   private getGroupIdByCurrentRoute(): string | null {
     const url = this.router.url;
+    if (url.startsWith('/dashboard/daily-expenses')) {
+      return null;
+    }
     const group = MANAGEMENT_NAV_GROUPS.find((g) =>
       g.children.some((c) => url.startsWith(c.path)),
     );

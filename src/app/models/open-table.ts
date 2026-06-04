@@ -82,6 +82,8 @@ export type SessionRoomCharge = {
   roomChargeId: number;
   roomCode: string;
   priceLabel?: string;
+  /** Checkout detail when multiple rates in one seating line, e.g. "@ 200/100 บาท" */
+  rateDetail?: string;
   pricingType: SeatingRateType;
   quantity: number;
   unitLabel: string;

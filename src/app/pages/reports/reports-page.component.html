@@ -118,9 +118,14 @@
           </div>
         }
         @if (p.expenses) {
-          <div class="reports-kpi reports-kpi--muted">
-            <span class="reports-kpi-label">รายจ่าย</span>
-            <span class="reports-kpi-meta">{{ p.expenses.message }}</span>
+          <div class="reports-kpi" [class.reports-kpi--muted]="!p.expenses.available">
+            <span class="reports-kpi-label">รายจ่ายร้าน</span>
+            @if (p.expenses.available) {
+              <span class="reports-kpi-value">{{ formatMoney(p.expenses.totalAmount) }}</span>
+              <span class="reports-kpi-meta">{{ p.expenses.rows.length }} รายการ</span>
+            } @else {
+              <span class="reports-kpi-meta">{{ p.expenses.message }}</span>
+            }
           </div>
         }
       </div>
@@ -142,6 +147,141 @@
                   <td>{{ row.nickname }}</td>
                   <td class="reports-num">{{ row.billCount }}</td>
                   <td class="reports-num">{{ formatMoney(row.totalAmount) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (p.saleBreakdown && p.saleBreakdown.summaries.length > 0) {
+        <div class="reports-block">
+          <h3 class="reports-block-title">ยอดขายตามเซลล์ (จากบิลที่เช็กเอาต์แล้ว)</h3>
+          <table class="reports-table">
+            <thead>
+              <tr>
+                <th>เซลล์</th>
+                <th class="reports-num">เบียร์</th>
+                <th class="reports-num">เหล้า/สปิริต</th>
+                <th class="reports-num">ค็อกเทล</th>
+                <th class="reports-num">โปร</th>
+                <th class="reports-num">เมม</th>
+                <th class="reports-num">ดื่มเด็ก</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of p.saleBreakdown.summaries.slice(0, 8); track row.saleEmployeeId) {
+                <tr>
+                  <td>{{ row.nickname }}</td>
+                  <td class="reports-num">{{ row.beerBottles }}</td>
+                  <td class="reports-num">{{ row.liquorBottles }}</td>
+                  <td class="reports-num">{{ row.cocktailCount }}</td>
+                  <td class="reports-num">{{ row.promotionCount }}</td>
+                  <td class="reports-num">{{ row.membershipCount }}</td>
+                  <td class="reports-num">{{ row.entertainerDrinkTotal }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <p class="reports-checklist-hint mt-2">
+            เบียร์/เหล้า = ขวด (ไม่รวมมิกซ์เซอร์/ฟรีมิกซ์) · ค็อกเทล = แก้ว · โปร/เมม = ชุด ·
+            ดื่มเด็ก = แก้วรวมของเด็กที่เซลล์ดูแลในบิล
+          </p>
+        </div>
+      }
+
+      @if (p.saleBreakdown && p.saleBreakdown.cocktailTotals.length > 0) {
+        <div class="reports-block">
+          <h3 class="reports-block-title">ค็อกเทลที่ขายได้ (รวมทั้งร้าน)</h3>
+          <table class="reports-table">
+            <thead>
+              <tr>
+                <th>ค็อกเทล</th>
+                <th class="reports-num">จำนวน</th>
+                <th>หน่วย</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of p.saleBreakdown.cocktailTotals.slice(0, 15); track row.cocktailName) {
+                <tr>
+                  <td>{{ row.cocktailName }}</td>
+                  <td class="reports-num">{{ row.quantity }}</td>
+                  <td>{{ row.unitLabel }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (p.saleBreakdown && p.saleBreakdown.cocktailRows.length > 0) {
+        <div class="reports-block">
+          <h3 class="reports-block-title">ค็อกเทลตามเซลล์ (TOP 15)</h3>
+          <table class="reports-table">
+            <thead>
+              <tr>
+                <th>เซลล์</th>
+                <th>ค็อกเทล</th>
+                <th class="reports-num">จำนวน</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of p.saleBreakdown.cocktailRows.slice(0, 15); track row.saleEmployeeId + row.cocktailName) {
+                <tr>
+                  <td>{{ row.saleNickname }}</td>
+                  <td>{{ row.cocktailName }}</td>
+                  <td class="reports-num">{{ row.quantity }} {{ row.unitLabel }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (p.saleBreakdown && p.saleBreakdown.entertainerRows.length > 0) {
+        <div class="reports-block">
+          <h3 class="reports-block-title">เซลล์ × เด็กนั่งดริ้ง (TOP 10)</h3>
+          <table class="reports-table">
+            <thead>
+              <tr>
+                <th>เซลล์</th>
+                <th>เด็กนั่งดริ้ง</th>
+                <th class="reports-num">แก้ว</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (
+                row of p.saleBreakdown.entertainerRows.slice(0, 10);
+                track row.saleEmployeeId + row.entertainerEmployeeId
+              ) {
+                <tr>
+                  <td>{{ row.saleNickname }}</td>
+                  <td>{{ row.entertainerNickname }} ({{ row.roleName }})</td>
+                  <td class="reports-num">{{ row.totalDrinks }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (p.expenses && p.expenses.available && p.expenses.rows.length > 0) {
+        <div class="reports-block">
+          <h3 class="reports-block-title">รายจ่ายร้าน (ล่าสุด 10)</h3>
+          <table class="reports-table">
+            <thead>
+              <tr>
+                <th>วันที่</th>
+                <th>รายการ</th>
+                <th class="reports-num">บาท</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of p.expenses.rows.slice(0, 10); track row.businessDate + row.description) {
+                <tr>
+                  <td>{{ row.businessDate }}</td>
+                  <td>{{ row.description }}</td>
+                  <td class="reports-num">{{ formatMoney(row.amount) }}</td>
                 </tr>
               }
             </tbody>
