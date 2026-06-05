@@ -29,11 +29,13 @@ export class PrTagOperationsPageComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
 
-  readonly canManage = computed(() => this.auth.canAccessTeamManagement());
+  /** ลงแท็ก / เข้างาน / วันหยุด / ตัดแท็ก — ไม่ใช่สิทธิ์จัดการพนักงาน (CASHIER ใช้ได้) */
+  readonly canOperateTags = computed(() => this.auth.hasFeature('pr_tag_operations'));
   readonly rows = signal<PrTagOperationsRow[]>([]);
   readonly assignableEmployees = signal<PrTagAssignableEmployee[]>([]);
   readonly tagOptions = signal<DropdownOption[]>([]);
   readonly loading = signal(true);
+  readonly loadFailed = signal(false);
   readonly acting = signal(false);
   readonly showAssignModal = signal(false);
   readonly showChangeTagModal = signal(false);
@@ -71,6 +73,7 @@ export class PrTagOperationsPageComponent implements OnInit {
 
   loadDashboard(): void {
     this.loading.set(true);
+    this.loadFailed.set(false);
     this.prTagService.getOperationsDashboard().subscribe({
       next: (data) => {
         this.rows.set(data.rows);
@@ -83,14 +86,30 @@ export class PrTagOperationsPageComponent implements OnInit {
         );
         this.loading.set(false);
       },
-      error: (err: { error?: { error?: string } }) => {
-        this.toast.showError(err.error?.error ?? 'ไม่สามารถโหลดรายการแท็กได้');
+      error: (err: { status?: number; error?: { error?: string } }) => {
+        this.rows.set([]);
+        this.assignableEmployees.set([]);
+        this.tagOptions.set([]);
+        this.loadFailed.set(true);
+        const msg =
+          err.status === 401
+            ? 'เซสชันหมดอายุ — กรุณาเข้าสู่ระบบใหม่'
+            : (err.error?.error ?? 'ไม่สามารถโหลดรายการแท็กได้');
+        this.toast.showError(msg);
         this.loading.set(false);
       },
     });
   }
 
   openAssignModal(): void {
+    if (this.loadFailed()) {
+      this.toast.showError('โหลดข้อมูลไม่สำเร็จ — ลองรีเฟรชหน้าหรือเข้าสู่ระบบใหม่');
+      return;
+    }
+    if (this.tagOptions().length === 0) {
+      this.toast.showError('ยังไม่มีแพ็กเกจแท็ก — ตั้งค่าที่เมนู แพ็กเกจแท็ก PR ก่อน');
+      return;
+    }
     if (this.assignableEmployees().length === 0) {
       this.toast.showError('ไม่มี PR ที่ว่างสำหรับลงแท็ก (ทุกคนมีแท็กอยู่แล้ว)');
       return;

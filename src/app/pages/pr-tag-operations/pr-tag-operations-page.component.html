@@ -3,12 +3,19 @@
     <div>
       <h1 class="app-page-title">จัดการ tag</h1>
     </div>
-    @if (canManage() && !loading()) {
-      <button type="button" class="app-btn-primary" (click)="openAssignModal()">+ ลงแท็ก</button>
+    @if (canOperateTags()) {
+      <button
+        type="button"
+        class="app-btn-primary"
+        [disabled]="loading() || acting()"
+        (click)="openAssignModal()"
+      >
+        + ลงแท็ก
+      </button>
     }
   </div>
 
-  @if (showChangeTagModal() && canManage() && changeTagTarget()) {
+  @if (showChangeTagModal() && canOperateTags() && changeTagTarget()) {
     <app-modal (dismiss)="closeChangeTagModal()">
       <div class="app-modal-header">
         <h2 class="app-modal-title">เปลี่ยนแพ็กเกจแท็ก — {{ changeTagTarget()!.nickname }}</h2>
@@ -49,7 +56,7 @@
     </app-modal>
   }
 
-  @if (showAssignModal() && canManage()) {
+  @if (showAssignModal() && canOperateTags()) {
     <app-modal (dismiss)="closeAssignModal()">
       <div class="app-modal-header">
         <h2 class="app-modal-title">ลงแท็ก</h2>
@@ -84,6 +91,13 @@
 
   @if (loading()) {
     <p class="app-loading-text">กำลังโหลด...</p>
+  } @else if (loadFailed()) {
+    <p class="app-empty-state">
+      โหลดข้อมูลไม่สำเร็จ — ตรวจสอบการเข้าสู่ระบบแล้วกดโหลดใหม่
+    </p>
+    <div class="mt-3">
+      <button type="button" class="app-btn-secondary" (click)="loadDashboard()">โหลดใหม่</button>
+    </div>
   } @else if (rows().length === 0) {
     <p class="app-empty-state">ยังไม่มี PR ที่ลงแท็กอยู่ — กด «+ ลงแท็ก» เพื่อเริ่ม</p>
   } @else {
@@ -99,7 +113,7 @@
                 <col class="app-col-narrow" />
                 <col class="app-col-narrow" />
                 <col class="app-col-narrow" />
-                @if (canManage()) {
+                @if (canOperateTags()) {
                   <col class="app-col-narrow" />
                   <col class="app-col-narrow" />
                   <col class="app-col-narrow" />
@@ -113,7 +127,7 @@
                   <th class="app-cell-center">วันทำงาน</th>
                   <th class="app-cell-center">วันหยุด</th>
                   <th class="app-cell-center">ดื่มสะสม</th>
-                  @if (canManage()) {
+                  @if (canOperateTags()) {
                     <th class="app-cell-center">+ วันทำงาน</th>
                     <th class="app-cell-center">+ วันหยุด</th>
                     <th class="app-cell-center">ตัดแท็ก</th>
@@ -131,7 +145,7 @@
                 <col class="app-col-narrow" />
                 <col class="app-col-narrow" />
                 <col class="app-col-narrow" />
-                @if (canManage()) {
+                @if (canOperateTags()) {
                   <col class="app-col-narrow" />
                   <col class="app-col-narrow" />
                   <col class="app-col-narrow" />
@@ -145,7 +159,7 @@
                     <td class="app-cell-primary">
                       @if (row.enrollment; as e) {
                         <span>{{ e.tagName }}</span>
-                        @if (canManage() && e.canChangeTag) {
+                        @if (canOperateTags() && e.canChangeTag) {
                           <button
                             type="button"
                             class="app-btn-inline ml-1 shrink-0"
@@ -172,7 +186,7 @@
                         {{ e.accumulatedDrinks }}/{{ e.targetDrinks }}
                       }
                     </td>
-                    @if (canManage()) {
+                    @if (canOperateTags()) {
                       @if (row.enrollment; as e) {
                         <td class="app-cell-center">
                           <button
