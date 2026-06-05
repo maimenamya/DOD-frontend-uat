@@ -66,7 +66,7 @@ import {
   sanitizeDigitsOnly,
 } from '../../utils/numeric-input.util';
 
-type SeatTypeFilter = number | 'ALL' | 'ROOM_CHARGE';
+type SeatTypeFilter = number | 'ALL';
 type SeatStatusFilter = 'ALL' | 'AVAILABLE' | 'OCCUPIED' | 'AWAITING_CLEAR';
 type AddModalMode = 'ORDER_LEDGER' | 'STAFF_LEDGER' | 'ROOM_CHARGE';
 
@@ -240,9 +240,7 @@ export class OpenTablePageComponent implements OnInit {
     const keyword = this.search().trim().toLowerCase();
     return this.seats().filter((seat) => {
       const typeFilter = this.typeFilter();
-      if (typeFilter === 'ROOM_CHARGE') {
-        if (!seat.chargesRoomFee) return false;
-      } else if (typeFilter !== 'ALL' && seat.seatingTypeId !== typeFilter) {
+      if (typeFilter !== 'ALL' && seat.seatingTypeId !== typeFilter) {
         return false;
       }
       if (this.statusFilter() === 'AVAILABLE' && seat.status !== 'AVAILABLE') return false;
@@ -258,13 +256,8 @@ export class OpenTablePageComponent implements OnInit {
   readonly seatZones = computed(() => {
     const typeFilter = this.typeFilter();
     const seats = this.filteredSeats();
-    const roomChargeTypeIds = this.seatingTypeIdsWithRoomCharge();
     return this.seatingTypeZones()
-      .filter((z) => {
-        if (typeFilter === 'ROOM_CHARGE') return roomChargeTypeIds.has(z.id);
-        if (typeFilter === 'ALL') return true;
-        return z.id === typeFilter;
-      })
+      .filter((z) => typeFilter === 'ALL' || z.id === typeFilter)
       .map((zone) => ({
         typeId: zone.id,
         label: zone.name,

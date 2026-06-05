@@ -38,19 +38,8 @@
               (click)="setTypeFilter(zone.id)"
             >
               {{ zone.name }}
-              @if (seatingTypeIdsWithRoomCharge().has(zone.id)) {
-                <span class="text-theme-accent"> · ค่าห้อง</span>
-              }
             </button>
           }
-          <button
-            type="button"
-            class="app-filter-chip"
-            [class.app-filter-chip-active]="typeFilter() === 'ROOM_CHARGE'"
-            (click)="setTypeFilter('ROOM_CHARGE')"
-          >
-            คิดค่าบริการ
-          </button>
         </div>
 
         <div class="app-filter-bar" role="tablist" aria-label="สถานะโต๊ะ">
