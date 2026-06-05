@@ -3,7 +3,7 @@
     <div>
       <h1 class="app-page-title">ประเภทเครื่องดื่ม</h1>
       <p class="app-page-subtitle text-sm text-text-secondary">
-        กลุ่มเครื่องดื่ม เช่น เหล้า เบียร์ ไวน์ มิกซ์เซอร์ — ร้านใหม่มี 4 ประเภทพื้นฐานให้แล้ว
+        กลุ่มเครื่องดื่ม เช่น เหล้า เบียร์ ไวน์ — ติ๊กมิกซ์เซอร์สำหรับประเภทที่ฟรีมิกซ์โต๊ะได้
       </p>
     </div>
     @if (canManage() && !loading()) {
@@ -27,6 +27,18 @@
             placeholder="เช่น เบียร์, เหล้า, ไวน์, มิกซ์เซอร์"
           />
         </div>
+        <div class="app-form-group">
+          <label class="app-label">มิกซ์เซอร์</label>
+          <label class="app-toggle" aria-label="ประเภทมิกซ์เซอร์">
+            <input type="checkbox" class="app-toggle-input" formControlName="isMixer" />
+            <span class="app-toggle-track"></span>
+            <span class="app-toggle-text">{{
+              createForm.controls.isMixer.value
+                ? 'ใช่ — ฟรีเมื่อโต๊ะมีฟรีมิกซ์'
+                : 'ไม่ใช่ — ขายตามราคา'
+            }}</span>
+          </label>
+        </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
           <button type="submit" class="app-btn-primary" [disabled]="submitting()">
@@ -47,6 +59,18 @@
         <div class="app-form-group">
           <label class="app-label">ชื่อประเภท</label>
           <input type="text" formControlName="name" class="app-input" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">มิกซ์เซอร์</label>
+          <label class="app-toggle" aria-label="ประเภทมิกซ์เซอร์">
+            <input type="checkbox" class="app-toggle-input" formControlName="isMixer" />
+            <span class="app-toggle-track"></span>
+            <span class="app-toggle-text">{{
+              editForm.controls.isMixer.value
+                ? 'ใช่ — ฟรีเมื่อโต๊ะมีฟรีมิกซ์'
+                : 'ไม่ใช่ — ขายตามราคา'
+            }}</span>
+          </label>
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>

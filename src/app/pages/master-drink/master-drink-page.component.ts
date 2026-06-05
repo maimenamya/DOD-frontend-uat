@@ -15,6 +15,7 @@ import { BeverageService } from '../../services/beverage.service';
 import { ShopMasterService } from '../../services/shop-master.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
+import { isMixerCategoryKind } from '../../utils/beverage-category-kind.util';
 
 @Component({
   selector: 'app-master-drink-page',
@@ -48,6 +49,11 @@ export class MasterDrinkPageComponent implements OnInit {
     const id = this.selectedCategoryId();
     if (id == null) return null;
     return this.categories().find((c) => c.id === id) ?? null;
+  });
+
+  readonly isMixerCategoryTab = computed(() => {
+    const kind = this.selectedCategory()?.kind;
+    return kind != null && isMixerCategoryKind(kind);
   });
 
   readonly createForm = this.fb.group({

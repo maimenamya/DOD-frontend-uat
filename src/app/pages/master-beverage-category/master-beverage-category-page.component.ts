@@ -34,10 +34,12 @@ export class MasterBeverageCategoryPageComponent implements OnInit {
 
   readonly createForm = this.fb.group({
     name: ['', Validators.required],
+    isMixer: [false],
   });
 
   readonly editForm = this.fb.group({
     name: ['', Validators.required],
+    isMixer: [false],
   });
 
   ngOnInit(): void {
@@ -65,7 +67,7 @@ export class MasterBeverageCategoryPageComponent implements OnInit {
 
   openCreate(): void {
     if (this.loading()) return;
-    this.createForm.reset({ name: '' });
+    this.createForm.reset({ name: '', isMixer: false });
     this.showCreateModal.set(true);
   }
 
@@ -74,7 +76,10 @@ export class MasterBeverageCategoryPageComponent implements OnInit {
   }
 
   openEdit(item: MstBeverageCategory): void {
-    this.editForm.reset({ name: item.name });
+    this.editForm.reset({
+      name: item.name,
+      isMixer: isMixerCategoryKind(item.kind),
+    });
     this.editingItem.set(item);
   }
 
@@ -85,8 +90,8 @@ export class MasterBeverageCategoryPageComponent implements OnInit {
   submitCreate(): void {
     if (this.createForm.invalid || this.submitting()) return;
     this.submitting.set(true);
-    const { name } = this.createForm.getRawValue();
-    this.shopMaster.createBeverageCategory({ name: name.trim() }).subscribe({
+    const { name, isMixer } = this.createForm.getRawValue();
+    this.shopMaster.createBeverageCategory({ name: name.trim(), isMixer }).subscribe({
       next: () => {
         this.submitting.set(false);
         this.closeCreate();
@@ -104,19 +109,21 @@ export class MasterBeverageCategoryPageComponent implements OnInit {
     const item = this.editingItem();
     if (!item || this.editForm.invalid || this.submitting()) return;
     this.submitting.set(true);
-    const { name } = this.editForm.getRawValue();
-    this.shopMaster.updateBeverageCategory(item.id, { name: name.trim() }).subscribe({
-      next: () => {
-        this.submitting.set(false);
-        this.closeEdit();
-        this.toast.showSuccess('บันทึกการแก้ไขเรียบร้อย');
-        this.loadItems();
-      },
-      error: (err: { error?: { error?: string } }) => {
-        this.submitting.set(false);
-        this.toast.showError(err.error?.error ?? 'ไม่สามารถแก้ไขประเภทเครื่องดื่มได้');
-      },
-    });
+    const { name, isMixer } = this.editForm.getRawValue();
+    this.shopMaster
+      .updateBeverageCategory(item.id, { name: name.trim(), isMixer })
+      .subscribe({
+        next: () => {
+          this.submitting.set(false);
+          this.closeEdit();
+          this.toast.showSuccess('บันทึกการแก้ไขเรียบร้อย');
+          this.loadItems();
+        },
+        error: (err: { error?: { error?: string } }) => {
+          this.submitting.set(false);
+          this.toast.showError(err.error?.error ?? 'ไม่สามารถแก้ไขประเภทเครื่องดื่มได้');
+        },
+      });
   }
 
   async confirmDelete(item: MstBeverageCategory): Promise<void> {

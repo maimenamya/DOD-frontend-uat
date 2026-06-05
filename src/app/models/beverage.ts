@@ -38,8 +38,10 @@ export interface MstBeverageUpdatePayload {
 
 export interface MstBeverageCategoryCreatePayload {
   name: string;
+  isMixer: boolean;
 }
 
 export interface MstBeverageCategoryUpdatePayload {
   name?: string;
+  isMixer?: boolean;
 }
