@@ -82,7 +82,7 @@ export type SessionRoomCharge = {
   roomChargeId: number;
   roomCode: string;
   priceLabel?: string;
-  /** Checkout detail when multiple rates in one seating line, e.g. "@ 200/100 บาท" */
+  /** Optional checkout detail for multi-rate room lines (not shown in preview detail text). */
   rateDetail?: string;
   pricingType: SeatingRateType;
   quantity: number;
@@ -99,6 +99,8 @@ export type StopRoomChargePayload = SessionMutationBase & {
   seatStoppedAt: string;
 };
 
+export type DrinkBillingMode = 'TAG' | 'FREELANCE';
+
 export type SessionStaffDrink = {
   staffDrinkId: number;
   employeeRecordId: number;
@@ -106,6 +108,8 @@ export type SessionStaffDrink = {
   roleDisplayNameTh: string;
   drinks: number;
   drinkAmount: number;
+  drinkBillingMode?: DrinkBillingMode;
+  drinkBillingLabelTh?: string;
   seatStartedLabel?: string;
   seatStoppedLabel?: string;
   canStopDrinks?: boolean;
@@ -187,6 +191,8 @@ export type AddItemsPayload = SessionMutationBase & {
     seatStartedAt?: string;
     /** Charge role startDrinks at seat-down (PR/entertainer). */
     applyStartDrinks?: boolean;
+    /** PR with active tag: true = ลงแท็ก (default), false = freelance. */
+    billAsTag?: boolean;
   }>;
 };
 

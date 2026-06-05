@@ -8,6 +8,47 @@
     }
   </div>
 
+  @if (showChangeTagModal() && canManage() && changeTagTarget()) {
+    <app-modal (dismiss)="closeChangeTagModal()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">เปลี่ยนแพ็กเกจแท็ก — {{ changeTagTarget()!.nickname }}</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeChangeTagModal()">✕</button>
+      </div>
+      <p class="app-field-hint mb-3">
+        คงวันทำงาน วันหยุด และดื่มสะสมเดิม · เปลี่ยนเฉพาะแพ็กเกจ (เช่น แท็ก 10 → แท็ก 15 วัน)
+      </p>
+      @if (changeTagTarget()?.enrollment; as e) {
+        <div class="mb-4 rounded-input border border-theme-border bg-surface px-3 py-2 text-sm">
+          <p class="text-text-secondary">
+            ปัจจุบัน: <span class="font-semibold text-text-primary">{{ e.tagName }}</span>
+          </p>
+          <p class="mt-1 text-text-secondary">
+            วันทำงาน {{ e.workingDaysCount }}/{{ e.requiredWorkingDays }} · วันหยุด
+            {{ e.offDaysCount }}/{{ e.allowedOffDays }} · ดื่ม {{ e.accumulatedDrinks }}/{{
+              e.targetDrinks
+            }}
+          </p>
+        </div>
+      }
+      <form class="app-form-stack" [formGroup]="changeTagForm" (ngSubmit)="submitChangeTag()">
+        <div class="app-form-group">
+          <label class="app-label">แพ็กเกจแท็กใหม่</label>
+          <app-custom-dropdown
+            formControlName="prTagId"
+            [options]="changeTagDropdownOptions()"
+            placeholder="เลือกแพ็กเกจ"
+          />
+        </div>
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeChangeTagModal()">ยกเลิก</button>
+          <button type="submit" class="app-btn-primary" [disabled]="acting()">
+            {{ acting() ? 'กำลังบันทึก...' : 'ยืนยันเปลี่ยนแท็ก' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+
   @if (showAssignModal() && canManage()) {
     <app-modal (dismiss)="closeAssignModal()">
       <div class="app-modal-header">
@@ -103,7 +144,17 @@
                     <td class="app-cell-primary">{{ row.nickname }}</td>
                     <td class="app-cell-primary">
                       @if (row.enrollment; as e) {
-                        {{ e.tagName }}
+                        <span>{{ e.tagName }}</span>
+                        @if (canManage() && e.canChangeTag) {
+                          <button
+                            type="button"
+                            class="app-btn-inline ml-1 shrink-0"
+                            [disabled]="acting()"
+                            (click)="openChangeTagModal(row)"
+                          >
+                            เปลี่ยนแท็ก
+                          </button>
+                        }
                       }
                     </td>
                     <td class="app-cell-center app-cell-mono">

@@ -8,6 +8,7 @@ export interface BatchDrinkLinePayload {
   employeeId: string;
   quantity: number;
   roleId: number;
+  billAsTag?: boolean;
 }
 
 export interface BatchDrinkPayload {

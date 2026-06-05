@@ -36,9 +36,15 @@ export class PrTagOperationsPageComponent implements OnInit {
   readonly loading = signal(true);
   readonly acting = signal(false);
   readonly showAssignModal = signal(false);
+  readonly showChangeTagModal = signal(false);
+  readonly changeTagTarget = signal<PrTagOperationsRow | null>(null);
 
   readonly assignForm = this.fb.group({
     employeeId: ['', Validators.required],
+    prTagId: ['', Validators.required],
+  });
+
+  readonly changeTagForm = this.fb.group({
     prTagId: ['', Validators.required],
   });
 
@@ -53,6 +59,11 @@ export class PrTagOperationsPageComponent implements OnInit {
   );
 
   readonly tagDropdownOptions = computed(() => this.tagOptions());
+
+  readonly changeTagDropdownOptions = computed<DropdownOption[]>(() => {
+    const currentId = this.changeTagTarget()?.enrollment?.tagId;
+    return this.tagOptions().filter((o) => o.value !== String(currentId));
+  });
 
   ngOnInit(): void {
     this.loadDashboard();
@@ -90,6 +101,62 @@ export class PrTagOperationsPageComponent implements OnInit {
 
   closeAssignModal(): void {
     this.showAssignModal.set(false);
+  }
+
+  openChangeTagModal(row: PrTagOperationsRow): void {
+    const enrollment = row.enrollment;
+    if (!enrollment?.canChangeTag) return;
+    const alternatives = this.tagOptions().filter(
+      (o) => o.value !== String(enrollment.tagId),
+    );
+    if (alternatives.length === 0) {
+      this.toast.showError('ไม่มีแพ็กเกจแท็กอื่นให้เปลี่ยน — เพิ่มที่เมนู แพ็กเกจแท็ก PR');
+      return;
+    }
+    this.changeTagTarget.set(row);
+    this.changeTagForm.reset({ prTagId: '' });
+    this.showChangeTagModal.set(true);
+  }
+
+  closeChangeTagModal(): void {
+    this.showChangeTagModal.set(false);
+    this.changeTagTarget.set(null);
+  }
+
+  submitChangeTag(): void {
+    const row = this.changeTagTarget();
+    const enrollmentId = row?.enrollment?.id;
+    if (!enrollmentId || this.changeTagForm.invalid) {
+      this.toast.showError('กรุณาเลือกแพ็กเกจแท็กใหม่');
+      return;
+    }
+    const prTagId = Number.parseInt(this.changeTagForm.getRawValue().prTagId, 10);
+    if (!Number.isFinite(prTagId)) return;
+    if (this.acting()) return;
+    this.acting.set(true);
+    this.prTagService.changeEnrollmentTag(enrollmentId, prTagId).subscribe({
+      next: (updated) => {
+        this.acting.set(false);
+        this.closeChangeTagModal();
+        const e = updated.enrollment;
+        if (e?.status === 'COMPLETED') {
+          this.toast.showSuccess('เปลี่ยนแท็กแล้ว — ครบวันทำงานตามแพ็กเกจใหม่');
+          this.loadDashboard();
+          return;
+        }
+        if (e?.status === 'FAILED') {
+          this.toast.showError('เปลี่ยนแท็กแล้ว — วันหยุดเกินโควต้าแพ็กเกจใหม่ (แท็กจบไม่ผ่าน)');
+          this.loadDashboard();
+          return;
+        }
+        this.toast.showSuccess('เปลี่ยนแพ็กเกจแท็กแล้ว (คงวันทำงาน วันหยุด และดื่มสะสม)');
+        this.patchRow(updated);
+      },
+      error: (err: { error?: { error?: string } }) => {
+        this.acting.set(false);
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถเปลี่ยนแท็กได้');
+      },
+    });
   }
 
   submitAssign(): void {

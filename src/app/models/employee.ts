@@ -30,6 +30,11 @@ export interface MstEmployee {
   tableSeatStatus?: EmployeeTableSeatStatus;
   attendanceStatus?: EmployeeAttendanceStatus;
   createdAt: string;
+  /** Joined from ACTIVE TxnPrTagEnrollment — not stored on MstEmployee. */
+  hasActivePrTag?: boolean;
+  activePrTagEnrollmentId?: number | null;
+  activePrTagId?: number | null;
+  activePrTagName?: string | null;
   shop?: {
     id: number;
     name: string;

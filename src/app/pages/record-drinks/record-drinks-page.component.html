@@ -127,6 +127,27 @@
                       }
                     </div>
 
+                    @if (rowHasActivePrTag(row)) {
+                      <div class="record-drinks-row-field record-drinks-row-tag">
+                        <label class="record-drinks-label">ลงแท็ก</label>
+                        <label class="app-toggle">
+                          <input
+                            type="checkbox"
+                            class="app-toggle-input"
+                            formControlName="billAsTag"
+                          />
+                          <span class="app-toggle-track" aria-hidden="true"></span>
+                          <span class="app-toggle-text">
+                            {{
+                              row.controls.billAsTag.value
+                                ? 'ลงแท็ก (นับเข้าโควต้าแท็ก)'
+                                : 'Freelance (ไม่นับเข้าโควต้าแท็ก)'
+                            }}
+                          </span>
+                        </label>
+                      </div>
+                    }
+
                     <div class="record-drinks-row-field record-drinks-row-qty">
                       <label class="record-drinks-label">จำนวนดื่ม</label>
                       <input

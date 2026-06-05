@@ -1,8 +1,8 @@
-﻿import { Component, computed, inject, input, OnInit, output, signal } from '@angular/core';
+﻿import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { AuthService } from '../../services/auth.service';
-import { ConfigService } from '../../services/config.service';
+import { SystemGuideModalComponent } from '../system-guide/system-guide-modal.component';
 import { SidebarIconComponent, type SidebarIconName } from './sidebar-icon.component';
 
 export interface SidebarNavLink {
@@ -79,12 +79,11 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
 
 @Component({
   selector: 'app-sidebar',
-  imports: [RouterLink, RouterLinkActive, SidebarIconComponent],
+  imports: [RouterLink, RouterLinkActive, SidebarIconComponent, SystemGuideModalComponent],
   templateUrl: './sidebar.component.html',
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent {
   private readonly auth = inject(AuthService);
-  private readonly configService = inject(ConfigService);
   private readonly router = inject(Router);
 
   readonly mobileOpen = input(false);
@@ -100,12 +99,14 @@ export class SidebarComponent implements OnInit {
 
   readonly navGroups = MANAGEMENT_NAV_GROUPS;
   readonly activeSubmenu = signal<string | null>(this.getGroupIdByCurrentRoute());
-  readonly lineOaAddFriendUrl = signal<string | null>(null);
+  readonly guideOpen = signal(false);
 
-  ngOnInit(): void {
-    this.configService.getClientConfig().subscribe((cfg) => {
-      this.lineOaAddFriendUrl.set(cfg.lineOaAddFriendUrl);
-    });
+  openGuide(): void {
+    this.guideOpen.set(true);
+  }
+
+  closeGuide(): void {
+    this.guideOpen.set(false);
   }
 
   toggleSubmenu(id: string): void {

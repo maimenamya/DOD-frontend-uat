@@ -7,7 +7,6 @@ import {
 } from '@angular/forms';
 
 import { AuthService } from '../../services/auth.service';
-import { ConfigService } from '../../services/config.service';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
@@ -18,18 +17,15 @@ import { ToastService } from '../../services/toast.service';
 export class MyProfileComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly auth = inject(AuthService);
-  private readonly configService = inject(ConfigService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
 
   readonly user = this.auth.getUser();
   readonly submitting = signal(false);
-  readonly lineOaAddFriendUrl = signal<string | null>(null);
 
   readonly form = this.fb.group({
     nickname: ['', [Validators.required, Validators.minLength(1)]],
     email: [''],
-    lineUserId: [''],
     password: [''],
   });
 
@@ -39,14 +35,9 @@ export class MyProfileComponent implements OnInit {
       this.form.patchValue({
         nickname: user.nickname,
         email: user.email ?? '',
-        lineUserId: user.lineUserId ?? '',
         password: '',
       });
     }
-
-    this.configService.getClientConfig().subscribe((cfg) => {
-      this.lineOaAddFriendUrl.set(cfg.lineOaAddFriendUrl);
-    });
   }
 
   submit(): void {
@@ -67,7 +58,6 @@ export class MyProfileComponent implements OnInit {
       .updateProfile({
         nickname: raw.nickname,
         email: raw.email || null,
-        lineUserId: raw.lineUserId.trim() || null,
         password: raw.password || undefined,
       })
       .subscribe({

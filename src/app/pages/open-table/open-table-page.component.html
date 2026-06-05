@@ -649,6 +649,28 @@
           }
         </div>
 
+        @if (showStaffBillAsTagToggle()) {
+          <div class="app-form-group open-table-staff-choice">
+            <span class="app-label">ลงแท็ก</span>
+            <label class="app-toggle open-table-staff-start-toggle">
+              <input
+                type="checkbox"
+                class="app-toggle-input"
+                [ngModel]="staffBillAsTag()"
+                (ngModelChange)="staffBillAsTag.set($event)"
+              />
+              <span class="app-toggle-track" aria-hidden="true"></span>
+              <span class="app-toggle-text open-table-staff-start-toggle-label">
+                {{
+                  staffBillAsTag()
+                    ? 'ลงแท็ก (นับเข้าโควต้าแท็ก)'
+                    : 'Freelance (ไม่นับเข้าโควต้าแท็ก)'
+                }}
+              </span>
+            </label>
+          </div>
+        }
+
         @if (showStaffReopenChoice()) {
           <div class="app-form-group open-table-staff-choice">
             <span class="app-label">นั่งต่อหลังสต็อปแล้ว</span>
@@ -808,6 +830,7 @@
       <label class="app-label" for="stop-seat-time">เวลาสต็อป</label>
       <app-shop-datetime-input
         inputId="stop-seat-time"
+        [requireConfirm]="true"
         [ngModel]="stopSeatTime()"
         (ngModelChange)="onStopSeatTimeChange($event)"
       />

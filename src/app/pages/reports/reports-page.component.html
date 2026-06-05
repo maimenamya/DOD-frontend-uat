@@ -2,19 +2,8 @@
   <header class="reports-header">
     <div>
       <h1 class="app-page-title">ออกรายงาน</h1>
+      <p class="app-page-subtitle">เลือกช่วงวันที่และหัวข้อ แล้วดาวน์โหลด Excel</p>
     </div>
-    @if (!metaLoading()) {
-      <div class="reports-recipient" [class.reports-recipient--warn]="ownerLineUserIdMissing()">
-        @if (ownerLineUserIdMissing()) {
-          <span>ยังไม่มี LINE User ID ของ OWNER — ให้เจ้าของร้านกรอกในโปรไฟล์</span>
-        } @else {
-          <span>ส่งถึง LINE: <strong>{{ ownerLineMasked() }}</strong></span>
-        }
-        @if (!lineConfigured()) {
-          <span class="reports-recipient-smtp">LINE ยังไม่ตั้งบนเซิร์ฟเวอร์</span>
-        }
-      </div>
-    }
   </header>
 
   <section class="reports-panel app-card">
@@ -68,15 +57,6 @@
       </button>
       <button type="button" class="app-btn-primary" [disabled]="!canDownload()" (click)="downloadReport()">
         {{ downloading() ? 'กำลังสร้างไฟล์...' : 'ดาวน์โหลด Excel' }}
-      </button>
-      <button
-        type="button"
-        class="app-btn-secondary"
-        [disabled]="!canSend()"
-        [title]="!lineConfigured() ? 'ตั้ง LINE_CHANNEL_ACCESS_TOKEN บนเซิร์ฟเวอร์ก่อน' : ''"
-        (click)="sendReport()"
-      >
-        {{ sending() ? 'กำลังส่ง...' : 'ส่ง LINE เจ้าของร้าน' }}
       </button>
     </div>
   </section>

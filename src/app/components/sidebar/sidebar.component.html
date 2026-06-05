@@ -103,22 +103,22 @@
   </nav>
 
   <div class="app-sidebar-footer">
-    @if (lineOaAddFriendUrl(); as oaUrl) {
-      <a
-        class="app-sidebar-help"
-        [href]="oaUrl"
-        target="_blank"
-        rel="noopener noreferrer"
-        title="เพิ่มเพื่อน LINE Official Account เพื่อรับรายงาน"
-        (click)="mobileClose.emit()"
-      >
-        <app-sidebar-icon name="help" />
-        เพิ่มเพื่อน LINE
-      </a>
-    }
+    <button
+      type="button"
+      class="app-sidebar-help"
+      title="คู่มือใช้งานระบบและเมนู"
+      (click)="openGuide(); mobileClose.emit()"
+    >
+      <app-sidebar-icon name="help" />
+      คู่มือใช้งาน
+    </button>
     <button type="button" class="app-sidebar-logout" (click)="logout(); mobileClose.emit()">
       <app-sidebar-icon name="logout" />
       ออกจากระบบ
     </button>
   </div>
 </aside>
+
+@if (guideOpen()) {
+  <app-system-guide-modal (dismiss)="closeGuide()" />
+}

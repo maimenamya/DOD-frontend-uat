@@ -47,26 +47,14 @@ export class ReportsPageComponent implements OnInit {
     'sale_breakdown',
   ]);
 
-  readonly metaLoading = signal(true);
   readonly previewLoading = signal(false);
-  readonly sending = signal(false);
   readonly downloading = signal(false);
-
-  readonly ownerLineMasked = signal<string | null>(null);
-  readonly ownerLineUserIdMissing = signal(false);
-  readonly lineConfigured = signal(true);
 
   readonly preview = signal<ReportPreview | null>(null);
   readonly error = signal<string | null>(null);
 
-  readonly canSend = computed(() => {
-    if (this.ownerLineUserIdMissing() || !this.lineConfigured()) return false;
-    if (this.sending() || this.previewLoading() || this.downloading()) return false;
-    return this.selectedSections().length > 0;
-  });
-
   readonly canDownload = computed(() => {
-    if (this.previewLoading() || this.downloading() || this.sending()) return false;
+    if (this.previewLoading() || this.downloading()) return false;
     return this.selectedSections().length > 0;
   });
 
@@ -75,7 +63,6 @@ export class ReportsPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadMeta();
     this.loadPreview();
   }
 
@@ -176,44 +163,6 @@ export class ReportsPageComponent implements OnInit {
       });
   }
 
-  sendReport(): void {
-    const params = this.buildParams();
-    if (!params) return;
-    if (!this.canSend()) {
-      if (this.ownerLineUserIdMissing()) {
-        this.toast.showError('ยังไม่มี LINE User ID ของเจ้าของร้าน — ให้ OWNER กรอกในโปรไฟล์');
-      } else if (!this.lineConfigured()) {
-        this.toast.showError('เซิร์ฟเวอร์ยังไม่ได้ตั้งค่า LINE');
-      }
-      return;
-    }
-
-    this.sending.set(true);
-    this.reportService
-      .sendLine(params)
-      .pipe(
-        catchError((err: HttpErrorResponse) => {
-          this.toast.showError(this.readApiError(err, 'ส่ง LINE ไม่สำเร็จ'));
-          return of(null);
-        }),
-        finalize(() => this.sending.set(false)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe((result) => {
-        if (!result) return;
-        if (result.downloadLinkSent === false) {
-          this.toast.showSuccess(
-            `แจ้ง LINE ถึง ${result.sentTo} แล้ว (ลิงก์ไม่พร้อม — ใช้ดาวน์โหลด Excel ในเมนู)`,
-          );
-        } else {
-          const fileHint = result.filename ? ` (${result.filename})` : '';
-          this.toast.showSuccess(
-            `ส่งรายงานทาง LINE ถึง ${result.sentTo} แล้ว — กดปุ่มดาวน์โหลด Excel ในแชท${fileHint}`,
-          );
-        }
-      });
-  }
-
   formatMoney(value: number): string {
     return value.toLocaleString('th-TH');
   }
@@ -228,32 +177,5 @@ export class ReportsPageComponent implements OnInit {
       return blobApiErrorMessage(err.error, fallback);
     }
     return this.readApiError(err, fallback);
-  }
-
-  private loadMeta(): void {
-    const shopId = this.shopId;
-    if (shopId == null) {
-      this.metaLoading.set(false);
-      return;
-    }
-
-    this.reportService
-      .getMeta(shopId)
-      .pipe(
-        catchError(() =>
-          of({
-            owner: null,
-            ownerLineUserIdMissing: true,
-            lineConfigured: false,
-          }),
-        ),
-        finalize(() => this.metaLoading.set(false)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe((meta) => {
-        this.ownerLineUserIdMissing.set(meta.ownerLineUserIdMissing);
-        this.lineConfigured.set(meta.lineConfigured);
-        this.ownerLineMasked.set(meta.owner?.lineUserIdMasked ?? null);
-      });
   }
 }

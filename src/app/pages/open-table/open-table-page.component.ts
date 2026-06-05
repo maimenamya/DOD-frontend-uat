@@ -57,6 +57,10 @@ import { ToastService } from '../../services/toast.service';
 import { closeOpenShopFlatpickrCalendars } from '../../utils/flatpickr-shop.util';
 import { compareRolesByThaiLabel, roleOptionLabel } from '../../utils/role-display.util';
 import {
+  employeeDropdownLabel,
+  sortEmployeesByCode,
+} from '../../utils/employee-option.util';
+import {
   blockNonNumericInputKey,
   parsePositiveIntFromText,
   sanitizeDigitsOnly,
@@ -182,6 +186,8 @@ export class OpenTablePageComponent implements OnInit {
   readonly staffApplyStartDrinks = signal(true);
   /** After stop on this table: continue run vs new start with start drinks. */
   readonly staffReopenMode = signal<'CONTINUE' | 'NEW_START'>('CONTINUE');
+  /** PR with active tag: bill drinks toward tag quota (default on). */
+  readonly staffBillAsTag = signal(true);
 
   readonly roomChargeSeatingTypeId = signal<number | null>(null);
   readonly roomChargeSeatingId = signal<number | null>(null);
@@ -305,7 +311,10 @@ export class OpenTablePageComponent implements OnInit {
   });
 
   readonly saleEmployeeOptions = computed<DropdownOption[]>(() =>
-    this.saleEmployees().map((e) => ({ value: e.id, label: e.nickname })),
+    sortEmployeesByCode(this.saleEmployees()).map((e) => ({
+      value: e.id,
+      label: employeeDropdownLabel(e),
+    })),
   );
 
   readonly orderMasterCategoryOptions = computed<DropdownOption[]>(() => {
@@ -375,13 +384,12 @@ export class OpenTablePageComponent implements OnInit {
   readonly cocktailHostEmployeeOptions = computed<DropdownOption[]>(() => {
     const roleId = this.orderCocktailStaffRoleId();
     if (roleId == null) return [];
-    return this.staffEmployees()
-      .filter((e) => e.roleId === roleId)
-      .map((e) => ({
+    return sortEmployeesByCode(this.staffEmployees().filter((e) => e.roleId === roleId)).map(
+      (e) => ({
         value: e.id,
-        label: e.nickname,
-        hint: e.employeeId,
-      }));
+        label: employeeDropdownLabel(e),
+      }),
+    );
   });
 
   readonly promotionDropdownOptions = computed<DropdownOption[]>(() =>
@@ -424,7 +432,7 @@ export class OpenTablePageComponent implements OnInit {
     if (roleId == null) return [];
     const role = this.staffLedgerRoles().find((r) => r.id === roleId);
 
-    return this.staffEmployees().filter((e) => {
+    const filtered = this.staffEmployees().filter((e) => {
       if (e.roleId !== roleId) return false;
       // TODO(attendance): hide OFF_DUTY when shop has time-clock integration.
       if (role && isEntertainmentStaffRole(role)) {
@@ -432,15 +440,26 @@ export class OpenTablePageComponent implements OnInit {
       }
       return true;
     });
+    return sortEmployeesByCode(filtered);
   });
 
   readonly staffLedgerEmployeeOptions = computed<DropdownOption[]>(() =>
     this.staffLedgerEmployees().map((e) => ({
       value: e.id,
-      label: e.nickname,
-      hint: e.employeeId,
+      label: employeeDropdownLabel(e),
     })),
   );
+
+  readonly selectedStaffLedgerEmployee = computed(() => {
+    const id = this.staffLedgerEmployeeId();
+    if (id == null) return null;
+    return this.staffLedgerEmployees().find((e) => e.id === id) ?? null;
+  });
+
+  readonly showStaffBillAsTagToggle = computed(() => {
+    const emp = this.selectedStaffLedgerEmployee();
+    return emp?.hasActivePrTag === true;
+  });
 
   readonly selectedStaffLedgerRole = computed(() => {
     const roleId = this.staffLedgerRoleId();
@@ -894,6 +913,7 @@ export class OpenTablePageComponent implements OnInit {
     this.staffLedgerQtyText.set('1');
     this.staffApplyStartDrinks.set(true);
     this.staffReopenMode.set('CONTINUE');
+    this.staffBillAsTag.set(true);
     this.stampStaffSeatStartTime();
   }
 
@@ -1052,6 +1072,7 @@ export class OpenTablePageComponent implements OnInit {
       this.stampStaffSeatStartTime();
       this.staffApplyStartDrinks.set(true);
       this.staffReopenMode.set('CONTINUE');
+      this.staffBillAsTag.set(true);
     }
   }
 
@@ -1072,6 +1093,8 @@ export class OpenTablePageComponent implements OnInit {
     this.staffLedgerEmployeeId.set(valid ? id : null);
     this.staffReopenMode.set('CONTINUE');
     this.staffApplyStartDrinks.set(true);
+    const emp = this.staffLedgerEmployees().find((e) => e.id === id);
+    this.staffBillAsTag.set(emp?.hasActivePrTag === true);
   }
 
   onStaffLedgerQtyTextChange(value: string): void {
@@ -1176,18 +1199,23 @@ export class OpenTablePageComponent implements OnInit {
           applyStartDrinks = this.staffApplyStartDrinks();
         }
       }
+      const billAsTag = this.showStaffBillAsTagToggle() ? this.staffBillAsTag() : undefined;
       return [
         {
           employeeId,
           quantity: 0,
           seatStartedAt: seatLocal,
           applyStartDrinks,
+          billAsTag,
         },
       ];
     }
 
     const quantity = parsePositiveIntFromText(this.staffLedgerQtyText());
-    return [{ employeeId, quantity }];
+    const emp = this.selectedStaffLedgerEmployee();
+    const billAsTag =
+      emp?.hasActivePrTag === true ? this.staffBillAsTag() : undefined;
+    return [{ employeeId, quantity, billAsTag }];
   }
 
   setTypeFilter(value: SeatTypeFilter): void {
@@ -1359,11 +1387,13 @@ export class OpenTablePageComponent implements OnInit {
 
   /** Portaled `app-modal` hosts can outlive `@if` destroy — remove stale overlays. */
   private purgePortaledModalsWhenNoneOpen(): void {
-    queueMicrotask(() => {
+    const sweep = (): void => {
       if (this.anyModalOpen()) return;
       document.body.classList.remove(APP_MODAL_BODY_LOCK_CLASS);
       document.querySelectorAll('body > app-modal').forEach((el) => el.remove());
-    });
+    };
+    queueMicrotask(sweep);
+    setTimeout(sweep, 0);
   }
 
   submitAddItems(): void {
@@ -1954,8 +1984,15 @@ export class OpenTablePageComponent implements OnInit {
           onError?.();
           return;
         }
-        onSuccess(result);
+        // Clear busy before closing portaled modals — otherwise a detached overlay can
+        // freeze on "กำลังบันทึก..." while finalize runs on the live component.
+        this.actionBusy.set(false);
         this.toast.showSuccess(successMessage);
+        try {
+          onSuccess(result);
+        } catch {
+          this.purgePortaledModalsWhenNoneOpen();
+        }
       });
   }
 }

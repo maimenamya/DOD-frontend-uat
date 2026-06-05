@@ -21,29 +21,6 @@
         <input type="email" formControlName="email" class="app-input" />
       </div>
       <div class="app-form-group">
-        <label class="app-label">LINE User ID</label>
-        <input
-          type="text"
-          formControlName="lineUserId"
-          class="app-input"
-          placeholder="Uxxxxxxxx…"
-          autocomplete="off"
-        />
-        <p class="app-field-hint">
-          LINE ไม่แสดง User ID ในแอป — ทำตามนี้:
-          @if (lineOaAddFriendUrl(); as oaUrl) {
-            <a class="app-field-hint-link" [href]="oaUrl" target="_blank" rel="noopener noreferrer"
-              >เพิ่มเพื่อน OA</a
-            >
-            แล้ว
-          } @else {
-            เพิ่มเพื่อน OA ของร้าน (ปุ่มช่วยเหลือในเมนูซ้าย) แล้ว
-          }
-          ส่งข้อความอะไรก็ได้ในแชท (เช่น <strong>id</strong>) บอทจะตอบ User ID กลับมา
-          → คัดลอกมาวางช่องนี้
-        </p>
-      </div>
-      <div class="app-form-group">
         <label class="app-label">รหัสผ่านใหม่ (ไม่บังคับ)</label>
         <input
           type="password"

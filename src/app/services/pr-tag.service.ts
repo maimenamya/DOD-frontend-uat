@@ -42,6 +42,16 @@ export class PrTagService {
     });
   }
 
+  changeEnrollmentTag(
+    enrollmentId: number,
+    prTagId: number,
+  ): Observable<PrTagOperationsRow> {
+    return this.http.patch<PrTagOperationsRow>(
+      this.api.resource('pr-tags', 'enrollments', String(enrollmentId), 'tag'),
+      { prTagId },
+    );
+  }
+
   checkIn(enrollmentId: number): Observable<PrTagOperationsRow> {
     return this.http.post<PrTagOperationsRow>(
       this.api.resource('pr-tags', 'enrollments', String(enrollmentId), 'check-in'),

@@ -24,12 +24,17 @@ import { TransactionService } from '../../services/transaction.service';
 import { ToastService } from '../../services/toast.service';
 import { hideActionOverlay, showActionOverlay } from '../../utils/action-overlay.util';
 import { roleOptionLabel } from '../../utils/role-display.util';
+import {
+  employeeDropdownLabel,
+  sortEmployeesByCode,
+} from '../../utils/employee-option.util';
 import { shopCalendarTodayInput } from '../open-table/open-table-ledger.util';
 
 type DrinkRowForm = FormGroup<{
   roleId: FormControl<number | ''>;
   employeeId: FormControl<string>;
   quantity: FormControl<number>;
+  billAsTag: FormControl<boolean>;
 }>;
 
 /** Roles excluded from drink entry (no field billing). */
@@ -88,12 +93,10 @@ export class RecordDrinksPageComponent implements OnInit {
   });
 
   readonly saleDropdownOptions = computed((): DropdownOption[] =>
-    this.staff()
-      .filter((e) => e.role?.name === 'SALE')
-      .map((e) => ({
-        value: e.employeeId,
-        label: e.nickname,
-      })),
+    sortEmployeesByCode(this.staff().filter((e) => e.role?.name === 'SALE')).map((e) => ({
+      value: e.employeeId,
+      label: employeeDropdownLabel(e),
+    })),
   );
 
   readonly roleDropdownOptions = computed((): DropdownOption[] => {
@@ -177,12 +180,19 @@ export class RecordDrinksPageComponent implements OnInit {
       return [];
     }
 
-    return this.staff()
-      .filter((employee) => employee.roleId === roleId)
-      .map((employee) => ({
-        value: employee.employeeId,
-        label: employee.nickname,
-      }));
+    return sortEmployeesByCode(
+      this.staff().filter((employee) => employee.roleId === roleId),
+    ).map((employee) => ({
+      value: employee.employeeId,
+      label: employeeDropdownLabel(employee),
+    }));
+  }
+
+  rowHasActivePrTag(row: DrinkRowForm): boolean {
+    const employeeId = row.controls.employeeId.value?.trim();
+    if (!employeeId) return false;
+    const emp = this.staff().find((e) => e.employeeId === employeeId);
+    return emp?.hasActivePrTag === true;
   }
 
   addRow(): void {
@@ -243,6 +253,7 @@ export class RecordDrinksPageComponent implements OnInit {
         employeeId: row.employeeId,
         quantity: row.quantity,
         roleId: Number(row.roleId),
+        billAsTag: row.billAsTag,
       }));
 
     this.submitting.set(true);
@@ -392,14 +403,25 @@ export class RecordDrinksPageComponent implements OnInit {
       quantity: this.fb.control(0, {
         validators: [Validators.min(0), Validators.max(999)],
       }),
+      billAsTag: this.fb.control(true),
     });
 
     row.controls.roleId.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        row.patchValue({ employeeId: '' }, { emitEvent: false });
+        row.patchValue({ employeeId: '', billAsTag: true }, { emitEvent: false });
         this.syncEmployeeControlState(row);
         this.refreshSummary();
+      });
+
+    row.controls.employeeId.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        const employeeId = row.controls.employeeId.value?.trim();
+        const emp = employeeId
+          ? this.staff().find((e) => e.employeeId === employeeId)
+          : undefined;
+        row.controls.billAsTag.setValue(emp?.hasActivePrTag === true, { emitEvent: false });
       });
 
     row.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.refreshSummary());
