@@ -102,8 +102,89 @@
     <p class="app-empty-state">ยังไม่มี PR ที่ลงแท็กอยู่ — กด «+ ลงแท็ก» เพื่อเริ่ม</p>
   } @else {
     <section class="app-card app-card-flush">
-      <div class="app-data-table-shell">
-        <div class="app-split-table app-split-table--wide">
+      <!-- มือถือ: การ์ดต่อคน (master อื่นมีคอลัมน์น้อยกว่า — หน้านี้มีปุ่ม 4 อย่าง) -->
+      <div class="pr-tag-ops-mobile-list sm:hidden">
+        @for (row of rows(); track row.employeeId; let i = $index) {
+          @if (row.enrollment; as e) {
+            <article class="pr-tag-ops-mobile-card">
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="text-sm font-semibold text-text-primary">
+                    <span class="mr-1.5 font-mono text-text-secondary">{{ i + 1 }}.</span>
+                    {{ row.nickname }}
+                  </p>
+                  <p class="mt-0.5 text-sm text-theme-accent">{{ e.tagName }}</p>
+                </div>
+              </div>
+              <dl class="pr-tag-ops-mobile-stats">
+                <div>
+                  <dt class="pr-tag-ops-mobile-stat-label">วันทำงาน</dt>
+                  <dd class="pr-tag-ops-mobile-stat-value">
+                    {{ e.workingDaysCount }}/{{ e.requiredWorkingDays }}
+                  </dd>
+                </div>
+                <div>
+                  <dt class="pr-tag-ops-mobile-stat-label">วันหยุด</dt>
+                  <dd class="pr-tag-ops-mobile-stat-value">
+                    {{ e.offDaysCount }}/{{ e.allowedOffDays }}
+                  </dd>
+                </div>
+                <div>
+                  <dt class="pr-tag-ops-mobile-stat-label">ดื่มสะสม</dt>
+                  <dd class="pr-tag-ops-mobile-stat-value">
+                    {{ e.accumulatedDrinks }}/{{ e.targetDrinks }}
+                  </dd>
+                </div>
+              </dl>
+              @if (canOperateTags()) {
+                <div class="pr-tag-ops-mobile-actions">
+                  <button
+                    type="button"
+                    class="app-btn-primary-sm"
+                    [disabled]="acting() || !e.canCheckIn"
+                    (click)="checkIn(row)"
+                  >
+                    + วันทำงาน
+                  </button>
+                  <button
+                    type="button"
+                    class="app-btn-accent-sm"
+                    [disabled]="acting() || !e.canRecordOffDay"
+                    (click)="recordOffDay(row)"
+                  >
+                    + วันหยุด
+                  </button>
+                  <button
+                    type="button"
+                    class="app-btn-danger-sm"
+                    [disabled]="acting() || !e.canForceCut"
+                    (click)="forceCut(row)"
+                  >
+                    ตัดแท็ก
+                  </button>
+                  <button
+                    type="button"
+                    class="app-btn-secondary-sm"
+                    [disabled]="acting() || !canChangeTagPackage(row)"
+                    [title]="
+                      hasMultipleTagPackages()
+                        ? 'เปลี่ยนแพ็กเกจ (คงวันทำงาน วันหยุด ดื่มสะสม)'
+                        : 'ต้องมีแพ็กเกจแท็กมากกว่า 1 แบบในระบบ'
+                    "
+                    (click)="openChangeTagModal(row)"
+                  >
+                    เปลี่ยนแท็ก
+                  </button>
+                </div>
+              }
+            </article>
+          }
+        }
+      </div>
+
+      <!-- จอใหญ่: ตารางแบบ master (ปุ่มรวมคอลัมน์เดียว) -->
+      <div class="app-data-table-shell hidden sm:block">
+        <div class="app-split-table">
           <div class="app-split-table-header">
             <table class="app-data-table app-split-table-grid">
               <colgroup>
@@ -114,10 +195,7 @@
                 <col class="app-col-narrow" />
                 <col class="app-col-narrow" />
                 @if (canOperateTags()) {
-                  <col class="app-col-action-btn" />
-                  <col class="app-col-action-btn" />
-                  <col class="app-col-action-btn" />
-                  <col class="app-col-action-btn" />
+                  <col class="app-col-actions" />
                 }
               </colgroup>
               <thead>
@@ -129,10 +207,7 @@
                   <th class="app-cell-center">วันหยุด</th>
                   <th class="app-cell-center">ดื่มสะสม</th>
                   @if (canOperateTags()) {
-                    <th class="app-cell-center">+ วันทำงาน</th>
-                    <th class="app-cell-center">+ วันหยุด</th>
-                    <th class="app-cell-center">ตัดแท็ก</th>
-                    <th class="app-cell-center">เปลี่ยนแท็ก</th>
+                    <th class="app-cell-center">ดำเนินการ</th>
                   }
                 </tr>
               </thead>
@@ -148,10 +223,7 @@
                 <col class="app-col-narrow" />
                 <col class="app-col-narrow" />
                 @if (canOperateTags()) {
-                  <col class="app-col-action-btn" />
-                  <col class="app-col-action-btn" />
-                  <col class="app-col-action-btn" />
-                  <col class="app-col-action-btn" />
+                  <col class="app-col-actions" />
                 }
               </colgroup>
               <tbody>
@@ -182,49 +254,45 @@
                     @if (canOperateTags()) {
                       @if (row.enrollment; as e) {
                         <td class="app-cell-center">
-                          <button
-                            type="button"
-                            class="app-btn-primary-sm"
-                            [disabled]="acting() || !e.canCheckIn"
-                            (click)="checkIn(row)"
-                          >
-                            + วันทำงาน
-                          </button>
-                        </td>
-                        <td class="app-cell-center">
-                          <button
-                            type="button"
-                            class="app-btn-accent-sm"
-                            [disabled]="acting() || !e.canRecordOffDay"
-                            (click)="recordOffDay(row)"
-                          >
-                            + วันหยุด
-                          </button>
-                        </td>
-                        <td class="app-cell-center">
-                          <button
-                            type="button"
-                            class="app-btn-danger-sm"
-                            [disabled]="acting() || !e.canForceCut"
-                            (click)="forceCut(row)"
-                          >
-                            ตัดแท็ก
-                          </button>
-                        </td>
-                        <td class="app-cell-center">
-                          <button
-                            type="button"
-                            class="app-btn-secondary-sm"
-                            [disabled]="acting() || !canChangeTagPackage(row)"
-                            [title]="
-                              hasMultipleTagPackages()
-                                ? 'เปลี่ยนแพ็กเกจ (คงวันทำงาน วันหยุด ดื่มสะสม)'
-                                : 'ต้องมีแพ็กเกจแท็กมากกว่า 1 แบบในระบบ'
-                            "
-                            (click)="openChangeTagModal(row)"
-                          >
-                            เปลี่ยนแท็ก
-                          </button>
+                          <div class="pr-tag-ops-actions">
+                            <button
+                              type="button"
+                              class="app-btn-primary-sm"
+                              [disabled]="acting() || !e.canCheckIn"
+                              (click)="checkIn(row)"
+                            >
+                              + วันทำงาน
+                            </button>
+                            <button
+                              type="button"
+                              class="app-btn-accent-sm"
+                              [disabled]="acting() || !e.canRecordOffDay"
+                              (click)="recordOffDay(row)"
+                            >
+                              + วันหยุด
+                            </button>
+                            <button
+                              type="button"
+                              class="app-btn-danger-sm"
+                              [disabled]="acting() || !e.canForceCut"
+                              (click)="forceCut(row)"
+                            >
+                              ตัดแท็ก
+                            </button>
+                            <button
+                              type="button"
+                              class="app-btn-secondary-sm"
+                              [disabled]="acting() || !canChangeTagPackage(row)"
+                              [title]="
+                                hasMultipleTagPackages()
+                                  ? 'เปลี่ยนแพ็กเกจ (คงวันทำงาน วันหยุด ดื่มสะสม)'
+                                  : 'ต้องมีแพ็กเกจแท็กมากกว่า 1 แบบในระบบ'
+                              "
+                              (click)="openChangeTagModal(row)"
+                            >
+                              เปลี่ยนแท็ก
+                            </button>
+                          </div>
                         </td>
                       }
                     }
