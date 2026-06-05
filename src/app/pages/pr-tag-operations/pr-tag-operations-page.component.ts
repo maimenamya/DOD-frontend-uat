@@ -92,7 +92,7 @@ export class PrTagOperationsPageComponent implements OnInit {
 
   openAssignModal(): void {
     if (this.assignableEmployees().length === 0) {
-      this.toast.showError('ไม่มี PR ที่ว่างสำหรับตั้งแท็ก (ทุกคนมีแท็กอยู่แล้ว)');
+      this.toast.showError('ไม่มี PR ที่ว่างสำหรับลงแท็ก (ทุกคนมีแท็กอยู่แล้ว)');
       return;
     }
     this.assignForm.reset({ employeeId: '', prTagId: '' });
@@ -173,12 +173,12 @@ export class PrTagOperationsPageComponent implements OnInit {
       next: () => {
         this.acting.set(false);
         this.closeAssignModal();
-        this.toast.showSuccess('ตั้งแท็กเรียบร้อย');
+        this.toast.showSuccess('ลงแท็กเรียบร้อย');
         this.loadDashboard();
       },
       error: (err: { error?: { error?: string } }) => {
         this.acting.set(false);
-        this.toast.showError(err.error?.error ?? 'ไม่สามารถตั้งแท็กได้');
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถลงแท็กได้');
       },
     });
   }

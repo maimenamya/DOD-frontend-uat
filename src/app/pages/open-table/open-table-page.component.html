@@ -295,8 +295,7 @@
                 @for (row of sessionDetail()?.roomCharges ?? []; track row.roomChargeId) {
                   <p class="flex flex-wrap items-baseline gap-x-1 gap-y-0.5 leading-snug">
                     <span>
-                      - {{ row.priceLabel ?? row.roomCode }} ({{ row.roomCode }}) x
-                      {{ row.quantity }} {{ row.unitLabel }}
+                      - {{ row.roomCode }} x {{ row.quantity }} {{ row.unitLabel }}
                     </span>
                     <span class="whitespace-nowrap text-[0.8125rem] text-text-secondary">
                       เริ่มใช้ {{ row.seatStartedLabel }}

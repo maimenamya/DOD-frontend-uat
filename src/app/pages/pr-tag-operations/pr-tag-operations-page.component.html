@@ -4,7 +4,7 @@
       <h1 class="app-page-title">จัดการ tag</h1>
     </div>
     @if (canManage() && !loading()) {
-      <button type="button" class="app-btn-primary" (click)="openAssignModal()">+ ตั้งแท็ก</button>
+      <button type="button" class="app-btn-primary" (click)="openAssignModal()">+ ลงแท็ก</button>
     }
   </div>
 
@@ -52,7 +52,7 @@
   @if (showAssignModal() && canManage()) {
     <app-modal (dismiss)="closeAssignModal()">
       <div class="app-modal-header">
-        <h2 class="app-modal-title">ตั้งแท็ก</h2>
+        <h2 class="app-modal-title">ลงแท็ก</h2>
         <button type="button" class="app-btn-ghost" (click)="closeAssignModal()">✕</button>
       </div>
       <form class="app-form-stack" [formGroup]="assignForm" (ngSubmit)="submitAssign()">
@@ -75,7 +75,7 @@
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeAssignModal()">ยกเลิก</button>
           <button type="submit" class="app-btn-primary" [disabled]="acting()">
-            {{ acting() ? 'กำลังบันทึก...' : 'ตั้งแท็ก' }}
+            {{ acting() ? 'กำลังบันทึก...' : 'ลงแท็ก' }}
           </button>
         </div>
       </form>
@@ -85,7 +85,7 @@
   @if (loading()) {
     <p class="app-loading-text">กำลังโหลด...</p>
   } @else if (rows().length === 0) {
-    <p class="app-empty-state">ยังไม่มี PR ที่ตั้งแท็กอยู่ — กด «+ ตั้งแท็ก» เพื่อเริ่ม</p>
+    <p class="app-empty-state">ยังไม่มี PR ที่ลงแท็กอยู่ — กด «+ ลงแท็ก» เพื่อเริ่ม</p>
   } @else {
     <section class="app-card app-card-flush">
       <div class="app-data-table-shell">
