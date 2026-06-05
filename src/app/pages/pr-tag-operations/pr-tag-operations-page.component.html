@@ -182,9 +182,9 @@
         }
       </div>
 
-      <!-- จอใหญ่: ตารางแบบ master (ปุ่มรวมคอลัมน์เดียว) -->
+      <!-- จอใหญ่: แยกคอลัมน์ปุ่มตามเดิม -->
       <div class="app-data-table-shell hidden sm:block">
-        <div class="app-split-table">
+        <div class="app-split-table app-split-table--wide">
           <div class="app-split-table-header">
             <table class="app-data-table app-split-table-grid">
               <colgroup>
@@ -195,7 +195,10 @@
                 <col class="app-col-narrow" />
                 <col class="app-col-narrow" />
                 @if (canOperateTags()) {
-                  <col class="app-col-actions" />
+                  <col class="app-col-action-btn" />
+                  <col class="app-col-action-btn" />
+                  <col class="app-col-action-btn" />
+                  <col class="app-col-action-btn" />
                 }
               </colgroup>
               <thead>
@@ -207,7 +210,10 @@
                   <th class="app-cell-center">วันหยุด</th>
                   <th class="app-cell-center">ดื่มสะสม</th>
                   @if (canOperateTags()) {
-                    <th class="app-cell-center">ดำเนินการ</th>
+                    <th class="app-cell-center">+ วันทำงาน</th>
+                    <th class="app-cell-center">+ วันหยุด</th>
+                    <th class="app-cell-center">ตัดแท็ก</th>
+                    <th class="app-cell-center">เปลี่ยนแท็ก</th>
                   }
                 </tr>
               </thead>
@@ -223,7 +229,10 @@
                 <col class="app-col-narrow" />
                 <col class="app-col-narrow" />
                 @if (canOperateTags()) {
-                  <col class="app-col-actions" />
+                  <col class="app-col-action-btn" />
+                  <col class="app-col-action-btn" />
+                  <col class="app-col-action-btn" />
+                  <col class="app-col-action-btn" />
                 }
               </colgroup>
               <tbody>
@@ -254,45 +263,49 @@
                     @if (canOperateTags()) {
                       @if (row.enrollment; as e) {
                         <td class="app-cell-center">
-                          <div class="pr-tag-ops-actions">
-                            <button
-                              type="button"
-                              class="app-btn-primary-sm"
-                              [disabled]="acting() || !e.canCheckIn"
-                              (click)="checkIn(row)"
-                            >
-                              + วันทำงาน
-                            </button>
-                            <button
-                              type="button"
-                              class="app-btn-accent-sm"
-                              [disabled]="acting() || !e.canRecordOffDay"
-                              (click)="recordOffDay(row)"
-                            >
-                              + วันหยุด
-                            </button>
-                            <button
-                              type="button"
-                              class="app-btn-danger-sm"
-                              [disabled]="acting() || !e.canForceCut"
-                              (click)="forceCut(row)"
-                            >
-                              ตัดแท็ก
-                            </button>
-                            <button
-                              type="button"
-                              class="app-btn-secondary-sm"
-                              [disabled]="acting() || !canChangeTagPackage(row)"
-                              [title]="
-                                hasMultipleTagPackages()
-                                  ? 'เปลี่ยนแพ็กเกจ (คงวันทำงาน วันหยุด ดื่มสะสม)'
-                                  : 'ต้องมีแพ็กเกจแท็กมากกว่า 1 แบบในระบบ'
-                              "
-                              (click)="openChangeTagModal(row)"
-                            >
-                              เปลี่ยนแท็ก
-                            </button>
-                          </div>
+                          <button
+                            type="button"
+                            class="app-btn-primary-sm"
+                            [disabled]="acting() || !e.canCheckIn"
+                            (click)="checkIn(row)"
+                          >
+                            + วันทำงาน
+                          </button>
+                        </td>
+                        <td class="app-cell-center">
+                          <button
+                            type="button"
+                            class="app-btn-accent-sm"
+                            [disabled]="acting() || !e.canRecordOffDay"
+                            (click)="recordOffDay(row)"
+                          >
+                            + วันหยุด
+                          </button>
+                        </td>
+                        <td class="app-cell-center">
+                          <button
+                            type="button"
+                            class="app-btn-danger-sm"
+                            [disabled]="acting() || !e.canForceCut"
+                            (click)="forceCut(row)"
+                          >
+                            ตัดแท็ก
+                          </button>
+                        </td>
+                        <td class="app-cell-center">
+                          <button
+                            type="button"
+                            class="app-btn-secondary-sm"
+                            [disabled]="acting() || !canChangeTagPackage(row)"
+                            [title]="
+                              hasMultipleTagPackages()
+                                ? 'เปลี่ยนแพ็กเกจ (คงวันทำงาน วันหยุด ดื่มสะสม)'
+                                : 'ต้องมีแพ็กเกจแท็กมากกว่า 1 แบบในระบบ'
+                            "
+                            (click)="openChangeTagModal(row)"
+                          >
+                            เปลี่ยนแท็ก
+                          </button>
                         </td>
                       }
                     }

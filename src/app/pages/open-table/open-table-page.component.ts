@@ -44,10 +44,7 @@ import {
   isEntertainmentStaffRole,
   isValidShopDatetimeLocal,
   isFixedDrinkStaffRole,
-  parseProMemberLedgerKey,
-  proMemberLedgerKey,
   type OrderLedgerCategory,
-  type ProMemberLedgerKey,
 } from './open-table-ledger.util';
 import { AuthService } from '../../services/auth.service';
 import { BeverageService } from '../../services/beverage.service';
@@ -178,7 +175,8 @@ export class OpenTablePageComponent implements OnInit {
   readonly selectedBeverageCategoryId = signal<number | null>(null);
   readonly selectedBeverageId = signal<number | null>(null);
   readonly selectedCocktailId = signal<number | null>(null);
-  readonly selectedProMemberKey = signal<ProMemberLedgerKey | null>(null);
+  readonly selectedPromotionId = signal<number | null>(null);
+  readonly selectedMembershipId = signal<number | null>(null);
   readonly selectedOtherChargeId = signal<number | null>(null);
   readonly orderCocktailStaffRoleId = signal<number | null>(null);
   readonly orderCocktailStaffEmployeeId = signal<number | null>(null);
@@ -334,8 +332,11 @@ export class OpenTablePageComponent implements OnInit {
     if (this.cocktailsRaw().length > 0) {
       options.push({ value: 'COCKTAIL', label: ORDER_LEDGER_CATEGORY_LABELS.COCKTAIL });
     }
-    if (this.promotionsRaw().length > 0 || this.membershipsRaw().length > 0) {
-      options.push({ value: 'PRO_MEMBER', label: ORDER_LEDGER_CATEGORY_LABELS.PRO_MEMBER });
+    if (this.promotionsRaw().length > 0) {
+      options.push({ value: 'PROMOTION', label: ORDER_LEDGER_CATEGORY_LABELS.PROMOTION });
+    }
+    if (this.membershipsRaw().length > 0) {
+      options.push({ value: 'MEMBER', label: ORDER_LEDGER_CATEGORY_LABELS.MEMBER });
     }
     if (this.activeOtherCharges().length > 0) {
       options.push({ value: 'OTHER', label: ORDER_LEDGER_CATEGORY_LABELS.OTHER });
@@ -405,19 +406,21 @@ export class OpenTablePageComponent implements OnInit {
     );
   });
 
-  readonly proMemberDropdownOptions = computed<DropdownOption[]>(() => {
-    const promos = this.promotionsRaw().map((p) => ({
-      value: proMemberLedgerKey('PROMOTION', p.id),
+  readonly promotionDropdownOptions = computed<DropdownOption[]>(() =>
+    this.promotionsRaw().map((p) => ({
+      value: p.id,
       label: p.name,
-      hint: `${p.packagePrice} บาท · โปร`,
-    }));
-    const members = this.membershipsRaw().map((m) => ({
-      value: proMemberLedgerKey('MEMBERSHIP', m.id),
+      hint: `${p.packagePrice} บาท`,
+    })),
+  );
+
+  readonly membershipDropdownOptions = computed<DropdownOption[]>(() =>
+    this.membershipsRaw().map((m) => ({
+      value: m.id,
       label: m.name,
-      hint: `${m.packagePrice} บาท · เมมเบอร์`,
-    }));
-    return [...promos, ...members];
-  });
+      hint: `${m.packagePrice} บาท`,
+    })),
+  );
 
   readonly activeOtherCharges = computed(() =>
     this.openTableOtherChargesRaw().filter((c) => c.isActive),
@@ -935,7 +938,8 @@ export class OpenTablePageComponent implements OnInit {
     this.selectedBeverageCategoryId.set(null);
     this.selectedBeverageId.set(null);
     this.selectedCocktailId.set(null);
-    this.selectedProMemberKey.set(null);
+    this.selectedPromotionId.set(null);
+    this.selectedMembershipId.set(null);
     this.selectedOtherChargeId.set(null);
     this.orderCocktailStaffRoleId.set(null);
     this.orderCocktailStaffEmployeeId.set(null);
@@ -951,11 +955,10 @@ export class OpenTablePageComponent implements OnInit {
     } else if (category === 'COCKTAIL') {
       this.selectedCocktailId.set(this.cocktailsRaw()[0]?.id ?? null);
       this.syncCocktailHostSelection();
-    } else if (category === 'PRO_MEMBER') {
-      const first = this.proMemberDropdownOptions()[0];
-      this.selectedProMemberKey.set(
-        first ? (String(first.value) as ProMemberLedgerKey) : null,
-      );
+    } else if (category === 'PROMOTION') {
+      this.selectedPromotionId.set(this.promotionsRaw()[0]?.id ?? null);
+    } else if (category === 'MEMBER') {
+      this.selectedMembershipId.set(this.membershipsRaw()[0]?.id ?? null);
     } else if (category === 'OTHER') {
       this.selectedOtherChargeId.set(this.activeOtherCharges()[0]?.id ?? null);
     }
@@ -1130,19 +1133,17 @@ export class OpenTablePageComponent implements OnInit {
     this.orderCocktailStaffEmployeeId.set(valid ? id : null);
   }
 
-  onProMemberChange(value: number | string | null): void {
-    const key = value == null || value === '' ? null : String(value);
-    const parsed = parseProMemberLedgerKey(key);
-    if (!parsed) {
-      this.selectedProMemberKey.set(null);
-      return;
-    }
-    const valid =
-      parsed.kind === 'PROMOTION'
-        ? this.promotionsRaw().some((p) => p.id === parsed.id)
-        : this.membershipsRaw().some((m) => m.id === parsed.id);
-    this.selectedProMemberKey.set(
-      valid ? (key as ProMemberLedgerKey) : null,
+  onPromotionChange(value: number | string | null): void {
+    const id = value == null || value === '' ? null : Number(value);
+    this.selectedPromotionId.set(
+      id != null && this.promotionsRaw().some((p) => p.id === id) ? id : null,
+    );
+  }
+
+  onMembershipChange(value: number | string | null): void {
+    const id = value == null || value === '' ? null : Number(value);
+    this.selectedMembershipId.set(
+      id != null && this.membershipsRaw().some((m) => m.id === id) ? id : null,
     );
   }
 
@@ -1231,17 +1232,20 @@ export class OpenTablePageComponent implements OnInit {
         return null;
       }
       items.push({ itemId: cocktailId, quantity, type: 'COCKTAIL', hostEmployeeId: hostId });
-    } else if (category === 'PRO_MEMBER') {
-      const picked = parseProMemberLedgerKey(this.selectedProMemberKey());
-      if (!picked) {
-        this.toast.showError('กรุณาเลือกโปรหรือเมมเบอร์');
+    } else if (category === 'PROMOTION') {
+      const promoId = this.selectedPromotionId();
+      if (promoId == null) {
+        this.toast.showError('กรุณาเลือกโปร');
         return null;
       }
-      items.push({
-        itemId: picked.id,
-        quantity,
-        type: picked.kind === 'PROMOTION' ? 'PROMOTION' : 'MEMBERSHIP',
-      });
+      items.push({ itemId: promoId, quantity, type: 'PROMOTION' });
+    } else if (category === 'MEMBER') {
+      const memberId = this.selectedMembershipId();
+      if (memberId == null) {
+        this.toast.showError('กรุณาเลือกเมมเบอร์');
+        return null;
+      }
+      items.push({ itemId: memberId, quantity, type: 'MEMBERSHIP' });
     } else if (category === 'OTHER') {
       const otherId = this.selectedOtherChargeId();
       if (otherId == null) {
