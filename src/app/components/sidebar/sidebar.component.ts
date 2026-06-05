@@ -33,6 +33,7 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
     icon: 'drinks',
     children: [
       { path: '/dashboard/master-drinks', label: 'เครื่องดื่ม' },
+      { path: '/dashboard/master-beverage-categories', label: 'ประเภทเครื่องดื่ม' },
       { path: '/dashboard/master-cocktails', label: 'ค็อกเทล' },
     ],
   },

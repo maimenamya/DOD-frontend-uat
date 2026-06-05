@@ -38,10 +38,10 @@ export type SidebarIconName =
     >
       @switch (name()) {
         @case ('dashboard') {
-          <path d="M3 3v18h18" />
-          <path d="M7 16V9" />
-          <path d="M12 16V5" />
-          <path d="M17 16v-3" />
+          <rect x="3" y="3" width="8" height="10" rx="1.5" />
+          <rect x="13" y="3" width="8" height="5" rx="1.5" />
+          <rect x="3" y="16" width="8" height="5" rx="1.5" />
+          <rect x="13" y="11" width="8" height="10" rx="1.5" />
         }
         @case ('open-table') {
           <!-- round pedestal table -->
@@ -91,11 +91,19 @@ export type SidebarIconName =
           />
         }
         @case ('receipt') {
-          <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
-          <path d="M14 2v4a2 2 0 0 0 2 2h4" />
-          <path d="M10 9H8" />
-          <path d="M16 13H8" />
-          <path d="M16 17H8" />
+          <path
+            d="M7 3h9l3 3v15.2l-1.5-.75-1.5.75-1.5-.75-1.5.75-1.5-.75-1.5.75-1.5-.75L7 21.2V3z"
+          />
+          <path d="M9 9h5" />
+          <path d="M9 11h4.5" />
+          <path d="M9 13h5.5" />
+          <path d="M9 15h4" />
+          <path d="M9 17h5" />
+          <path d="M16 9h2.5" />
+          <path d="M16 11h2.5" />
+          <path d="M16 13h2.5" />
+          <path d="M16 15h2.5" />
+          <path d="M16 17h2.5" />
         }
         @case ('more') {
           <circle cx="5" cy="12" r="1.75" fill="currentColor" stroke="none" />

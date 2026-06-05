@@ -1,40 +1,31 @@
 <div class="app-page">
   <div class="app-page-header">
     <div>
-      <h1 class="app-page-title">ค็อกเทล</h1>
-      <p class="app-page-subtitle text-text-secondary">
-        ราคาคิดจากราคาต่อดื่มของ role × จำนวนดื่ม — ลงบิลแยกจากเครื่องดื่มทั่วไป
+      <h1 class="app-page-title">ประเภทเครื่องดื่ม</h1>
+      <p class="app-page-subtitle text-sm text-text-secondary">
+        กลุ่มเครื่องดื่ม เช่น เหล้า เบียร์ ไวน์ มิกซ์เซอร์ — ร้านใหม่มี 4 ประเภทพื้นฐานให้แล้ว
       </p>
     </div>
     @if (canManage() && !loading()) {
-      <button type="button" (click)="openCreate()" class="app-btn-primary">+ เพิ่มค็อกเทล</button>
+      <button type="button" (click)="openCreate()" class="app-btn-primary">+ เพิ่มประเภท</button>
     }
   </div>
 
-  @if (showCreateModal() && canManage()) {
+  @if (showCreateModal() && canManage() && !loading()) {
     <app-modal (dismiss)="closeCreate()">
       <div class="app-modal-header">
-        <h2 class="app-modal-title">เพิ่มค็อกเทล</h2>
+        <h2 class="app-modal-title">เพิ่มประเภทเครื่องดื่ม</h2>
         <button type="button" class="app-btn-ghost" (click)="closeCreate()">✕</button>
       </div>
       <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
-          <label class="app-label">ชื่อค็อกเทล</label>
-          <input type="text" formControlName="name" class="app-input" />
-        </div>
-        <div class="app-form-group">
-          <label class="app-label">จำนวนดื่ม</label>
+          <label class="app-label">ชื่อประเภท</label>
           <input
             type="text"
-            inputmode="numeric"
-            formControlName="drinkValue"
+            formControlName="name"
             class="app-input"
-            (input)="sanitizeIntegerInput('create', $event)"
+            placeholder="เช่น เบียร์, เหล้า, ไวน์, มิกซ์เซอร์"
           />
-        </div>
-        <div class="app-form-group">
-          <label class="app-label">หน่วยนับ</label>
-          <input type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
@@ -49,27 +40,13 @@
   @if (editingItem(); as item) {
     <app-modal (dismiss)="closeEdit()">
       <div class="app-modal-header">
-        <h2 class="app-modal-title">แก้ไขค็อกเทล</h2>
+        <h2 class="app-modal-title">แก้ไขประเภทเครื่องดื่ม</h2>
         <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
       </div>
       <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
         <div class="app-form-group">
-          <label class="app-label">ชื่อค็อกเทล</label>
+          <label class="app-label">ชื่อประเภท</label>
           <input type="text" formControlName="name" class="app-input" />
-        </div>
-        <div class="app-form-group">
-          <label class="app-label">จำนวนดื่ม</label>
-          <input
-            type="text"
-            inputmode="numeric"
-            formControlName="drinkValue"
-            class="app-input"
-            (input)="sanitizeIntegerInput('edit', $event)"
-          />
-        </div>
-        <div class="app-form-group">
-          <label class="app-label">หน่วยนับ</label>
-          <input type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
@@ -83,8 +60,8 @@
 
   @if (loading()) {
     <p class="app-loading-text">กำลังโหลด...</p>
-  } @else if (cocktails().length === 0) {
-    <p class="app-empty-state">ยังไม่มีค็อกเทลในเมนู</p>
+  } @else if (categories().length === 0) {
+    <p class="app-empty-state">ยังไม่มีประเภทเครื่องดื่ม</p>
   } @else {
     <section class="app-card app-card-flush">
       <div class="app-data-table-shell">
@@ -94,8 +71,6 @@
               <colgroup>
                 <col class="app-col-id" />
                 <col />
-                <col class="app-col-narrow" />
-                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -103,9 +78,7 @@
               <thead>
                 <tr>
                   <th>No.</th>
-                  <th>ชื่อ</th>
-                  <th class="app-cell-center">หน่วย</th>
-                  <th class="app-cell-right">จำนวนดื่ม</th>
+                  <th>ชื่อประเภท</th>
                   @if (canManage()) {
                     <th class="app-cell-right">จัดการ</th>
                   }
@@ -118,19 +91,20 @@
               <colgroup>
                 <col class="app-col-id" />
                 <col />
-                <col class="app-col-narrow" />
-                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
               </colgroup>
               <tbody>
-                @for (item of cocktails(); track item.id; let i = $index) {
+                @for (item of categories(); track item.id; let i = $index) {
                   <tr>
                     <td class="app-cell-mono">{{ i + 1 }}</td>
-                    <td class="app-cell-primary">{{ item.name }}</td>
-                    <td class="app-cell-center text-text-secondary">{{ item.unitLabelTh }}</td>
-                    <td class="app-cell-right app-cell-highlight-violet">{{ item.drinkValue }}</td>
+                    <td class="app-cell-primary">
+                      {{ item.name }}
+                      @if (isMixerCategory(item)) {
+                        <span class="ml-2 text-xs text-text-secondary">(ฟรีมิกซ์โต๊ะ)</span>
+                      }
+                    </td>
                     @if (canManage()) {
                       <td class="app-cell-right">
                         <div class="app-table-actions">

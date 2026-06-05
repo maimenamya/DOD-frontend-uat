@@ -34,7 +34,7 @@ import {
   ROOM_CHARGE_MODE_OPTIONS,
   type RoomChargeRateMode,
 } from '../../models/room-charge';
-import type { MstBeverage } from '../../models/beverage';
+import type { MstBeverage, MstBeverageCategory } from '../../models/beverage';
 import type { MstOtherCharge } from '../../models/other-charge';
 import { OtherChargeService } from '../../services/other-charge.service';
 import {
@@ -157,6 +157,7 @@ export class OpenTablePageComponent implements OnInit {
   /** Standalone toggles + one id per choice group. */
   private readonly foodCategoriesRaw = signal<MstFoodCategory[]>([]);
   private readonly foodsRaw = signal<MstFood[]>([]);
+  private readonly beverageCategoriesRaw = signal<MstBeverageCategory[]>([]);
   private readonly beveragesRaw = signal<MstBeverage[]>([]);
   private readonly cocktailsRaw = signal<{ id: number; name: string; drinkValue: number }[]>([]);
   private readonly promotionsRaw = signal<MstPromotion[]>([]);
@@ -169,6 +170,7 @@ export class OpenTablePageComponent implements OnInit {
   readonly orderLedgerCategory = signal<OrderLedgerCategory>('FOOD');
   readonly selectedFoodCategoryId = signal<number | null>(null);
   readonly selectedFoodId = signal<number | null>(null);
+  readonly selectedBeverageCategoryId = signal<number | null>(null);
   readonly selectedBeverageId = signal<number | null>(null);
   readonly selectedCocktailId = signal<number | null>(null);
   readonly selectedPromotionId = signal<number | null>(null);
@@ -358,8 +360,18 @@ export class OpenTablePageComponent implements OnInit {
     })),
   );
 
+  readonly beverageCategoryDropdownOptions = computed<DropdownOption[]>(() =>
+    this.beverageCategoriesRaw().map((c) => ({ value: c.id, label: c.name })),
+  );
+
+  readonly beveragesInSelectedCategory = computed(() => {
+    const categoryId = this.selectedBeverageCategoryId();
+    if (categoryId == null) return [];
+    return this.beveragesRaw().filter((b) => b.categoryId === categoryId);
+  });
+
   readonly beverageDropdownOptions = computed<DropdownOption[]>(() =>
-    this.beveragesRaw().map((b) => ({
+    this.beveragesInSelectedCategory().map((b) => ({
       value: b.id,
       label: b.name,
       hint: `${b.price} บาท`,
@@ -761,6 +773,9 @@ export class OpenTablePageComponent implements OnInit {
     forkJoin({
       categories: this.shopMaster.getFoodCategories().pipe(catchError(() => of([] as MstFoodCategory[]))),
       foods: this.shopMaster.getFoods().pipe(catchError(() => of([] as MstFood[]))),
+      beverageCategories: this.shopMaster
+        .getBeverageCategories()
+        .pipe(catchError(() => of([] as MstBeverageCategory[]))),
       beverages: this.beverageService.getBeverages().pipe(catchError(() => of([] as MstBeverage[]))),
       cocktails: this.shopMaster.getCocktails().pipe(catchError(() => of([]))),
       promotions: this.shopMaster.getPromotions().pipe(catchError(() => of([] as MstPromotion[]))),
@@ -768,9 +783,11 @@ export class OpenTablePageComponent implements OnInit {
       otherCharges: this.otherChargeService.getAll().pipe(catchError(() => of([] as MstOtherCharge[]))),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(({ categories, foods, beverages, cocktails, promotions, memberships, otherCharges }) => {
+      .subscribe(
+        ({ categories, foods, beverageCategories, beverages, cocktails, promotions, memberships, otherCharges }) => {
         this.foodCategoriesRaw.set(categories);
         this.foodsRaw.set(foods);
+        this.beverageCategoriesRaw.set(beverageCategories);
         this.beveragesRaw.set(beverages);
         this.cocktailsRaw.set(
           cocktails.map((c) => ({ id: c.id, name: c.name, drinkValue: c.drinkValue })),
@@ -860,6 +877,7 @@ export class OpenTablePageComponent implements OnInit {
     const category = this.orderLedgerCategory();
     this.selectedFoodCategoryId.set(null);
     this.selectedFoodId.set(null);
+    this.selectedBeverageCategoryId.set(null);
     this.selectedBeverageId.set(null);
     this.selectedCocktailId.set(null);
     this.selectedPromotionId.set(null);
@@ -873,7 +891,9 @@ export class OpenTablePageComponent implements OnInit {
       this.selectedFoodCategoryId.set(firstCat?.id ?? null);
       this.syncFoodItemSelection();
     } else if (category === 'BEVERAGE') {
-      this.selectedBeverageId.set(this.beveragesRaw()[0]?.id ?? null);
+      const firstCat = this.beverageCategoriesRaw()[0];
+      this.selectedBeverageCategoryId.set(firstCat?.id ?? null);
+      this.syncBeverageItemSelection();
     } else if (category === 'COCKTAIL') {
       this.selectedCocktailId.set(this.cocktailsRaw()[0]?.id ?? null);
       this.syncCocktailHostSelection();
@@ -891,6 +911,13 @@ export class OpenTablePageComponent implements OnInit {
     const current = this.selectedFoodId();
     if (current != null && pool.some((f) => f.id === current)) return;
     this.selectedFoodId.set(pool[0]?.id ?? null);
+  }
+
+  private syncBeverageItemSelection(): void {
+    const pool = this.beveragesInSelectedCategory();
+    const current = this.selectedBeverageId();
+    if (current != null && pool.some((b) => b.id === current)) return;
+    this.selectedBeverageId.set(pool[0]?.id ?? null);
   }
 
   private syncCocktailHostSelection(): void {
@@ -1002,11 +1029,22 @@ export class OpenTablePageComponent implements OnInit {
     this.selectedFoodId.set(id);
   }
 
+  onBeverageCategoryChange(value: number | string | null): void {
+    const id = value == null || value === '' ? null : Number(value);
+    if (id == null || !Number.isFinite(id)) return;
+    if (!this.beverageCategoriesRaw().some((c) => c.id === id)) return;
+    this.selectedBeverageCategoryId.set(id);
+    this.selectedBeverageId.set(null);
+    this.syncBeverageItemSelection();
+  }
+
   onBeverageChange(value: number | string | null): void {
     const id = value == null || value === '' ? null : Number(value);
-    this.selectedBeverageId.set(
-      id != null && this.beveragesRaw().some((b) => b.id === id) ? id : null,
-    );
+    if (id == null || !this.beveragesInSelectedCategory().some((b) => b.id === id)) {
+      this.selectedBeverageId.set(null);
+      return;
+    }
+    this.selectedBeverageId.set(id);
   }
 
   onCocktailChange(value: number | string | null): void {

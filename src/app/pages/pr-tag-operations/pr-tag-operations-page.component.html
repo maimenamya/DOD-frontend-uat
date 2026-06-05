@@ -117,6 +117,8 @@
                   <col class="app-col-narrow" />
                   <col class="app-col-narrow" />
                   <col class="app-col-narrow" />
+                  <col class="app-col-narrow" />
+                  <col class="app-col-narrow" />
                 }
               </colgroup>
               <thead>
@@ -131,6 +133,7 @@
                     <th class="app-cell-center">+ วันทำงาน</th>
                     <th class="app-cell-center">+ วันหยุด</th>
                     <th class="app-cell-center">ตัดแท็ก</th>
+                    <th class="app-cell-center">เปลี่ยนแท็ก</th>
                   }
                 </tr>
               </thead>
@@ -149,6 +152,8 @@
                   <col class="app-col-narrow" />
                   <col class="app-col-narrow" />
                   <col class="app-col-narrow" />
+                  <col class="app-col-narrow" />
+                  <col class="app-col-narrow" />
                 }
               </colgroup>
               <tbody>
@@ -158,17 +163,7 @@
                     <td class="app-cell-primary">{{ row.nickname }}</td>
                     <td class="app-cell-primary">
                       @if (row.enrollment; as e) {
-                        <span>{{ e.tagName }}</span>
-                        @if (canOperateTags() && e.canChangeTag) {
-                          <button
-                            type="button"
-                            class="app-btn-inline ml-1 shrink-0"
-                            [disabled]="acting()"
-                            (click)="openChangeTagModal(row)"
-                          >
-                            เปลี่ยนแท็ก
-                          </button>
-                        }
+                        {{ e.tagName }}
                       }
                     </td>
                     <td class="app-cell-center app-cell-mono">
@@ -216,6 +211,21 @@
                             (click)="forceCut(row)"
                           >
                             ตัดแท็ก
+                          </button>
+                        </td>
+                        <td class="app-cell-center">
+                          <button
+                            type="button"
+                            class="app-btn-secondary-sm"
+                            [disabled]="acting() || !canChangeTagPackage(row)"
+                            [title]="
+                              hasMultipleTagPackages()
+                                ? 'เปลี่ยนแพ็กเกจ (คงวันทำงาน วันหยุด ดื่มสะสม)'
+                                : 'ต้องมีแพ็กเกจแท็กมากกว่า 1 แบบในระบบ'
+                            "
+                            (click)="openChangeTagModal(row)"
+                          >
+                            เปลี่ยนแท็ก
                           </button>
                         </td>
                       }

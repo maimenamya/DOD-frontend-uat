@@ -2,6 +2,7 @@
 import { DecimalPipe } from '@angular/common';
 import {
   NonNullableFormBuilder,
+  FormsModule,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
@@ -12,6 +13,7 @@ import {
   CustomDropdownComponent,
   type DropdownOption,
 } from '../../components/custom-dropdown/custom-dropdown.component';
+import type { MstBeverage, MstBeverageCategory } from '../../models/beverage';
 import type { MstPromotion } from '../../models/master-data';
 import { AuthService } from '../../services/auth.service';
 import { BeverageService } from '../../services/beverage.service';
@@ -21,7 +23,7 @@ import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-master-promotion-page',
-  imports: [DecimalPipe, ReactiveFormsModule, AppModalComponent, CustomDropdownComponent],
+  imports: [DecimalPipe, FormsModule, ReactiveFormsModule, AppModalComponent, CustomDropdownComponent],
   templateUrl: './master-promotion-page.component.html',
 })
 export class MasterPromotionPageComponent implements OnInit {
@@ -34,11 +36,26 @@ export class MasterPromotionPageComponent implements OnInit {
 
   readonly canManage = computed(() => this.auth.canWriteOnPage('master_data'));
   readonly promotions = signal<MstPromotion[]>([]);
-  readonly drinkOptions = signal<DropdownOption[]>([]);
+  readonly beverages = signal<MstBeverage[]>([]);
+  readonly beverageCategories = signal<MstBeverageCategory[]>([]);
+  readonly createDrinkCategoryId = signal<number | null>(null);
+  readonly editDrinkCategoryId = signal<number | null>(null);
   readonly loading = signal(true);
   readonly submitting = signal(false);
   readonly editingItem = signal<MstPromotion | null>(null);
   readonly showCreateModal = signal(false);
+
+  readonly beverageCategoryOptions = computed<DropdownOption[]>(() =>
+    this.beverageCategories().map((c) => ({ value: c.id, label: c.name })),
+  );
+
+  readonly createDrinkOptions = computed<DropdownOption[]>(() =>
+    this.drinkOptionsForCategory(this.createDrinkCategoryId()),
+  );
+
+  readonly editDrinkOptions = computed<DropdownOption[]>(() =>
+    this.drinkOptionsForCategory(this.editDrinkCategoryId()),
+  );
 
   readonly createForm = this.fb.group({
     name: ['', Validators.required],
@@ -66,12 +83,12 @@ export class MasterPromotionPageComponent implements OnInit {
     forkJoin({
       promotions: this.shopMaster.getPromotions(),
       beverages: this.beverageService.getBeverages(),
+      beverageCategories: this.shopMaster.getBeverageCategories(),
     }).subscribe({
-      next: ({ promotions, beverages }) => {
+      next: ({ promotions, beverages, beverageCategories }) => {
         this.promotions.set(promotions);
-        this.drinkOptions.set(
-          beverages.map((b) => ({ value: b.id, label: b.name })),
-        );
+        this.beverages.set(beverages);
+        this.beverageCategories.set(beverageCategories);
         this.loading.set(false);
       },
       error: (err: { error?: { error?: string } }) => {
@@ -89,8 +106,24 @@ export class MasterPromotionPageComponent implements OnInit {
     return value ? 'ใช่' : 'ไม่';
   }
 
+  onCreateDrinkCategoryChange(value: number | string | null): void {
+    const id = value == null || value === '' ? null : Number(value);
+    if (id == null || !Number.isFinite(id)) return;
+    this.createDrinkCategoryId.set(id);
+    this.syncCreateDrinkId();
+  }
+
+  onEditDrinkCategoryChange(value: number | string | null): void {
+    const id = value == null || value === '' ? null : Number(value);
+    if (id == null || !Number.isFinite(id)) return;
+    this.editDrinkCategoryId.set(id);
+    this.syncEditDrinkId();
+  }
+
   openCreate(): void {
     if (this.loading()) return;
+    const firstCategoryId = this.beverageCategories()[0]?.id ?? null;
+    this.createDrinkCategoryId.set(firstCategoryId);
     this.createForm.reset({
       name: '',
       packagePrice: '',
@@ -98,6 +131,7 @@ export class MasterPromotionPageComponent implements OnInit {
       quantity: '',
       isFreeMixer: false,
     });
+    this.syncCreateDrinkId();
     this.showCreateModal.set(true);
   }
 
@@ -106,6 +140,8 @@ export class MasterPromotionPageComponent implements OnInit {
   }
 
   openEdit(item: MstPromotion): void {
+    const beverage = this.beverages().find((b) => b.id === item.drinkId);
+    this.editDrinkCategoryId.set(beverage?.categoryId ?? this.beverageCategories()[0]?.id ?? null);
     this.editForm.reset({
       name: item.name,
       packagePrice: String(item.packagePrice),
@@ -190,5 +226,28 @@ export class MasterPromotionPageComponent implements OnInit {
     const sanitized = input.value.replace(/\D+/g, '');
     const targetForm = form === 'create' ? this.createForm : this.editForm;
     targetForm.controls[controlName].setValue(sanitized, { emitEvent: false });
+  }
+
+  private drinkOptionsForCategory(categoryId: number | null): DropdownOption[] {
+    if (categoryId == null) return [];
+    return this.beverages()
+      .filter((b) => b.categoryId === categoryId)
+      .map((b) => ({ value: b.id, label: b.name }));
+  }
+
+  private syncCreateDrinkId(): void {
+    const options = this.createDrinkOptions();
+    const current = this.createForm.controls.drinkId.value;
+    if (current > 0 && options.some((o) => o.value === current)) return;
+    const first = options[0]?.value;
+    this.createForm.controls.drinkId.setValue(typeof first === 'number' ? first : 0);
+  }
+
+  private syncEditDrinkId(): void {
+    const options = this.editDrinkOptions();
+    const current = this.editForm.controls.drinkId.value;
+    if (current > 0 && options.some((o) => o.value === current)) return;
+    const first = options[0]?.value;
+    this.editForm.controls.drinkId.setValue(typeof first === 'number' ? first : 0);
   }
 }

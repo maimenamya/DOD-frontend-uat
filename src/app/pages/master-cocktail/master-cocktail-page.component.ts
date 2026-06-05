@@ -1,5 +1,4 @@
 ﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
 import {
   NonNullableFormBuilder,
   ReactiveFormsModule,
@@ -15,7 +14,7 @@ import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-master-cocktail-page',
-  imports: [DecimalPipe, ReactiveFormsModule, AppModalComponent],
+  imports: [ReactiveFormsModule, AppModalComponent],
   templateUrl: './master-cocktail-page.component.html',
 })
 export class MasterCocktailPageComponent implements OnInit {
@@ -35,11 +34,13 @@ export class MasterCocktailPageComponent implements OnInit {
   readonly createForm = this.fb.group({
     name: ['', Validators.required],
     drinkValue: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    unitLabelTh: ['แก้ว', Validators.required],
   });
 
   readonly editForm = this.fb.group({
     name: ['', Validators.required],
     drinkValue: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    unitLabelTh: ['แก้ว', Validators.required],
   });
 
   ngOnInit(): void {
@@ -63,7 +64,7 @@ export class MasterCocktailPageComponent implements OnInit {
 
   openCreate(): void {
     if (this.loading()) return;
-    this.createForm.reset({ name: '', drinkValue: '' });
+    this.createForm.reset({ name: '', drinkValue: '', unitLabelTh: 'แก้ว' });
     this.showCreateModal.set(true);
   }
 
@@ -72,7 +73,11 @@ export class MasterCocktailPageComponent implements OnInit {
   }
 
   openEdit(item: MstCocktail): void {
-    this.editForm.reset({ name: item.name, drinkValue: String(item.drinkValue) });
+    this.editForm.reset({
+      name: item.name,
+      drinkValue: String(item.drinkValue),
+      unitLabelTh: item.unitLabelTh || 'แก้ว',
+    });
     this.editingItem.set(item);
   }
 
@@ -83,40 +88,50 @@ export class MasterCocktailPageComponent implements OnInit {
   submitCreate(): void {
     if (this.createForm.invalid || this.submitting()) return;
     this.submitting.set(true);
-    const { name, drinkValue } = this.createForm.getRawValue();
-    this.shopMaster.createCocktail({ name, drinkValue: Number.parseInt(drinkValue, 10) }).subscribe({
-      next: () => {
-        this.submitting.set(false);
-        this.closeCreate();
-        this.toast.showSuccess('เพิ่มค็อกเทลเรียบร้อย');
-        this.loadItems();
-      },
-      error: (err: { error?: { error?: string } }) => {
-        this.submitting.set(false);
-        this.toast.showError(err.error?.error ?? 'ไม่สามารถเพิ่มค็อกเทลได้');
-      },
-    });
+    const { name, drinkValue, unitLabelTh } = this.createForm.getRawValue();
+    this.shopMaster
+      .createCocktail({
+        name: name.trim(),
+        drinkValue: Number.parseInt(drinkValue, 10),
+        unitLabelTh: unitLabelTh.trim(),
+      })
+      .subscribe({
+        next: () => {
+          this.submitting.set(false);
+          this.closeCreate();
+          this.toast.showSuccess('เพิ่มค็อกเทลเรียบร้อย');
+          this.loadItems();
+        },
+        error: (err: { error?: { error?: string } }) => {
+          this.submitting.set(false);
+          this.toast.showError(err.error?.error ?? 'ไม่สามารถเพิ่มค็อกเทลได้');
+        },
+      });
   }
 
   submitEdit(): void {
     const item = this.editingItem();
     if (!item || this.editForm.invalid || this.submitting()) return;
     this.submitting.set(true);
-    const { name, drinkValue } = this.editForm.getRawValue();
+    const { name, drinkValue, unitLabelTh } = this.editForm.getRawValue();
     this.shopMaster
-      .updateCocktail(item.id, { name, drinkValue: Number.parseInt(drinkValue, 10) })
+      .updateCocktail(item.id, {
+        name: name.trim(),
+        drinkValue: Number.parseInt(drinkValue, 10),
+        unitLabelTh: unitLabelTh.trim(),
+      })
       .subscribe({
-      next: () => {
-        this.submitting.set(false);
-        this.closeEdit();
-        this.toast.showSuccess('บันทึกการแก้ไขเรียบร้อย');
-        this.loadItems();
-      },
-      error: (err: { error?: { error?: string } }) => {
-        this.submitting.set(false);
-        this.toast.showError(err.error?.error ?? 'ไม่สามารถแก้ไขค็อกเทลได้');
-      },
-    });
+        next: () => {
+          this.submitting.set(false);
+          this.closeEdit();
+          this.toast.showSuccess('บันทึกการแก้ไขเรียบร้อย');
+          this.loadItems();
+        },
+        error: (err: { error?: { error?: string } }) => {
+          this.submitting.set(false);
+          this.toast.showError(err.error?.error ?? 'ไม่สามารถแก้ไขค็อกเทลได้');
+        },
+      });
   }
 
   async confirmDelete(item: MstCocktail): Promise<void> {
@@ -133,10 +148,10 @@ export class MasterCocktailPageComponent implements OnInit {
     });
   }
 
-  sanitizeIntegerInput(form: 'create' | 'edit', controlName: 'drinkValue', event: Event): void {
+  sanitizeIntegerInput(form: 'create' | 'edit', event: Event): void {
     const input = event.target as HTMLInputElement;
     const sanitized = input.value.replace(/\D+/g, '');
     const targetForm = form === 'create' ? this.createForm : this.editForm;
-    targetForm.controls[controlName].setValue(sanitized, { emitEvent: false });
+    targetForm.controls.drinkValue.setValue(sanitized, { emitEvent: false });
   }
 }

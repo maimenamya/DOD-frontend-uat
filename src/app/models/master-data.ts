@@ -2,6 +2,7 @@ export interface MstCocktail {
   id: number;
   name: string;
   drinkValue: number;
+  unitLabelTh: string;
   shopId: number;
   createdAt: string;
 }

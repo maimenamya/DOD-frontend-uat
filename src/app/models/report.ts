@@ -48,11 +48,9 @@ export interface ReportSaleSummaryRow {
   saleEmployeeId: string;
   nickname: string;
   billCount: number;
-  beerBottles: number;
-  liquorBottles: number;
+  categoryQuantities: Record<string, number>;
   promotionCount: number;
   membershipCount: number;
-  cocktailCount: number;
   entertainerDrinkTotal: number;
 }
 
@@ -68,23 +66,8 @@ export interface ReportSaleEntertainerRow {
 export interface ReportSaleProductRow {
   saleEmployeeId: string;
   saleNickname: string;
-  category: string;
   categoryLabel: string;
   itemName: string;
-  quantity: number;
-  unitLabel: string;
-}
-
-export interface ReportSaleCocktailRow {
-  saleEmployeeId: string;
-  saleNickname: string;
-  cocktailName: string;
-  quantity: number;
-  unitLabel: string;
-}
-
-export interface ReportCocktailTotalRow {
-  cocktailName: string;
   quantity: number;
   unitLabel: string;
 }
@@ -122,11 +105,10 @@ export interface ReportPreview {
     rows: ReportExpenseRow[];
   } | null;
   saleBreakdown: {
+    categoryColumns: string[];
     summaries: ReportSaleSummaryRow[];
     entertainerRows: ReportSaleEntertainerRow[];
     productRows: ReportSaleProductRow[];
-    cocktailRows: ReportSaleCocktailRow[];
-    cocktailTotals: ReportCocktailTotalRow[];
   } | null;
 }
 

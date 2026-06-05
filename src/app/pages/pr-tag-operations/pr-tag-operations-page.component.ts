@@ -67,6 +67,14 @@ export class PrTagOperationsPageComponent implements OnInit {
     return this.tagOptions().filter((o) => o.value !== String(currentId));
   });
 
+  /** ต้องมีแพ็กเกจมากกว่า 1 แบบถึงจะเปลี่ยนได้ (เคส 2 — แคชเชียร์เปลี่ยนให้ PR) */
+  readonly hasMultipleTagPackages = computed(() => this.tagOptions().length > 1);
+
+  canChangeTagPackage(row: PrTagOperationsRow): boolean {
+    const e = row.enrollment;
+    return Boolean(e?.canChangeTag && this.hasMultipleTagPackages());
+  }
+
   ngOnInit(): void {
     this.loadDashboard();
   }
@@ -123,8 +131,14 @@ export class PrTagOperationsPageComponent implements OnInit {
   }
 
   openChangeTagModal(row: PrTagOperationsRow): void {
+    if (!this.canChangeTagPackage(row)) {
+      if (!this.hasMultipleTagPackages()) {
+        this.toast.showError('ไม่มีแพ็กเกจแท็กอื่นให้เปลี่ยน — เพิ่มที่เมนู แพ็กเกจแท็ก PR');
+      }
+      return;
+    }
     const enrollment = row.enrollment;
-    if (!enrollment?.canChangeTag) return;
+    if (!enrollment) return;
     const alternatives = this.tagOptions().filter(
       (o) => o.value !== String(enrollment.tagId),
     );

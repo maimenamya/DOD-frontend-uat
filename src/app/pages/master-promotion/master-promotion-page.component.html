@@ -20,10 +20,20 @@
           <input type="text" formControlName="name" class="app-input" />
         </div>
         <div class="app-form-group">
+          <label class="app-label">ประเภทเครื่องดื่ม</label>
+          <app-custom-dropdown
+            [options]="beverageCategoryOptions()"
+            [ngModel]="createDrinkCategoryId()"
+            (ngModelChange)="onCreateDrinkCategoryChange($event)"
+            [ngModelOptions]="{ standalone: true }"
+            placeholder="เลือกประเภท"
+          />
+        </div>
+        <div class="app-form-group">
           <label class="app-label">เครื่องดื่ม</label>
           <app-custom-dropdown
             formControlName="drinkId"
-            [options]="drinkOptions()"
+            [options]="createDrinkOptions()"
             placeholder="เลือกเครื่องดื่ม"
           />
         </div>
@@ -81,10 +91,20 @@
           <input type="text" formControlName="name" class="app-input" />
         </div>
         <div class="app-form-group">
+          <label class="app-label">ประเภทเครื่องดื่ม</label>
+          <app-custom-dropdown
+            [options]="beverageCategoryOptions()"
+            [ngModel]="editDrinkCategoryId()"
+            (ngModelChange)="onEditDrinkCategoryChange($event)"
+            [ngModelOptions]="{ standalone: true }"
+            placeholder="เลือกประเภท"
+          />
+        </div>
+        <div class="app-form-group">
           <label class="app-label">เครื่องดื่ม</label>
           <app-custom-dropdown
             formControlName="drinkId"
-            [options]="drinkOptions()"
+            [options]="editDrinkOptions()"
             placeholder="เลือกเครื่องดื่ม"
           />
         </div>

@@ -1,42 +1,59 @@
 ﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import {
   NonNullableFormBuilder,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
-import type { MstBeverage } from '../../models/beverage';
+import type { MstBeverage, MstBeverageCategory } from '../../models/beverage';
 import { AuthService } from '../../services/auth.service';
 import { BeverageService } from '../../services/beverage.service';
+import { ShopMasterService } from '../../services/shop-master.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-master-drink-page',
-  imports: [DecimalPipe, ReactiveFormsModule, AppModalComponent],
+  imports: [DecimalPipe, ReactiveFormsModule, AppModalComponent, RouterLink],
   templateUrl: './master-drink-page.component.html',
 })
 export class MasterDrinkPageComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly beverageService = inject(BeverageService);
+  private readonly shopMaster = inject(ShopMasterService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
 
   readonly canManage = computed(() => this.auth.canWriteOnPage('master_data'));
   readonly beverages = signal<MstBeverage[]>([]);
+  readonly categories = signal<MstBeverageCategory[]>([]);
+  readonly selectedCategoryId = signal<number | null>(null);
   readonly loading = signal(true);
   readonly submitting = signal(false);
   readonly editingBeverage = signal<MstBeverage | null>(null);
   readonly showCreateModal = signal(false);
 
+  readonly filteredBeverages = computed(() => {
+    const id = this.selectedCategoryId();
+    if (id == null) return [];
+    return this.beverages().filter((item) => item.categoryId === id);
+  });
+
+  readonly selectedCategory = computed(() => {
+    const id = this.selectedCategoryId();
+    if (id == null) return null;
+    return this.categories().find((c) => c.id === id) ?? null;
+  });
+
   readonly createForm = this.fb.group({
     name: ['', Validators.required],
     price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     unitLabelTh: ['', Validators.required],
-    isMixer: [false],
     canReturn: [false],
   });
 
@@ -44,20 +61,28 @@ export class MasterDrinkPageComponent implements OnInit {
     name: ['', Validators.required],
     price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     unitLabelTh: ['', Validators.required],
-    isMixer: [false],
     canReturn: [false],
   });
 
   ngOnInit(): void {
-    this.loadBeverages();
+    this.loadItems();
   }
 
-  loadBeverages(): void {
+  categoryName(item: MstBeverage): string {
+    return item.category?.name ?? '—';
+  }
+
+  loadItems(): void {
     this.loading.set(true);
     this.showCreateModal.set(false);
-    this.beverageService.getBeverages().subscribe({
-      next: (items) => {
-        this.beverages.set(items);
+    forkJoin({
+      beverages: this.beverageService.getBeverages(),
+      categories: this.shopMaster.getBeverageCategories(),
+    }).subscribe({
+      next: ({ beverages, categories }) => {
+        this.beverages.set(beverages);
+        this.categories.set(categories);
+        this.syncSelectedCategory(categories);
         this.loading.set(false);
       },
       error: (err: { error?: { error?: string } }) => {
@@ -67,9 +92,25 @@ export class MasterDrinkPageComponent implements OnInit {
     });
   }
 
+  private syncSelectedCategory(categories: MstBeverageCategory[]): void {
+    if (categories.length === 0) {
+      this.selectedCategoryId.set(null);
+      return;
+    }
+    const current = this.selectedCategoryId();
+    if (current != null && categories.some((c) => c.id === current)) return;
+    this.selectedCategoryId.set(categories[0].id);
+  }
+
+  selectCategoryTab(categoryId: number): void {
+    this.selectedCategoryId.set(categoryId);
+    this.showCreateModal.set(false);
+    this.editingBeverage.set(null);
+  }
+
   openCreate(): void {
-    if (this.loading()) return;
-    this.createForm.reset({ name: '', price: '', unitLabelTh: '', isMixer: false, canReturn: false });
+    if (this.loading() || !this.selectedCategory()) return;
+    this.createForm.reset({ name: '', price: '', unitLabelTh: '', canReturn: false });
     this.showCreateModal.set(true);
   }
 
@@ -82,7 +123,6 @@ export class MasterDrinkPageComponent implements OnInit {
       name: item.name,
       price: String(item.price),
       unitLabelTh: item.unitLabelTh || '',
-      isMixer: Boolean(item.isMixer),
       canReturn: Boolean(item.canReturn),
     });
     this.editingBeverage.set(item);
@@ -93,56 +133,56 @@ export class MasterDrinkPageComponent implements OnInit {
   }
 
   submitCreate(): void {
-    if (this.createForm.invalid || this.submitting()) return;
+    const categoryId = this.selectedCategoryId();
+    if (categoryId == null || this.createForm.invalid || this.submitting()) return;
     this.submitting.set(true);
-    const { name, price, unitLabelTh, isMixer, canReturn } = this.createForm.getRawValue();
+    const { name, price, unitLabelTh, canReturn } = this.createForm.getRawValue();
     this.beverageService
       .createBeverage({
         name,
         price: Number.parseInt(price, 10),
+        categoryId,
         unitLabelTh: unitLabelTh.trim(),
-        isMixer,
         canReturn,
       })
       .subscribe({
-      next: () => {
-        this.submitting.set(false);
-        this.closeCreate();
-        this.toast.showSuccess('เพิ่มเครื่องดื่มเรียบร้อย');
-        this.loadBeverages();
-      },
-      error: (err: { error?: { error?: string } }) => {
-        this.submitting.set(false);
-        this.toast.showError(err.error?.error ?? 'ไม่สามารถเพิ่มเครื่องดื่มได้');
-      },
-    });
+        next: () => {
+          this.submitting.set(false);
+          this.closeCreate();
+          this.toast.showSuccess('เพิ่มเครื่องดื่มเรียบร้อย');
+          this.loadItems();
+        },
+        error: (err: { error?: { error?: string } }) => {
+          this.submitting.set(false);
+          this.toast.showError(err.error?.error ?? 'ไม่สามารถเพิ่มเครื่องดื่มได้');
+        },
+      });
   }
 
   submitEdit(): void {
     const item = this.editingBeverage();
     if (!item || this.editForm.invalid || this.submitting()) return;
     this.submitting.set(true);
-    const { name, price, unitLabelTh, isMixer, canReturn } = this.editForm.getRawValue();
+    const { name, price, unitLabelTh, canReturn } = this.editForm.getRawValue();
     this.beverageService
       .updateBeverage(item.id, {
         name,
         price: Number.parseInt(price, 10),
         unitLabelTh: unitLabelTh.trim(),
-        isMixer,
         canReturn,
       })
       .subscribe({
-      next: () => {
-        this.submitting.set(false);
-        this.closeEdit();
-        this.toast.showSuccess('บันทึกการแก้ไขเรียบร้อย');
-        this.loadBeverages();
-      },
-      error: (err: { error?: { error?: string } }) => {
-        this.submitting.set(false);
-        this.toast.showError(err.error?.error ?? 'ไม่สามารถแก้ไขเครื่องดื่มได้');
-      },
-    });
+        next: () => {
+          this.submitting.set(false);
+          this.closeEdit();
+          this.toast.showSuccess('บันทึกการแก้ไขเรียบร้อย');
+          this.loadItems();
+        },
+        error: (err: { error?: { error?: string } }) => {
+          this.submitting.set(false);
+          this.toast.showError(err.error?.error ?? 'ไม่สามารถแก้ไขเครื่องดื่มได้');
+        },
+      });
   }
 
   async confirmDelete(item: MstBeverage): Promise<void> {
@@ -151,7 +191,7 @@ export class MasterDrinkPageComponent implements OnInit {
     this.beverageService.deleteBeverage(item.id).subscribe({
       next: () => {
         this.toast.showSuccess('ลบเครื่องดื่มเรียบร้อย');
-        this.loadBeverages();
+        this.loadItems();
       },
       error: (err: { error?: { error?: string } }) => {
         this.toast.showError(err.error?.error ?? 'ไม่สามารถลบเครื่องดื่มได้');

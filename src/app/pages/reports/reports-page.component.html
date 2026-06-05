@@ -141,9 +141,9 @@
             <thead>
               <tr>
                 <th>เซลล์</th>
-                <th class="reports-num">เบียร์</th>
-                <th class="reports-num">เหล้า/สปิริต</th>
-                <th class="reports-num">ค็อกเทล</th>
+                @for (col of p.saleBreakdown.categoryColumns; track col) {
+                  <th class="reports-num">{{ col }}</th>
+                }
                 <th class="reports-num">โปร</th>
                 <th class="reports-num">เมม</th>
                 <th class="reports-num">ดื่มเด็ก</th>
@@ -153,9 +153,9 @@
               @for (row of p.saleBreakdown.summaries.slice(0, 8); track row.saleEmployeeId) {
                 <tr>
                   <td>{{ row.nickname }}</td>
-                  <td class="reports-num">{{ row.beerBottles }}</td>
-                  <td class="reports-num">{{ row.liquorBottles }}</td>
-                  <td class="reports-num">{{ row.cocktailCount }}</td>
+                  @for (col of p.saleBreakdown.categoryColumns; track col) {
+                    <td class="reports-num">{{ row.categoryQuantities[col] || 0 }}</td>
+                  }
                   <td class="reports-num">{{ row.promotionCount }}</td>
                   <td class="reports-num">{{ row.membershipCount }}</td>
                   <td class="reports-num">{{ row.entertainerDrinkTotal }}</td>
@@ -164,57 +164,9 @@
             </tbody>
           </table>
           <p class="reports-checklist-hint mt-2">
-            เบียร์/เหล้า = ขวด (ไม่รวมมิกซ์เซอร์/ฟรีมิกซ์) · ค็อกเทล = แก้ว · โปร/เมม = ชุด ·
+            คอลัมน์เครื่องดื่มตามชื่อประเภทที่บันทึกในบิล (ไม่รวมมิกซ์เซอร์/ฟรีมิกซ์) · โปร/เมม = ชุด ·
             ดื่มเด็ก = แก้วรวมของเด็กที่เซลล์ดูแลในบิล
           </p>
-        </div>
-      }
-
-      @if (p.saleBreakdown && p.saleBreakdown.cocktailTotals.length > 0) {
-        <div class="reports-block">
-          <h3 class="reports-block-title">ค็อกเทลที่ขายได้ (รวมทั้งร้าน)</h3>
-          <table class="reports-table">
-            <thead>
-              <tr>
-                <th>ค็อกเทล</th>
-                <th class="reports-num">จำนวน</th>
-                <th>หน่วย</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (row of p.saleBreakdown.cocktailTotals.slice(0, 15); track row.cocktailName) {
-                <tr>
-                  <td>{{ row.cocktailName }}</td>
-                  <td class="reports-num">{{ row.quantity }}</td>
-                  <td>{{ row.unitLabel }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      }
-
-      @if (p.saleBreakdown && p.saleBreakdown.cocktailRows.length > 0) {
-        <div class="reports-block">
-          <h3 class="reports-block-title">ค็อกเทลตามเซลล์ (TOP 15)</h3>
-          <table class="reports-table">
-            <thead>
-              <tr>
-                <th>เซลล์</th>
-                <th>ค็อกเทล</th>
-                <th class="reports-num">จำนวน</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (row of p.saleBreakdown.cocktailRows.slice(0, 15); track row.saleEmployeeId + row.cocktailName) {
-                <tr>
-                  <td>{{ row.saleNickname }}</td>
-                  <td>{{ row.cocktailName }}</td>
-                  <td class="reports-num">{{ row.quantity }} {{ row.unitLabel }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
         </div>
       }
 

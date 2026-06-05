@@ -532,13 +532,24 @@
 
         @if (orderLedgerCategory() === 'BEVERAGE') {
           <div class="app-form-group">
-            <label class="app-label">เลือกเครื่องดื่ม</label>
+            <label class="app-label">ประเภทเครื่องดื่ม</label>
             <app-custom-dropdown
-              [options]="beverageDropdownOptions()"
-              [ngModel]="selectedBeverageId()"
-              (ngModelChange)="onBeverageChange($event)"
-              placeholder="เลือกเครื่องดื่ม"
+              [options]="beverageCategoryDropdownOptions()"
+              [ngModel]="selectedBeverageCategoryId()"
+              (ngModelChange)="onBeverageCategoryChange($event)"
+              placeholder="เลือกประเภท"
             />
+          </div>
+          <div class="app-form-group">
+            <label class="app-label">เลือกเครื่องดื่ม</label>
+            @for (catId of [selectedBeverageCategoryId()]; track catId) {
+              <app-custom-dropdown
+                [options]="beverageDropdownOptions()"
+                [ngModel]="selectedBeverageId()"
+                (ngModelChange)="onBeverageChange($event)"
+                placeholder="เลือกเครื่องดื่ม"
+              />
+            }
           </div>
         }
 

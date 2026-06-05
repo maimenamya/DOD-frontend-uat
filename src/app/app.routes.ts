@@ -6,8 +6,9 @@ import { MainShellComponent } from './layouts/main-shell/main-shell.component';
 import { DashboardPageComponent } from './pages/dashboard/dashboard-page.component';
 import { EmployeeManagementPageComponent } from './pages/employee-management/employee-management-page.component';
 import { LoginComponent } from './pages/login/login.component';
-import { MasterCocktailPageComponent } from './pages/master-cocktail/master-cocktail-page.component';
+import { MasterBeverageCategoryPageComponent } from './pages/master-beverage-category/master-beverage-category-page.component';
 import { MasterDrinkPageComponent } from './pages/master-drink/master-drink-page.component';
+import { MasterCocktailPageComponent } from './pages/master-cocktail/master-cocktail-page.component';
 import { MasterFoodCategoryPageComponent } from './pages/master-food-category/master-food-category-page.component';
 import { MasterFoodPageComponent } from './pages/master-food/master-food-page.component';
 import { MasterMembershipPageComponent } from './pages/master-membership/master-membership-page.component';
@@ -50,6 +51,11 @@ export const routes: Routes = [
         path: 'master-roles',
         component: MasterRolePageComponent,
         canActivate: [permissionGuard('manage_roles')],
+      },
+      {
+        path: 'master-beverage-categories',
+        component: MasterBeverageCategoryPageComponent,
+        canActivate: [permissionGuard('master_data')],
       },
       {
         path: 'master-drinks',

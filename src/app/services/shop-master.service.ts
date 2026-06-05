@@ -4,6 +4,11 @@ import { Observable } from 'rxjs';
 
 import { ApiConfig } from '../core/api-config';
 import type {
+  MstBeverageCategory,
+  MstBeverageCategoryCreatePayload,
+  MstBeverageCategoryUpdatePayload,
+} from '../models/beverage';
+import type {
   MstCocktail,
   DrinkPackagePayload,
   MstFood,
@@ -27,16 +32,47 @@ export class ShopMasterService {
     return this.http.get<MstCocktail[]>(this.api.resource('cocktails'));
   }
 
-  createCocktail(payload: { name: string; drinkValue: number }): Observable<MstCocktail> {
+  createCocktail(payload: {
+    name: string;
+    drinkValue: number;
+    unitLabelTh?: string;
+  }): Observable<MstCocktail> {
     return this.http.post<MstCocktail>(this.api.resource('cocktails'), payload);
   }
 
-  updateCocktail(id: number, payload: Partial<{ name: string; drinkValue: number }>): Observable<MstCocktail> {
+  updateCocktail(
+    id: number,
+    payload: Partial<{ name: string; drinkValue: number; unitLabelTh: string }>,
+  ): Observable<MstCocktail> {
     return this.http.put<MstCocktail>(this.api.resource(`cocktails/${id}`), payload);
   }
 
   deleteCocktail(id: number): Observable<void> {
     return this.http.delete<void>(this.api.resource(`cocktails/${id}`));
+  }
+
+  getBeverageCategories(): Observable<MstBeverageCategory[]> {
+    return this.http.get<MstBeverageCategory[]>(this.api.resource('beverage-categories'));
+  }
+
+  createBeverageCategory(
+    payload: MstBeverageCategoryCreatePayload,
+  ): Observable<MstBeverageCategory> {
+    return this.http.post<MstBeverageCategory>(this.api.resource('beverage-categories'), payload);
+  }
+
+  updateBeverageCategory(
+    id: number,
+    payload: MstBeverageCategoryUpdatePayload,
+  ): Observable<MstBeverageCategory> {
+    return this.http.put<MstBeverageCategory>(
+      this.api.resource(`beverage-categories/${id}`),
+      payload,
+    );
+  }
+
+  deleteBeverageCategory(id: number): Observable<void> {
+    return this.http.delete<void>(this.api.resource(`beverage-categories/${id}`));
   }
 
   getFoodCategories(): Observable<MstFoodCategory[]> {
