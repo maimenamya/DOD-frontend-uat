@@ -91,19 +91,13 @@ export type SidebarIconName =
           />
         }
         @case ('receipt') {
+          <!-- receipt: folded top-left, torn zigzag bottom, three text lines -->
           <path
-            d="M7 3h9l3 3v15.2l-1.5-.75-1.5.75-1.5-.75-1.5.75-1.5-.75-1.5.75-1.5-.75L7 21.2V3z"
+            d="M6 4h2v2h10v14l-1.5 1.5L15 20l-1.5 1.5L12 20l-1.5 1.5L9 20l-1.5 1.5L6 20V6V4z"
           />
-          <path d="M9 9h5" />
-          <path d="M9 11h4.5" />
-          <path d="M9 13h5.5" />
-          <path d="M9 15h4" />
-          <path d="M9 17h5" />
-          <path d="M16 9h2.5" />
-          <path d="M16 11h2.5" />
-          <path d="M16 13h2.5" />
-          <path d="M16 15h2.5" />
-          <path d="M16 17h2.5" />
+          <path d="M9 10h7" />
+          <path d="M9 13h7" />
+          <path d="M13 16h3" />
         }
         @case ('more') {
           <circle cx="5" cy="12" r="1.75" fill="currentColor" stroke="none" />

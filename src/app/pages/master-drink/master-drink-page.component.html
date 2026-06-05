@@ -152,12 +152,6 @@
       }
     </div>
 
-    @if (isMixerCategoryTab()) {
-      <p class="mb-3 text-sm text-text-secondary">
-        ประเภทมิกซ์เซอร์ — รายการในแถบนี้ฟรีเมื่อโต๊ะเปิดฟรีมิกซ์ (เปิดโต๊ะเลือกประเภทนี้แล้วเพิ่มเครื่องดื่ม)
-      </p>
-    }
-
     @if (filteredBeverages().length === 0) {
       <p class="app-empty-state">
         ยังไม่มีเครื่องดื่มในประเภท «{{ selectedCategory()?.name }}» — กดเพิ่มเครื่องดื่มเพื่อสร้างรายการ

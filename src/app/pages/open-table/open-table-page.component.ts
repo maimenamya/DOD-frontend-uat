@@ -125,6 +125,8 @@ export class OpenTablePageComponent implements OnInit {
   readonly showMobileSheet = signal(false);
   readonly sessionDetail = signal<OpenTableSessionDetail | null>(null);
   readonly sessionDetailLoading = signal(false);
+  /** Stable keys for `@for` in bill skeleton (avoid allocating each change detection). */
+  readonly billSkeletonLines = [1, 2, 3] as const;
   private sessionDetailRequestSeq = 0;
 
   readonly showAddModal = signal(false);
@@ -861,6 +863,33 @@ export class OpenTablePageComponent implements OnInit {
     );
   }
 
+  /** Clear bill panel and show skeleton (e.g. while saving a new ledger line). */
+  private beginSessionBillRefresh(): void {
+    this.sessionDetailLoading.set(true);
+    this.sessionDetail.set(null);
+  }
+
+  /** Paint skeleton at least one frame after modal close, then apply fresh detail. */
+  private applySessionDetailAfterBillRefresh(
+    detail: OpenTableSessionDetail,
+    sessionId: number,
+  ): void {
+    requestAnimationFrame(() => {
+      if (this.selectedSeat()?.sessionId !== sessionId) {
+        this.sessionDetailLoading.set(false);
+        return;
+      }
+      this.sessionDetail.set(detail);
+      this.syncSeatRevisionFromDetail(detail);
+      this.sessionDetailLoading.set(false);
+    });
+  }
+
+  private cancelSessionBillRefresh(sessionId: number): void {
+    this.sessionDetailLoading.set(false);
+    this.loadSessionDetail(sessionId, { showLoading: false });
+  }
+
   private onMutationConflict(): void {
     this.refreshFloorPlan(this.selectedSeatKey(), { silent: true });
   }
@@ -1465,6 +1494,7 @@ export class OpenTablePageComponent implements OnInit {
         }
         unitPrice = parsed;
       }
+      this.beginSessionBillRefresh();
       this.runAction(
         this.openTableService.addRoomCharge({
           shopId: this.shopId,
@@ -1478,11 +1508,9 @@ export class OpenTablePageComponent implements OnInit {
         'เพิ่มค่าห้องสำเร็จ',
         (detail) => {
           this.closeAddModal();
-          if (this.selectedSeat()?.sessionId === sessionId) {
-            this.sessionDetail.set(detail);
-            this.syncSeatRevisionFromDetail(detail);
-          }
+          this.applySessionDetailAfterBillRefresh(detail, sessionId);
         },
+        () => this.cancelSessionBillRefresh(sessionId),
       );
       return;
     }
@@ -1506,6 +1534,7 @@ export class OpenTablePageComponent implements OnInit {
         ? 'เพิ่มรายการลงโต๊ะสำเร็จ'
         : 'บันทึกรันดื่มพนักงานสำเร็จ';
 
+    this.beginSessionBillRefresh();
     this.runAction(
       this.openTableService.addOrderItems({
         shopId: this.shopId,
@@ -1517,14 +1546,12 @@ export class OpenTablePageComponent implements OnInit {
       successMessage,
       (detail) => {
         this.closeAddModal();
-        if (this.selectedSeat()?.sessionId === sessionId) {
-          this.sessionDetail.set(detail);
-          this.syncSeatRevisionFromDetail(detail);
-        }
+        this.applySessionDetailAfterBillRefresh(detail, sessionId);
         if (staffDrinks.length > 0) {
           this.reloadStaffEmployees();
         }
       },
+      () => this.cancelSessionBillRefresh(sessionId),
     );
   }
 

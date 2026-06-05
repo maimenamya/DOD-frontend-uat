@@ -215,13 +215,25 @@
             </button>
           </div>
         } @else if (sessionDetailLoading()) {
-          <div
-            class="flex min-h-[14rem] flex-col items-center justify-center gap-3 rounded-input border border-dashed border-theme-border bg-surface/50 py-10"
-            aria-busy="true"
-            aria-live="polite"
-          >
-            <div class="h-8 w-8 animate-spin rounded-full border-2 border-theme-border border-t-primary"></div>
-            <p class="app-loading-text">กำลังโหลดรายการบิล...</p>
+          <div class="open-table-bill-skeleton space-y-4" aria-busy="true" aria-live="polite">
+            <div class="space-y-2">
+              <div class="app-skeleton h-3 w-24 rounded"></div>
+              @for (line of billSkeletonLines; track line) {
+                <div class="app-skeleton h-4 w-full rounded"></div>
+              }
+            </div>
+            <div class="space-y-2">
+              <div class="app-skeleton h-3 w-28 rounded"></div>
+              @for (line of billSkeletonLines; track line) {
+                <div class="app-skeleton h-4 w-5/6 rounded"></div>
+              }
+            </div>
+            <div class="app-skeleton h-16 w-full rounded-input"></div>
+            <div class="grid grid-cols-3 gap-2">
+              <div class="app-skeleton h-10 rounded-input"></div>
+              <div class="app-skeleton h-10 rounded-input"></div>
+              <div class="app-skeleton h-10 rounded-input"></div>
+            </div>
           </div>
         } @else if (seatAwaitingClear()) {
           <p class="app-alert-warning" role="status">

@@ -1447,6 +1447,14 @@
     width: 14%;
   }
 
+  .app-split-table-grid col.app-col-narrow {
+    width: 7%;
+  }
+
+  .app-split-table-grid col.app-col-action-btn {
+    width: 6.5rem;
+  }
+
   /** @deprecated — use .app-split-table */
   .app-data-table-scroll-10 {
     @apply app-scroll-region relative max-h-[600px] overflow-y-auto overflow-x-auto;
@@ -1656,6 +1664,14 @@
 
     .app-split-table-grid col.app-col-actions {
       width: 14%;
+    }
+
+    .app-split-table-grid col.app-col-narrow {
+      width: 7%;
+    }
+
+    .app-split-table-grid col.app-col-action-btn {
+      width: 5.5rem;
     }
 
     .app-split-table-header {
