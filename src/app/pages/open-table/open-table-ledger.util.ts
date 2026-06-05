@@ -5,16 +5,14 @@ export type OrderLedgerCategory =
   | 'FOOD'
   | 'BEVERAGE'
   | 'COCKTAIL'
-  | 'PROMOTION'
-  | 'MEMBER'
+  | 'PRO_MEMBER'
   | 'OTHER';
 
 export const ORDER_LEDGER_CATEGORY_VALUES: readonly OrderLedgerCategory[] = [
   'FOOD',
   'BEVERAGE',
   'COCKTAIL',
-  'PROMOTION',
-  'MEMBER',
+  'PRO_MEMBER',
   'OTHER',
 ];
 
@@ -22,10 +20,32 @@ export const ORDER_LEDGER_CATEGORY_LABELS: Record<OrderLedgerCategory, string> =
   FOOD: 'อาหาร',
   BEVERAGE: 'เครื่องดื่ม',
   COCKTAIL: 'ค็อกเทล',
-  PROMOTION: 'โปรโมชั่น',
-  MEMBER: 'สมาชิก/Member',
+  PRO_MEMBER: 'โปร/เมมเบอร์',
   OTHER: 'อื่นๆ',
 };
+
+/** Dropdown value: `P:{promoId}` or `M:{membershipId}`. */
+export type ProMemberLedgerKey = `P:${number}` | `M:${number}`;
+
+export function proMemberLedgerKey(
+  kind: 'PROMOTION' | 'MEMBERSHIP',
+  id: number,
+): ProMemberLedgerKey {
+  return kind === 'PROMOTION' ? `P:${id}` : `M:${id}`;
+}
+
+export function parseProMemberLedgerKey(
+  key: string | null | undefined,
+): { kind: 'PROMOTION' | 'MEMBERSHIP'; id: number } | null {
+  if (!key) return null;
+  const match = /^([PM]):(\d+)$/.exec(key);
+  if (!match) return null;
+  const id = Number(match[2]);
+  if (!Number.isFinite(id)) return null;
+  return match[1] === 'P'
+    ? { kind: 'PROMOTION', id }
+    : { kind: 'MEMBERSHIP', id };
+}
 
 export type SessionOrderItemType =
   | 'FOOD'
@@ -41,10 +61,8 @@ export function sessionItemTypeForLedgerCategory(
   switch (category) {
     case 'FOOD':
       return 'FOOD';
-    case 'PROMOTION':
-      return 'PROMOTION';
-    case 'MEMBER':
-      return 'MEMBERSHIP';
+    case 'PRO_MEMBER':
+      return null;
     case 'OTHER':
       return 'OTHER';
     default:

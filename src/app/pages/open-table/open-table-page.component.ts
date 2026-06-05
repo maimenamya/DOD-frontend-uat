@@ -44,7 +44,10 @@ import {
   isEntertainmentStaffRole,
   isValidShopDatetimeLocal,
   isFixedDrinkStaffRole,
+  parseProMemberLedgerKey,
+  proMemberLedgerKey,
   type OrderLedgerCategory,
+  type ProMemberLedgerKey,
 } from './open-table-ledger.util';
 import { AuthService } from '../../services/auth.service';
 import { BeverageService } from '../../services/beverage.service';
@@ -175,8 +178,7 @@ export class OpenTablePageComponent implements OnInit {
   readonly selectedBeverageCategoryId = signal<number | null>(null);
   readonly selectedBeverageId = signal<number | null>(null);
   readonly selectedCocktailId = signal<number | null>(null);
-  readonly selectedPromotionId = signal<number | null>(null);
-  readonly selectedMembershipId = signal<number | null>(null);
+  readonly selectedProMemberKey = signal<ProMemberLedgerKey | null>(null);
   readonly selectedOtherChargeId = signal<number | null>(null);
   readonly orderCocktailStaffRoleId = signal<number | null>(null);
   readonly orderCocktailStaffEmployeeId = signal<number | null>(null);
@@ -332,11 +334,8 @@ export class OpenTablePageComponent implements OnInit {
     if (this.cocktailsRaw().length > 0) {
       options.push({ value: 'COCKTAIL', label: ORDER_LEDGER_CATEGORY_LABELS.COCKTAIL });
     }
-    if (this.promotionsRaw().length > 0) {
-      options.push({ value: 'PROMOTION', label: ORDER_LEDGER_CATEGORY_LABELS.PROMOTION });
-    }
-    if (this.membershipsRaw().length > 0) {
-      options.push({ value: 'MEMBER', label: ORDER_LEDGER_CATEGORY_LABELS.MEMBER });
+    if (this.promotionsRaw().length > 0 || this.membershipsRaw().length > 0) {
+      options.push({ value: 'PRO_MEMBER', label: ORDER_LEDGER_CATEGORY_LABELS.PRO_MEMBER });
     }
     if (this.activeOtherCharges().length > 0) {
       options.push({ value: 'OTHER', label: ORDER_LEDGER_CATEGORY_LABELS.OTHER });
@@ -406,21 +405,19 @@ export class OpenTablePageComponent implements OnInit {
     );
   });
 
-  readonly promotionDropdownOptions = computed<DropdownOption[]>(() =>
-    this.promotionsRaw().map((p) => ({
-      value: p.id,
+  readonly proMemberDropdownOptions = computed<DropdownOption[]>(() => {
+    const promos = this.promotionsRaw().map((p) => ({
+      value: proMemberLedgerKey('PROMOTION', p.id),
       label: p.name,
-      hint: `${p.packagePrice} บาท`,
-    })),
-  );
-
-  readonly membershipDropdownOptions = computed<DropdownOption[]>(() =>
-    this.membershipsRaw().map((m) => ({
-      value: m.id,
+      hint: `${p.packagePrice} บาท · โปร`,
+    }));
+    const members = this.membershipsRaw().map((m) => ({
+      value: proMemberLedgerKey('MEMBERSHIP', m.id),
       label: m.name,
-      hint: `${m.packagePrice} บาท`,
-    })),
-  );
+      hint: `${m.packagePrice} บาท · เมมเบอร์`,
+    }));
+    return [...promos, ...members];
+  });
 
   readonly activeOtherCharges = computed(() =>
     this.openTableOtherChargesRaw().filter((c) => c.isActive),
@@ -448,11 +445,7 @@ export class OpenTablePageComponent implements OnInit {
 
     const filtered = this.staffEmployees().filter((e) => {
       if (e.roleId !== roleId) return false;
-      // TODO(attendance): hide OFF_DUTY when shop has time-clock integration.
-      if (role && isEntertainmentStaffRole(role)) {
-        return e.tableSeatStatus !== 'ON_TABLE';
-      }
-      return true;
+      return this.isStaffLedgerEmployeeSelectable(e, role);
     });
     return sortEmployeesByCode(filtered);
   });
@@ -563,6 +556,7 @@ export class OpenTablePageComponent implements OnInit {
   setAddModalMode(mode: AddModalMode): void {
     this.addModalMode.set(mode);
     if (mode === 'STAFF_LEDGER') {
+      this.reloadStaffEmployees();
       this.stampStaffSeatStartTime();
     }
     if (mode === 'ROOM_CHARGE') {
@@ -622,6 +616,37 @@ export class OpenTablePageComponent implements OnInit {
     this.syncStaffLedgerEmployee();
   }
 
+  /**
+   * PR/entertainer: hide when actively seated elsewhere; allow reopen on this session
+   * even if employee list is stale (tableSeatStatus still ON_TABLE until refresh).
+   */
+  private isStaffLedgerEmployeeSelectable(
+    employee: MstEmployee,
+    role: MstRole | undefined,
+  ): boolean {
+    // TODO(attendance): hide OFF_DUTY when shop has time-clock integration.
+    if (!role || !isEntertainmentStaffRole(role)) {
+      return true;
+    }
+    const staffDrinks = this.sessionDetail()?.staffDrinks ?? [];
+    const activeOnThisSession = staffDrinks.some(
+      (row) =>
+        row.employeeRecordId === employee.id &&
+        row.seatStartedLabel &&
+        !row.seatStoppedLabel,
+    );
+    if (activeOnThisSession) {
+      return false;
+    }
+    const stoppedOnThisSession = staffDrinks.some(
+      (row) => row.employeeRecordId === employee.id && row.seatStoppedLabel,
+    );
+    if (stoppedOnThisSession) {
+      return true;
+    }
+    return employee.tableSeatStatus !== 'ON_TABLE';
+  }
+
   private buildRolesFromEmployees(staff: MstEmployee[]): MstRole[] {
     const roles: MstRole[] = [];
     const seen = new Set<number>();
@@ -658,6 +683,7 @@ export class OpenTablePageComponent implements OnInit {
     );
     this.sessionDetail.set(null);
     this.loadSessionDetail(sessionId, { showLoading: true });
+    this.reloadStaffEmployees();
   }
 
   private applySeatAfterCheckout(seatKey: string, sessionId: number, checkedOutLabel?: string): void {
@@ -909,8 +935,7 @@ export class OpenTablePageComponent implements OnInit {
     this.selectedBeverageCategoryId.set(null);
     this.selectedBeverageId.set(null);
     this.selectedCocktailId.set(null);
-    this.selectedPromotionId.set(null);
-    this.selectedMembershipId.set(null);
+    this.selectedProMemberKey.set(null);
     this.selectedOtherChargeId.set(null);
     this.orderCocktailStaffRoleId.set(null);
     this.orderCocktailStaffEmployeeId.set(null);
@@ -926,10 +951,11 @@ export class OpenTablePageComponent implements OnInit {
     } else if (category === 'COCKTAIL') {
       this.selectedCocktailId.set(this.cocktailsRaw()[0]?.id ?? null);
       this.syncCocktailHostSelection();
-    } else if (category === 'PROMOTION') {
-      this.selectedPromotionId.set(this.promotionsRaw()[0]?.id ?? null);
-    } else if (category === 'MEMBER') {
-      this.selectedMembershipId.set(this.membershipsRaw()[0]?.id ?? null);
+    } else if (category === 'PRO_MEMBER') {
+      const first = this.proMemberDropdownOptions()[0];
+      this.selectedProMemberKey.set(
+        first ? (String(first.value) as ProMemberLedgerKey) : null,
+      );
     } else if (category === 'OTHER') {
       this.selectedOtherChargeId.set(this.activeOtherCharges()[0]?.id ?? null);
     }
@@ -1104,17 +1130,19 @@ export class OpenTablePageComponent implements OnInit {
     this.orderCocktailStaffEmployeeId.set(valid ? id : null);
   }
 
-  onPromotionChange(value: number | string | null): void {
-    const id = value == null || value === '' ? null : Number(value);
-    this.selectedPromotionId.set(
-      id != null && this.promotionsRaw().some((p) => p.id === id) ? id : null,
-    );
-  }
-
-  onMembershipChange(value: number | string | null): void {
-    const id = value == null || value === '' ? null : Number(value);
-    this.selectedMembershipId.set(
-      id != null && this.membershipsRaw().some((m) => m.id === id) ? id : null,
+  onProMemberChange(value: number | string | null): void {
+    const key = value == null || value === '' ? null : String(value);
+    const parsed = parseProMemberLedgerKey(key);
+    if (!parsed) {
+      this.selectedProMemberKey.set(null);
+      return;
+    }
+    const valid =
+      parsed.kind === 'PROMOTION'
+        ? this.promotionsRaw().some((p) => p.id === parsed.id)
+        : this.membershipsRaw().some((m) => m.id === parsed.id);
+    this.selectedProMemberKey.set(
+      valid ? (key as ProMemberLedgerKey) : null,
     );
   }
 
@@ -1203,20 +1231,17 @@ export class OpenTablePageComponent implements OnInit {
         return null;
       }
       items.push({ itemId: cocktailId, quantity, type: 'COCKTAIL', hostEmployeeId: hostId });
-    } else if (category === 'PROMOTION') {
-      const promoId = this.selectedPromotionId();
-      if (promoId == null) {
-        this.toast.showError('กรุณาเลือกโปรโมชั่น');
+    } else if (category === 'PRO_MEMBER') {
+      const picked = parseProMemberLedgerKey(this.selectedProMemberKey());
+      if (!picked) {
+        this.toast.showError('กรุณาเลือกโปรหรือเมมเบอร์');
         return null;
       }
-      items.push({ itemId: promoId, quantity, type: 'PROMOTION' });
-    } else if (category === 'MEMBER') {
-      const memberId = this.selectedMembershipId();
-      if (memberId == null) {
-        this.toast.showError('กรุณาเลือกแพ็กเกจสมาชิก');
-        return null;
-      }
-      items.push({ itemId: memberId, quantity, type: 'MEMBERSHIP' });
+      items.push({
+        itemId: picked.id,
+        quantity,
+        type: picked.kind === 'PROMOTION' ? 'PROMOTION' : 'MEMBERSHIP',
+      });
     } else if (category === 'OTHER') {
       const otherId = this.selectedOtherChargeId();
       if (otherId == null) {
@@ -1441,6 +1466,7 @@ export class OpenTablePageComponent implements OnInit {
     this.resetStaffLedgerForm();
     this.resetRoomChargeForm();
     this.showAddModal.set(true);
+    this.reloadStaffEmployees();
   }
 
   closeAddModal(): void {
@@ -1975,6 +2001,7 @@ export class OpenTablePageComponent implements OnInit {
           this.applySeatAfterCheckout(seatKey, sessionId, result.checkedOutLabel);
           this.loadSessionDetail(sessionId, { showLoading: false });
           this.refreshFloorPlan(seatKey, { silent: true });
+          this.reloadStaffEmployees();
         }
       },
       () => {
@@ -2016,6 +2043,7 @@ export class OpenTablePageComponent implements OnInit {
       () => {
         this.closeDrawer();
         this.refreshFloorPlan(null);
+        this.reloadStaffEmployees();
       },
     );
   }

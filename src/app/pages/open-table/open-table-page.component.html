@@ -597,26 +597,14 @@
           </div>
         }
 
-        @if (orderLedgerCategory() === 'PROMOTION') {
+        @if (orderLedgerCategory() === 'PRO_MEMBER') {
           <div class="app-form-group">
-            <label class="app-label">เลือกโปรโมชั่น</label>
+            <label class="app-label">เลือกแพ็กเกจ</label>
             <app-custom-dropdown
-              [options]="promotionDropdownOptions()"
-              [ngModel]="selectedPromotionId()"
-              (ngModelChange)="onPromotionChange($event)"
-              placeholder="เลือกโปรโมชั่น"
-            />
-          </div>
-        }
-
-        @if (orderLedgerCategory() === 'MEMBER') {
-          <div class="app-form-group">
-            <label class="app-label">เลือกแพ็กเกจสมาชิก</label>
-            <app-custom-dropdown
-              [options]="membershipDropdownOptions()"
-              [ngModel]="selectedMembershipId()"
-              (ngModelChange)="onMembershipChange($event)"
-              placeholder="เลือกแพ็กเกจสมาชิก"
+              [options]="proMemberDropdownOptions()"
+              [ngModel]="selectedProMemberKey()"
+              (ngModelChange)="onProMemberChange($event)"
+              placeholder="เลือกโปรหรือเมมเบอร์"
             />
           </div>
         }
