@@ -32,7 +32,7 @@ export class MasterMembershipPageComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
 
-  readonly canManage = computed(() => this.auth.canAccessTeamManagement());
+  readonly canManage = computed(() => this.auth.canWriteOnPage('master_data'));
   readonly memberships = signal<MstMembership[]>([]);
   readonly drinkOptions = signal<DropdownOption[]>([]);
   readonly loading = signal(true);

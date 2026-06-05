@@ -30,7 +30,7 @@ export class PrTagOperationsPageComponent implements OnInit {
   private readonly confirmDialog = inject(ConfirmDialogService);
 
   /** ลงแท็ก / เข้างาน / วันหยุด / ตัดแท็ก — ไม่ใช่สิทธิ์จัดการพนักงาน (CASHIER ใช้ได้) */
-  readonly canOperateTags = computed(() => this.auth.hasFeature('pr_tag_operations'));
+  readonly canOperateTags = computed(() => this.auth.canWriteOnPage('pr_tag_operations'));
   readonly rows = signal<PrTagOperationsRow[]>([]);
   readonly assignableEmployees = signal<PrTagAssignableEmployee[]>([]);
   readonly tagOptions = signal<DropdownOption[]>([]);

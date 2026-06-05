@@ -122,6 +122,11 @@ export class AuthService {
     return hasFeature(group, feature);
   }
 
+  /** Same as route guard — use for save/edit/delete on a page the user can open. */
+  canWriteOnPage(feature: AppFeature): boolean {
+    return this.hasFeature(feature);
+  }
+
   usesSelfOnlyDashboard(): boolean {
     const group = this.getPermissionGroup();
     return group ? usesSelfOnlyDashboard(group) : false;

@@ -27,7 +27,7 @@ export class MasterFoodPageComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
 
-  readonly canManage = computed(() => this.auth.canAccessTeamManagement());
+  readonly canManage = computed(() => this.auth.canWriteOnPage('master_data'));
   readonly foods = signal<MstFood[]>([]);
   readonly categories = signal<MstFoodCategory[]>([]);
   readonly selectedCategoryId = signal<number | null>(null);

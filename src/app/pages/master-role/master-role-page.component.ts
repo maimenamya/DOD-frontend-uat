@@ -42,7 +42,7 @@ export class MasterRolePageComponent implements OnInit {
   readonly categoryDropdownOptions = CATEGORY_DROPDOWN_OPTIONS;
   readonly roleDisplayNameTh = roleDisplayNameTh;
 
-  readonly canManage = computed(() => this.auth.canManageRoles());
+  readonly canManage = computed(() => this.auth.canWriteOnPage('manage_roles'));
 
   readonly permissionGroupDropdownOptions = computed<DropdownOption[]>(() => {
     const options = PERMISSION_GROUPS.map((g) => ({

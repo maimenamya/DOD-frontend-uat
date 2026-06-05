@@ -42,7 +42,7 @@ export class EmployeeManagementPageComponent implements OnInit {
   private readonly confirmDialog = inject(ConfirmDialogService);
 
   readonly user = this.auth.getUser();
-  readonly canManage = computed(() => this.auth.canAccessTeamManagement());
+  readonly canManage = computed(() => this.auth.canWriteOnPage('manage_employees'));
 
   readonly roles = signal<MstRole[]>([]);
   readonly allEmployees = signal<MstEmployee[]>([]);

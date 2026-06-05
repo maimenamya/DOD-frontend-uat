@@ -54,7 +54,7 @@ export class EmployeeTeamPageComponent implements OnInit {
     if (this.config.team === 'managers') {
       return this.auth.isOwner();
     }
-    return this.auth.canAccessTeamManagement();
+    return this.auth.canWriteOnPage('manage_employees');
   });
 
   readonly roleDropdownOptions = computed<DropdownOption[]>(() => {

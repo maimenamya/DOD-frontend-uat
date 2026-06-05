@@ -36,7 +36,7 @@ export class MasterRoomPageComponent implements OnInit {
 
   readonly pricingTypeOptions = PRICING_TYPE_OPTIONS;
 
-  readonly canManage = computed(() => this.auth.canAccessTeamManagement());
+  readonly canManage = computed(() => this.auth.canWriteOnPage('master_data'));
   readonly rooms = signal<Room[]>([]);
   readonly loading = signal(true);
   readonly submitting = signal(false);

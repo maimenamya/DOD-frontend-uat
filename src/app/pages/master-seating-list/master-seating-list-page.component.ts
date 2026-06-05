@@ -26,7 +26,7 @@ export class MasterSeatingListPageComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
 
-  readonly canManage = computed(() => this.auth.canAccessTeamManagement());
+  readonly canManage = computed(() => this.auth.canWriteOnPage('master_data'));
   readonly seatings = signal<MstSeating[]>([]);
   readonly seatingTypes = signal<MstSeatingType[]>([]);
   readonly selectedSeatingTypeId = signal<number | null>(null);
