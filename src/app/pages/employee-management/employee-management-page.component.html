@@ -5,7 +5,7 @@
     </div>
     @if (canManage() && !loading() && selectedRole() && selectedRole()!.name !== 'OWNER') {
       <button type="button" (click)="openCreateForm()" class="app-btn-primary">
-        + เพิ่มพนักงาน
+        เพิ่มพนักงาน
       </button>
     }
   </div>

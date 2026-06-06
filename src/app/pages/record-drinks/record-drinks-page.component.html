@@ -98,7 +98,7 @@
               [class.record-drinks-lines-scroll--multi]="rows.length >= 2"
             >
               @if (rows.length === 0) {
-                <p class="record-drinks-empty">ยังไม่มีรายการดื่ม — กด + เพื่อเพิ่ม (ถ้ามี)</p>
+                <p class="record-drinks-empty">ยังไม่มีรายการดื่ม — กดเพิ่มเพื่อเพิ่มรายการ (ถ้ามี)</p>
               }
               <div class="record-drinks-rows" formArrayName="rows">
                 @for (row of rows.controls; track row; let i = $index) {

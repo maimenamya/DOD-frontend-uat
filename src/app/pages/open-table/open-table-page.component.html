@@ -157,7 +157,11 @@
               <span class="sr-only">{{ statusText(seat.status) }}</span>
             </h3>
             <p class="text-sm text-text-secondary">
-              เซลล์ผู้ดูแล: {{ sessionDetail()?.saleName ?? seat.saleName ?? '—' }}
+              เซลล์ผู้ดูแล:
+              {{ sessionDetail()?.saleName ?? seat.saleName ?? '—' }}
+              @if (sessionDetail()?.operatorSaleName) {
+                <span class="text-text-muted">(เปิดโดย {{ sessionDetail()!.operatorSaleName }})</span>
+              }
             </p>
             @if (
               !seatAwaitingClear() &&
@@ -194,6 +198,18 @@
                 placeholder="เลือกเซลล์"
               />
             </div>
+            <label class="app-toggle">
+              <input
+                type="checkbox"
+                class="app-toggle-input"
+                [ngModel]="checkInCreditSaleToShop()"
+                (ngModelChange)="checkInCreditSaleToShop.set($event)"
+              />
+              <span class="app-toggle-track" aria-hidden="true"></span>
+              <span class="app-toggle-text text-sm">
+                ยอดเข้าร้าน (ไม่นับยอดเซลล์ที่เลือก)
+              </span>
+            </label>
             <button
               type="button"
               class="app-btn-primary w-full"

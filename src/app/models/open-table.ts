@@ -155,6 +155,9 @@ export type OpenTableSessionDetail = {
   seatingTypeCode?: string | null;
   seatingTypeRateType?: SeatingRateType | null;
   saleName: string;
+  /** When creditSaleToShop: nickname of sale who opened the table. */
+  operatorSaleName?: string | null;
+  creditSaleToShop?: boolean;
   items: SessionOrderItem[];
   roomCharges?: SessionRoomCharge[];
   staffDrinks: SessionStaffDrink[];
@@ -166,6 +169,8 @@ export type CheckInPayload = {
   shopId: number;
   seatingId: number;
   salesId: number;
+  /** Bill credit goes to shop, not the selected sale employee. */
+  creditSaleToShop?: boolean;
 };
 
 export type SessionOrderItemType =

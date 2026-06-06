@@ -10,7 +10,7 @@
         [disabled]="loading() || acting()"
         (click)="openAssignModal()"
       >
-        + ลงแท็ก
+        ลงแท็ก
       </button>
     }
   </div>
@@ -99,7 +99,7 @@
       <button type="button" class="app-btn-secondary" (click)="loadDashboard()">โหลดใหม่</button>
     </div>
   } @else if (rows().length === 0) {
-    <p class="app-empty-state">ยังไม่มี PR ที่ลงแท็กอยู่ — กด «+ ลงแท็ก» เพื่อเริ่ม</p>
+    <p class="app-empty-state">ยังไม่มี PR ที่ลงแท็กอยู่ — กด «ลงแท็ก» เพื่อเริ่ม</p>
   } @else {
     <section class="app-card app-card-flush">
       <!-- มือถือ: การ์ดต่อคน (master อื่นมีคอลัมน์น้อยกว่า — หน้านี้มีปุ่ม 4 อย่าง) -->

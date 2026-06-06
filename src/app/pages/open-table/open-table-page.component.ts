@@ -155,6 +155,7 @@ export class OpenTablePageComponent implements OnInit {
   readonly seats = signal<SeatTile[]>([]);
   readonly saleEmployees = signal<MstEmployee[]>([]);
   readonly checkInSalesId = signal<number | null>(null);
+  readonly checkInCreditSaleToShop = signal(false);
   private readonly openTableOtherChargesRaw = signal<MstOtherCharge[]>([]);
   /** Standalone toggles + one id per choice group. */
   private readonly foodCategoriesRaw = signal<MstFoodCategory[]>([]);
@@ -1326,6 +1327,7 @@ export class OpenTablePageComponent implements OnInit {
       this.sessionDetailLoading.set(false);
       const defaultSale = this.saleEmployees()[0]?.id ?? null;
       this.checkInSalesId.set(defaultSale);
+      this.checkInCreditSaleToShop.set(false);
     }
   }
 
@@ -1420,9 +1422,13 @@ export class OpenTablePageComponent implements OnInit {
 
     const saleName =
       this.saleEmployees().find((e) => e.id === salesId)?.nickname ?? '—';
+    const creditToShop = this.checkInCreditSaleToShop();
+    const saleLine = creditToShop
+      ? `ยอดเข้าร้าน (เปิดโดยเซลล์ ${saleName})`
+      : `เซลล์ ${saleName}`;
     const ok = await this.confirmDialog.confirm({
       title: 'เปิดโต๊ะ',
-      message: `เปิด ${seat.zoneLabel} · ${seat.code} เซลล์ ${saleName} ใช่หรือไม่?`,
+      message: `เปิด ${seat.zoneLabel} · ${seat.code} · ${saleLine} ใช่หรือไม่?`,
       confirmLabel: 'เปิดโต๊ะ',
     });
     if (!ok) return;
@@ -1432,6 +1438,7 @@ export class OpenTablePageComponent implements OnInit {
         shopId: this.shopId,
         salesId,
         seatingId: seat.seatId,
+        creditSaleToShop: creditToShop || undefined,
       }),
       'เปิดโต๊ะสำเร็จ',
       (session) => {
