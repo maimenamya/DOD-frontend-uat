@@ -18,7 +18,7 @@ export const MANAGEMENT_TABLE_ROLES: readonly EmployeeRole[] = ['ADMIN', 'MANAGE
 
 export interface MstRole {
   id: number;
-  shopId?: number;
+  organizationId?: number;
   name: string;
   permissionGroup: PermissionGroup;
   displayNameTh?: string | null;

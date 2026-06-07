@@ -23,8 +23,6 @@ export type SidebarIconName =
   standalone: true,
   host: {
     class: 'app-sidebar-icon',
-    '[class.app-sidebar-icon--food]': 'name() === "food"',
-    '[class.app-sidebar-icon--open-table]': 'name() === "open-table"',
   },
   template: `
     <svg

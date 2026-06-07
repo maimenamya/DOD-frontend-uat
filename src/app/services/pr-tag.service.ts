@@ -66,9 +66,16 @@ export class PrTagService {
     );
   }
 
-  forceCut(enrollmentId: number): Observable<PrTagOperationsRow> {
+  forceCut(enrollmentId: number, endNote?: string): Observable<PrTagOperationsRow> {
     return this.http.post<PrTagOperationsRow>(
       this.api.resource('pr-tags', 'enrollments', String(enrollmentId), 'force-cut'),
+      { endNote: endNote?.trim() || null },
+    );
+  }
+
+  completeTag(enrollmentId: number): Observable<PrTagOperationsRow> {
+    return this.http.post<PrTagOperationsRow>(
+      this.api.resource('pr-tags', 'enrollments', String(enrollmentId), 'complete'),
       {},
     );
   }

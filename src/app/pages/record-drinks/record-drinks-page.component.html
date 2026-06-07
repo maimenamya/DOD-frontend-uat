@@ -62,12 +62,7 @@
 
             <div class="record-drinks-bill-field">
               <label class="record-drinks-label" for="businessDate">วันที่ทำรายการ</label>
-              <input
-                id="businessDate"
-                type="date"
-                class="app-input"
-                formControlName="businessDate"
-              />
+              <app-shop-date-input inputId="businessDate" formControlName="businessDate" />
               @if (form.controls.businessDate.touched && form.controls.businessDate.invalid) {
                 <p class="record-drinks-field-error">กรุณาเลือกวันที่</p>
               }

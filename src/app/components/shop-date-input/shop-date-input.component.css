@@ -1,0 +1,16 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.app-shop-date-field {
+  width: 100%;
+  min-width: 0;
+}
+
+.app-shop-date-field ::ng-deep input.app-shop-date-input {
+  cursor: pointer;
+  width: 100%;
+  min-width: 0;
+}

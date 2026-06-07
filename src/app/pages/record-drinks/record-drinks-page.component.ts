@@ -15,6 +15,7 @@ import {
   CustomDropdownComponent,
   type DropdownOption,
 } from '../../components/custom-dropdown/custom-dropdown.component';
+import { ShopDateInputComponent } from '../../components/shop-date-input/shop-date-input.component';
 import type { MstEmployee } from '../../models/employee';
 import type { MstRole } from '../../models/role';
 import { AuthService } from '../../services/auth.service';
@@ -26,6 +27,7 @@ import { hideActionOverlay, showActionOverlay } from '../../utils/action-overlay
 import { roleOptionLabel } from '../../utils/role-display.util';
 import {
   employeeDropdownLabel,
+  employeeMatchesBranchRole,
   sortEmployeesByCode,
 } from '../../utils/employee-option.util';
 import { shopCalendarTodayInput } from '../open-table/open-table-ledger.util';
@@ -63,7 +65,7 @@ function rolesFromEmployees(employees: MstEmployee[]): MstRole[] {
 
 @Component({
   selector: 'app-record-drinks-page',
-  imports: [DecimalPipe, ReactiveFormsModule, CustomDropdownComponent],
+  imports: [DecimalPipe, ReactiveFormsModule, CustomDropdownComponent, ShopDateInputComponent],
   templateUrl: './record-drinks-page.component.html',
 })
 export class RecordDrinksPageComponent implements OnInit {
@@ -180,8 +182,9 @@ export class RecordDrinksPageComponent implements OnInit {
       return [];
     }
 
+    const branchRole = this.allRoles().find((role) => role.id === roleId);
     return sortEmployeesByCode(
-      this.staff().filter((employee) => employee.roleId === roleId),
+      this.staff().filter((employee) => employeeMatchesBranchRole(employee, branchRole)),
     ).map((employee) => ({
       value: employee.employeeId,
       label: employeeDropdownLabel(employee),

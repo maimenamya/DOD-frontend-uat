@@ -58,6 +58,7 @@ import { closeOpenShopFlatpickrCalendars } from '../../utils/flatpickr-shop.util
 import { compareRolesByThaiLabel, roleOptionLabel } from '../../utils/role-display.util';
 import {
   employeeDropdownLabel,
+  employeeMatchesBranchRole,
   sortEmployeesByCode,
 } from '../../utils/employee-option.util';
 import {
@@ -392,7 +393,10 @@ export class OpenTablePageComponent implements OnInit {
   readonly cocktailHostEmployeeOptions = computed<DropdownOption[]>(() => {
     const roleId = this.orderCocktailStaffRoleId();
     if (roleId == null) return [];
-    return sortEmployeesByCode(this.staffEmployees().filter((e) => e.roleId === roleId)).map(
+    const role = this.masterRolesForDropdown().find((r) => r.id === roleId);
+    return sortEmployeesByCode(
+      this.staffEmployees().filter((e) => employeeMatchesBranchRole(e, role)),
+    ).map(
       (e) => ({
         value: e.id,
         label: employeeDropdownLabel(e),
@@ -441,7 +445,7 @@ export class OpenTablePageComponent implements OnInit {
     const role = this.staffLedgerRoles().find((r) => r.id === roleId);
 
     const filtered = this.staffEmployees().filter((e) => {
-      if (e.roleId !== roleId) return false;
+      if (!employeeMatchesBranchRole(e, role)) return false;
       return this.isStaffLedgerEmployeeSelectable(e, role);
     });
     return sortEmployeesByCode(filtered);

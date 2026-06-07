@@ -40,7 +40,9 @@ export class PrTagOperationsPageComponent implements OnInit {
   readonly acting = signal(false);
   readonly showAssignModal = signal(false);
   readonly showChangeTagModal = signal(false);
+  readonly showForceCutModal = signal(false);
   readonly changeTagTarget = signal<PrTagOperationsRow | null>(null);
+  readonly forceCutTarget = signal<PrTagOperationsRow | null>(null);
 
   readonly assignForm = this.fb.group({
     employeeId: ['', Validators.required],
@@ -49,6 +51,10 @@ export class PrTagOperationsPageComponent implements OnInit {
 
   readonly changeTagForm = this.fb.group({
     prTagId: ['', Validators.required],
+  });
+
+  readonly forceCutForm = this.fb.group({
+    endNote: ['', Validators.maxLength(500)],
   });
 
   readonly employeeOptions = computed<DropdownOption[]>(() =>
@@ -172,19 +178,8 @@ export class PrTagOperationsPageComponent implements OnInit {
       next: (updated) => {
         this.acting.set(false);
         this.closeChangeTagModal();
-        const e = updated.enrollment;
-        if (e?.status === 'COMPLETED') {
-          this.toast.showSuccess('เปลี่ยนแท็กแล้ว — ครบวันทำงานตามแพ็กเกจใหม่');
-          this.loadDashboard();
-          return;
-        }
-        if (e?.status === 'FAILED') {
-          this.toast.showError('เปลี่ยนแท็กแล้ว — วันหยุดเกินโควต้าแพ็กเกจใหม่ (แท็กจบไม่ผ่าน)');
-          this.loadDashboard();
-          return;
-        }
         this.toast.showSuccess('เปลี่ยนแพ็กเกจแท็กแล้ว (คงวันทำงาน วันหยุด และดื่มสะสม)');
-        this.patchRow(updated);
+        this.loadDashboard();
       },
       error: (err: { error?: { error?: string } }) => {
         this.acting.set(false);
@@ -225,11 +220,6 @@ export class PrTagOperationsPageComponent implements OnInit {
       next: (updated) => {
         this.acting.set(false);
         this.toast.showSuccess('บันทึกวันทำงาน (+1 วัน)');
-        if (updated.enrollment?.status === 'COMPLETED') {
-          this.toast.showSuccess('ครบวันทำงาน — ปิดแท็กสำเร็จ');
-          this.loadDashboard();
-          return;
-        }
         this.patchRow(updated);
       },
       error: (err: { error?: { error?: string } }) => {
@@ -247,10 +237,6 @@ export class PrTagOperationsPageComponent implements OnInit {
       next: (updated) => {
         this.acting.set(false);
         this.toast.showSuccess('บันทึกวันหยุดแล้ว');
-        if (updated.enrollment?.status !== 'ACTIVE') {
-          this.loadDashboard();
-          return;
-        }
         this.patchRow(updated);
       },
       error: (err: { error?: { error?: string } }) => {
@@ -260,19 +246,52 @@ export class PrTagOperationsPageComponent implements OnInit {
     });
   }
 
-  async forceCut(row: PrTagOperationsRow): Promise<void> {
+  async completeTag(row: PrTagOperationsRow): Promise<void> {
     const id = row.enrollment?.id;
-    if (!id || !row.enrollment?.canForceCut) return;
+    if (!id || !row.enrollment?.canCompleteTag) return;
     const ok = await this.confirmDialog.confirm({
-      title: 'ตัดแท็กทันที',
-      message: `ยืนยันตัดแท็กของ ${row.nickname} และปรับเป็น Freelance?`,
-      confirmLabel: 'ตัดแท็ก',
+      title: 'จบแท็ก',
+      message: `ยืนยันจบแท็กของ ${row.nickname} (ครบวันทำงานและยอดดื่มแล้ว)?`,
+      confirmLabel: 'จบแท็ก',
     });
     if (!ok || this.acting()) return;
     this.acting.set(true);
-    this.prTagService.forceCut(id).subscribe({
+    this.prTagService.completeTag(id).subscribe({
       next: () => {
         this.acting.set(false);
+        this.toast.showSuccess('จบแท็กสำเร็จ');
+        this.loadDashboard();
+      },
+      error: (err: { error?: { error?: string } }) => {
+        this.acting.set(false);
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถจบแท็กได้');
+      },
+    });
+  }
+
+  openForceCutModal(row: PrTagOperationsRow): void {
+    if (!row.enrollment?.canForceCut) return;
+    this.forceCutTarget.set(row);
+    this.forceCutForm.reset({ endNote: '' });
+    this.showForceCutModal.set(true);
+  }
+
+  closeForceCutModal(): void {
+    this.showForceCutModal.set(false);
+    this.forceCutTarget.set(null);
+  }
+
+  submitForceCut(): void {
+    const row = this.forceCutTarget();
+    const id = row?.enrollment?.id;
+    if (!id || this.acting()) return;
+
+    const endNote = this.forceCutForm.getRawValue().endNote.trim();
+    this.acting.set(true);
+    this.prTagService.forceCut(id, endNote || undefined).subscribe({
+      next: () => {
+        this.acting.set(false);
+        this.closeForceCutModal();
         this.toast.showSuccess('ตัดแท็กเรียบร้อย');
         this.loadDashboard();
       },

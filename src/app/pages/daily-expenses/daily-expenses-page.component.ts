@@ -3,6 +3,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { ShopDateInputComponent } from '../../components/shop-date-input/shop-date-input.component';
 import type { TxnDailyExpense } from '../../models/daily-expense';
 import { DailyExpenseService } from '../../services/daily-expense.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
@@ -16,7 +17,7 @@ function shopCalendarMonthStartInput(): string {
 
 @Component({
   selector: 'app-daily-expenses-page',
-  imports: [DecimalPipe, FormsModule, ReactiveFormsModule, AppModalComponent],
+  imports: [DecimalPipe, FormsModule, ReactiveFormsModule, AppModalComponent, ShopDateInputComponent],
   templateUrl: './daily-expenses-page.component.html',
 })
 export class DailyExpensesPageComponent implements OnInit {

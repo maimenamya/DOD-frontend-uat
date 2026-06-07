@@ -42,6 +42,7 @@ export interface PrTagEnrollmentView {
   canCheckIn: boolean;
   canRecordOffDay: boolean;
   canForceCut: boolean;
+  canCompleteTag: boolean;
   canChangeTag: boolean;
 }
 

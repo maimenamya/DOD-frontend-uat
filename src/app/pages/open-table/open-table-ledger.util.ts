@@ -72,6 +72,26 @@ export function shopCalendarTodayInput(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: SHOP_TIMEZONE }).format(new Date());
 }
 
+/** `YYYY-MM-DD` shop calendar date string (date-only inputs). */
+export function isValidShopDateInput(value: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value.trim());
+}
+
+/** Display shop date as `DD/MM/BBBB` (พ.ศ.) for UI labels and pickers. */
+export function formatShopDateLabelBe(value: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+  if (!match) return value.trim();
+  const yearBe = Number(match[1]) + 543;
+  return `${match[3]}/${match[2]}/${yearBe}`;
+}
+
+/** Parse `YYYY-MM-DD` to local Date parts (no timezone shift). */
+export function shopDateInputToLocalDate(value: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+  if (!match) return null;
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+}
+
 /** Current shop wall clock for datetime pickers (Asia/Bangkok). */
 export function currentDatetimeLocalValue(date = new Date()): string {
   const parts = new Intl.DateTimeFormat('en-GB', {

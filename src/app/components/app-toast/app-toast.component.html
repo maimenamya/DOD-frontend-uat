@@ -9,8 +9,34 @@
       [class.app-toast-success]="toast.kind() === 'success'"
       [class.app-toast-error]="toast.kind() === 'error'"
     >
-      <p class="app-toast-text">{{ text }}</p>
-      <button type="button" class="app-toast-close" (click)="dismiss()" aria-label="ปิด">✕</button>
+      <div class="app-toast-content">
+        @if (toast.kind() === 'success') {
+          <span class="app-toast-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M8 12.5l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+        } @else {
+          <span class="app-toast-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9 9l6 6M15 9l-6 6" stroke-linecap="round" />
+            </svg>
+          </span>
+        }
+        <p class="app-toast-text">{{ text }}</p>
+      </div>
+
+      <div class="app-toast-progress" aria-hidden="true">
+        @for (key of [toast.toastKey()]; track key) {
+          <div
+            class="app-toast-progress-fill"
+            [style.animation-duration.ms]="dismissMs"
+            (animationend)="onProgressEnd($event)"
+          ></div>
+        }
+      </div>
     </div>
   </div>
 }

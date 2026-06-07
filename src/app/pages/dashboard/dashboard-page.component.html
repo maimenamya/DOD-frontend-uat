@@ -38,16 +38,14 @@
       </div>
       @if (datePreset() === 'custom') {
         <div class="dashboard-date-custom">
-          <input
-            type="date"
-            class="dashboard-date-input"
+          <app-shop-date-input
+            extraInputClass="dashboard-date-input"
             [ngModel]="customFrom()"
             (ngModelChange)="customFrom.set($event)"
           />
           <span class="dashboard-date-separator">–</span>
-          <input
-            type="date"
-            class="dashboard-date-input"
+          <app-shop-date-input
+            extraInputClass="dashboard-date-input"
             [ngModel]="customTo()"
             (ngModelChange)="customTo.set($event)"
           />

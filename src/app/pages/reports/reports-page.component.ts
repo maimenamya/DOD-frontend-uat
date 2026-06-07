@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { catchError, finalize, of } from 'rxjs';
 
+import { ShopDateInputComponent } from '../../components/shop-date-input/shop-date-input.component';
 import { AuthService } from '../../services/auth.service';
 import { ReportService } from '../../services/report.service';
 import { ToastService } from '../../services/toast.service';
@@ -12,11 +13,15 @@ import type { ReportPreview, ReportPreviewParams, ReportSection } from '../../mo
 import { shopCalendarTodayInput } from '../open-table/open-table-ledger.util';
 import { blobApiErrorMessage } from '../../utils/excel-download.util';
 
-const SECTION_OPTIONS: { id: ReportSection; label: string }[] = [
+const SECTION_OPTIONS: { id: ReportSection; label: string; hint?: string }[] = [
   { id: 'bills', label: 'ยอดบิล' },
   { id: 'drinks', label: 'บอร์ดเครื่องดื่ม' },
   { id: 'expenses', label: 'รายจ่ายร้าน' },
-  { id: 'sale_breakdown', label: 'ยอดขายตามเซลล์ (เบียร์/เหล้า/โปร/เมม/ดื่มเด็ก)' },
+  {
+    id: 'sale_breakdown',
+    label: 'ยอดขายตามเซลล์',
+    hint: 'เบียร์ / เหล้า / โปร / เมม / ดื่มเด็ก',
+  },
 ];
 
 function shopCalendarMonthStartInput(): string {
@@ -26,7 +31,7 @@ function shopCalendarMonthStartInput(): string {
 
 @Component({
   selector: 'app-reports-page',
-  imports: [DecimalPipe, FormsModule],
+  imports: [DecimalPipe, FormsModule, ShopDateInputComponent],
   templateUrl: './reports-page.component.html',
   styleUrl: './reports-page.component.css',
 })

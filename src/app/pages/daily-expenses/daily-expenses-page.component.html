@@ -13,18 +13,16 @@
     <div class="flex flex-wrap items-end gap-3">
       <label class="flex min-w-[10rem] flex-col gap-1">
         <span class="text-xs text-text-secondary">ตั้งแต่</span>
-        <input
-          type="date"
-          class="app-input dashboard-date-input"
+        <app-shop-date-input
+          extraInputClass="dashboard-date-input"
           [ngModel]="rangeFrom()"
           (ngModelChange)="rangeFrom.set($event)"
         />
       </label>
       <label class="flex min-w-[10rem] flex-col gap-1">
         <span class="text-xs text-text-secondary">ถึง</span>
-        <input
-          type="date"
-          class="app-input dashboard-date-input"
+        <app-shop-date-input
+          extraInputClass="dashboard-date-input"
           [ngModel]="rangeTo()"
           (ngModelChange)="rangeTo.set($event)"
         />
@@ -78,7 +76,7 @@
         </div>
         <div class="app-form-group">
           <label class="app-label" for="expense-date-create">วันที่ (เผื่อลืมลง)</label>
-          <input id="expense-date-create" type="date" formControlName="businessDate" class="app-input" />
+          <app-shop-date-input inputId="expense-date-create" formControlName="businessDate" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
@@ -113,7 +111,7 @@
         </div>
         <div class="app-form-group">
           <label class="app-label" for="expense-date-edit">วันที่</label>
-          <input id="expense-date-edit" type="date" formControlName="businessDate" class="app-input" />
+          <app-shop-date-input inputId="expense-date-edit" formControlName="businessDate" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>

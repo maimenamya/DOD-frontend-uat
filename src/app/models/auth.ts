@@ -4,10 +4,22 @@ import type { RoleCategory } from './role';
 export interface LoginRequest {
   username: string;
   password: string;
+  shopId?: number;
 }
 
 export interface CompleteRoleSetupRequest {
   roleId: number;
+}
+
+export interface AuthBranchOption {
+  shopId: number;
+  branchName: string;
+  branchCode: string;
+  roleId: number;
+  roleName: string;
+  roleDisplayNameTh: string;
+  permissionGroup: PermissionGroup;
+  isDefault: boolean;
 }
 
 export interface AuthUser {
@@ -17,6 +29,7 @@ export interface AuthUser {
   email: string | null;
   lineUserId: string | null;
   nickname: string;
+  organizationId: number;
   shopId: number;
   pendingRoleSetup: boolean;
   roleId: number | null;
@@ -26,18 +39,27 @@ export interface AuthUser {
   roleDisplayNameTh: string;
   roleCategory: RoleCategory;
   permissionGroup: PermissionGroup;
-  shop: { id: number; name: string; abbreviation: string };
+  shop: {
+    id: number;
+    name: string;
+    abbreviation: string;
+    branchCode: string;
+    organizationId: number;
+  };
 }
 
 export interface AuthResponse {
-  token: string;
-  employee: {
+  needsBranchSelection?: boolean;
+  branches?: AuthBranchOption[];
+  token?: string;
+  employee?: {
     id: number;
     employeeId: string;
     username: string;
     email: string | null;
     lineUserId: string | null;
     nickname: string;
+    organizationId: number;
     shopId: number;
     pendingRoleSetup: boolean;
     roleId: number | null;
@@ -48,13 +70,21 @@ export interface AuthResponse {
       category: RoleCategory;
       permissionGroup: PermissionGroup;
     } | null;
-    shop: { id: number; name: string; abbreviation: string };
+    shop: {
+      id: number;
+      name: string;
+      abbreviation: string;
+      branchCode: string;
+      organizationId: number;
+    };
   };
 }
 
 export interface AuthSession {
   token: string;
   user: AuthUser;
+  /** Cached for branch switch UI when user has multiple branches. */
+  availableBranches?: AuthBranchOption[];
 }
 
 export interface UpdateProfileRequest {

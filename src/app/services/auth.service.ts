@@ -1,8 +1,9 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { map, Observable, tap } from 'rxjs';
 
 import type {
+  AuthBranchOption,
   AuthResponse,
   AuthSession,
   AuthUser,
@@ -39,13 +40,34 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.http
       .post<AuthResponse>(this.api.resource('auth', 'login'), credentials)
-      .pipe(tap((response) => this.persistSession(response)));
+      .pipe(tap((response) => this.persistSessionIfReady(response)));
+  }
+
+  switchBranch(shopId: number): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(this.api.resource('auth', 'switch-branch'), { shopId })
+      .pipe(tap((response) => this.persistSessionIfReady(response)));
+  }
+
+  fetchAccessibleBranches(): Observable<AuthBranchOption[]> {
+    return this.http
+      .get<{ branches: AuthBranchOption[] }>(
+        this.api.resource('organization', 'branches'),
+      )
+      .pipe(
+        map((response) => response.branches ?? []),
+        tap((branches) => this.cacheAvailableBranches(branches)),
+      );
+  }
+
+  getAvailableBranches(): AuthBranchOption[] {
+    return this.sessionSignal()?.availableBranches ?? [];
   }
 
   completeRoleSetup(payload: CompleteRoleSetupRequest): Observable<AuthResponse> {
     return this.http
       .post<AuthResponse>(this.api.resource('auth', 'complete-role-setup'), payload)
-      .pipe(tap((response) => this.persistSession(response)));
+      .pipe(tap((response) => this.persistSessionIfReady(response)));
   }
 
   needsRoleSetup(): boolean {
@@ -55,7 +77,7 @@ export class AuthService {
   updateProfile(payload: UpdateProfileRequest): Observable<AuthResponse> {
     return this.http
       .put<AuthResponse>(this.api.resource('auth', 'me'), payload)
-      .pipe(tap((response) => this.persistSession(response)));
+      .pipe(tap((response) => this.persistSessionIfReady(response)));
   }
 
   logout(): void {
@@ -94,6 +116,10 @@ export class AuthService {
   getShopDisplayName(): string {
     const label = this.getUser()?.shop?.name?.trim();
     return label || '—';
+  }
+
+  getOrganizationId(): number | null {
+    return this.getUser()?.organizationId ?? null;
   }
 
   getShopAbbreviation(): string {
@@ -198,10 +224,25 @@ export class AuthService {
     return targetRoleName === 'ADMIN' || targetRoleName === 'MANAGER';
   }
 
+  private persistSessionIfReady(response: AuthResponse): void {
+    if (response.needsBranchSelection || !response.token || !response.employee) {
+      return;
+    }
+    this.persistSession(response);
+  }
+
   private persistSession(response: AuthResponse): void {
     const session = this.toSession(response);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
     this.sessionSignal.set(session);
+  }
+
+  private cacheAvailableBranches(branches: AuthBranchOption[]): void {
+    const current = this.sessionSignal();
+    if (!current) return;
+    const next: AuthSession = { ...current, availableBranches: branches };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    this.sessionSignal.set(next);
   }
 
   updateSessionUser(user: AuthUser): void {
@@ -227,6 +268,7 @@ export class AuthService {
       const session: AuthSession = {
         token: parsed.token,
         user: this.normalizeUser(parsed.user),
+        availableBranches: parsed.availableBranches,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
       return session;
@@ -238,6 +280,9 @@ export class AuthService {
 
   private toSession(response: AuthResponse): AuthSession {
     const { employee, token } = response;
+    if (!employee || !token) {
+      throw new Error('AUTH_RESPONSE_INCOMPLETE');
+    }
     const pendingRoleSetup = employee.pendingRoleSetup;
     const user = pendingRoleSetup
       ? this.normalizeUser({
@@ -247,6 +292,7 @@ export class AuthService {
           email: employee.email,
           lineUserId: employee.lineUserId ?? null,
           nickname: employee.nickname,
+          organizationId: employee.organizationId,
           shopId: employee.shopId,
           pendingRoleSetup: true,
           roleId: null,
@@ -254,11 +300,7 @@ export class AuthService {
           roleDisplayNameTh: 'กำลังตั้งค่าตำแหน่ง',
           roleCategory: 'STAFF',
           permissionGroup: 'OWNER',
-          shop: {
-            id: employee.shop.id,
-            name: employee.shop.name,
-            abbreviation: employee.shop.abbreviation,
-          },
+          shop: employee.shop,
         })
       : this.normalizeUser({
           id: employee.id,
@@ -267,6 +309,7 @@ export class AuthService {
           email: employee.email,
           lineUserId: employee.lineUserId ?? null,
           nickname: employee.nickname,
+          organizationId: employee.organizationId,
           shopId: employee.shopId,
           pendingRoleSetup: false,
           roleId: employee.roleId,
@@ -277,11 +320,7 @@ export class AuthService {
           ),
           roleCategory: employee.role!.category,
           permissionGroup: employee.role!.permissionGroup,
-          shop: {
-            id: employee.shop.id,
-            name: employee.shop.name,
-            abbreviation: employee.shop.abbreviation,
-          },
+          shop: employee.shop,
         });
     return { token, user };
   }
@@ -291,6 +330,7 @@ export class AuthService {
       user.username?.trim() || user.employeeId?.trim() || '';
     const nickname =
       user.nickname?.trim() || user.name?.trim() || username || '';
+    const organizationId = user.organizationId ?? user.shop?.organizationId ?? 0;
     if (user.pendingRoleSetup) {
       return {
         id: user.id,
@@ -299,6 +339,7 @@ export class AuthService {
         email: user.email ?? null,
         lineUserId: user.lineUserId ?? null,
         nickname,
+        organizationId,
         shopId: user.shopId,
         pendingRoleSetup: true,
         roleId: null,
@@ -306,7 +347,15 @@ export class AuthService {
         roleDisplayNameTh: user.roleDisplayNameTh?.trim() || 'กำลังตั้งค่าตำแหน่ง',
         roleCategory: 'STAFF',
         permissionGroup: 'OWNER',
-        shop: user.shop ?? { id: user.shopId, name: '', abbreviation: '' },
+        shop:
+          user.shop ??
+          ({
+            id: user.shopId,
+            name: '',
+            abbreviation: '',
+            branchCode: 'main',
+            organizationId,
+          } satisfies AuthUser['shop']),
       };
     }
     const role =
@@ -334,6 +383,7 @@ export class AuthService {
       email: user.email ?? null,
       lineUserId: user.lineUserId ?? null,
       nickname,
+      organizationId,
       shopId: user.shopId,
       pendingRoleSetup: false,
       roleId: user.roleId,
@@ -350,8 +400,16 @@ export class AuthService {
                 (user as AuthUser & { shopName?: string }).shopName?.trim() ||
                 '',
               abbreviation: '',
+              branchCode: 'main',
+              organizationId,
             }
-          : { id: 0, name: '', abbreviation: '' }),
+          : {
+              id: 0,
+              name: '',
+              abbreviation: '',
+              branchCode: 'main',
+              organizationId: 0,
+            }),
     };
   }
 

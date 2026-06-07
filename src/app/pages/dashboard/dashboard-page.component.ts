@@ -7,6 +7,7 @@ import {
   CustomDropdownComponent,
   type DropdownOption,
 } from '../../components/custom-dropdown/custom-dropdown.component';
+import { ShopDateInputComponent } from '../../components/shop-date-input/shop-date-input.component';
 import type {
   DashboardBillStatus,
   DashboardPreset,
@@ -21,7 +22,7 @@ import { roleLabelThai } from '../../utils/employee-team.util';
 
 @Component({
   selector: 'app-dashboard-page',
-  imports: [DecimalPipe, FormsModule, CustomDropdownComponent],
+  imports: [DecimalPipe, FormsModule, CustomDropdownComponent, ShopDateInputComponent],
   templateUrl: './dashboard-page.component.html',
 })
 export class DashboardPageComponent implements OnInit {

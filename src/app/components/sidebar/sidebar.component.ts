@@ -1,8 +1,10 @@
-﻿import { Component, computed, inject, input, output, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+﻿import { Component, OnInit, computed, inject, input, output, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { filter } from 'rxjs';
 
 import { AuthService } from '../../services/auth.service';
 import { SystemGuideModalComponent } from '../system-guide/system-guide-modal.component';
+import { DodBrandWordmarkComponent } from './dod-brand-wordmark.component';
 import { SidebarIconComponent, type SidebarIconName } from './sidebar-icon.component';
 
 export interface SidebarNavLink {
@@ -80,17 +82,21 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
 
 @Component({
   selector: 'app-sidebar',
-  imports: [RouterLink, RouterLinkActive, SidebarIconComponent, SystemGuideModalComponent],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    DodBrandWordmarkComponent,
+    SidebarIconComponent,
+    SystemGuideModalComponent,
+  ],
   templateUrl: './sidebar.component.html',
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
   readonly mobileOpen = input(false);
   readonly mobileClose = output<void>();
-
-  readonly shopDisplayName = computed(() => this.auth.getShopDisplayName());
 
   readonly showOpenTable = computed(() => this.auth.hasFeature('open_table'));
   readonly showPrTagOps = computed(() => this.auth.hasFeature('pr_tag_operations'));
@@ -101,6 +107,13 @@ export class SidebarComponent {
   readonly navGroups = MANAGEMENT_NAV_GROUPS;
   readonly activeSubmenu = signal<string | null>(this.getGroupIdByCurrentRoute());
   readonly guideOpen = signal(false);
+
+  ngOnInit(): void {
+    this.syncSubmenuToRoute();
+    this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe(() => this.syncSubmenuToRoute());
+  }
 
   openGuide(): void {
     this.guideOpen.set(true);
@@ -118,6 +131,18 @@ export class SidebarComponent {
     return this.activeSubmenu() === id;
   }
 
+  isGroupOpen(id: string): boolean {
+    if (this.isGroupExpanded(id)) {
+      return true;
+    }
+    const group = this.navGroups.find((g) => g.id === id);
+    return group ? this.isGroupActive(group) : false;
+  }
+
+  isGroupActive(group: SidebarNavGroup): boolean {
+    return group.children.some((child) => this.routeMatches(child.path));
+  }
+
   collapseAllSubmenus(): void {
     this.activeSubmenu.set(null);
   }
@@ -127,13 +152,24 @@ export class SidebarComponent {
     void this.router.navigate(['/login']);
   }
 
+  private syncSubmenuToRoute(): void {
+    const groupId = this.getGroupIdByCurrentRoute();
+    if (groupId) {
+      this.activeSubmenu.set(groupId);
+    }
+  }
+
+  private routeMatches(path: string): boolean {
+    const url = this.router.url.split('?')[0].split('#')[0];
+    return url === path || url.startsWith(`${path}/`);
+  }
+
   private getGroupIdByCurrentRoute(): string | null {
-    const url = this.router.url;
-    if (url.startsWith('/dashboard/daily-expenses')) {
+    if (this.routeMatches('/dashboard/daily-expenses')) {
       return null;
     }
     const group = MANAGEMENT_NAV_GROUPS.find((g) =>
-      g.children.some((c) => url.startsWith(c.path)),
+      g.children.some((c) => this.routeMatches(c.path)),
     );
     return group?.id ?? null;
   }

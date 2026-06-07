@@ -15,6 +15,54 @@
     }
   </div>
 
+  @if (showForceCutModal() && canOperateTags() && forceCutTarget()) {
+    <app-modal (dismiss)="closeForceCutModal()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">ตัดแท็ก — {{ forceCutTarget()!.nickname }}</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeForceCutModal()">✕</button>
+      </div>
+      @if (forceCutTarget()?.enrollment; as e) {
+        <p class="app-field-hint mb-3">
+          @if (e.offDaysCount > e.allowedOffDays) {
+            วันหยุดเกินโควต้า — ระบบบันทึกเป็นแท็กไม่ผ่าน
+          } @else {
+            ตัดแท็กกลางคัน — PR จะเป็น Freelance
+          }
+        </p>
+        <div class="mb-4 rounded-input border border-theme-border bg-surface px-3 py-2 text-sm">
+          <p class="text-text-secondary">
+            แพ็กเกจ: <span class="font-semibold text-text-primary">{{ e.tagName }}</span>
+          </p>
+          <p class="mt-1 text-text-secondary">
+            วันทำงาน {{ e.workingDaysCount }}/{{ e.requiredWorkingDays }} · วันหยุด
+            {{ e.offDaysCount }}/{{ e.allowedOffDays }} · ดื่ม {{ e.accumulatedDrinks }}/{{
+              e.targetDrinks
+            }}
+          </p>
+        </div>
+      }
+      <form class="app-form-stack" [formGroup]="forceCutForm" (ngSubmit)="submitForceCut()">
+        <div class="app-form-group">
+          <label class="app-label" for="force-cut-end-note">หมายเหตุ</label>
+          <textarea
+            id="force-cut-end-note"
+            class="app-input min-h-[5rem] resize-y"
+            formControlName="endNote"
+            rows="3"
+            maxlength="500"
+            placeholder="เช่น เหตุผลที่ตัดแท็ก (ไม่บังคับ)"
+          ></textarea>
+        </div>
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeForceCutModal()">ยกเลิก</button>
+          <button type="submit" class="app-btn-danger" [disabled]="acting()">
+            {{ acting() ? 'กำลังบันทึก...' : 'ยืนยันตัดแท็ก' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+
   @if (showChangeTagModal() && canOperateTags() && changeTagTarget()) {
     <app-modal (dismiss)="closeChangeTagModal()">
       <div class="app-modal-header">
@@ -154,14 +202,25 @@
                   >
                     + วันหยุด
                   </button>
-                  <button
-                    type="button"
-                    class="app-btn-danger-sm"
-                    [disabled]="acting() || !e.canForceCut"
-                    (click)="forceCut(row)"
-                  >
-                    ตัดแท็ก
-                  </button>
+                  @if (e.canCompleteTag) {
+                    <button
+                      type="button"
+                      class="app-btn-primary-sm"
+                      [disabled]="acting()"
+                      (click)="completeTag(row)"
+                    >
+                      จบแท็ก
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="app-btn-danger-sm"
+                      [disabled]="acting() || !e.canForceCut"
+                      (click)="openForceCutModal(row)"
+                    >
+                      ตัดแท็ก
+                    </button>
+                  }
                   <button
                     type="button"
                     class="app-btn-secondary-sm"
@@ -212,7 +271,7 @@
                   @if (canOperateTags()) {
                     <th class="app-cell-center">+ วันทำงาน</th>
                     <th class="app-cell-center">+ วันหยุด</th>
-                    <th class="app-cell-center">ตัดแท็ก</th>
+                    <th class="app-cell-center">ตัด/จบแท็ก</th>
                     <th class="app-cell-center">เปลี่ยนแท็ก</th>
                   }
                 </tr>
@@ -283,14 +342,25 @@
                           </button>
                         </td>
                         <td class="app-cell-center">
-                          <button
-                            type="button"
-                            class="app-btn-danger-sm"
-                            [disabled]="acting() || !e.canForceCut"
-                            (click)="forceCut(row)"
-                          >
-                            ตัดแท็ก
-                          </button>
+                          @if (e.canCompleteTag) {
+                            <button
+                              type="button"
+                              class="app-btn-primary-sm"
+                              [disabled]="acting()"
+                              (click)="completeTag(row)"
+                            >
+                              จบแท็ก
+                            </button>
+                          } @else {
+                            <button
+                              type="button"
+                              class="app-btn-danger-sm"
+                              [disabled]="acting() || !e.canForceCut"
+                              (click)="openForceCutModal(row)"
+                            >
+                              ตัดแท็ก
+                            </button>
+                          }
                         </td>
                         <td class="app-cell-center">
                           <button

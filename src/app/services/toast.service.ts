@@ -6,12 +6,12 @@ export type ToastKind = 'success' | 'error';
   providedIn: 'root',
 })
 export class ToastService {
+  static readonly AUTO_DISMISS_MS = 3000;
+
   readonly message = signal<string | null>(null);
   readonly kind = signal<ToastKind>('success');
-
-  private hideTimer: ReturnType<typeof setTimeout> | null = null;
-
-  private static readonly AUTO_DISMISS_MS = 5000;
+  /** Bumps on each show so progress bar animation restarts. */
+  readonly toastKey = signal(0);
 
   showSuccess(message: string): void {
     this.show(message, 'success');
@@ -22,22 +22,12 @@ export class ToastService {
   }
 
   dismiss(): void {
-    if (this.hideTimer) {
-      clearTimeout(this.hideTimer);
-      this.hideTimer = null;
-    }
     this.message.set(null);
   }
 
   private show(message: string, kind: ToastKind): void {
-    if (this.hideTimer) {
-      clearTimeout(this.hideTimer);
-    }
     this.kind.set(kind);
     this.message.set(message);
-    this.hideTimer = setTimeout(() => {
-      this.message.set(null);
-      this.hideTimer = null;
-    }, ToastService.AUTO_DISMISS_MS);
+    this.toastKey.update((k) => k + 1);
   }
 }
