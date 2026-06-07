@@ -17,6 +17,7 @@ import {
   isValidShopDatetimeLocal,
   splitShopDatetimeLocal,
 } from '../../pages/open-table/open-table-ledger.util';
+import { syncShopFlatpickrOnOpen } from '../../utils/flatpickr-shop.util';
 
 /** Date + time field — opens a popup calendar on click (appendTo body for modals). */
 @Component({
@@ -100,6 +101,7 @@ export class ShopDatetimeInputComponent
         this.clickTarget = instance.altInput ?? instance.input;
         this.clickTarget.classList.add('cursor-pointer');
         this.clickTarget.addEventListener('click', this.onClickTarget);
+        this.syncPickerFromPending(instance);
         if (needsConfirm) {
           const confirmEl = instance.calendarContainer.querySelector('.flatpickr-confirm');
           confirmEl?.addEventListener(
@@ -116,7 +118,7 @@ export class ShopDatetimeInputComponent
           this.committedShopValue = this.pendingValue;
           this.closeConfirmed = false;
         }
-        requestAnimationFrame(() => instance._positionCalendar());
+        syncShopFlatpickrOnOpen(instance);
       },
       onClose: () => {
         if (needsConfirm && this.fp) {
@@ -140,9 +142,7 @@ export class ShopDatetimeInputComponent
       },
     });
 
-    if (isValidShopDatetimeLocal(this.pendingValue)) {
-      this.fp.setDate(this.shopToFlatpickrDisplay(this.pendingValue), false);
-    }
+    this.syncPickerFromPending();
     this.applyDisabledToClickTarget();
   }
 
@@ -154,11 +154,16 @@ export class ShopDatetimeInputComponent
 
   writeValue(value: string | null): void {
     this.pendingValue = value?.trim() ?? '';
-    if (!this.fp) return;
+    this.syncPickerFromPending();
+  }
+
+  private syncPickerFromPending(instance?: flatpickr.Instance): void {
+    const fp = instance ?? this.fp;
+    if (!fp) return;
     if (isValidShopDatetimeLocal(this.pendingValue)) {
-      this.fp.setDate(this.shopToFlatpickrDisplay(this.pendingValue), false);
+      fp.setDate(this.shopToFlatpickrDisplay(this.pendingValue), false);
     } else {
-      this.fp.clear(false);
+      fp.clear(false);
     }
   }
 

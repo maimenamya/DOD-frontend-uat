@@ -16,6 +16,7 @@ import {
   isValidShopDateInput,
   shopDateInputToLocalDate,
 } from '../../pages/open-table/open-table-ledger.util';
+import { syncShopFlatpickrOnOpen } from '../../utils/flatpickr-shop.util';
 
 /** Date-only field — flatpickr popup (not native iOS date UI). Value: `YYYY-MM-DD` shop calendar. */
 @Component({
@@ -69,6 +70,9 @@ export class ShopDateInputComponent implements ControlValueAccessor, AfterViewIn
         instance.calendarContainer.classList.add('app-flatpickr-calendar');
         this.styleAltInput(instance);
         this.syncPickerFromPending();
+      },
+      onOpen: (_dates, _str, instance) => {
+        syncShopFlatpickrOnOpen(instance);
       },
       onChange: (_dates, dateStr) => {
         this.pendingValue = dateStr.trim();

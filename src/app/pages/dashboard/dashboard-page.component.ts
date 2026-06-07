@@ -19,6 +19,15 @@ import { AuthService } from '../../services/auth.service';
 import { DashboardService } from '../../services/dashboard.service';
 import { EmployeeService } from '../../services/employee.service';
 import { roleLabelThai } from '../../utils/employee-team.util';
+import {
+  isValidShopDateInput,
+  shopCalendarTodayInput,
+} from '../open-table/open-table-ledger.util';
+
+function shopCalendarMonthStartInput(): string {
+  const today = shopCalendarTodayInput();
+  return `${today.slice(0, 7)}-01`;
+}
 
 @Component({
   selector: 'app-dashboard-page',
@@ -105,8 +114,20 @@ export class DashboardPageComponent implements OnInit {
 
   selectPreset(preset: DashboardPreset): void {
     this.datePreset.set(preset);
-    if (preset !== 'custom') {
-      this.loadSummary();
+    if (preset === 'custom') {
+      this.ensureCustomRangeDefaults();
+      return;
+    }
+    this.loadSummary();
+  }
+
+  private ensureCustomRangeDefaults(): void {
+    const today = shopCalendarTodayInput();
+    if (!isValidShopDateInput(this.customFrom())) {
+      this.customFrom.set(shopCalendarMonthStartInput());
+    }
+    if (!isValidShopDateInput(this.customTo())) {
+      this.customTo.set(today);
     }
   }
 

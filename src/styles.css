@@ -3878,3 +3878,30 @@ input.app-input.app-shop-date-input.flatpickr-input.active {
     0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent),
     var(--shadow-glow-sm);
 }
+
+/* iOS Safari: inputs < 16px trigger page zoom on focus */
+@media (max-width: 639px) {
+  input.app-shop-date-input,
+  input.app-shop-datetime-input {
+    font-size: 16px !important;
+    touch-action: manipulation;
+  }
+}
+
+/* Phone: calendar as scrollable bottom sheet (stop/checkout modals) */
+@media (max-width: 639px) {
+  .app-flatpickr-calendar.flatpickr-calendar.app-flatpickr-calendar--mobile {
+    position: fixed !important;
+    left: 50% !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: max(0.75rem, env(safe-area-inset-bottom, 0px)) !important;
+    transform: translateX(-50%) !important;
+    width: min(19.5rem, calc(100vw - 1.5rem));
+    max-height: min(85dvh, calc(100dvh - 1.5rem));
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 !important;
+  }
+}
