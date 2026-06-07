@@ -105,6 +105,9 @@ export class DashboardPageComponent implements OnInit {
   );
 
   ngOnInit(): void {
+    if (this.datePreset() === 'custom') {
+      this.ensureCustomRangeDefaults();
+    }
     if (this.canPickBillSale()) {
       this.loadSaleStaff();
     } else {

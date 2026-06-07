@@ -14,18 +14,10 @@
         <button
           type="button"
           class="dashboard-date-btn"
-          [class.dashboard-date-btn-active]="datePreset() === '7d'"
-          (click)="selectPreset('7d')"
+          [class.dashboard-date-btn-active]="datePreset() === 'yesterday'"
+          (click)="selectPreset('yesterday')"
         >
-          7 วันที่ผ่านมา
-        </button>
-        <button
-          type="button"
-          class="dashboard-date-btn"
-          [class.dashboard-date-btn-active]="datePreset() === '30d'"
-          (click)="selectPreset('30d')"
-        >
-          30 วันที่ผ่านมา
+          เมื่อวาน
         </button>
         <button
           type="button"
