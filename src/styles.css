@@ -2507,7 +2507,47 @@
 
   .app-field-error {
     @apply mt-1 text-xs font-medium;
-    color: var(--text-on-danger-surface);
+    color: var(--danger);
+  }
+
+  /** หลังกดบันทึกแล้ว — กรอบแดงช่องที่ invalid (Reactive Forms + CVA) */
+  .app-form-was-validated .app-input.ng-invalid,
+  .app-form-was-validated input.app-input.ng-invalid,
+  .app-form-was-validated textarea.app-input.ng-invalid {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 24%, transparent);
+  }
+
+  .app-form-was-validated app-custom-dropdown.ng-invalid .app-dropdown-trigger,
+  .app-form-was-validated app-searchable-combobox.ng-invalid .app-dropdown-trigger {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 24%, transparent);
+  }
+
+  .app-form-was-validated app-shop-datetime-input.ng-invalid .app-input,
+  .app-form-was-validated app-shop-date-input.ng-invalid .app-input {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 24%, transparent);
+  }
+
+  .app-field-invalid.app-input,
+  .app-field-invalid input.app-input,
+  input.app-input.app-field-invalid,
+  textarea.app-input.app-field-invalid {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 24%, transparent);
+  }
+
+  .app-custom-dropdown.app-field-invalid .app-dropdown-trigger,
+  app-custom-dropdown.app-field-invalid .app-dropdown-trigger {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 24%, transparent);
+  }
+
+  app-shop-datetime-input.app-field-invalid .app-input,
+  app-shop-date-input.app-field-invalid .app-input {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 24%, transparent);
   }
 
   /* ── Badges ── */

@@ -1,4 +1,8 @@
 ﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  highlightInvalidForm,
+  resetFormValidationFlag,
+} from '../../utils/form-validation.util';
 import { DecimalPipe } from '@angular/common';
 import {
   FormsModule,
@@ -42,6 +46,8 @@ export class MasterMembershipPageComponent implements OnInit {
   readonly editDrinkCategoryId = signal<number | null>(null);
   readonly loading = signal(true);
   readonly submitting = signal(false);
+  readonly createFormValidated = signal(false);
+  readonly editFormValidated = signal(false);
   readonly editingItem = signal<MstMembership | null>(null);
   readonly showCreateModal = signal(false);
 
@@ -123,6 +129,8 @@ export class MasterMembershipPageComponent implements OnInit {
   }
 
   openCreate(): void {
+    
+    resetFormValidationFlag(this.createFormValidated);
     if (this.loading()) return;
     const firstCategoryId = this.beverageCategories()[0]?.id ?? null;
     this.createDrinkCategoryId.set(firstCategoryId);
@@ -143,7 +151,9 @@ export class MasterMembershipPageComponent implements OnInit {
   }
 
   openEdit(item: MstMembership): void {
-    const beverage = this.beverages().find((b) => b.id === item.drinkId);
+    
+    resetFormValidationFlag(this.editFormValidated);
+const beverage = this.beverages().find((b) => b.id === item.drinkId);
     this.editDrinkCategoryId.set(beverage?.categoryId ?? this.beverageCategories()[0]?.id ?? null);
     this.editForm.reset({
       name: item.name,
@@ -161,7 +171,8 @@ export class MasterMembershipPageComponent implements OnInit {
   }
 
   submitCreate(): void {
-    if (this.createForm.invalid || this.submitting()) return;
+    if (this.submitting()) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
     this.submitting.set(true);
     const raw = this.createForm.getRawValue();
     const payload = {
@@ -186,7 +197,8 @@ export class MasterMembershipPageComponent implements OnInit {
 
   submitEdit(): void {
     const item = this.editingItem();
-    if (!item || this.editForm.invalid || this.submitting()) return;
+    if (!item || this.submitting()) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
     const raw = this.editForm.getRawValue();
     const payload = {

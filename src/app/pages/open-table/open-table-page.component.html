@@ -1,55 +1,119 @@
 <div class="app-page">
-  <div class="app-page-header">
+  <header class="app-page-header">
     <div>
       <h1 class="app-page-title">เปิดโต๊ะ</h1>
     </div>
-  </div>
+  </header>
 
-  <div class="flex w-full transition-all duration-300 ease-in-out">
-    <section
-      class="app-card app-card-flush min-w-0 p-4 transition-all duration-300 ease-in-out sm:p-5"
-      [class.w-full]="!drawerOpen()"
-      [class.xl:w-[65%]]="drawerOpen()"
-      [class.xl:shrink-0]="drawerOpen()"
-    >
-      <div class="space-y-4">
+  <div
+    class="open-table-workspace flex w-full flex-col gap-4 transition-all duration-300 ease-in-out"
+    [class.open-table-workspace--split]="drawerOpen()"
+  >
+    <div class="open-table-search-row">
+      <label class="open-table-search-field">
+        <svg class="open-table-search-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path
+            fill-rule="evenodd"
+            d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+            clip-rule="evenodd"
+          />
+        </svg>
         <input
-          type="text"
-          class="app-input"
-          placeholder="ค้นหาเลขโต๊ะ, ห้อง, เซลล์..."
+          type="search"
+          class="app-input open-table-search-input"
+          placeholder="ค้นหาเลขโต๊ะ, เซลล์ผู้ดูแล"
           [value]="search()"
           (input)="search.set($any($event.target).value)"
         />
+      </label>
+    </div>
 
-        <div class="app-filter-bar" role="tablist" aria-label="ประเภทที่นั่ง">
-          <button
-            type="button"
-            class="app-filter-chip"
-            [class.app-filter-chip-active]="typeFilter() === 'ALL'"
-            (click)="setTypeFilter('ALL')"
-          >
-            ทั้งหมด
-          </button>
-          @for (zone of seatingTypeZones(); track zone.id) {
-            <button
-              type="button"
-              class="app-filter-chip"
-              [class.app-filter-chip-active]="typeFilter() === zone.id"
-              (click)="setTypeFilter(zone.id)"
-            >
-              {{ zone.name }}
-            </button>
-          }
+    <div class="open-table-main-column min-w-0 w-full">
+      <div class="open-table-toolbar">
+        @if (floorPlanSkeleton()) {
+          <div class="open-table-kpi-grid" aria-busy="true" aria-label="กำลังโหลดสรุปโต๊ะ">
+            @for (slot of kpiSkeletonSlots; track slot) {
+              <div class="open-table-kpi-card open-table-kpi-card--skeleton">
+                <div class="app-skeleton open-table-kpi-skeleton__icon rounded-full" aria-hidden="true"></div>
+                <div class="open-table-kpi-card__body space-y-2">
+                  <div class="app-skeleton h-3 w-16 rounded" aria-hidden="true"></div>
+                  <div class="app-skeleton h-7 w-10 rounded" aria-hidden="true"></div>
+                  <div class="app-skeleton h-3 w-8 rounded" aria-hidden="true"></div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+        <div class="open-table-kpi-grid">
+          <div class="open-table-kpi-card open-table-kpi-card--available">
+            <div class="open-table-kpi-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h10v2H4v-2z" />
+              </svg>
+            </div>
+            <div class="open-table-kpi-card__body">
+              <p class="open-table-kpi-label">โต๊ะว่าง</p>
+              <p class="open-table-kpi-value">{{ floorPlanKpi().available }}</p>
+              <p class="open-table-kpi-pct">{{ floorPlanKpi().availablePct }}%</p>
+            </div>
+          </div>
+          <div class="open-table-kpi-card open-table-kpi-card--occupied">
+            <div class="open-table-kpi-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              </svg>
+            </div>
+            <div class="open-table-kpi-card__body">
+              <p class="open-table-kpi-label">กำลังใช้งาน</p>
+              <p class="open-table-kpi-value">{{ floorPlanKpi().inUse }}</p>
+              <p class="open-table-kpi-pct">{{ floorPlanKpi().inUsePct }}%</p>
+            </div>
+          </div>
+          <div class="open-table-kpi-card open-table-kpi-card--reserved">
+            <div class="open-table-kpi-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zm0 16H5V10h14v10z" />
+              </svg>
+            </div>
+            <div class="open-table-kpi-card__body">
+              <p class="open-table-kpi-label">จอง</p>
+              <p class="open-table-kpi-value">{{ floorPlanKpi().reserved }}</p>
+              <p class="open-table-kpi-pct">{{ floorPlanKpi().reservedPct }}%</p>
+            </div>
+          </div>
+          <div class="open-table-kpi-card open-table-kpi-card--sales">
+            <div class="open-table-kpi-card__body open-table-kpi-card__body--wide">
+              <p class="open-table-kpi-label">ยอดขายวันนี้</p>
+              <p class="open-table-kpi-value open-table-kpi-value--sales">
+                {{ floorPlanKpi().todaySales | number: '1.0-0' }} บาท
+              </p>
+              @if (floorPlanKpi().salesChangePct != null) {
+                <p
+                  class="open-table-kpi-trend"
+                  [class.open-table-kpi-trend--up]="floorPlanKpi().salesChangePct! >= 0"
+                  [class.open-table-kpi-trend--down]="floorPlanKpi().salesChangePct! < 0"
+                >
+                  {{ floorPlanKpi().salesChangePct! >= 0 ? '+' : '' }}{{ floorPlanKpi().salesChangePct }}%
+                  จากเมื่อวาน
+                </p>
+              }
+            </div>
+          </div>
         </div>
+        }
+      </div>
 
-        <div class="app-filter-bar" role="tablist" aria-label="สถานะโต๊ะ">
+      <section class="app-card app-card-flush open-table-floor-card min-w-0 w-full p-4 transition-all duration-300 ease-in-out sm:p-5">
+      <div class="space-y-4">
+          <div class="open-table-floor-toolbar">
+            <div class="app-filter-bar" role="tablist" aria-label="สถานะโต๊ะ">
           <button
             type="button"
             class="app-filter-chip"
             [class.app-filter-chip-active]="statusFilter() === 'ALL'"
             (click)="setStatusFilter('ALL')"
           >
-            สถานะ: ทั้งหมด
+            ทั้งหมด
           </button>
           <button
             type="button"
@@ -87,27 +151,84 @@
             <span class="open-table-status-dot open-table-status-dot--awaiting-clear" aria-hidden="true"></span>
             รอลูกค้ากลับ
           </button>
-        </div>
+            </div>
+          </div>
 
-        @if (loading()) {
-          <p class="text-sm text-text-secondary">กำลังโหลดแผนผังโต๊ะ...</p>
+          @if (floorPlanSkeleton()) {
+          <div class="space-y-5" aria-busy="true" aria-label="กำลังโหลดแผนผังโต๊ะ">
+            <div class="app-skeleton h-4 w-24 rounded" aria-hidden="true"></div>
+            <div class="open-table-seat-grid">
+              @for (slot of seatSkeletonSlots; track slot) {
+                <div class="app-skeleton open-table-seat-card-skeleton rounded" aria-hidden="true"></div>
+              }
+            </div>
+          </div>
         } @else {
           <div class="space-y-5">
             @for (zone of seatZones(); track zone.typeId) {
               <section class="space-y-2">
                 <h2 class="text-sm font-semibold text-text-primary">{{ zone.label }}</h2>
-                <div class="grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
+                <div class="open-table-seat-grid">
                   @for (seat of zone.seats; track seat.key) {
                     <button
                       type="button"
-                      class="open-table-seat-tile rounded-input px-1.5 py-2.5 text-center transition-all duration-200"
+                      class="open-table-seat-card"
                       [ngClass]="seatTileClasses(seat)"
                       [attr.aria-label]="seat.code + ' — ' + statusText(seat.status)"
                       [title]="statusText(seat.status)"
                       (click)="selectSeat(seat)"
                     >
-                      <span class="open-table-seat-dot" [ngClass]="statusDotClass(seat.status)" aria-hidden="true"></span>
-                      <p class="text-xs font-semibold leading-tight">{{ seat.code }}</p>
+                      <div class="open-table-seat-card__head">
+                        <p class="open-table-seat-card__code">{{ seat.code }}</p>
+                        @if (seatCardShowsStatusDot(seat.status)) {
+                          <p class="open-table-seat-card__status open-table-seat-card__status--dot">
+                            <span class="open-table-status-dot open-table-status-dot--available" aria-hidden="true"></span>
+                            ว่าง
+                          </p>
+                        }
+                        @if (seatCardShowsStatusBadge(seat.status)) {
+                          <span
+                            class="open-table-seat-card__badge"
+                            [class.open-table-seat-card__badge--reserved]="seat.status === 'RESERVED'"
+                            [class.open-table-seat-card__badge--occupied]="seat.status === 'OCCUPIED'"
+                            [class.open-table-seat-card__badge--awaiting]="seat.status === 'AWAITING_CLEAR'"
+                          >
+                            {{ statusText(seat.status) }}
+                          </span>
+                        }
+                      </div>
+                      <div class="open-table-seat-card__meta-row">
+                        <span class="open-table-seat-card__meta">
+                          <svg class="open-table-seat-card__icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+                          </svg>
+                          <span>{{ seatCardGuestLabel(seat) }}</span>
+                        </span>
+                        @if (seat.openDurationLabel) {
+                          <span class="open-table-seat-card__meta">
+                            <svg class="open-table-seat-card__icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd" />
+                            </svg>
+                            <span>{{ seat.openDurationLabel }} ชม.</span>
+                          </span>
+                        } @else if (seat.reservedTimeLabel) {
+                          <span class="open-table-seat-card__meta">
+                            <svg class="open-table-seat-card__icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd" />
+                            </svg>
+                            <span>{{ seat.reservedTimeLabel }}</span>
+                          </span>
+                        }
+                        @if (seat.previewTotalAmount != null && seat.previewTotalAmount > 0) {
+                          <span class="open-table-seat-card__meta open-table-seat-card__amount">
+                            <svg class="open-table-seat-card__icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                              <path d="M10.75 10.818v2.614A3.13 3.13 0 0011.888 13c.482-.315.612-.648.612-.875 0-.227-.13-.56-.612-.875a3.13 3.13 0 00-1.138-.432zM8.33 8.62c.053.055.115.11.184.164.208.16.46.284.736.363V6.603a2.45 2.45 0 00-.35.13c-.372.228-.595.514-.595.955 0 .418.301.721.723.869z" />
+                              <path fill-rule="evenodd" d="M4.25 2A2.25 2.25 0 002 4.25v11.5A2.25 2.25 0 004.25 18h11.5A2.25 2.25 0 0018 16.75V4.25A2.25 2.25 0 0015.75 2H4.25zm4.03 6.28a3.736 3.736 0 011.7-1.528 4.001 4.001 0 00-2.2 2.72c-.361.512-.565 1.098-.565 1.75 0 .652.204 1.238.565 1.75.361.512.86.92 1.45 1.175.59.255 1.247.38 1.95.38.703 0 1.36-.125 1.95-.38.59-.255 1.089-.663 1.45-1.175.361-.512.565-1.098.565-1.75 0-.652-.204-1.238-.565-1.75a4.001 4.001 0 00-2.2-2.72 3.736 3.736 0 011.7 1.528 2.25 2.25 0 013.5 0z" clip-rule="evenodd" />
+                            </svg>
+                            <span>{{ seat.previewTotalAmount | number: '1.0-0' }} บาท</span>
+                          </span>
+                        }
+                      </div>
                     </button>
                   }
                 </div>
@@ -116,16 +237,17 @@
               <p class="text-sm text-text-secondary">ไม่มีที่นั่ง — ตั้งค่าที่เมนู จัดการที่นั่ง</p>
             }
           </div>
-        }
+          }
       </div>
-    </section>
+      </section>
+    </div>
 
     @if (drawerOpen()) {
       <aside
-        class="hidden min-w-0 shrink-0 border-l border-theme-border xl:block xl:w-[35%] transition-all duration-300 ease-in-out"
+        class="open-table-drawer hidden min-w-0 shrink-0 xl:block xl:w-[35%] transition-all duration-300 ease-in-out"
       >
         <div
-          class="sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto pl-4 transition-all duration-300 ease-in-out"
+          class="open-table-drawer__scroll sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto transition-all duration-300 ease-in-out"
         >
           <ng-container *ngTemplateOutlet="sessionPanel"></ng-container>
         </div>
@@ -133,7 +255,7 @@
     }
   </div>
 
-  @if (showMobileSheet() && selectedSeat() && !anyModalOpen()) {
+  @if (showMobileSheetLayer()) {
     <div
       class="open-table-mobile-layer xl:hidden"
       appPortalToBody
@@ -153,7 +275,7 @@
 </div>
 
 <ng-template #sessionPanel>
-  <section class="app-card app-card-flush">
+  <section class="app-card app-card-flush open-table-session-panel">
     <div class="space-y-4 p-4">
       @if (selectedSeat(); as seat) {
         <div class="flex items-start justify-between gap-3 border-b border-theme-border pb-3">
@@ -238,10 +360,25 @@
             <div class="space-y-1">
               <span class="text-sm text-text-secondary">เซลล์</span>
               <app-custom-dropdown
+                [class.app-field-invalid]="checkInValidated() && checkInSalesMissing()"
                 [options]="saleEmployeeOptions()"
                 [ngModel]="checkInSalesId()"
                 (ngModelChange)="onCheckInSalesChange($event)"
                 placeholder="เลือกเซลล์"
+              />
+            </div>
+            <div class="space-y-1">
+              <label class="text-sm text-text-secondary" for="check-in-guest-count">จำนวนลูกค้า</label>
+              <input
+                id="check-in-guest-count"
+                type="text"
+                inputmode="numeric"
+                class="app-input"
+                [class.app-field-invalid]="checkInValidated() && checkInGuestCountMissing()"
+                [value]="checkInGuestCountText()"
+                (input)="onCheckInGuestCountInput($any($event.target).value)"
+                (keydown)="onCheckInGuestCountKeydown($event)"
+                placeholder="เช่น 3"
               />
             </div>
             <label class="app-toggle">
@@ -259,7 +396,7 @@
             <button
               type="button"
               class="app-btn-primary w-full"
-              [disabled]="actionBusy() || checkInSalesId() == null"
+              [disabled]="actionBusy()"
               (click)="submitSeatAction()"
             >
               @if (actionBusy()) {
@@ -273,18 +410,36 @@
           <div class="space-y-3 rounded-input border border-theme-border bg-surface px-3 py-3">
             <p class="text-sm text-text-secondary">
               @if (seat.reservedCreditSaleToShop) {
-                จองไว้ · ยอดเข้าร้าน (เปิดโดยเซลล์ {{ seat.reservedOperatorName ?? '—' }})
+                จองไว้ · {{ seat.guestCount ?? '—' }} คน · ยอดเข้าร้าน (เปิดโดยเซลล์ {{ seat.reservedOperatorName ?? '—' }})
               } @else {
-                จองไว้ · เซลล์ {{ seat.saleName ?? '—' }}
+                จองไว้ · {{ seat.guestCount ?? '—' }} คน · เซลล์ {{ seat.saleName ?? '—' }}
+              }
+              @if (seat.reservedTimeLabel) {
+                <span class="text-text-muted"> · เวลา {{ seat.reservedTimeLabel }}</span>
               }
             </p>
             <div class="space-y-1">
               <span class="text-sm text-text-secondary">เซลล์ (เมื่อลูกค้ามา)</span>
               <app-custom-dropdown
+                [class.app-field-invalid]="checkInValidated() && checkInSalesMissing()"
                 [options]="saleEmployeeOptions()"
                 [ngModel]="checkInSalesId()"
                 (ngModelChange)="onCheckInSalesChange($event)"
                 placeholder="เลือกเซลล์"
+              />
+            </div>
+            <div class="space-y-1">
+              <label class="text-sm text-text-secondary" for="reserved-check-in-guest-count">จำนวนลูกค้า</label>
+              <input
+                id="reserved-check-in-guest-count"
+                type="text"
+                inputmode="numeric"
+                class="app-input"
+                [class.app-field-invalid]="checkInValidated() && checkInGuestCountMissing()"
+                [value]="checkInGuestCountText()"
+                (input)="onCheckInGuestCountInput($any($event.target).value)"
+                (keydown)="onCheckInGuestCountKeydown($event)"
+                placeholder="เช่น 3"
               />
             </div>
             <label class="app-toggle">
@@ -302,7 +457,7 @@
             <button
               type="button"
               class="app-btn-primary w-full"
-              [disabled]="actionBusy() || checkInSalesId() == null"
+              [disabled]="actionBusy()"
               (click)="checkInSelectedSeat()"
             >
               {{ actionBusy() ? 'กำลังเปิดโต๊ะ...' : 'เปิดโต๊ะ (ลูกค้ามาแล้ว)' }}
@@ -412,9 +567,6 @@
                       - {{ row.roomCode }} x {{ row.quantity }} {{ row.unitLabel }}
                     </span>
                     @if (row.canStop) {
-                      <span class="whitespace-nowrap text-[0.8125rem] font-medium text-theme-accent">
-                        กำลังใช้
-                      </span>
                       <span class="whitespace-nowrap text-[0.8125rem] text-text-secondary">
                         เริ่มใช้ {{ row.seatStartedLabel }}
                       </span>
@@ -430,10 +582,7 @@
                       <span class="whitespace-nowrap text-[0.8125rem] font-medium text-text-secondary">
                         สต็อปแล้ว · {{ row.seatStoppedLabel }}
                       </span>
-                      <span class="whitespace-nowrap text-[0.8125rem] text-text-muted">
-                        เริ่มใช้ {{ row.seatStartedLabel }}
-                      </span>
-                    } @else {
+                    } @else if (row.seatStartedLabel) {
                       <span class="whitespace-nowrap text-[0.8125rem] text-text-secondary">
                         เริ่มใช้ {{ row.seatStartedLabel }}
                       </span>
@@ -457,12 +606,12 @@
                     <span class="text-text-secondary">({{ row.roleDisplayNameTh }})</span>:
                     {{ row.drinks }} ดื่ม
                   </span>
-                  @if (row.seatStartedLabel) {
-                    <span class="whitespace-nowrap text-[0.8125rem] text-text-secondary">
-                      เริ่มนั่ง {{ row.seatStartedLabel }}
-                    </span>
-                  }
                   @if (row.canStopDrinks) {
+                    @if (row.seatStartedLabel) {
+                      <span class="whitespace-nowrap text-[0.8125rem] text-text-secondary">
+                        เริ่มนั่ง {{ row.seatStartedLabel }}
+                      </span>
+                    }
                     <button
                       type="button"
                       class="app-btn-inline shrink-0"
@@ -471,6 +620,10 @@
                     >
                       สต็อป
                     </button>
+                  } @else if (row.seatStoppedLabel) {
+                    <span class="whitespace-nowrap text-[0.8125rem] font-medium text-text-secondary">
+                      สต็อปแล้ว · {{ row.seatStoppedLabel }}
+                    </span>
                   }
                   @if (row.note) {
                     <span class="text-text-secondary">{{ row.note }}</span>
@@ -487,11 +640,11 @@
 
           <div class="rounded-input border border-theme-border bg-surface px-3 py-2">
             <p class="text-sm text-text-secondary">
-              รวมยอดดริ้งสะสม:
+              รวมยอดดื่มรวม:
               <span class="font-semibold text-text-primary">{{ totalDrinks() }} ดื่ม</span>
             </p>
             <p class="mt-1 text-sm text-text-secondary">
-              ยอดเงินรวมบิล:
+              ยอดบิลรวม:
               <span class="font-semibold text-theme-accent-strong">{{ totalAmount() | number: '1.0-0' }} บาท</span>
             </p>
           </div>
@@ -812,27 +965,22 @@
         @if (showStaffReopenChoice()) {
           <div class="app-form-group open-table-staff-choice">
             <span class="app-label">นั่งต่อหลังสต็อปแล้ว</span>
-            <div class="app-segmented-control" role="group" aria-label="นั่งต่อหลังสต็อปแล้ว">
-              <button
-                type="button"
-                class="app-segmented-chip"
-                [class.app-segmented-chip-active]="staffReopenMode() === 'CONTINUE'"
-                (click)="setStaffReopenMode('CONTINUE')"
-              >
-                รันต่อ (ไม่คิดสตาร์ทใหม่)
-              </button>
-              <button
-                type="button"
-                class="app-segmented-chip"
-                [class.app-segmented-chip-active]="staffReopenMode() === 'NEW_START'"
-                (click)="setStaffReopenMode('NEW_START')"
-              >
-                สตาร์ทใหม่
-              </button>
-            </div>
-            <p class="app-field-hint">
-              เลือกตามที่ตกลงกับลูกค้า — รันต่อจะไม่เพิ่มดื่มสตาร์ท แต่เริ่มนับชั่วโมงใหม่
-            </p>
+            <label class="app-toggle open-table-staff-start-toggle">
+              <input
+                type="checkbox"
+                class="app-toggle-input"
+                [ngModel]="staffReopenMode() === 'NEW_START'"
+                (ngModelChange)="setStaffReopenMode($event ? 'NEW_START' : 'CONTINUE')"
+              />
+              <span class="app-toggle-track" aria-hidden="true"></span>
+              <span class="app-toggle-text open-table-staff-start-toggle-label">
+                {{
+                  staffReopenMode() === 'NEW_START'
+                    ? 'สตาร์ทใหม่'
+                    : 'รันต่อ (ไม่คิดสตาร์ทใหม่)'
+                }}
+              </span>
+            </label>
           </div>
         }
 
@@ -968,6 +1116,8 @@
       <label class="app-label" for="stop-seat-time">เวลาสต็อป</label>
       <app-shop-datetime-input
         inputId="stop-seat-time"
+        class="block w-full"
+        [class.app-field-invalid]="stopSeatTimeValidated() && stopSeatTimeMissing()"
         [requireConfirm]="true"
         [ngModel]="stopSeatTime()"
         (ngModelChange)="onStopSeatTimeChange($event)"
@@ -979,19 +1129,6 @@
       @if (stopDrinkPreviewLoading()) {
         <p class="app-loading-text">กำลังคำนวณดื่ม...</p>
       } @else if (stopDrinkPreview()) {
-        <div class="checkout-preview-sections">
-          <section class="checkout-preview-zone">
-            <div class="checkout-preview-line">
-              <p class="checkout-preview-line-desc">
-                <span class="checkout-preview-line-label">{{ stopDrinkTarget()?.employeeName }}</span>
-                <span class="checkout-preview-line-detail">{{ stopDrinkPreview()!.detail }}</span>
-              </p>
-              <span class="checkout-preview-line-amount">
-                {{ stopDrinkPreview()!.projectedDrinks }} ดื่ม
-              </span>
-            </div>
-          </section>
-        </div>
         <div class="checkout-preview-total">
           @if (stopDrinkPreview()!.currentDrinks !== stopDrinkPreview()!.projectedDrinks) {
             <p class="text-sm text-text-secondary">
@@ -1051,6 +1188,9 @@
       <label class="app-label" for="stop-room-time">เวลาสต็อป</label>
       <app-shop-datetime-input
         inputId="stop-room-time"
+        class="block w-full"
+        [class.app-field-invalid]="stopSeatTimeValidated() && stopSeatTimeMissing()"
+        [requireConfirm]="true"
         [ngModel]="stopSeatTime()"
         (ngModelChange)="stopSeatTime.set($event)"
       />

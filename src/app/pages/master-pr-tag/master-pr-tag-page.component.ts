@@ -1,4 +1,8 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  highlightInvalidForm,
+  resetFormValidationFlag,
+} from '../../utils/form-validation.util';
 import { DecimalPipe } from '@angular/common';
 import {
   NonNullableFormBuilder,
@@ -29,6 +33,8 @@ export class MasterPrTagPageComponent implements OnInit {
   readonly items = signal<MstPrTag[]>([]);
   readonly loading = signal(true);
   readonly submitting = signal(false);
+  readonly createFormValidated = signal(false);
+  readonly editFormValidated = signal(false);
   readonly editingItem = signal<MstPrTag | null>(null);
   readonly showCreateModal = signal(false);
 
@@ -76,6 +82,8 @@ export class MasterPrTagPageComponent implements OnInit {
   }
 
   openCreate(): void {
+    
+    resetFormValidationFlag(this.createFormValidated);
     if (this.loading()) return;
     this.createForm.reset({
       name: '',
@@ -94,6 +102,8 @@ export class MasterPrTagPageComponent implements OnInit {
   }
 
   openEdit(item: MstPrTag): void {
+    
+    resetFormValidationFlag(this.editFormValidated);
     this.editForm.reset({
       name: item.name,
       requiredWorkingDays: String(item.requiredWorkingDays),
@@ -124,7 +134,8 @@ export class MasterPrTagPageComponent implements OnInit {
   }
 
   submitCreate(): void {
-    if (this.createForm.invalid || this.submitting()) return;
+    if (this.submitting()) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
     this.submitting.set(true);
     this.prTagService.createTag(this.payloadFromForm(this.createForm)).subscribe({
       next: () => {
@@ -142,7 +153,8 @@ export class MasterPrTagPageComponent implements OnInit {
 
   submitEdit(): void {
     const item = this.editingItem();
-    if (!item || this.editForm.invalid || this.submitting()) return;
+    if (!item || this.submitting()) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
     this.prTagService.updateTag(item.id, this.payloadFromForm(this.editForm)).subscribe({
       next: () => {

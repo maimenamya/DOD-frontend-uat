@@ -14,7 +14,7 @@
         <h2 class="app-modal-title">เพิ่มโต๊ะ</h2>
         <button type="button" class="app-btn-ghost" (click)="closeCreate()">✕</button>
       </div>
-      <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
+      <form class="app-form-stack" [class.app-form-was-validated]="createFormValidated()" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
           <label class="app-label">รหัสโต๊ะ</label>
           <input type="text" formControlName="tableCode" class="app-input" />
@@ -35,7 +35,7 @@
         <h2 class="app-modal-title">แก้ไขโต๊ะ</h2>
         <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
       </div>
-      <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
+      <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
         <div class="app-form-group">
           <label class="app-label">รหัสโต๊ะ</label>
           <input type="text" formControlName="tableCode" class="app-input" />

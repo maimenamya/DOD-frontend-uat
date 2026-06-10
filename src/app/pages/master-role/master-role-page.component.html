@@ -14,7 +14,7 @@
         <h2 class="app-modal-title">เพิ่มตำแหน่ง</h2>
         <button type="button" class="app-btn-ghost" (click)="closeCreate()">✕</button>
       </div>
-      <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
+      <form class="app-form-stack" [class.app-form-was-validated]="createFormValidated()" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
           <label class="app-label">ชื่อตำแหน่ง (ภาษาอังกฤษ)</label>
           <input type="text" formControlName="name" class="app-input" placeholder="เช่น PR, SALE, MODEL" />
@@ -40,66 +40,64 @@
             placeholder="เลือกประเภท"
           />
         </div>
+        <div class="app-form-group">
+          <label class="app-label">ราคาต่อดื่ม (บาท)</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            formControlName="defaultPricePerDrink"
+            class="app-input"
+            (input)="sanitizeIntegerInput('create', 'defaultPricePerDrink', $event)"
+          />
+          <p class="app-field-hint">ใช้คิดยอดรันดื่มของตำแหน่งนี้ (เซลล์ / บริการ / เด็กนั่งดริ้ง)</p>
+        </div>
         @if (createIsEntertainer()) {
-          <fieldset class="app-form-fieldset">
-            <legend class="app-form-legend">ดื่มตามเวลานั่ง</legend>
+          <div class="app-form-group">
+            <label class="app-label">สตาร์ทดื่ม</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              formControlName="startDrinks"
+              class="app-input"
+              (input)="sanitizeIntegerInput('create', 'startDrinks', $event)"
+            />
+            <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ</p>
+          </div>
+          <div class="app-form-group">
+            <label class="app-label">ดื่มต่อชั่วโมง</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              formControlName="nextHourDrinks"
+              class="app-input"
+              (input)="sanitizeIntegerInput('create', 'nextHourDrinks', $event)"
+            />
+            <p class="app-field-hint">เช่น 4 ดื่ม/ชม. → นั่ง 15 นาที ≈ 1 ดื่ม (โหมดตามนาที)</p>
+          </div>
+          <div class="app-form-group">
+            <label class="app-label">คิดตาม</label>
+            <app-custom-dropdown
+              formControlName="drinkAccrualMode"
+              [options]="drinkAccrualModeOptions"
+              placeholder="เลือกวิธีคิด"
+            />
+          </div>
+          @if (createAccrualMode() === 'MINUTE_LINEAR') {
             <div class="app-form-group">
-              <label class="app-label">สตาร์ทดื่ม</label>
-              <input
-                type="text"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                formControlName="startDrinks"
-                class="app-input"
-                (input)="sanitizeIntegerInput('create', 'startDrinks', $event)"
-              />
-              <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ</p>
-            </div>
-            <div class="app-form-group">
-              <label class="app-label">ดื่มต่อชั่วโมง</label>
-              <input
-                type="text"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                formControlName="nextHourDrinks"
-                class="app-input"
-                (input)="sanitizeIntegerInput('create', 'nextHourDrinks', $event)"
-              />
-              <p class="app-field-hint">เช่น 4 ดื่ม/ชม. → นั่ง 15 นาที ≈ 1 ดื่ม (โหมดตามนาที)</p>
-            </div>
-            <div class="app-form-group">
-              <label class="app-label">คิดตาม</label>
+              <label class="app-label">ปัดผล</label>
               <app-custom-dropdown
-                formControlName="drinkAccrualMode"
-                [options]="drinkAccrualModeOptions"
-                placeholder="เลือกวิธีคิด"
+                formControlName="drinkAccrualRounding"
+                [options]="drinkAccrualRoundingOptions"
+                placeholder="เลือกการปัด"
               />
             </div>
-            @if (createAccrualMode() === 'MINUTE_LINEAR') {
-              <div class="app-form-group">
-                <label class="app-label">ปัดผล</label>
-                <app-custom-dropdown
-                  formControlName="drinkAccrualRounding"
-                  [options]="drinkAccrualRoundingOptions"
-                  placeholder="เลือกการปัด"
-                />
-              </div>
-            }
-            <div class="app-form-group">
-              <label class="app-label">ราคาต่อดื่ม</label>
-              <input
-                type="text"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                formControlName="defaultPricePerDrink"
-                class="app-input"
-                (input)="sanitizeIntegerInput('create', 'defaultPricePerDrink', $event)"
-              />
-            </div>
-            @if (createDrinkPreview()) {
-              <p class="app-field-hint">ตัวอย่าง: {{ createDrinkPreview() }}</p>
-            }
-          </fieldset>
+          }
+          @if (createDrinkPreview()) {
+            <p class="app-field-hint">ตัวอย่างรันดื่มตามเวลานั่ง: {{ createDrinkPreview() }}</p>
+          }
         }
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
@@ -117,7 +115,7 @@
         <h2 class="app-modal-title">แก้ไขตำแหน่ง</h2>
         <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
       </div>
-      <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
+      <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
         <div class="app-form-group">
           <label class="app-label">ชื่อตำแหน่ง (ภาษาอังกฤษ)</label>
           <input type="text" formControlName="name" class="app-input" />
@@ -142,66 +140,64 @@
             placeholder="เลือกประเภท"
           />
         </div>
+        <div class="app-form-group">
+          <label class="app-label">ราคาต่อดื่ม (บาท)</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            formControlName="defaultPricePerDrink"
+            class="app-input"
+            (input)="sanitizeIntegerInput('edit', 'defaultPricePerDrink', $event)"
+          />
+          <p class="app-field-hint">ใช้คิดยอดรันดื่มของตำแหน่งนี้ (เซลล์ / บริการ / เด็กนั่งดริ้ง)</p>
+        </div>
         @if (editIsEntertainer()) {
-          <fieldset class="app-form-fieldset">
-            <legend class="app-form-legend">ดื่มตามเวลานั่ง</legend>
+          <div class="app-form-group">
+            <label class="app-label">สตาร์ทดื่ม</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              formControlName="startDrinks"
+              class="app-input"
+              (input)="sanitizeIntegerInput('edit', 'startDrinks', $event)"
+            />
+            <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ</p>
+          </div>
+          <div class="app-form-group">
+            <label class="app-label">ดื่มต่อชั่วโมง</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              formControlName="nextHourDrinks"
+              class="app-input"
+              (input)="sanitizeIntegerInput('edit', 'nextHourDrinks', $event)"
+            />
+            <p class="app-field-hint">เช่น 4 ดื่ม/ชม. → นั่ง 15 นาที ≈ 1 ดื่ม (โหมดตามนาที)</p>
+          </div>
+          <div class="app-form-group">
+            <label class="app-label">คิดตาม</label>
+            <app-custom-dropdown
+              formControlName="drinkAccrualMode"
+              [options]="drinkAccrualModeOptions"
+              placeholder="เลือกวิธีคิด"
+            />
+          </div>
+          @if (editAccrualMode() === 'MINUTE_LINEAR') {
             <div class="app-form-group">
-              <label class="app-label">สตาร์ทดื่ม</label>
-              <input
-                type="text"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                formControlName="startDrinks"
-                class="app-input"
-                (input)="sanitizeIntegerInput('edit', 'startDrinks', $event)"
-              />
-              <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ</p>
-            </div>
-            <div class="app-form-group">
-              <label class="app-label">ดื่มต่อชั่วโมง</label>
-              <input
-                type="text"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                formControlName="nextHourDrinks"
-                class="app-input"
-                (input)="sanitizeIntegerInput('edit', 'nextHourDrinks', $event)"
-              />
-              <p class="app-field-hint">เช่น 4 ดื่ม/ชม. → นั่ง 15 นาที ≈ 1 ดื่ม (โหมดตามนาที)</p>
-            </div>
-            <div class="app-form-group">
-              <label class="app-label">คิดตาม</label>
+              <label class="app-label">ปัดผล</label>
               <app-custom-dropdown
-                formControlName="drinkAccrualMode"
-                [options]="drinkAccrualModeOptions"
-                placeholder="เลือกวิธีคิด"
+                formControlName="drinkAccrualRounding"
+                [options]="drinkAccrualRoundingOptions"
+                placeholder="เลือกการปัด"
               />
             </div>
-            @if (editAccrualMode() === 'MINUTE_LINEAR') {
-              <div class="app-form-group">
-                <label class="app-label">ปัดผล</label>
-                <app-custom-dropdown
-                  formControlName="drinkAccrualRounding"
-                  [options]="drinkAccrualRoundingOptions"
-                  placeholder="เลือกการปัด"
-                />
-              </div>
-            }
-            <div class="app-form-group">
-              <label class="app-label">ราคาต่อดื่ม</label>
-              <input
-                type="text"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                formControlName="defaultPricePerDrink"
-                class="app-input"
-                (input)="sanitizeIntegerInput('edit', 'defaultPricePerDrink', $event)"
-              />
-            </div>
-            @if (editDrinkPreview()) {
-              <p class="app-field-hint">ตัวอย่าง: {{ editDrinkPreview() }}</p>
-            }
-          </fieldset>
+          }
+          @if (editDrinkPreview()) {
+            <p class="app-field-hint">ตัวอย่างรันดื่มตามเวลานั่ง: {{ editDrinkPreview() }}</p>
+          }
         }
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>

@@ -1,5 +1,9 @@
 ﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import {
+  highlightInvalidForm,
+  resetFormValidationFlag,
+} from '../../utils/form-validation.util';
+import {
   NonNullableFormBuilder,
   ReactiveFormsModule,
   Validators,
@@ -28,6 +32,8 @@ export class MasterSeatingTypePageComponent implements OnInit {
   readonly items = signal<MstSeatingType[]>([]);
   readonly loading = signal(true);
   readonly submitting = signal(false);
+  readonly createFormValidated = signal(false);
+  readonly editFormValidated = signal(false);
   readonly editingItem = signal<MstSeatingType | null>(null);
   readonly showCreateModal = signal(false);
 
@@ -63,6 +69,8 @@ export class MasterSeatingTypePageComponent implements OnInit {
   }
 
   openCreate(): void {
+    
+    resetFormValidationFlag(this.createFormValidated);
     if (this.loading()) return;
     this.createForm.reset({ name: '', code: '', description: '' });
     this.showCreateModal.set(true);
@@ -73,6 +81,8 @@ export class MasterSeatingTypePageComponent implements OnInit {
   }
 
   openEdit(item: MstSeatingType): void {
+    
+    resetFormValidationFlag(this.editFormValidated);
     this.editForm.reset({
       name: item.name,
       code: item.code,
@@ -98,7 +108,8 @@ export class MasterSeatingTypePageComponent implements OnInit {
   }
 
   submitCreate(): void {
-    if (this.createForm.invalid || this.submitting()) return;
+    if (this.submitting()) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
     this.submitting.set(true);
     this.shopMaster.createSeatingType(this.payloadFromForm(this.createForm)).subscribe({
       next: () => {
@@ -116,7 +127,8 @@ export class MasterSeatingTypePageComponent implements OnInit {
 
   submitEdit(): void {
     const item = this.editingItem();
-    if (!item || this.editForm.invalid || this.submitting()) return;
+    if (!item || this.submitting()) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
     this.shopMaster.updateSeatingType(item.id, this.payloadFromForm(this.editForm)).subscribe({
       next: () => {

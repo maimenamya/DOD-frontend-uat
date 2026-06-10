@@ -1,4 +1,8 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  highlightInvalidForm,
+  resetFormValidationFlag,
+} from '../../utils/form-validation.util';
 import { DecimalPipe } from '@angular/common';
 import {
   NonNullableFormBuilder,
@@ -29,6 +33,8 @@ export class MasterOtherChargePageComponent implements OnInit {
   readonly items = signal<MstOtherCharge[]>([]);
   readonly loading = signal(true);
   readonly submitting = signal(false);
+  readonly createFormValidated = signal(false);
+  readonly editFormValidated = signal(false);
   readonly editingItem = signal<MstOtherCharge | null>(null);
   readonly showCreateModal = signal(false);
 
@@ -70,6 +76,8 @@ export class MasterOtherChargePageComponent implements OnInit {
   }
 
   openCreate(): void {
+    
+    resetFormValidationFlag(this.createFormValidated);
     if (this.loading()) return;
     this.createForm.reset({
       name: '',
@@ -85,6 +93,8 @@ export class MasterOtherChargePageComponent implements OnInit {
   }
 
   openEdit(item: MstOtherCharge): void {
+    
+    resetFormValidationFlag(this.editFormValidated);
     this.editForm.reset({
       name: item.name,
       price: String(item.price),
@@ -109,7 +119,8 @@ export class MasterOtherChargePageComponent implements OnInit {
   }
 
   submitCreate(): void {
-    if (this.createForm.invalid || this.submitting()) return;
+    if (this.submitting()) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
     this.submitting.set(true);
     this.otherChargeService.create(this.payloadFromForm(this.createForm)).subscribe({
       next: () => {
@@ -127,7 +138,8 @@ export class MasterOtherChargePageComponent implements OnInit {
 
   submitEdit(): void {
     const item = this.editingItem();
-    if (!item || this.editForm.invalid || this.submitting()) return;
+    if (!item || this.submitting()) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
     this.otherChargeService.update(item.id, this.payloadFromForm(this.editForm)).subscribe({
       next: () => {

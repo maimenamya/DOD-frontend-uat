@@ -1,4 +1,8 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import {
+  highlightInvalidForm,
+  resetFormValidationFlag,
+} from '../../utils/form-validation.util';
 import { Router } from '@angular/router';
 import {
   NonNullableFormBuilder,
@@ -22,6 +26,7 @@ export class MyProfileComponent implements OnInit {
 
   readonly user = this.auth.getUser();
   readonly submitting = signal(false);
+  readonly formValidated = signal(false);
 
   readonly form = this.fb.group({
     nickname: ['', [Validators.required, Validators.minLength(1)]],
@@ -41,13 +46,12 @@ export class MyProfileComponent implements OnInit {
   }
 
   submit(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
+    if (highlightInvalidForm(this.form, this.formValidated, this.toast)) return;
 
     const raw = this.form.getRawValue();
     if (raw.password && raw.password.length < 6) {
+      this.formValidated.set(true);
+      this.form.controls.password.markAsTouched();
       this.toast.showError('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
       return;
     }

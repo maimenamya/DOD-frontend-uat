@@ -1,5 +1,9 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  highlightInvalidForm,
+  resetFormValidationFlag,
+} from '../../utils/form-validation.util';
 import { FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
@@ -35,6 +39,8 @@ export class DailyExpensesPageComponent implements OnInit {
   readonly totalAmount = signal(0);
   readonly loading = signal(true);
   readonly submitting = signal(false);
+  readonly createFormValidated = signal(false);
+  readonly editFormValidated = signal(false);
   readonly showCreateModal = signal(false);
   readonly editingItem = signal<TxnDailyExpense | null>(null);
 
@@ -89,6 +95,8 @@ export class DailyExpensesPageComponent implements OnInit {
   }
 
   openCreate(): void {
+    
+    resetFormValidationFlag(this.createFormValidated);
     if (this.loading()) return;
     this.createForm.reset({
       description: '',
@@ -103,6 +111,8 @@ export class DailyExpensesPageComponent implements OnInit {
   }
 
   openEdit(item: TxnDailyExpense): void {
+    
+    resetFormValidationFlag(this.editFormValidated);
     this.editForm.reset({
       description: item.description,
       amount: String(item.amount),
@@ -125,7 +135,8 @@ export class DailyExpensesPageComponent implements OnInit {
   }
 
   submitCreate(): void {
-    if (this.createForm.invalid || this.submitting()) return;
+    if (this.submitting()) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
     this.submitting.set(true);
     this.dailyExpenseService.create(this.payloadFromForm(this.createForm)).subscribe({
       next: () => {
@@ -143,7 +154,8 @@ export class DailyExpensesPageComponent implements OnInit {
 
   submitEdit(): void {
     const item = this.editingItem();
-    if (!item || this.editForm.invalid || this.submitting()) return;
+    if (!item || this.submitting()) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
     this.dailyExpenseService.update(item.id, this.payloadFromForm(this.editForm)).subscribe({
       next: () => {

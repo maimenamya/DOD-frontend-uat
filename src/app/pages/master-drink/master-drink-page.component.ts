@@ -1,4 +1,8 @@
 ﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  highlightInvalidForm,
+  resetFormValidationFlag,
+} from '../../utils/form-validation.util';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import {
@@ -36,6 +40,8 @@ export class MasterDrinkPageComponent implements OnInit {
   readonly selectedCategoryId = signal<number | null>(null);
   readonly loading = signal(true);
   readonly submitting = signal(false);
+  readonly createFormValidated = signal(false);
+  readonly editFormValidated = signal(false);
   readonly editingBeverage = signal<MstBeverage | null>(null);
   readonly showCreateModal = signal(false);
 
@@ -115,6 +121,8 @@ export class MasterDrinkPageComponent implements OnInit {
   }
 
   openCreate(): void {
+    
+    resetFormValidationFlag(this.createFormValidated);
     if (this.loading() || !this.selectedCategory()) return;
     this.createForm.reset({ name: '', price: '', unitLabelTh: '', canReturn: false });
     this.showCreateModal.set(true);
@@ -125,6 +133,8 @@ export class MasterDrinkPageComponent implements OnInit {
   }
 
   openEdit(item: MstBeverage): void {
+    
+    resetFormValidationFlag(this.editFormValidated);
     this.editForm.reset({
       name: item.name,
       price: String(item.price),
@@ -140,7 +150,8 @@ export class MasterDrinkPageComponent implements OnInit {
 
   submitCreate(): void {
     const categoryId = this.selectedCategoryId();
-    if (categoryId == null || this.createForm.invalid || this.submitting()) return;
+    if (categoryId == null || this.submitting()) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
     this.submitting.set(true);
     const { name, price, unitLabelTh, canReturn } = this.createForm.getRawValue();
     this.beverageService
@@ -167,7 +178,8 @@ export class MasterDrinkPageComponent implements OnInit {
 
   submitEdit(): void {
     const item = this.editingBeverage();
-    if (!item || this.editForm.invalid || this.submitting()) return;
+    if (!item || this.submitting()) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
     const { name, price, unitLabelTh, canReturn } = this.editForm.getRawValue();
     this.beverageService

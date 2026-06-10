@@ -14,7 +14,7 @@
         <h2 class="app-modal-title">เพิ่มห้อง</h2>
         <button type="button" class="app-btn-ghost" (click)="closeCreate()">✕</button>
       </div>
-      <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
+      <form class="app-form-stack" [class.app-form-was-validated]="createFormValidated()" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
           <label class="app-label">รหัสห้อง</label>
           <input type="text" formControlName="roomCode" class="app-input" />
@@ -54,7 +54,7 @@
         <h2 class="app-modal-title">แก้ไขห้อง</h2>
         <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
       </div>
-      <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
+      <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
         <div class="app-form-group">
           <label class="app-label">รหัสห้อง</label>
           <input type="text" formControlName="roomCode" class="app-input" />

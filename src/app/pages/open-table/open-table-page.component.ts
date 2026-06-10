@@ -22,6 +22,7 @@ import type { MstRole } from '../../models/role';
 import type {
   AddItemsPayload,
   CheckoutPreview,
+  FloorPlanKpi,
   StopStaffDrinkPreview,
   OpenTableSessionDetail,
   SeatStatus,
@@ -67,7 +68,6 @@ import {
   sanitizeDigitsOnly,
 } from '../../utils/numeric-input.util';
 
-type SeatTypeFilter = number | 'ALL';
 type SeatStatusFilter = 'ALL' | 'AVAILABLE' | 'RESERVED' | 'OCCUPIED' | 'AWAITING_CLEAR';
 type CheckInMode = 'OPEN' | 'RESERVE';
 type AddModalMode = 'ORDER_LEDGER' | 'STAFF_LEDGER' | 'ROOM_CHARGE';
@@ -90,6 +90,10 @@ type SeatTile = {
   reservedSaleId?: number | null;
   reservedCreditSaleToShop?: boolean;
   reservedOperatorName?: string | null;
+  guestCount?: number | null;
+  previewTotalAmount?: number | null;
+  openDurationLabel?: string | null;
+  reservedTimeLabel?: string | null;
 };
 
 @Component({
@@ -121,13 +125,41 @@ export class OpenTablePageComponent implements OnInit {
   private readonly confirmDialog = inject(ConfirmDialogService);
 
   readonly loading = signal(true);
+  readonly floorPlanRefreshing = signal(false);
+  readonly floorPlanSkeleton = computed(() => this.loading() || this.floorPlanRefreshing());
+  readonly kpiSkeletonSlots = [0, 1, 2, 3] as const;
+  readonly seatSkeletonSlots = Array.from({ length: 16 }, (_, i) => i);
   readonly actionBusy = signal(false);
   readonly search = signal('');
-  readonly typeFilter = signal<SeatTypeFilter>('ALL');
   readonly seatingTypeZones = signal<SeatingTypeZone[]>([]);
+  readonly floorPlanKpi = signal<FloorPlanKpi>({
+    totalSeats: 0,
+    available: 0,
+    availablePct: 0,
+    inUse: 0,
+    inUsePct: 0,
+    reserved: 0,
+    reservedPct: 0,
+    todaySales: 0,
+    salesChangePct: null,
+  });
   readonly statusFilter = signal<SeatStatusFilter>('ALL');
+  readonly checkInGuestCountText = signal('1');
   readonly selectedSeatKey = signal<string | null>(null);
   readonly showMobileSheet = signal(false);
+  /** Matches Tailwind `xl` — mobile sheet + body scroll lock only below this width. */
+  private readonly mobileDrawerViewport = signal(
+    typeof window !== 'undefined'
+      ? window.matchMedia('(max-width: 1279px)').matches
+      : false,
+  );
+  readonly showMobileSheetLayer = computed(
+    () =>
+      this.mobileDrawerViewport() &&
+      this.showMobileSheet() &&
+      this.selectedSeat() != null &&
+      !this.anyModalOpen(),
+  );
   readonly sessionDetail = signal<OpenTableSessionDetail | null>(null);
   readonly sessionDetailLoading = signal(false);
   /** Skeleton while reserving / cancelling reservation (no session bill yet). */
@@ -248,10 +280,6 @@ export class OpenTablePageComponent implements OnInit {
   readonly filteredSeats = computed(() => {
     const keyword = this.search().trim().toLowerCase();
     return this.seats().filter((seat) => {
-      const typeFilter = this.typeFilter();
-      if (typeFilter !== 'ALL' && seat.seatingTypeId !== typeFilter) {
-        return false;
-      }
       if (this.statusFilter() === 'AVAILABLE' && seat.status !== 'AVAILABLE') return false;
       if (this.statusFilter() === 'RESERVED' && seat.status !== 'RESERVED') return false;
       if (this.statusFilter() === 'OCCUPIED' && seat.status !== 'OCCUPIED') return false;
@@ -264,10 +292,8 @@ export class OpenTablePageComponent implements OnInit {
   });
 
   readonly seatZones = computed(() => {
-    const typeFilter = this.typeFilter();
     const seats = this.filteredSeats();
     return this.seatingTypeZones()
-      .filter((z) => typeFilter === 'ALL' || z.id === typeFilter)
       .map((zone) => ({
         typeId: zone.id,
         label: zone.name,
@@ -275,6 +301,36 @@ export class OpenTablePageComponent implements OnInit {
       }))
       .filter((z) => z.seats.length > 0);
   });
+
+  readonly panelGuestLabel = computed(() => {
+    const seat = this.selectedSeat();
+    if (!seat) return null;
+    const count = this.sessionDetail()?.guestCount ?? seat.guestCount;
+    if (count != null && count > 0) return `${count} คน`;
+    return null;
+  });
+
+  readonly panelDurationLabel = computed(() => {
+    const seat = this.selectedSeat();
+    if (!seat?.openDurationLabel) return null;
+    return `เปิดโต๊ะมาแล้ว ${seat.openDurationLabel} ชม.`;
+  });
+
+  readonly checkInFormReady = computed(
+    () =>
+      this.checkInSalesId() != null &&
+      parsePositiveIntFromText(this.checkInGuestCountText()) != null,
+  );
+  readonly checkInValidated = signal(false);
+  readonly addItemValidated = signal(false);
+  readonly stopSeatTimeValidated = signal(false);
+  readonly checkInSalesMissing = computed(() => this.checkInSalesId() == null);
+  readonly checkInGuestCountMissing = computed(
+    () => parsePositiveIntFromText(this.checkInGuestCountText()) == null,
+  );
+  readonly stopSeatTimeMissing = computed(
+    () => !isValidShopDatetimeLocal(this.stopSeatTime().trim()),
+  );
   readonly selectedSeat = computed(() =>
     this.selectedSeatKey()
       ? (this.seats().find((s) => s.key === this.selectedSeatKey()) ?? null)
@@ -283,11 +339,36 @@ export class OpenTablePageComponent implements OnInit {
   readonly availableTransferTargets = computed(() =>
     this.seats().filter((s) => s.status === 'AVAILABLE' && s.key !== this.selectedSeatKey()),
   );
-  readonly totalDrinks = computed(() => this.sessionDetail()?.totalDrinks ?? 0);
-  readonly totalAmount = computed(() => this.sessionDetail()?.totalAmount ?? 0);
+  readonly totalDrinks = computed(
+    () => this.sessionBillTotals(this.sessionDetail()).totalDrinks,
+  );
+  readonly totalAmount = computed(
+    () => this.sessionBillTotals(this.sessionDetail()).totalAmount,
+  );
 
   itemLineTotal(item: { quantity: number; unitPrice: number }): number {
     return item.quantity * item.unitPrice;
+  }
+
+  /** ยอดรวมจากบรรทัดในบิล — ตรงกับที่แสดงในแผง (ไม่พึ่ง totalAmount จาก API อย่างเดียว) */
+  private sessionBillTotals(detail: OpenTableSessionDetail | null): {
+    totalDrinks: number;
+    totalAmount: number;
+  } {
+    if (!detail) {
+      return { totalDrinks: 0, totalAmount: 0 };
+    }
+    const totalAmount =
+      detail.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0) +
+      (detail.roomCharges ?? []).reduce((sum, row) => sum + row.lineAmount, 0) +
+      detail.staffDrinks.reduce((sum, row) => sum + row.drinkAmount, 0);
+    const totalDrinks = detail.staffDrinks.reduce((sum, row) => sum + row.drinks, 0);
+    return { totalDrinks, totalAmount };
+  }
+
+  private withSessionBillTotals(detail: OpenTableSessionDetail): OpenTableSessionDetail {
+    const totals = this.sessionBillTotals(detail);
+    return { ...detail, ...totals };
   }
   readonly drawerOpen = computed(() => this.selectedSeatKey() != null);
   readonly anyModalOpen = computed(
@@ -579,6 +660,15 @@ export class OpenTablePageComponent implements OnInit {
     this.refreshFloorPlan();
     this.loadMasterData();
     this.startFloorPlanSync();
+    this.bindMobileDrawerViewportListener();
+  }
+
+  private bindMobileDrawerViewportListener(): void {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 1279px)');
+    const onChange = (): void => this.mobileDrawerViewport.set(mq.matches);
+    mq.addEventListener('change', onChange);
+    this.destroyRef.onDestroy(() => mq.removeEventListener('change', onChange));
   }
 
   /** Keep floor tiles in sync when multiple staff use open-table (demo until Socket.io). */
@@ -724,9 +814,11 @@ export class OpenTablePageComponent implements OnInit {
 
   private refreshFloorPlan(
     selectKey?: string | null,
-    opts?: { silent?: boolean; onDone?: () => void },
+    opts?: { silent?: boolean; skeleton?: boolean; onDone?: () => void },
   ): void {
-    if (!opts?.silent) {
+    if (opts?.skeleton) {
+      this.floorPlanRefreshing.set(true);
+    } else if (!opts?.silent) {
       this.loading.set(true);
     }
     this.openTableService
@@ -734,17 +826,19 @@ export class OpenTablePageComponent implements OnInit {
       .pipe(
         catchError(() => {
           this.toast.showError('ไม่สามารถโหลดแผนผังโต๊ะได้');
-          return of({ seatingTypes: [], seatings: [] });
+          return of({ seatingTypes: [], seatings: [], kpi: undefined });
         }),
         finalize(() => {
-          if (!opts?.silent) {
-            this.loading.set(false);
-          }
+          this.loading.set(false);
+          this.floorPlanRefreshing.set(false);
           opts?.onDone?.();
         }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((plan) => {
+        if (plan.kpi) {
+          this.floorPlanKpi.set(plan.kpi);
+        }
         this.seatingTypeZones.set(
           plan.seatingTypes.map((t) => ({
             id: t.id,
@@ -767,11 +861,15 @@ export class OpenTablePageComponent implements OnInit {
             reservedSaleId: s.reservedSaleId ?? null,
             reservedCreditSaleToShop: s.reservedCreditSaleToShop ?? false,
             reservedOperatorName: s.reservedOperatorName ?? null,
+            guestCount: s.guestCount ?? null,
+            previewTotalAmount: s.previewTotalAmount ?? null,
+            openDurationLabel: s.openDurationLabel ?? null,
+            reservedTimeLabel: s.reservedTimeLabel ?? null,
           })),
         );
         this.seats.set(tiles);
         const key = selectKey ?? this.selectedSeatKey();
-        if (key) {
+        if (key && this.selectedSeatKey() === key) {
           const seat = tiles.find((s) => s.key === key);
           if (seat?.sessionId) {
             this.loadSessionDetail(seat.sessionId, { showLoading: false });
@@ -863,7 +961,9 @@ export class OpenTablePageComponent implements OnInit {
       .getSessionDetail(sessionId)
       .pipe(
         catchError(() => {
-          this.toast.showError('ไม่สามารถโหลดรายละเอียดบิลได้');
+          if (requestSeq === this.sessionDetailRequestSeq) {
+            this.toast.showError('ไม่สามารถโหลดรายละเอียดบิลได้');
+          }
           return of(null);
         }),
         finalize(() => {
@@ -876,9 +976,10 @@ export class OpenTablePageComponent implements OnInit {
       .subscribe((detail) => {
         if (requestSeq !== this.sessionDetailRequestSeq) return;
         if (this.selectedSeat()?.sessionId !== sessionId) return;
-        this.sessionDetail.set(detail);
-        if (detail) {
-          this.syncSeatRevisionFromDetail(detail);
+        const normalized = detail ? this.withSessionBillTotals(detail) : null;
+        this.sessionDetail.set(normalized);
+        if (normalized) {
+          this.syncSeatRevisionFromDetail(normalized);
         }
       });
   }
@@ -906,12 +1007,22 @@ export class OpenTablePageComponent implements OnInit {
     const key = this.selectedSeatKey();
     if (!key) return;
     this.seats.update((tiles) =>
-      tiles.map((s) => (s.key === key ? { ...s, sessionRevision: detail.revision } : s)),
+      tiles.map((s) =>
+        s.key === key
+          ? {
+              ...s,
+              sessionRevision: detail.revision,
+              guestCount: detail.guestCount ?? s.guestCount ?? null,
+              previewTotalAmount: detail.totalAmount,
+            }
+          : s,
+      ),
     );
   }
 
   /** Clear bill panel and show skeleton (e.g. while saving a new ledger line). */
   private beginSessionBillRefresh(): void {
+    this.sessionDetailRequestSeq += 1;
     this.sessionDetailLoading.set(true);
     this.sessionDetail.set(null);
   }
@@ -928,8 +1039,9 @@ export class OpenTablePageComponent implements OnInit {
         this.sessionDetailLoading.set(false);
         return;
       }
-      this.sessionDetail.set(detail);
-      this.syncSeatRevisionFromDetail(detail);
+      const normalized = this.withSessionBillTotals(detail);
+      this.sessionDetail.set(normalized);
+      this.syncSeatRevisionFromDetail(normalized);
       this.sessionDetailLoading.set(false);
     };
     requestAnimationFrame(() => {
@@ -1232,6 +1344,7 @@ export class OpenTablePageComponent implements OnInit {
     if (category === 'FOOD') {
       const foodId = this.selectedFoodId();
       if (foodId == null) {
+        this.flagAddItemValidation();
         this.toast.showError('กรุณาเลือกรายการอาหาร');
         return null;
       }
@@ -1239,6 +1352,7 @@ export class OpenTablePageComponent implements OnInit {
     } else if (category === 'BEVERAGE') {
       const beverageId = this.selectedBeverageId();
       if (beverageId == null) {
+        this.flagAddItemValidation();
         this.toast.showError('กรุณาเลือกเครื่องดื่ม');
         return null;
       }
@@ -1246,11 +1360,13 @@ export class OpenTablePageComponent implements OnInit {
     } else if (category === 'COCKTAIL') {
       const cocktailId = this.selectedCocktailId();
       if (cocktailId == null) {
+        this.flagAddItemValidation();
         this.toast.showError('กรุณาเลือกค็อกเทล');
         return null;
       }
       const hostId = this.orderCocktailStaffEmployeeId();
       if (hostId == null) {
+        this.flagAddItemValidation();
         this.toast.showError('กรุณาเลือกพนักงานพ่วงดื่มสำหรับค็อกเทล');
         return null;
       }
@@ -1258,6 +1374,7 @@ export class OpenTablePageComponent implements OnInit {
     } else if (category === 'PROMOTION') {
       const promoId = this.selectedPromotionId();
       if (promoId == null) {
+        this.flagAddItemValidation();
         this.toast.showError('กรุณาเลือกโปร');
         return null;
       }
@@ -1265,6 +1382,7 @@ export class OpenTablePageComponent implements OnInit {
     } else if (category === 'MEMBER') {
       const memberId = this.selectedMembershipId();
       if (memberId == null) {
+        this.flagAddItemValidation();
         this.toast.showError('กรุณาเลือกเมมเบอร์');
         return null;
       }
@@ -1272,6 +1390,7 @@ export class OpenTablePageComponent implements OnInit {
     } else if (category === 'OTHER') {
       const otherId = this.selectedOtherChargeId();
       if (otherId == null) {
+        this.flagAddItemValidation();
         this.toast.showError('กรุณาเลือกรายการอื่นๆ');
         return null;
       }
@@ -1287,6 +1406,7 @@ export class OpenTablePageComponent implements OnInit {
   private buildStaffLedgerPayload(): AddItemsPayload['staffDrinks'] | null {
     const employeeId = this.staffLedgerEmployeeId();
     if (employeeId == null) {
+      this.flagAddItemValidation();
       this.toast.showError('กรุณาเลือกพนักงาน');
       return null;
     }
@@ -1297,6 +1417,7 @@ export class OpenTablePageComponent implements OnInit {
 
     const role = this.selectedStaffLedgerRole();
     if (!role) {
+      this.flagAddItemValidation();
       this.toast.showError('กรุณาเลือกตำแหน่งพนักงาน');
       return null;
     }
@@ -1304,6 +1425,7 @@ export class OpenTablePageComponent implements OnInit {
     if (isEntertainmentStaffRole(role)) {
       const seatLocal = this.staffSeatStartedAt().trim();
       if (!isValidShopDatetimeLocal(seatLocal)) {
+        this.flagAddItemValidation();
         this.toast.showError('กรุณาระบุเวลาเริ่มนั่งโต๊ะ');
         return null;
       }
@@ -1337,10 +1459,6 @@ export class OpenTablePageComponent implements OnInit {
     return [{ employeeId, quantity, billAsTag }];
   }
 
-  setTypeFilter(value: SeatTypeFilter): void {
-    this.typeFilter.set(value);
-  }
-
   setStatusFilter(value: SeatStatusFilter): void {
     this.statusFilter.set(value);
   }
@@ -1348,6 +1466,7 @@ export class OpenTablePageComponent implements OnInit {
   selectSeat(seat: SeatTile): void {
     if (this.anyModalOpen()) return;
     this.selectedSeatKey.set(seat.key);
+    this.checkInValidated.set(false);
     this.showMobileSheet.set(true);
     if (seat.sessionId) {
       this.loadSessionDetail(seat.sessionId, { showLoading: true });
@@ -1360,8 +1479,23 @@ export class OpenTablePageComponent implements OnInit {
         null;
       this.checkInSalesId.set(defaultSale);
       this.checkInCreditSaleToShop.set(seat.reservedCreditSaleToShop ?? false);
+      this.checkInGuestCountText.set(
+        seat.guestCount != null && seat.guestCount > 0 ? String(seat.guestCount) : '1',
+      );
       this.checkInMode.set('OPEN');
     }
+  }
+
+  onCheckInGuestCountInput(value: string): void {
+    this.checkInGuestCountText.set(sanitizeDigitsOnly(value));
+  }
+
+  onCheckInGuestCountKeydown(event: KeyboardEvent): void {
+    blockNonNumericInputKey(event);
+  }
+
+  private parseCheckInGuestCount(): number | null {
+    return parsePositiveIntFromText(this.checkInGuestCountText());
   }
 
   closeDrawer(): void {
@@ -1419,19 +1553,34 @@ export class OpenTablePageComponent implements OnInit {
     return true;
   }
 
-  /** Screen-reader / title only — floor plan uses color, not this label. */
   statusText(status: SeatStatus): string {
     if (status === 'AVAILABLE') return 'ว่าง';
     if (status === 'RESERVED') return 'จอง';
     if (status === 'AWAITING_CLEAR') return 'รอลูกค้ากลับ';
-    return 'มีลูกค้า';
+    return 'กำลังใช้งาน';
   }
 
   seatTileClasses(seat: SeatTile): Record<string, boolean> {
     return {
-      'open-table-seat-tile': true,
-      'open-table-seat-tile--selected': this.selectedSeatKey() === seat.key,
+      'open-table-seat-card': true,
+      [`open-table-seat-card--${seat.status.toLowerCase().replace('_', '-')}`]: true,
+      'open-table-seat-card--selected': this.selectedSeatKey() === seat.key,
     };
+  }
+
+  seatCardGuestLabel(seat: SeatTile): string {
+    if (seat.guestCount != null && seat.guestCount > 0) {
+      return `${seat.guestCount} คน`;
+    }
+    return '—';
+  }
+
+  seatCardShowsStatusDot(status: SeatStatus): boolean {
+    return status === 'AVAILABLE';
+  }
+
+  seatCardShowsStatusBadge(status: SeatStatus): boolean {
+    return status !== 'AVAILABLE';
   }
 
   statusDotClass(status: SeatStatus): Record<string, boolean> {
@@ -1461,10 +1610,17 @@ export class OpenTablePageComponent implements OnInit {
   async reserveSelectedSeat(): Promise<void> {
     const seat = this.selectedSeat();
     const salesId = this.checkInSalesId();
+    const guestCount = this.parseCheckInGuestCount();
+    this.checkInValidated.set(true);
     if (!seat || seat.status !== 'AVAILABLE' || salesId == null) {
       this.toast.showError('กรุณาเลือกเซลล์');
       return;
     }
+    if (guestCount == null) {
+      this.toast.showError('กรุณาระบุจำนวนลูกค้า');
+      return;
+    }
+    this.checkInValidated.set(false);
 
     const saleName =
       this.saleEmployees().find((e) => e.id === salesId)?.nickname ?? '—';
@@ -1474,7 +1630,7 @@ export class OpenTablePageComponent implements OnInit {
       : `เซลล์ ${saleName}`;
     const ok = await this.confirmDialog.confirm({
       title: 'จองโต๊ะ',
-      message: `จอง ${seat.zoneLabel} · ${seat.code} · ${saleLine} ใช่หรือไม่?`,
+      message: `จอง ${seat.zoneLabel} · ${seat.code} · ${guestCount} คน · ${saleLine} ใช่หรือไม่?`,
       confirmLabel: 'จอง',
     });
     if (!ok) return;
@@ -1485,12 +1641,13 @@ export class OpenTablePageComponent implements OnInit {
         shopId: this.shopId,
         salesId,
         seatingId: seat.seatId,
+        guestCount,
         creditSaleToShop: creditToShop || undefined,
       }),
       'จองโต๊ะสำเร็จ',
       () => {
         this.refreshFloorPlan(seat.key, {
-          silent: true,
+          skeleton: true,
           onDone: () => this.seatPanelLoading.set(false),
         });
       },
@@ -1517,7 +1674,7 @@ export class OpenTablePageComponent implements OnInit {
       'ยกเลิกการจองแล้ว',
       () => {
         this.refreshFloorPlan(seat.key, {
-          silent: true,
+          skeleton: true,
           onDone: () => this.seatPanelLoading.set(false),
         });
       },
@@ -1531,10 +1688,17 @@ export class OpenTablePageComponent implements OnInit {
   async checkInSelectedSeat(): Promise<void> {
     const seat = this.selectedSeat();
     const salesId = this.checkInSalesId();
+    const guestCount = this.parseCheckInGuestCount();
+    this.checkInValidated.set(true);
     if (!seat || salesId == null) {
       this.toast.showError('กรุณาเลือกเซลล์');
       return;
     }
+    if (guestCount == null) {
+      this.toast.showError('กรุณาระบุจำนวนลูกค้า');
+      return;
+    }
+    this.checkInValidated.set(false);
     if (seat.status !== 'AVAILABLE' && seat.status !== 'RESERVED') {
       this.toast.showError('โต๊ะนี้ไม่ว่าง');
       return;
@@ -1548,7 +1712,7 @@ export class OpenTablePageComponent implements OnInit {
       : `เซลล์ ${saleName}`;
     const ok = await this.confirmDialog.confirm({
       title: seat.status === 'RESERVED' ? 'เปิดโต๊ะ (ลูกค้ามาแล้ว)' : 'เปิดโต๊ะ',
-      message: `เปิด ${seat.zoneLabel} · ${seat.code} · ${saleLine} ใช่หรือไม่?`,
+      message: `เปิด ${seat.zoneLabel} · ${seat.code} · ${guestCount} คน · ${saleLine} ใช่หรือไม่?`,
       confirmLabel: 'เปิดโต๊ะ',
     });
     if (!ok) return;
@@ -1558,12 +1722,13 @@ export class OpenTablePageComponent implements OnInit {
         shopId: this.shopId,
         salesId,
         seatingId: seat.seatId,
+        guestCount,
         creditSaleToShop: creditToShop || undefined,
       }),
       'เปิดโต๊ะสำเร็จ',
       (session) => {
         this.applySeatCheckIn(seat.key, session.id, saleName, session.revision ?? 1);
-        this.refreshFloorPlan(seat.key, { silent: true });
+        this.refreshFloorPlan(seat.key, { skeleton: true });
       },
       () => {
         this.refreshFloorPlan(this.selectedSeatKey(), { silent: true });
@@ -1589,8 +1754,13 @@ export class OpenTablePageComponent implements OnInit {
     this.resetOrderLedgerForm();
     this.resetStaffLedgerForm();
     this.resetRoomChargeForm();
+    this.addItemValidated.set(false);
     this.showAddModal.set(true);
     this.reloadStaffEmployees();
+  }
+
+  private flagAddItemValidation(): void {
+    this.addItemValidated.set(true);
   }
 
   closeAddModal(): void {
@@ -1639,27 +1809,15 @@ export class OpenTablePageComponent implements OnInit {
     }
   }
 
-  private finishBillMutationSuccess(
-    detail: OpenTableSessionDetail,
-    sessionId: number,
-    successMessage: string,
-    closeModal: () => void,
-    afterApply?: () => void,
-  ): void {
-    this.toast.showSuccess(successMessage);
-    closeModal();
-    this.applyBillDetailAfterMutation(detail, sessionId);
-    afterApply?.();
-  }
-
   /**
-   * เพิ่มรายการ modal (อาหาร / ดื่ม / ค่าห้อง) — flow เดียวกันทุกแท็บ:
-   * skeleton ตอนกดบันทึก → API → toast → ปิด modal → แสดงบิลใหม่
+   * บิล mutation จาก portaled modal — flow เดียวกันทุกจุด:
+   * skeleton ตอนกดยืนยัน → API → toast → ปิด modal → แสดงบิลใหม่
    */
-  private submitAddModalBillMutation(
+  private submitBillPanelMutation(
     request$: import('rxjs').Observable<OpenTableSessionDetail>,
     successMessage: string,
     sessionId: number,
+    closeModal: () => void,
     afterApply?: () => void,
   ): void {
     if (this.actionBusy()) return;
@@ -1685,56 +1843,29 @@ export class OpenTablePageComponent implements OnInit {
       .subscribe((detail) => {
         if (detail == null) {
           this.cancelSessionBillRefresh(sessionId);
-          this.closeAddModal();
+          closeModal();
           return;
         }
         this.toast.showSuccess(successMessage);
-        this.closeAddModal();
+        closeModal();
         this.applyBillDetailAfterMutation(detail, sessionId);
         afterApply?.();
       });
   }
 
-  /** Bill mutations from other portaled modals (สต็อปห้อง, ลบรายการ ฯลฯ). */
-  private runBillPanelMutation(
+  private submitAddModalBillMutation(
     request$: import('rxjs').Observable<OpenTableSessionDetail>,
     successMessage: string,
     sessionId: number,
-    closeModal: () => void,
     afterApply?: () => void,
   ): void {
-    if (this.actionBusy()) return;
-    this.actionBusy.set(true);
-    request$
-      .pipe(
-        catchError((err: unknown) => {
-          const httpErr = err instanceof HttpErrorResponse ? err : null;
-          const msg =
-            (httpErr?.error as { error?: string } | undefined)?.error ??
-            'เกิดข้อผิดพลาด';
-          this.toast.showError(msg);
-          if (httpErr?.status === 409) {
-            this.onMutationConflict();
-          }
-          return of(null);
-        }),
-        finalize(() => this.actionBusy.set(false)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe((detail) => {
-        if (detail == null) {
-          this.cancelSessionBillRefresh(sessionId);
-          closeModal();
-          return;
-        }
-        this.finishBillMutationSuccess(
-          detail,
-          sessionId,
-          successMessage,
-          closeModal,
-          afterApply,
-        );
-      });
+    this.submitBillPanelMutation(
+      request$,
+      successMessage,
+      sessionId,
+      () => this.closeAddModal(),
+      afterApply,
+    );
   }
 
   submitAddItems(): void {
@@ -1756,11 +1887,13 @@ export class OpenTablePageComponent implements OnInit {
       const seatingId = this.roomChargeSeatingId();
       const rateType = this.roomChargeRateType();
       if (seatingId == null) {
+        this.flagAddItemValidation();
         this.toast.showError('กรุณาเลือกประเภทและที่นั่ง');
         return;
       }
       const seatStartedAt = this.roomSeatStartedAt().trim();
       if (!isValidShopDatetimeLocal(seatStartedAt)) {
+        this.flagAddItemValidation();
         this.toast.showError('กรุณาระบุเวลาเริ่มใช้ให้ถูกต้อง');
         return;
       }
@@ -1768,6 +1901,7 @@ export class OpenTablePageComponent implements OnInit {
       if (rateType === 'HOURLY' || rateType === 'FLAT_RATE') {
         const parsed = parsePositiveIntFromText(this.roomChargeUnitPriceText());
         if (parsed == null) {
+          this.flagAddItemValidation();
           this.toast.showError('กรุณาใส่ราคา (บาท)');
           return;
         }
@@ -1875,6 +2009,7 @@ export class OpenTablePageComponent implements OnInit {
   openStopRoomModal(row: SessionRoomCharge): void {
     this.stopRoomTarget.set(row);
     this.stopSeatTime.set(currentDatetimeLocalValue());
+    this.stopSeatTimeValidated.set(false);
     this.showStopRoomModal.set(true);
     this.showMobileSheet.set(false);
   }
@@ -1883,7 +2018,7 @@ export class OpenTablePageComponent implements OnInit {
     closeOpenShopFlatpickrCalendars();
     this.showStopRoomModal.set(false);
     this.stopRoomTarget.set(null);
-    this.schedulePortaledModalPurge();
+    this.forcePurgeBodyModals();
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
     }
@@ -1898,12 +2033,13 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
     const seatStoppedAt = this.stopSeatTime().trim();
+    this.stopSeatTimeValidated.set(true);
     if (!isValidShopDatetimeLocal(seatStoppedAt)) {
       this.toast.showError('กรุณาระบุเวลาสต็อป');
       return;
     }
-    this.beginSessionBillRefresh();
-    this.runBillPanelMutation(
+    this.stopSeatTimeValidated.set(false);
+    this.submitBillPanelMutation(
       this.openTableService.stopRoomCharge({
         shopId: this.shopId,
         sessionId,
@@ -1920,6 +2056,7 @@ export class OpenTablePageComponent implements OnInit {
   openStopDrinkModal(row: SessionStaffDrink): void {
     this.stopDrinkTarget.set(row);
     this.stopSeatTime.set(currentDatetimeLocalValue());
+    this.stopSeatTimeValidated.set(false);
     this.stopDrinkPreview.set(null);
     this.showStopDrinkModal.set(true);
     this.showMobileSheet.set(false);
@@ -1935,7 +2072,7 @@ export class OpenTablePageComponent implements OnInit {
     this.stopDrinkPreview.set(null);
     this.showStopDrinkModal.set(false);
     this.stopDrinkTarget.set(null);
-    this.schedulePortaledModalPurge();
+    this.forcePurgeBodyModals();
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
     }
@@ -1983,11 +2120,17 @@ export class OpenTablePageComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((preview) => {
-        if (preview) this.stopDrinkPreview.set(preview);
+        if (preview && this.showStopDrinkModal()) {
+          this.stopDrinkPreview.set(preview);
+        }
       });
   }
 
   confirmStopDrink(): void {
+    if (this.stopDrinkPreviewTimer != null) {
+      clearTimeout(this.stopDrinkPreviewTimer);
+      this.stopDrinkPreviewTimer = null;
+    }
     const sessionId = this.selectedSeat()?.sessionId;
     const expectedRevision = this.requireExpectedRevision();
     const row = this.stopDrinkTarget();
@@ -1996,12 +2139,13 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
     const seatStoppedAt = this.stopSeatTime().trim();
+    this.stopSeatTimeValidated.set(true);
     if (!isValidShopDatetimeLocal(seatStoppedAt)) {
       this.toast.showError('กรุณาระบุเวลาสต็อป');
       return;
     }
-    this.beginSessionBillRefresh();
-    this.runBillPanelMutation(
+    this.stopSeatTimeValidated.set(false);
+    this.submitBillPanelMutation(
       this.openTableService.stopStaffDrink({
         shopId: this.shopId,
         sessionId,
@@ -2078,8 +2222,7 @@ export class OpenTablePageComponent implements OnInit {
       this.toast.showError(`ลบได้ไม่เกิน ${item.quantity} ${item.unitLabel}`);
       return;
     }
-    this.beginSessionBillRefresh();
-    this.runBillPanelMutation(
+    this.submitBillPanelMutation(
       this.openTableService.voidSessionItems({
         shopId: this.shopId,
         sessionId,
@@ -2119,8 +2262,7 @@ export class OpenTablePageComponent implements OnInit {
       this.toast.showError(`คืนได้ไม่เกิน ${item.quantity} ${item.unitLabel}`);
       return;
     }
-    this.beginSessionBillRefresh();
-    this.runBillPanelMutation(
+    this.submitBillPanelMutation(
       this.openTableService.returnBeverage({
         shopId: this.shopId,
         sessionId,
@@ -2273,7 +2415,7 @@ export class OpenTablePageComponent implements OnInit {
       'ปล่อยโต๊ะแล้ว',
       () => {
         this.closeDrawer();
-        this.refreshFloorPlan(null);
+        this.refreshFloorPlan(null, { skeleton: true });
         this.reloadStaffEmployees();
       },
     );

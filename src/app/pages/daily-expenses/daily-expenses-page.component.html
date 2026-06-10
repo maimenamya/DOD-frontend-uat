@@ -53,7 +53,7 @@
         <h2 class="app-modal-title">บันทึกค่าใช้จ่าย</h2>
         <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeCreate()">✕</button>
       </div>
-      <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
+      <form class="app-form-stack" [class.app-form-was-validated]="createFormValidated()" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
           <label class="app-label">รายการ / ค่าอะไร</label>
           <input
@@ -94,7 +94,7 @@
         <h2 class="app-modal-title">แก้ไขค่าใช้จ่าย</h2>
         <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeEdit()">✕</button>
       </div>
-      <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
+      <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
         <div class="app-form-group">
           <label class="app-label">รายการ / ค่าอะไร</label>
           <input type="text" formControlName="description" class="app-input" />

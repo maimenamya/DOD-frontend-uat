@@ -1,5 +1,9 @@
 ﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import {
+  highlightInvalidForm,
+  resetFormValidationFlag,
+} from '../../utils/form-validation.util';
+import {
   NonNullableFormBuilder,
   ReactiveFormsModule,
   Validators,
@@ -28,6 +32,8 @@ export class MasterCocktailPageComponent implements OnInit {
   readonly cocktails = signal<MstCocktail[]>([]);
   readonly loading = signal(true);
   readonly submitting = signal(false);
+  readonly createFormValidated = signal(false);
+  readonly editFormValidated = signal(false);
   readonly editingItem = signal<MstCocktail | null>(null);
   readonly showCreateModal = signal(false);
 
@@ -63,6 +69,8 @@ export class MasterCocktailPageComponent implements OnInit {
   }
 
   openCreate(): void {
+    
+    resetFormValidationFlag(this.createFormValidated);
     if (this.loading()) return;
     this.createForm.reset({ name: '', drinkValue: '', unitLabelTh: 'แก้ว' });
     this.showCreateModal.set(true);
@@ -73,6 +81,8 @@ export class MasterCocktailPageComponent implements OnInit {
   }
 
   openEdit(item: MstCocktail): void {
+    
+    resetFormValidationFlag(this.editFormValidated);
     this.editForm.reset({
       name: item.name,
       drinkValue: String(item.drinkValue),
@@ -86,7 +96,8 @@ export class MasterCocktailPageComponent implements OnInit {
   }
 
   submitCreate(): void {
-    if (this.createForm.invalid || this.submitting()) return;
+    if (this.submitting()) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
     this.submitting.set(true);
     const { name, drinkValue, unitLabelTh } = this.createForm.getRawValue();
     this.shopMaster
@@ -111,7 +122,8 @@ export class MasterCocktailPageComponent implements OnInit {
 
   submitEdit(): void {
     const item = this.editingItem();
-    if (!item || this.editForm.invalid || this.submitting()) return;
+    if (!item || this.submitting()) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
     const { name, drinkValue, unitLabelTh } = this.editForm.getRawValue();
     this.shopMaster

@@ -14,6 +14,22 @@ export type FloorPlanSeat = {
   reservedSaleId: number | null;
   reservedCreditSaleToShop?: boolean;
   reservedOperatorName?: string | null;
+  guestCount?: number | null;
+  previewTotalAmount?: number | null;
+  openDurationLabel?: string | null;
+  reservedTimeLabel?: string | null;
+};
+
+export type FloorPlanKpi = {
+  totalSeats: number;
+  available: number;
+  availablePct: number;
+  inUse: number;
+  inUsePct: number;
+  reserved: number;
+  reservedPct: number;
+  todaySales: number;
+  salesChangePct: number | null;
 };
 
 export type FloorPlanSeatingType = {
@@ -28,6 +44,7 @@ export type FloorPlanSeatingType = {
 };
 
 export type OpenTableFloorPlan = {
+  kpi?: FloorPlanKpi;
   seatingTypes: FloorPlanSeatingType[];
   seatings: FloorPlanSeat[];
 };
@@ -161,6 +178,7 @@ export type OpenTableSessionDetail = {
   /** When creditSaleToShop: nickname of sale who opened the table. */
   operatorSaleName?: string | null;
   creditSaleToShop?: boolean;
+  guestCount?: number | null;
   items: SessionOrderItem[];
   roomCharges?: SessionRoomCharge[];
   staffDrinks: SessionStaffDrink[];
@@ -172,6 +190,7 @@ export type CheckInPayload = {
   shopId: number;
   seatingId: number;
   salesId: number;
+  guestCount: number;
   /** Bill credit goes to shop, not the selected sale employee. */
   creditSaleToShop?: boolean;
 };
@@ -180,6 +199,7 @@ export type ReserveSeatPayload = {
   shopId: number;
   seatingId: number;
   salesId: number;
+  guestCount: number;
   creditSaleToShop?: boolean;
 };
 

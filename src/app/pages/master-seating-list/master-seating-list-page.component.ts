@@ -1,4 +1,8 @@
 ﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  highlightInvalidForm,
+  resetFormValidationFlag,
+} from '../../utils/form-validation.util';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import {
@@ -32,6 +36,8 @@ export class MasterSeatingListPageComponent implements OnInit {
   readonly selectedSeatingTypeId = signal<number | null>(null);
   readonly loading = signal(true);
   readonly submitting = signal(false);
+  readonly createFormValidated = signal(false);
+  readonly editFormValidated = signal(false);
   readonly editingItem = signal<MstSeating | null>(null);
   readonly showCreateModal = signal(false);
 
@@ -113,6 +119,8 @@ export class MasterSeatingListPageComponent implements OnInit {
   }
 
   openCreate(): void {
+    
+    resetFormValidationFlag(this.createFormValidated);
     if (this.loading() || this.selectedSeatingTypeId() == null) return;
     this.createForm.reset({ code: '', chargesRoomFee: false });
     this.showCreateModal.set(true);
@@ -123,6 +131,8 @@ export class MasterSeatingListPageComponent implements OnInit {
   }
 
   openEdit(item: MstSeating): void {
+    
+    resetFormValidationFlag(this.editFormValidated);
     this.editForm.reset({ code: item.code, chargesRoomFee: item.chargesRoomFee });
     this.editingItem.set(item);
   }
@@ -132,7 +142,8 @@ export class MasterSeatingListPageComponent implements OnInit {
   }
 
   submitCreate(): void {
-    if (this.createForm.invalid || this.submitting()) return;
+    if (this.submitting()) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
     const seatingTypeId = this.selectedSeatingTypeId();
     if (seatingTypeId == null) {
       this.toast.showError('กรุณาเลือกประเภทที่นั่ง');
@@ -156,7 +167,8 @@ export class MasterSeatingListPageComponent implements OnInit {
 
   submitEdit(): void {
     const item = this.editingItem();
-    if (!item || this.editForm.invalid || this.submitting()) return;
+    if (!item || this.submitting()) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     const { code, chargesRoomFee } = this.editForm.getRawValue();
     this.submitting.set(true);
     this.shopMaster

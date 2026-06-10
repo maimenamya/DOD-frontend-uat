@@ -1,4 +1,8 @@
 ﻿import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  highlightInvalidForm,
+  resetFormValidationFlag,
+} from '../../utils/form-validation.util';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -70,6 +74,8 @@ export class MasterRolePageComponent implements OnInit {
   readonly roles = signal<MstRole[]>([]);
   readonly loading = signal(true);
   readonly submitting = signal(false);
+  readonly createFormValidated = signal(false);
+  readonly editFormValidated = signal(false);
   readonly editingRole = signal<MstRole | null>(null);
   readonly showCreateModal = signal(false);
 
@@ -113,6 +119,8 @@ export class MasterRolePageComponent implements OnInit {
   }
 
   openCreate(): void {
+    
+    resetFormValidationFlag(this.createFormValidated);
     if (this.loading()) return;
     this.createForm.reset({
       name: '',
@@ -133,6 +141,8 @@ export class MasterRolePageComponent implements OnInit {
   }
 
   openEdit(role: MstRole): void {
+    
+    resetFormValidationFlag(this.editFormValidated);
     const lockPermissionGroup = role.permissionGroup === 'OWNER';
     this.editForm.reset({
       name: role.name,
@@ -166,7 +176,8 @@ export class MasterRolePageComponent implements OnInit {
   }
 
   submitCreate(): void {
-    if (this.createForm.invalid || this.submitting()) return;
+    if (this.submitting()) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
     this.submitting.set(true);
     const payload = this.buildPayload(this.createForm);
     this.roleService.createRole(payload).subscribe({
@@ -185,7 +196,8 @@ export class MasterRolePageComponent implements OnInit {
 
   submitEdit(): void {
     const role = this.editingRole();
-    if (!role || this.editForm.invalid || this.submitting()) return;
+    if (!role || this.submitting()) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
     const payload = this.buildPayload(this.editForm);
     this.roleService.updateRole(role.id, payload).subscribe({
@@ -282,14 +294,12 @@ export class MasterRolePageComponent implements OnInit {
     const requiredPattern = [Validators.required, Validators.pattern(/^\d+$/)];
     const optionalPattern = [Validators.pattern(/^\d+$/)];
 
-    for (const name of ['startDrinks', 'nextHourDrinks', 'defaultPricePerDrink'] as const) {
+    form.controls.defaultPricePerDrink.setValidators(requiredPattern);
+    form.controls.defaultPricePerDrink.updateValueAndValidity({ emitEvent: false });
+
+    for (const name of ['startDrinks', 'nextHourDrinks'] as const) {
       const control = form.controls[name];
       control.setValidators(isEntertainer ? requiredPattern : optionalPattern);
-      if (!isEntertainer) {
-        control.setValue('0', { emitEvent: false });
-        form.controls.drinkAccrualMode.setValue('HOUR_BLOCKS', { emitEvent: false });
-        form.controls.drinkAccrualRounding.setValue('FLOOR', { emitEvent: false });
-      }
       control.updateValueAndValidity({ emitEvent: false });
     }
   }
@@ -324,7 +334,7 @@ export class MasterRolePageComponent implements OnInit {
       category: raw.category,
       startDrinks: Number.parseInt(isEntertainer ? raw.startDrinks : '0', 10),
       nextHourDrinks: Number.parseInt(isEntertainer ? raw.nextHourDrinks : '0', 10),
-      defaultPricePerDrink: Number.parseInt(isEntertainer ? raw.defaultPricePerDrink : '0', 10),
+      defaultPricePerDrink: Number.parseInt(raw.defaultPricePerDrink, 10),
       drinkAccrualMode: isEntertainer ? raw.drinkAccrualMode : 'HOUR_BLOCKS',
       drinkAccrualRounding: isEntertainer ? raw.drinkAccrualRounding : 'FLOOR',
     };

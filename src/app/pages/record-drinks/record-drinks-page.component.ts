@@ -1,5 +1,9 @@
 ﻿import { DecimalPipe } from '@angular/common';
 import { Component, DestroyRef, OnInit, computed, effect, inject, signal } from '@angular/core';
+import {
+  highlightInvalidForm,
+  resetFormValidationFlag,
+} from '../../utils/form-validation.util';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormArray,
@@ -79,6 +83,9 @@ export class RecordDrinksPageComponent implements OnInit {
 
   readonly loading = signal(true);
   readonly submitting = signal(false);
+  readonly formValidated = signal(false);
+  readonly createFormValidated = signal(false);
+  readonly editFormValidated = signal(false);
   readonly staff = signal<MstEmployee[]>([]);
   readonly allRoles = signal<MstRole[]>([]);
 
@@ -241,12 +248,11 @@ export class RecordDrinksPageComponent implements OnInit {
       return;
     }
 
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      this.toast.showError('กรุณากรอกข้อมูลบิลให้ครบ');
+    if (highlightInvalidForm(this.form, this.formValidated, this.toast)) {
       this.reapplyEmployeeDisabledState();
       return;
     }
+    this.formValidated.set(false);
 
     const raw = this.form.getRawValue();
     const billReference = raw.billReference.trim();

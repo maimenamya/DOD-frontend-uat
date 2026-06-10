@@ -1,5 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import {
+  highlightInvalidForm,
+  resetFormValidationFlag,
+} from '../../utils/form-validation.util';
+import {
   NonNullableFormBuilder,
   ReactiveFormsModule,
   Validators,
@@ -20,6 +24,7 @@ export class LoginComponent {
   private readonly router = inject(Router);
 
   readonly loading = signal(false);
+  readonly formValidated = signal(false);
   readonly error = signal<string | null>(null);
   readonly showPassword = signal(false);
   readonly branchStep = signal(false);
@@ -38,10 +43,7 @@ export class LoginComponent {
   }
 
   submit(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
+    if (highlightInvalidForm(this.form, this.formValidated)) return;
 
     this.loading.set(true);
     this.error.set(null);

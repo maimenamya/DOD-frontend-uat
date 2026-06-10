@@ -33,7 +33,7 @@
         <h2 class="app-modal-title">เพิ่มพนักงาน — {{ roleTabLabel(selectedRole()!) }}</h2>
         <button type="button" class="app-btn-ghost" (click)="closeCreateForm()">✕</button>
       </div>
-      <form class="app-form-stack" [formGroup]="createForm" (ngSubmit)="submitCreate()">
+      <form class="app-form-stack" [class.app-form-was-validated]="createFormValidated()" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
           <label class="app-label">ตำแหน่ง</label>
           @if (showCreateRolePicker()) {
@@ -92,7 +92,7 @@
       <p class="app-page-subtitle app-page-subtitle-spaced">
         รหัสพนักงาน: <span class="app-cell-mono">{{ emp.employeeId }}</span>
       </p>
-      <form class="app-form-stack" [formGroup]="editForm" (ngSubmit)="submitEdit()">
+      <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
           <div class="app-form-group">
             <label class="app-label">ตำแหน่ง</label>
             <app-custom-dropdown

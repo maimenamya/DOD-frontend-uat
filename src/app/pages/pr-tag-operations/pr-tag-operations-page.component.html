@@ -41,7 +41,7 @@
           </p>
         </div>
       }
-      <form class="app-form-stack" [formGroup]="forceCutForm" (ngSubmit)="submitForceCut()">
+      <form class="app-form-stack" [class.app-form-was-validated]="forceCutFormValidated()" [formGroup]="forceCutForm" (ngSubmit)="submitForceCut()">
         <div class="app-form-group">
           <label class="app-label" for="force-cut-end-note">หมายเหตุ</label>
           <textarea
@@ -85,7 +85,7 @@
           </p>
         </div>
       }
-      <form class="app-form-stack" [formGroup]="changeTagForm" (ngSubmit)="submitChangeTag()">
+      <form class="app-form-stack" [class.app-form-was-validated]="changeTagFormValidated()" [formGroup]="changeTagForm" (ngSubmit)="submitChangeTag()">
         <div class="app-form-group">
           <label class="app-label">แพ็กเกจแท็กใหม่</label>
           <app-custom-dropdown
@@ -110,7 +110,7 @@
         <h2 class="app-modal-title">ลงแท็ก</h2>
         <button type="button" class="app-btn-ghost" (click)="closeAssignModal()">✕</button>
       </div>
-      <form class="app-form-stack" [formGroup]="assignForm" (ngSubmit)="submitAssign()">
+      <form class="app-form-stack" [class.app-form-was-validated]="assignFormValidated()" [formGroup]="assignForm" (ngSubmit)="submitAssign()">
         <div class="app-form-group">
           <label class="app-label">พนักงาน PR</label>
           <app-custom-dropdown

@@ -1,5 +1,9 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import {
+  highlightInvalidForm,
+  resetFormValidationFlag,
+} from '../../utils/form-validation.util';
+import {
   NonNullableFormBuilder,
   ReactiveFormsModule,
   Validators,
@@ -38,6 +42,9 @@ export class PrTagOperationsPageComponent implements OnInit {
   readonly loading = signal(true);
   readonly loadFailed = signal(false);
   readonly acting = signal(false);
+  readonly assignFormValidated = signal(false);
+  readonly changeTagFormValidated = signal(false);
+  readonly forceCutFormValidated = signal(false);
   readonly showAssignModal = signal(false);
   readonly showChangeTagModal = signal(false);
   readonly showForceCutModal = signal(false);
@@ -166,10 +173,8 @@ export class PrTagOperationsPageComponent implements OnInit {
   submitChangeTag(): void {
     const row = this.changeTagTarget();
     const enrollmentId = row?.enrollment?.id;
-    if (!enrollmentId || this.changeTagForm.invalid) {
-      this.toast.showError('กรุณาเลือกแพ็กเกจแท็กใหม่');
-      return;
-    }
+    if (!enrollmentId) return;
+    if (highlightInvalidForm(this.changeTagForm, this.changeTagFormValidated, this.toast)) return;
     const prTagId = Number.parseInt(this.changeTagForm.getRawValue().prTagId, 10);
     if (!Number.isFinite(prTagId)) return;
     if (this.acting()) return;
@@ -189,10 +194,7 @@ export class PrTagOperationsPageComponent implements OnInit {
   }
 
   submitAssign(): void {
-    if (this.assignForm.invalid) {
-      this.toast.showError('กรุณาเลือก PR และแพ็กเกจแท็ก');
-      return;
-    }
+    if (highlightInvalidForm(this.assignForm, this.assignFormValidated, this.toast)) return;
     const raw = this.assignForm.getRawValue();
     const employeeId = raw.employeeId.trim();
     const prTagId = Number.parseInt(raw.prTagId, 10);

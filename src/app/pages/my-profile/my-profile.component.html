@@ -12,7 +12,7 @@
   </div>
 
   <section class="app-card app-profile-card">
-    <form class="app-form-stack" [formGroup]="form" (ngSubmit)="submit()">
+    <form class="app-form-stack" [class.app-form-was-validated]="formValidated()" [formGroup]="form" (ngSubmit)="submit()">
       <div class="app-form-group">
         <label class="app-label">ชื่อเล่น</label>
         <input type="text" formControlName="nickname" class="app-input" />

@@ -1,5 +1,9 @@
 ﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import {
+  highlightInvalidForm,
+  resetFormValidationFlag,
+} from '../../utils/form-validation.util';
+import {
   NonNullableFormBuilder,
   ReactiveFormsModule,
   Validators,
@@ -28,6 +32,8 @@ export class MasterFoodCategoryPageComponent implements OnInit {
   readonly categories = signal<MstFoodCategory[]>([]);
   readonly loading = signal(true);
   readonly submitting = signal(false);
+  readonly createFormValidated = signal(false);
+  readonly editFormValidated = signal(false);
   readonly editingItem = signal<MstFoodCategory | null>(null);
   readonly showCreateModal = signal(false);
 
@@ -59,6 +65,8 @@ export class MasterFoodCategoryPageComponent implements OnInit {
   }
 
   openCreate(): void {
+    
+    resetFormValidationFlag(this.createFormValidated);
     if (this.loading()) return;
     this.createForm.reset({ name: '' });
     this.showCreateModal.set(true);
@@ -69,6 +77,8 @@ export class MasterFoodCategoryPageComponent implements OnInit {
   }
 
   openEdit(item: MstFoodCategory): void {
+    
+    resetFormValidationFlag(this.editFormValidated);
     this.editForm.reset({ name: item.name });
     this.editingItem.set(item);
   }
@@ -78,7 +88,8 @@ export class MasterFoodCategoryPageComponent implements OnInit {
   }
 
   submitCreate(): void {
-    if (this.createForm.invalid || this.submitting()) return;
+    if (this.submitting()) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
     this.submitting.set(true);
     const { name } = this.createForm.getRawValue();
     this.shopMaster.createFoodCategory({ name }).subscribe({
@@ -97,7 +108,8 @@ export class MasterFoodCategoryPageComponent implements OnInit {
 
   submitEdit(): void {
     const item = this.editingItem();
-    if (!item || this.editForm.invalid || this.submitting()) return;
+    if (!item || this.submitting()) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
     const { name } = this.editForm.getRawValue();
     this.shopMaster.updateFoodCategory(item.id, { name }).subscribe({

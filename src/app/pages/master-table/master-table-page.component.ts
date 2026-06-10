@@ -1,5 +1,9 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import {
+  highlightInvalidForm,
+  resetFormValidationFlag,
+} from '../../utils/form-validation.util';
+import {
   NonNullableFormBuilder,
   ReactiveFormsModule,
   Validators,
@@ -28,6 +32,8 @@ export class MasterTablePageComponent implements OnInit {
   readonly tables = signal<LoungeTable[]>([]);
   readonly loading = signal(true);
   readonly submitting = signal(false);
+  readonly createFormValidated = signal(false);
+  readonly editFormValidated = signal(false);
   readonly editingItem = signal<LoungeTable | null>(null);
   readonly showCreateModal = signal(false);
 
@@ -59,6 +65,8 @@ export class MasterTablePageComponent implements OnInit {
   }
 
   openCreate(): void {
+    
+    resetFormValidationFlag(this.createFormValidated);
     if (this.loading()) return;
     this.createForm.reset({ tableCode: '' });
     this.showCreateModal.set(true);
@@ -69,6 +77,8 @@ export class MasterTablePageComponent implements OnInit {
   }
 
   openEdit(item: LoungeTable): void {
+    
+    resetFormValidationFlag(this.editFormValidated);
     this.editForm.reset({ tableCode: item.tableCode });
     this.editingItem.set(item);
   }
@@ -78,7 +88,8 @@ export class MasterTablePageComponent implements OnInit {
   }
 
   submitCreate(): void {
-    if (this.createForm.invalid || this.submitting()) return;
+    if (this.submitting()) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
     this.submitting.set(true);
     const { tableCode } = this.createForm.getRawValue();
     this.shopMaster.createTable({ tableCode }).subscribe({
@@ -97,7 +108,8 @@ export class MasterTablePageComponent implements OnInit {
 
   submitEdit(): void {
     const item = this.editingItem();
-    if (!item || this.editForm.invalid || this.submitting()) return;
+    if (!item || this.submitting()) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
     const { tableCode } = this.editForm.getRawValue();
     this.shopMaster.updateTable(item.id, { tableCode }).subscribe({

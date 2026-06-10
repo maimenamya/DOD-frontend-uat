@@ -1,4 +1,8 @@
 ﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  highlightInvalidForm,
+  resetFormValidationFlag,
+} from '../../utils/form-validation.util';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import {
@@ -33,6 +37,8 @@ export class MasterFoodPageComponent implements OnInit {
   readonly selectedCategoryId = signal<number | null>(null);
   readonly loading = signal(true);
   readonly submitting = signal(false);
+  readonly createFormValidated = signal(false);
+  readonly editFormValidated = signal(false);
   readonly editingItem = signal<MstFood | null>(null);
   readonly showCreateModal = signal(false);
 
@@ -103,16 +109,21 @@ export class MasterFoodPageComponent implements OnInit {
   }
 
   openCreate(): void {
+    
+    resetFormValidationFlag(this.createFormValidated);
     if (this.loading() || !this.selectedCategory()) return;
     this.createForm.reset({ name: '', price: '' });
     this.showCreateModal.set(true);
   }
 
   closeCreate(): void {
+    resetFormValidationFlag(this.createFormValidated);
     this.showCreateModal.set(false);
   }
 
   openEdit(item: MstFood): void {
+    
+    resetFormValidationFlag(this.editFormValidated);
     this.editForm.reset({
       name: item.name,
       price: String(item.price),
@@ -121,11 +132,13 @@ export class MasterFoodPageComponent implements OnInit {
   }
 
   closeEdit(): void {
+    resetFormValidationFlag(this.editFormValidated);
     this.editingItem.set(null);
   }
 
   submitCreate(): void {
-    if (this.createForm.invalid || this.submitting()) return;
+    if (this.submitting()) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
     const category = this.selectedCategory();
     if (!category) {
       this.toast.showError('กรุณาเลือกประเภทอาหารก่อน');
@@ -151,7 +164,8 @@ export class MasterFoodPageComponent implements OnInit {
 
   submitEdit(): void {
     const item = this.editingItem();
-    if (!item || this.editForm.invalid || this.submitting()) return;
+    if (!item || this.submitting()) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
     const { name, price } = this.editForm.getRawValue();
     this.shopMaster

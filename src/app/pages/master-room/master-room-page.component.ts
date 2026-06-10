@@ -1,4 +1,8 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  highlightInvalidForm,
+  resetFormValidationFlag,
+} from '../../utils/form-validation.util';
 import { DecimalPipe } from '@angular/common';
 import {
   NonNullableFormBuilder,
@@ -40,6 +44,8 @@ export class MasterRoomPageComponent implements OnInit {
   readonly rooms = signal<Room[]>([]);
   readonly loading = signal(true);
   readonly submitting = signal(false);
+  readonly createFormValidated = signal(false);
+  readonly editFormValidated = signal(false);
   readonly editingItem = signal<Room | null>(null);
   readonly showCreateModal = signal(false);
 
@@ -79,6 +85,8 @@ export class MasterRoomPageComponent implements OnInit {
   }
 
   openCreate(): void {
+    
+    resetFormValidationFlag(this.createFormValidated);
     if (this.loading()) return;
     this.createForm.reset({ roomCode: '', price: '', pricingType: 'HOURLY' });
     this.showCreateModal.set(true);
@@ -89,6 +97,8 @@ export class MasterRoomPageComponent implements OnInit {
   }
 
   openEdit(item: Room): void {
+    
+    resetFormValidationFlag(this.editFormValidated);
     this.editForm.reset({
       roomCode: item.roomCode,
       price: String(item.price),
@@ -102,7 +112,8 @@ export class MasterRoomPageComponent implements OnInit {
   }
 
   submitCreate(): void {
-    if (this.createForm.invalid || this.submitting()) return;
+    if (this.submitting()) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
     this.submitting.set(true);
     const { roomCode, price, pricingType } = this.createForm.getRawValue();
     this.shopMaster
@@ -123,7 +134,8 @@ export class MasterRoomPageComponent implements OnInit {
 
   submitEdit(): void {
     const item = this.editingItem();
-    if (!item || this.editForm.invalid || this.submitting()) return;
+    if (!item || this.submitting()) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
     const { roomCode, price, pricingType } = this.editForm.getRawValue();
     this.shopMaster

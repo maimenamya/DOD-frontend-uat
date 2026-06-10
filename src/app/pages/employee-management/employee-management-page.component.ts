@@ -1,4 +1,8 @@
 ﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  highlightInvalidForm,
+  resetFormValidationFlag,
+} from '../../utils/form-validation.util';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   NonNullableFormBuilder,
@@ -49,6 +53,8 @@ export class EmployeeManagementPageComponent implements OnInit {
   readonly selectedRoleName = signal<string | null>(null);
   readonly loading = signal(true);
   readonly submitting = signal(false);
+  readonly createFormValidated = signal(false);
+  readonly editFormValidated = signal(false);
   readonly editingEmployee = signal<MstEmployee | null>(null);
   readonly showCreateForm = signal(false);
 
@@ -256,6 +262,8 @@ export class EmployeeManagementPageComponent implements OnInit {
   }
 
   openEdit(employee: MstEmployee): void {
+    
+    resetFormValidationFlag(this.editFormValidated);
     if (!this.canMutateRow(employee)) return;
     this.editingEmployee.set(employee);
     this.showCreateForm.set(false);
@@ -273,10 +281,8 @@ export class EmployeeManagementPageComponent implements OnInit {
   }
 
   submitCreate(): void {
-    if (!this.canManage() || this.createForm.invalid) {
-      this.createForm.markAllAsTouched();
-      return;
-    }
+    if (!this.canManage()) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
 
     const shopId = this.auth.getShopId();
     const tabRole = this.selectedRole();
@@ -315,10 +321,8 @@ export class EmployeeManagementPageComponent implements OnInit {
 
   submitEdit(): void {
     const employee = this.editingEmployee();
-    if (!employee || !this.canMutateRow(employee) || this.editForm.invalid) {
-      this.editForm.markAllAsTouched();
-      return;
-    }
+    if (!employee || !this.canMutateRow(employee)) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
 
     const raw = this.editForm.getRawValue();
     this.submitting.set(true);
