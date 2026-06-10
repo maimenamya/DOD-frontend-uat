@@ -1652,16 +1652,20 @@ export class OpenTablePageComponent implements OnInit {
     afterApply?.();
   }
 
-  /** เพิ่มรายการ modal — skeleton หลังปิด modal (เหมือนลงอาหาร/ดื่ม). */
-  private runAddModalMutation(
+  /**
+   * เพิ่มรายการ modal (อาหาร / ดื่ม / ค่าห้อง) — flow เดียวกันทุกแท็บ:
+   * skeleton ตอนกดบันทึก → API → toast → ปิด modal → แสดงบิลใหม่
+   */
+  private submitAddModalBillMutation(
     request$: import('rxjs').Observable<OpenTableSessionDetail>,
     successMessage: string,
     sessionId: number,
     afterApply?: () => void,
   ): void {
     if (this.actionBusy()) return;
-    this.actionBusy.set(true);
     closeOpenShopFlatpickrCalendars();
+    this.beginSessionBillRefresh();
+    this.actionBusy.set(true);
     request$
       .pipe(
         catchError((err: unknown) => {
@@ -1680,13 +1684,12 @@ export class OpenTablePageComponent implements OnInit {
       )
       .subscribe((detail) => {
         if (detail == null) {
+          this.cancelSessionBillRefresh(sessionId);
           this.closeAddModal();
-          this.loadSessionDetail(sessionId, { showLoading: false });
           return;
         }
         this.toast.showSuccess(successMessage);
         this.closeAddModal();
-        this.beginSessionBillRefresh();
         this.applyBillDetailAfterMutation(detail, sessionId);
         afterApply?.();
       });
@@ -1770,7 +1773,7 @@ export class OpenTablePageComponent implements OnInit {
         }
         unitPrice = parsed;
       }
-      this.runAddModalMutation(
+      this.submitAddModalBillMutation(
         this.openTableService.addRoomCharge({
           shopId: this.shopId,
           sessionId,
@@ -1805,7 +1808,7 @@ export class OpenTablePageComponent implements OnInit {
         ? 'เพิ่มรายการลงโต๊ะสำเร็จ'
         : 'บันทึกรันดื่มพนักงานสำเร็จ';
 
-    this.runAddModalMutation(
+    this.submitAddModalBillMutation(
       this.openTableService.addOrderItems({
         shopId: this.shopId,
         sessionId,
