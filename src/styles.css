@@ -2955,9 +2955,8 @@
     font-weight: 600;
   }
 
-  [data-theme='dark'] .app-filter-chip:not(.open-table-filter-swatch).app-filter-chip-active,
-  body.dark-theme
-    .app-filter-chip:not(.open-table-filter-swatch).app-filter-chip-active {
+  [data-theme='dark'] .app-filter-chip.app-filter-chip-active,
+  body.dark-theme .app-filter-chip.app-filter-chip-active {
     @apply border-0;
     color: #fff;
     background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
@@ -3603,8 +3602,8 @@
     border-color: var(--border-glass, var(--border-strong));
   }
 
-  [data-theme='dark'] .app-filter-chip:not(.app-filter-chip-active):not(.open-table-filter-swatch),
-  body.dark-theme .app-filter-chip:not(.app-filter-chip-active):not(.open-table-filter-swatch) {
+  [data-theme='dark'] .app-filter-chip:not(.app-filter-chip-active),
+  body.dark-theme .app-filter-chip:not(.app-filter-chip-active) {
     border: 1px solid var(--chip-inactive-border, var(--border));
   }
 

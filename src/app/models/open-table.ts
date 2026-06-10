@@ -12,6 +12,8 @@ export type FloorPlanSeat = {
   sessionRevision: number | null;
   saleName: string | null;
   reservedSaleId: number | null;
+  reservedCreditSaleToShop?: boolean;
+  reservedOperatorName?: string | null;
 };
 
 export type FloorPlanSeatingType = {
@@ -178,6 +180,7 @@ export type ReserveSeatPayload = {
   shopId: number;
   seatingId: number;
   salesId: number;
+  creditSaleToShop?: boolean;
 };
 
 export type CancelReservationPayload = {

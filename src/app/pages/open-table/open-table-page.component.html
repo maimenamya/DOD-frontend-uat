@@ -53,43 +53,39 @@
           </button>
           <button
             type="button"
-            class="app-filter-chip open-table-filter-swatch open-table-filter-swatch--available"
+            class="app-filter-chip open-table-filter-status"
             [class.app-filter-chip-active]="statusFilter() === 'AVAILABLE'"
-            [attr.aria-label]="'ว่าง'"
-            title="ว่าง"
             (click)="setStatusFilter('AVAILABLE')"
           >
-            <span class="open-table-filter-swatch-inner" aria-hidden="true"></span>
+            <span class="open-table-status-dot open-table-status-dot--available" aria-hidden="true"></span>
+            ว่าง
           </button>
           <button
             type="button"
-            class="app-filter-chip open-table-filter-swatch open-table-filter-swatch--reserved"
+            class="app-filter-chip open-table-filter-status"
             [class.app-filter-chip-active]="statusFilter() === 'RESERVED'"
-            [attr.aria-label]="'จอง'"
-            title="จอง"
             (click)="setStatusFilter('RESERVED')"
           >
-            <span class="open-table-filter-swatch-inner" aria-hidden="true"></span>
+            <span class="open-table-status-dot open-table-status-dot--reserved" aria-hidden="true"></span>
+            จอง
           </button>
           <button
             type="button"
-            class="app-filter-chip open-table-filter-swatch open-table-filter-swatch--occupied"
+            class="app-filter-chip open-table-filter-status"
             [class.app-filter-chip-active]="statusFilter() === 'OCCUPIED'"
-            [attr.aria-label]="'มีลูกค้า'"
-            title="มีลูกค้า"
             (click)="setStatusFilter('OCCUPIED')"
           >
-            <span class="open-table-filter-swatch-inner" aria-hidden="true"></span>
+            <span class="open-table-status-dot open-table-status-dot--occupied" aria-hidden="true"></span>
+            มีแขก
           </button>
           <button
             type="button"
-            class="app-filter-chip open-table-filter-swatch open-table-filter-swatch--awaiting-clear"
+            class="app-filter-chip open-table-filter-status"
             [class.app-filter-chip-active]="statusFilter() === 'AWAITING_CLEAR'"
-            [attr.aria-label]="'รอลูกค้ากลับ'"
-            title="รอลูกค้ากลับ"
             (click)="setStatusFilter('AWAITING_CLEAR')"
           >
-            <span class="open-table-filter-swatch-inner" aria-hidden="true"></span>
+            <span class="open-table-status-dot open-table-status-dot--awaiting-clear" aria-hidden="true"></span>
+            รอลูกค้ากลับ
           </button>
         </div>
 
@@ -110,7 +106,7 @@
                       [title]="statusText(seat.status)"
                       (click)="selectSeat(seat)"
                     >
-                      <span [ngClass]="statusDotClass(seat.status)" aria-hidden="true"></span>
+                      <span class="open-table-seat-dot" [ngClass]="statusDotClass(seat.status)" aria-hidden="true"></span>
                       <p class="text-xs font-semibold leading-tight">{{ seat.code }}</p>
                     </button>
                   }
@@ -163,8 +159,8 @@
         <div class="flex items-start justify-between gap-3 border-b border-theme-border pb-3">
           <div class="min-w-0">
             <h3 class="flex items-center gap-2 text-base font-semibold text-text-primary">
-              <span [ngClass]="statusDotClass(seat.status)" aria-hidden="true"></span>
               <span>{{ seat.zoneLabel }} · {{ seat.code }}</span>
+              <span [ngClass]="statusDotClass(seat.status)" aria-hidden="true"></span>
               <span class="sr-only">{{ statusText(seat.status) }}</span>
             </h3>
             <p class="text-sm text-text-secondary">
@@ -172,6 +168,8 @@
               {{ sessionDetail()?.saleName ?? seat.saleName ?? '—' }}
               @if (sessionDetail()?.operatorSaleName) {
                 <span class="text-text-muted">(เปิดโดย {{ sessionDetail()!.operatorSaleName }})</span>
+              } @else if (seat.status === 'RESERVED' && seat.reservedCreditSaleToShop) {
+                <span class="text-text-muted">(จองโดย {{ seat.reservedOperatorName ?? '—' }})</span>
               }
             </p>
             @if (
@@ -198,7 +196,23 @@
           </button>
         </div>
 
-        @if (seat.status === 'AVAILABLE') {
+        @if (seatPanelLoading()) {
+          <div class="open-table-bill-skeleton space-y-4" aria-busy="true" aria-live="polite">
+            <div class="space-y-2">
+              <div class="app-skeleton h-3 w-24 rounded"></div>
+              @for (line of billSkeletonLines; track line) {
+                <div class="app-skeleton h-4 w-full rounded"></div>
+              }
+            </div>
+            <div class="space-y-2">
+              <div class="app-skeleton h-3 w-28 rounded"></div>
+              @for (line of billSkeletonLines; track line) {
+                <div class="app-skeleton h-4 w-5/6 rounded"></div>
+              }
+            </div>
+            <div class="app-skeleton h-10 w-full rounded-input"></div>
+          </div>
+        } @else if (seat.status === 'AVAILABLE') {
           <div class="space-y-3 rounded-input border border-theme-border bg-surface px-3 py-3">
             <div class="open-table-staff-choice">
               <span class="app-label">ประเภท</span>
@@ -230,20 +244,18 @@
                 placeholder="เลือกเซลล์"
               />
             </div>
-            @if (checkInMode() === 'OPEN') {
-              <label class="app-toggle">
-                <input
-                  type="checkbox"
-                  class="app-toggle-input"
-                  [ngModel]="checkInCreditSaleToShop()"
-                  (ngModelChange)="checkInCreditSaleToShop.set($event)"
-                />
-                <span class="app-toggle-track" aria-hidden="true"></span>
-                <span class="app-toggle-text text-sm">
-                  ยอดเข้าร้าน (ไม่นับยอดเซลล์ที่เลือก)
-                </span>
-              </label>
-            }
+            <label class="app-toggle">
+              <input
+                type="checkbox"
+                class="app-toggle-input"
+                [ngModel]="checkInCreditSaleToShop()"
+                (ngModelChange)="checkInCreditSaleToShop.set($event)"
+              />
+              <span class="app-toggle-track" aria-hidden="true"></span>
+              <span class="app-toggle-text text-sm">
+                ยอดเข้าร้าน (ไม่นับยอดเซลล์ที่เลือก)
+              </span>
+            </label>
             <button
               type="button"
               class="app-btn-primary w-full"
@@ -260,7 +272,11 @@
         } @else if (seat.status === 'RESERVED') {
           <div class="space-y-3 rounded-input border border-theme-border bg-surface px-3 py-3">
             <p class="text-sm text-text-secondary">
-              จองไว้ · เซลล์ {{ seat.saleName ?? '—' }}
+              @if (seat.reservedCreditSaleToShop) {
+                จองไว้ · ยอดเข้าร้าน (เปิดโดยเซลล์ {{ seat.reservedOperatorName ?? '—' }})
+              } @else {
+                จองไว้ · เซลล์ {{ seat.saleName ?? '—' }}
+              }
             </p>
             <div class="space-y-1">
               <span class="text-sm text-text-secondary">เซลล์ (เมื่อลูกค้ามา)</span>
@@ -271,6 +287,18 @@
                 placeholder="เลือกเซลล์"
               />
             </div>
+            <label class="app-toggle">
+              <input
+                type="checkbox"
+                class="app-toggle-input"
+                [ngModel]="checkInCreditSaleToShop()"
+                (ngModelChange)="checkInCreditSaleToShop.set($event)"
+              />
+              <span class="app-toggle-track" aria-hidden="true"></span>
+              <span class="app-toggle-text text-sm">
+                ยอดเข้าร้าน (ไม่นับยอดเซลล์ที่เลือก)
+              </span>
+            </label>
             <button
               type="button"
               class="app-btn-primary w-full"

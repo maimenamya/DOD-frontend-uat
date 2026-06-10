@@ -88,6 +88,8 @@ type SeatTile = {
   sessionRevision: number | null;
   saleName?: string;
   reservedSaleId?: number | null;
+  reservedCreditSaleToShop?: boolean;
+  reservedOperatorName?: string | null;
 };
 
 @Component({
@@ -128,6 +130,8 @@ export class OpenTablePageComponent implements OnInit {
   readonly showMobileSheet = signal(false);
   readonly sessionDetail = signal<OpenTableSessionDetail | null>(null);
   readonly sessionDetailLoading = signal(false);
+  /** Skeleton while reserving / cancelling reservation (no session bill yet). */
+  readonly seatPanelLoading = signal(false);
   /** Stable keys for `@for` in bill skeleton (avoid allocating each change detection). */
   readonly billSkeletonLines = [1, 2, 3] as const;
   private sessionDetailRequestSeq = 0;
@@ -718,7 +722,10 @@ export class OpenTablePageComponent implements OnInit {
     this.sessionDetailLoading.set(false);
   }
 
-  private refreshFloorPlan(selectKey?: string | null, opts?: { silent?: boolean }): void {
+  private refreshFloorPlan(
+    selectKey?: string | null,
+    opts?: { silent?: boolean; onDone?: () => void },
+  ): void {
     if (!opts?.silent) {
       this.loading.set(true);
     }
@@ -733,6 +740,7 @@ export class OpenTablePageComponent implements OnInit {
           if (!opts?.silent) {
             this.loading.set(false);
           }
+          opts?.onDone?.();
         }),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -757,6 +765,8 @@ export class OpenTablePageComponent implements OnInit {
             sessionRevision: s.sessionRevision ?? null,
             saleName: s.saleName ?? undefined,
             reservedSaleId: s.reservedSaleId ?? null,
+            reservedCreditSaleToShop: s.reservedCreditSaleToShop ?? false,
+            reservedOperatorName: s.reservedOperatorName ?? null,
           })),
         );
         this.seats.set(tiles);
@@ -768,6 +778,9 @@ export class OpenTablePageComponent implements OnInit {
           } else {
             this.sessionDetail.set(null);
             this.sessionDetailLoading.set(false);
+            if (seat?.status === 'RESERVED') {
+              this.checkInCreditSaleToShop.set(seat.reservedCreditSaleToShop ?? false);
+            }
           }
         }
       });
@@ -1341,7 +1354,7 @@ export class OpenTablePageComponent implements OnInit {
         this.saleEmployees()[0]?.id ??
         null;
       this.checkInSalesId.set(defaultSale);
-      this.checkInCreditSaleToShop.set(false);
+      this.checkInCreditSaleToShop.set(seat.reservedCreditSaleToShop ?? false);
       this.checkInMode.set('OPEN');
     }
   }
@@ -1418,7 +1431,6 @@ export class OpenTablePageComponent implements OnInit {
 
   statusDotClass(status: SeatStatus): Record<string, boolean> {
     return {
-      'open-table-seat-dot': true,
       'open-table-status-dot': true,
       'open-table-status-dot--available': status === 'AVAILABLE',
       'open-table-status-dot--reserved': status === 'RESERVED',
@@ -1429,9 +1441,6 @@ export class OpenTablePageComponent implements OnInit {
 
   setCheckInMode(mode: CheckInMode): void {
     this.checkInMode.set(mode);
-    if (mode === 'RESERVE') {
-      this.checkInCreditSaleToShop.set(false);
-    }
   }
 
   async submitSeatAction(): Promise<void> {
@@ -1454,24 +1463,34 @@ export class OpenTablePageComponent implements OnInit {
 
     const saleName =
       this.saleEmployees().find((e) => e.id === salesId)?.nickname ?? '—';
+    const creditToShop = this.checkInCreditSaleToShop();
+    const saleLine = creditToShop
+      ? `ยอดเข้าร้าน (เปิดโดยเซลล์ ${saleName})`
+      : `เซลล์ ${saleName}`;
     const ok = await this.confirmDialog.confirm({
       title: 'จองโต๊ะ',
-      message: `จอง ${seat.zoneLabel} · ${seat.code} · เซลล์ ${saleName} ใช่หรือไม่?`,
+      message: `จอง ${seat.zoneLabel} · ${seat.code} · ${saleLine} ใช่หรือไม่?`,
       confirmLabel: 'จอง',
     });
     if (!ok) return;
 
+    this.seatPanelLoading.set(true);
     this.runAction(
       this.openTableService.reserveSeat({
         shopId: this.shopId,
         salesId,
         seatingId: seat.seatId,
+        creditSaleToShop: creditToShop || undefined,
       }),
       'จองโต๊ะสำเร็จ',
       () => {
-        this.refreshFloorPlan(seat.key, { silent: true });
+        this.refreshFloorPlan(seat.key, {
+          silent: true,
+          onDone: () => this.seatPanelLoading.set(false),
+        });
       },
       () => {
+        this.seatPanelLoading.set(false);
         this.refreshFloorPlan(this.selectedSeatKey(), { silent: true });
       },
     );
@@ -1484,6 +1503,7 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
 
+    this.seatPanelLoading.set(true);
     this.runAction(
       this.openTableService.cancelReservation({
         shopId: this.shopId,
@@ -1491,9 +1511,13 @@ export class OpenTablePageComponent implements OnInit {
       }),
       'ยกเลิกการจองแล้ว',
       () => {
-        this.refreshFloorPlan(seat.key, { silent: true });
+        this.refreshFloorPlan(seat.key, {
+          silent: true,
+          onDone: () => this.seatPanelLoading.set(false),
+        });
       },
       () => {
+        this.seatPanelLoading.set(false);
         this.refreshFloorPlan(this.selectedSeatKey(), { silent: true });
       },
     );
@@ -1567,11 +1591,7 @@ export class OpenTablePageComponent implements OnInit {
   closeAddModal(): void {
     closeOpenShopFlatpickrCalendars();
     this.showAddModal.set(false);
-    // Defer sweep so Angular destroys `@if (showAddModal)` before we remove `body > app-modal`.
-    requestAnimationFrame(() => {
-      this.purgePortaledModalsWhenNoneOpen();
-      setTimeout(() => this.purgePortaledModalsWhenNoneOpen(), 0);
-    });
+    this.schedulePortaledModalPurge();
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
     }
@@ -1579,9 +1599,75 @@ export class OpenTablePageComponent implements OnInit {
 
   /** Portaled `app-modal` hosts can outlive `@if` destroy — remove stale overlays. */
   private purgePortaledModalsWhenNoneOpen(): void {
-    if (this.anyModalOpen()) return;
-    document.body.classList.remove(APP_MODAL_BODY_LOCK_CLASS);
-    document.querySelectorAll('body > app-modal').forEach((el) => el.remove());
+    this.schedulePortaledModalPurge();
+  }
+
+  /** Sweep after Angular tears down `@if (showAddModal)` — multiple ticks for mobile flatpickr. */
+  private schedulePortaledModalPurge(): void {
+    const sweep = (): void => {
+      if (this.anyModalOpen()) return;
+      document.body.classList.remove(APP_MODAL_BODY_LOCK_CLASS);
+      document.querySelectorAll('body > app-modal').forEach((el) => el.remove());
+    };
+    queueMicrotask(sweep);
+    requestAnimationFrame(sweep);
+    setTimeout(sweep, 0);
+    setTimeout(sweep, 50);
+  }
+
+  private finishAddModalSuccess(
+    detail: OpenTableSessionDetail,
+    sessionId: number,
+    successMessage: string,
+    afterApply?: () => void,
+  ): void {
+    closeOpenShopFlatpickrCalendars();
+    this.showAddModal.set(false);
+    this.schedulePortaledModalPurge();
+    if (this.selectedSeatKey()) {
+      this.showMobileSheet.set(true);
+    }
+    this.toast.showSuccess(successMessage);
+    if (detail.sessionId === sessionId) {
+      this.applySessionDetailAfterBillRefresh(detail, sessionId);
+    } else {
+      this.sessionDetailLoading.set(false);
+      this.loadSessionDetail(sessionId, { showLoading: false });
+    }
+    afterApply?.();
+  }
+
+  private runAddModalMutation(
+    request$: import('rxjs').Observable<OpenTableSessionDetail>,
+    successMessage: string,
+    sessionId: number,
+    afterApply?: () => void,
+  ): void {
+    if (this.actionBusy()) return;
+    this.actionBusy.set(true);
+    request$
+      .pipe(
+        catchError((err: unknown) => {
+          const httpErr = err instanceof HttpErrorResponse ? err : null;
+          const msg =
+            (httpErr?.error as { error?: string } | undefined)?.error ??
+            'เกิดข้อผิดพลาด';
+          this.toast.showError(msg);
+          if (httpErr?.status === 409) {
+            this.onMutationConflict();
+          }
+          return of(null);
+        }),
+        finalize(() => this.actionBusy.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((detail) => {
+        if (detail == null) {
+          this.cancelSessionBillRefresh(sessionId);
+          return;
+        }
+        this.finishAddModalSuccess(detail, sessionId, successMessage, afterApply);
+      });
   }
 
   submitAddItems(): void {
@@ -1620,9 +1706,8 @@ export class OpenTablePageComponent implements OnInit {
         }
         unitPrice = parsed;
       }
-      closeOpenShopFlatpickrCalendars();
       this.beginSessionBillRefresh();
-      this.runAction(
+      this.runAddModalMutation(
         this.openTableService.addRoomCharge({
           shopId: this.shopId,
           sessionId,
@@ -1633,11 +1718,7 @@ export class OpenTablePageComponent implements OnInit {
           seatStartedAt,
         }),
         'เพิ่มค่าห้องสำเร็จ',
-        (detail) => {
-          this.closeAddModal();
-          this.applySessionDetailAfterBillRefresh(detail, sessionId);
-        },
-        () => this.cancelSessionBillRefresh(sessionId),
+        sessionId,
       );
       return;
     }
@@ -1662,7 +1743,7 @@ export class OpenTablePageComponent implements OnInit {
         : 'บันทึกรันดื่มพนักงานสำเร็จ';
 
     this.beginSessionBillRefresh();
-    this.runAction(
+    this.runAddModalMutation(
       this.openTableService.addOrderItems({
         shopId: this.shopId,
         sessionId,
@@ -1671,14 +1752,12 @@ export class OpenTablePageComponent implements OnInit {
         staffDrinks,
       }),
       successMessage,
-      (detail) => {
-        this.closeAddModal();
-        this.applySessionDetailAfterBillRefresh(detail, sessionId);
+      sessionId,
+      () => {
         if (staffDrinks.length > 0) {
           this.reloadStaffEmployees();
         }
       },
-      () => this.cancelSessionBillRefresh(sessionId),
     );
   }
 
@@ -2187,12 +2266,12 @@ export class OpenTablePageComponent implements OnInit {
         // Clear busy before closing portaled modals — otherwise a detached overlay can
         // freeze on "กำลังบันทึก..." while finalize runs on the live component.
         this.actionBusy.set(false);
+        this.toast.showSuccess(successMessage);
         try {
           onSuccess(result);
         } catch {
           this.purgePortaledModalsWhenNoneOpen();
         }
-        this.toast.showSuccess(successMessage);
       });
   }
 }
