@@ -54,6 +54,12 @@
             class="app-input"
             placeholder="เช่น 1001"
           />
+          @if (previewLoginUsername(createForm.controls.employeeId.value); as loginUser) {
+            <p class="mt-1.5 text-sm text-text-secondary">
+              ชื่อผู้ใช้เข้าระบบ:
+              <span class="app-cell-mono text-text-primary">{{ loginUser }}</span>
+            </p>
+          }
         </div>
         <div class="app-form-group">
           <label class="app-label">ชื่อเล่น</label>

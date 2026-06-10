@@ -133,7 +133,7 @@ export type StopStaffDrinkPreview = {
   currentDrinks: number;
   projectedDrinks: number;
   projectedAmount: number;
-  completedHours: number;
+  completedMinutes: number;
   baseDrinks: number;
   hourDrinks: number;
   detail: string;

@@ -40,41 +40,67 @@
             placeholder="เลือกประเภท"
           />
         </div>
-        <div class="app-form-group">
-          <label class="app-label">สตาร์ทดื่ม</label>
-          <input
-            type="text"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            formControlName="startDrinks"
-            class="app-input"
-            (input)="sanitizeIntegerInput('create', 'startDrinks', $event)"
-          />
-          <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ (ไม่เกี่ยวกับชั่วโมง)</p>
-        </div>
-        <div class="app-form-group">
-          <label class="app-label">รันดื่ม</label>
-          <input
-            type="text"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            formControlName="nextHourDrinks"
-            class="app-input"
-            (input)="sanitizeIntegerInput('create', 'nextHourDrinks', $event)"
-          />
-          <p class="app-field-hint">ต่อชั่วโมงที่นั่ง — รวมดื่ม = ชม.ที่นั่ง × รันดื่ม (ปัดลงชม.)</p>
-        </div>
-        <div class="app-form-group">
-          <label class="app-label">ราคาต่อดื่ม</label>
-          <input
-            type="text"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            formControlName="defaultPricePerDrink"
-            class="app-input"
-            (input)="sanitizeIntegerInput('create', 'defaultPricePerDrink', $event)"
-          />
-        </div>
+        @if (createIsEntertainer()) {
+          <fieldset class="app-form-fieldset">
+            <legend class="app-form-legend">ดื่มตามเวลานั่ง</legend>
+            <div class="app-form-group">
+              <label class="app-label">สตาร์ทดื่ม</label>
+              <input
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                formControlName="startDrinks"
+                class="app-input"
+                (input)="sanitizeIntegerInput('create', 'startDrinks', $event)"
+              />
+              <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ</p>
+            </div>
+            <div class="app-form-group">
+              <label class="app-label">ดื่มต่อชั่วโมง</label>
+              <input
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                formControlName="nextHourDrinks"
+                class="app-input"
+                (input)="sanitizeIntegerInput('create', 'nextHourDrinks', $event)"
+              />
+              <p class="app-field-hint">เช่น 4 ดื่ม/ชม. → นั่ง 15 นาที ≈ 1 ดื่ม (โหมดตามนาที)</p>
+            </div>
+            <div class="app-form-group">
+              <label class="app-label">คิดตาม</label>
+              <app-custom-dropdown
+                formControlName="drinkAccrualMode"
+                [options]="drinkAccrualModeOptions"
+                placeholder="เลือกวิธีคิด"
+              />
+            </div>
+            @if (createAccrualMode() === 'MINUTE_LINEAR') {
+              <div class="app-form-group">
+                <label class="app-label">ปัดผล</label>
+                <app-custom-dropdown
+                  formControlName="drinkAccrualRounding"
+                  [options]="drinkAccrualRoundingOptions"
+                  placeholder="เลือกการปัด"
+                />
+              </div>
+            }
+            <div class="app-form-group">
+              <label class="app-label">ราคาต่อดื่ม</label>
+              <input
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                formControlName="defaultPricePerDrink"
+                class="app-input"
+                (input)="sanitizeIntegerInput('create', 'defaultPricePerDrink', $event)"
+              />
+            </div>
+            @if (createDrinkPreview()) {
+              <p class="app-field-hint">ตัวอย่าง: {{ createDrinkPreview() }}</p>
+            }
+          </fieldset>
+        }
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
           <button type="submit" class="app-btn-primary" [disabled]="submitting()">
@@ -116,41 +142,67 @@
             placeholder="เลือกประเภท"
           />
         </div>
-        <div class="app-form-group">
-          <label class="app-label">สตาร์ทดื่ม</label>
-          <input
-            type="text"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            formControlName="startDrinks"
-            class="app-input"
-            (input)="sanitizeIntegerInput('edit', 'startDrinks', $event)"
-          />
-          <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ (ไม่เกี่ยวกับชั่วโมง)</p>
-        </div>
-        <div class="app-form-group">
-          <label class="app-label">รันดื่ม</label>
-          <input
-            type="text"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            formControlName="nextHourDrinks"
-            class="app-input"
-            (input)="sanitizeIntegerInput('edit', 'nextHourDrinks', $event)"
-          />
-          <p class="app-field-hint">ต่อชั่วโมงที่นั่ง — รวมดื่ม = ชม.ที่นั่ง × รันดื่ม (ปัดลงชม.)</p>
-        </div>
-        <div class="app-form-group">
-          <label class="app-label">ราคาต่อดื่ม</label>
-          <input
-            type="text"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            formControlName="defaultPricePerDrink"
-            class="app-input"
-            (input)="sanitizeIntegerInput('edit', 'defaultPricePerDrink', $event)"
-          />
-        </div>
+        @if (editIsEntertainer()) {
+          <fieldset class="app-form-fieldset">
+            <legend class="app-form-legend">ดื่มตามเวลานั่ง</legend>
+            <div class="app-form-group">
+              <label class="app-label">สตาร์ทดื่ม</label>
+              <input
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                formControlName="startDrinks"
+                class="app-input"
+                (input)="sanitizeIntegerInput('edit', 'startDrinks', $event)"
+              />
+              <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ</p>
+            </div>
+            <div class="app-form-group">
+              <label class="app-label">ดื่มต่อชั่วโมง</label>
+              <input
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                formControlName="nextHourDrinks"
+                class="app-input"
+                (input)="sanitizeIntegerInput('edit', 'nextHourDrinks', $event)"
+              />
+              <p class="app-field-hint">เช่น 4 ดื่ม/ชม. → นั่ง 15 นาที ≈ 1 ดื่ม (โหมดตามนาที)</p>
+            </div>
+            <div class="app-form-group">
+              <label class="app-label">คิดตาม</label>
+              <app-custom-dropdown
+                formControlName="drinkAccrualMode"
+                [options]="drinkAccrualModeOptions"
+                placeholder="เลือกวิธีคิด"
+              />
+            </div>
+            @if (editAccrualMode() === 'MINUTE_LINEAR') {
+              <div class="app-form-group">
+                <label class="app-label">ปัดผล</label>
+                <app-custom-dropdown
+                  formControlName="drinkAccrualRounding"
+                  [options]="drinkAccrualRoundingOptions"
+                  placeholder="เลือกการปัด"
+                />
+              </div>
+            }
+            <div class="app-form-group">
+              <label class="app-label">ราคาต่อดื่ม</label>
+              <input
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                formControlName="defaultPricePerDrink"
+                class="app-input"
+                (input)="sanitizeIntegerInput('edit', 'defaultPricePerDrink', $event)"
+              />
+            </div>
+            @if (editDrinkPreview()) {
+              <p class="app-field-hint">ตัวอย่าง: {{ editDrinkPreview() }}</p>
+            }
+          </fieldset>
+        }
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
           <button type="submit" class="app-btn-primary" [disabled]="submitting()">

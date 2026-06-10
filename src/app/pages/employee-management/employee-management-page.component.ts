@@ -147,6 +147,23 @@ export class EmployeeManagementPageComponent implements OnInit {
     return roleDisplayNameTh(role);
   }
 
+  /** Preview login username (org prefix + local code, e.g. ff1001). */
+  previewLoginUsername(employeeIdInput: string): string | null {
+    const abbrev = this.auth.getUser()?.shop?.abbreviation?.trim().toLowerCase();
+    if (!abbrev) {
+      return null;
+    }
+    const raw = employeeIdInput.trim().toLowerCase().replace(/\s+/g, '');
+    if (!raw || raw.length < 2) {
+      return null;
+    }
+    const local = raw.startsWith(abbrev) ? raw.slice(abbrev.length) : raw;
+    if (!local) {
+      return null;
+    }
+    return `${abbrev}${local}`;
+  }
+
   selectRole(roleName: string, updateUrl = true): void {
     this.selectedRoleName.set(roleName);
     this.showCreateForm.set(false);

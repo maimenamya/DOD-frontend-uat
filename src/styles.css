@@ -2101,6 +2101,15 @@
     @apply flex flex-col gap-4 overflow-visible;
   }
 
+  .app-form-fieldset {
+    @apply m-0 flex flex-col gap-4 rounded-card border border-theme-border p-4;
+    border-style: solid;
+  }
+
+  .app-form-legend {
+    @apply px-1 text-sm font-semibold text-text-primary;
+  }
+
   .app-form-field,
   .app-form-group {
     @apply overflow-visible;

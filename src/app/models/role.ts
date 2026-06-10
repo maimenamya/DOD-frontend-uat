@@ -6,6 +6,9 @@ export type EmployeeRole = (typeof EMPLOYEE_ROLES)[number];
 
 export type RoleCategory = 'STAFF' | 'ENTERTAINER';
 
+export type DrinkAccrualMode = 'HOUR_BLOCKS' | 'MINUTE_LINEAR';
+export type DrinkAccrualRounding = 'FLOOR' | 'CEIL';
+
 export const MANAGEMENT_ROLES: readonly EmployeeRole[] = ['OWNER', 'ADMIN', 'MANAGER'];
 
 export const FIELD_STAFF_ROLES: readonly EmployeeRole[] = ['SALE', 'PR'];
@@ -26,6 +29,8 @@ export interface MstRole {
   startDrinks: number;
   nextHourDrinks: number;
   defaultPricePerDrink: number;
+  drinkAccrualMode?: DrinkAccrualMode;
+  drinkAccrualRounding?: DrinkAccrualRounding;
   createdAt?: string;
 }
 
@@ -37,4 +42,6 @@ export interface MstRoleWritePayload {
   startDrinks: number;
   nextHourDrinks: number;
   defaultPricePerDrink: number;
+  drinkAccrualMode?: DrinkAccrualMode;
+  drinkAccrualRounding?: DrinkAccrualRounding;
 }
