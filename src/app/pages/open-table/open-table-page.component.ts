@@ -68,7 +68,8 @@ import {
 } from '../../utils/numeric-input.util';
 
 type SeatTypeFilter = number | 'ALL';
-type SeatStatusFilter = 'ALL' | 'AVAILABLE' | 'OCCUPIED' | 'AWAITING_CLEAR';
+type SeatStatusFilter = 'ALL' | 'AVAILABLE' | 'RESERVED' | 'OCCUPIED' | 'AWAITING_CLEAR';
+type CheckInMode = 'OPEN' | 'RESERVE';
 type AddModalMode = 'ORDER_LEDGER' | 'STAFF_LEDGER' | 'ROOM_CHARGE';
 
 const OWNER_ROLE = 'OWNER';
@@ -86,6 +87,7 @@ type SeatTile = {
   sessionId: number | null;
   sessionRevision: number | null;
   saleName?: string;
+  reservedSaleId?: number | null;
 };
 
 @Component({
@@ -157,6 +159,7 @@ export class OpenTablePageComponent implements OnInit {
   readonly saleEmployees = signal<MstEmployee[]>([]);
   readonly checkInSalesId = signal<number | null>(null);
   readonly checkInCreditSaleToShop = signal(false);
+  readonly checkInMode = signal<CheckInMode>('OPEN');
   private readonly openTableOtherChargesRaw = signal<MstOtherCharge[]>([]);
   /** Standalone toggles + one id per choice group. */
   private readonly foodCategoriesRaw = signal<MstFoodCategory[]>([]);
@@ -246,6 +249,7 @@ export class OpenTablePageComponent implements OnInit {
         return false;
       }
       if (this.statusFilter() === 'AVAILABLE' && seat.status !== 'AVAILABLE') return false;
+      if (this.statusFilter() === 'RESERVED' && seat.status !== 'RESERVED') return false;
       if (this.statusFilter() === 'OCCUPIED' && seat.status !== 'OCCUPIED') return false;
       if (this.statusFilter() === 'AWAITING_CLEAR' && seat.status !== 'AWAITING_CLEAR') {
         return false;
@@ -299,6 +303,8 @@ export class OpenTablePageComponent implements OnInit {
   readonly seatAwaitingClear = computed(
     () => this.selectedSeat()?.status === 'AWAITING_CLEAR',
   );
+
+  readonly seatReserved = computed(() => this.selectedSeat()?.status === 'RESERVED');
 
   /** ยังเพิ่มรายการ/ย้าย/เช็กบิลได้ — หลังเช็กบิลแล้วเป็น false */
   readonly ledgerCanMutate = computed(() => {
@@ -750,6 +756,7 @@ export class OpenTablePageComponent implements OnInit {
             sessionId: s.sessionId,
             sessionRevision: s.sessionRevision ?? null,
             saleName: s.saleName ?? undefined,
+            reservedSaleId: s.reservedSaleId ?? null,
           })),
         );
         this.seats.set(tiles);
@@ -1329,9 +1336,13 @@ export class OpenTablePageComponent implements OnInit {
     } else {
       this.sessionDetail.set(null);
       this.sessionDetailLoading.set(false);
-      const defaultSale = this.saleEmployees()[0]?.id ?? null;
+      const defaultSale =
+        seat.reservedSaleId ??
+        this.saleEmployees()[0]?.id ??
+        null;
       this.checkInSalesId.set(defaultSale);
       this.checkInCreditSaleToShop.set(false);
+      this.checkInMode.set('OPEN');
     }
   }
 
@@ -1393,27 +1404,99 @@ export class OpenTablePageComponent implements OnInit {
   /** Screen-reader / title only — floor plan uses color, not this label. */
   statusText(status: SeatStatus): string {
     if (status === 'AVAILABLE') return 'ว่าง';
-    if (status === 'AWAITING_CLEAR') return 'รอเคลียโต๊ะ';
+    if (status === 'RESERVED') return 'จอง';
+    if (status === 'AWAITING_CLEAR') return 'รอลูกค้ากลับ';
     return 'มีลูกค้า';
   }
 
   seatTileClasses(seat: SeatTile): Record<string, boolean> {
     return {
       'open-table-seat-tile': true,
-      'open-table-seat-tile--available': seat.status === 'AVAILABLE',
-      'open-table-seat-tile--occupied': seat.status === 'OCCUPIED',
-      'open-table-seat-tile--awaiting-clear': seat.status === 'AWAITING_CLEAR',
       'open-table-seat-tile--selected': this.selectedSeatKey() === seat.key,
     };
   }
 
   statusDotClass(status: SeatStatus): Record<string, boolean> {
     return {
+      'open-table-seat-dot': true,
       'open-table-status-dot': true,
       'open-table-status-dot--available': status === 'AVAILABLE',
+      'open-table-status-dot--reserved': status === 'RESERVED',
       'open-table-status-dot--occupied': status === 'OCCUPIED',
       'open-table-status-dot--awaiting-clear': status === 'AWAITING_CLEAR',
     };
+  }
+
+  setCheckInMode(mode: CheckInMode): void {
+    this.checkInMode.set(mode);
+    if (mode === 'RESERVE') {
+      this.checkInCreditSaleToShop.set(false);
+    }
+  }
+
+  async submitSeatAction(): Promise<void> {
+    const seat = this.selectedSeat();
+    if (!seat) return;
+    if (seat.status === 'RESERVED' || this.checkInMode() === 'OPEN') {
+      await this.checkInSelectedSeat();
+      return;
+    }
+    await this.reserveSelectedSeat();
+  }
+
+  async reserveSelectedSeat(): Promise<void> {
+    const seat = this.selectedSeat();
+    const salesId = this.checkInSalesId();
+    if (!seat || seat.status !== 'AVAILABLE' || salesId == null) {
+      this.toast.showError('กรุณาเลือกเซลล์');
+      return;
+    }
+
+    const saleName =
+      this.saleEmployees().find((e) => e.id === salesId)?.nickname ?? '—';
+    const ok = await this.confirmDialog.confirm({
+      title: 'จองโต๊ะ',
+      message: `จอง ${seat.zoneLabel} · ${seat.code} · เซลล์ ${saleName} ใช่หรือไม่?`,
+      confirmLabel: 'จอง',
+    });
+    if (!ok) return;
+
+    this.runAction(
+      this.openTableService.reserveSeat({
+        shopId: this.shopId,
+        salesId,
+        seatingId: seat.seatId,
+      }),
+      'จองโต๊ะสำเร็จ',
+      () => {
+        this.refreshFloorPlan(seat.key, { silent: true });
+      },
+      () => {
+        this.refreshFloorPlan(this.selectedSeatKey(), { silent: true });
+      },
+    );
+  }
+
+  cancelSelectedReservation(): void {
+    const seat = this.selectedSeat();
+    if (!seat || seat.status !== 'RESERVED') {
+      this.toast.showError('โต๊ะนี้ไม่ได้อยู่ในสถานะจอง');
+      return;
+    }
+
+    this.runAction(
+      this.openTableService.cancelReservation({
+        shopId: this.shopId,
+        seatingId: seat.seatId,
+      }),
+      'ยกเลิกการจองแล้ว',
+      () => {
+        this.refreshFloorPlan(seat.key, { silent: true });
+      },
+      () => {
+        this.refreshFloorPlan(this.selectedSeatKey(), { silent: true });
+      },
+    );
   }
 
   async checkInSelectedSeat(): Promise<void> {
@@ -1421,6 +1504,10 @@ export class OpenTablePageComponent implements OnInit {
     const salesId = this.checkInSalesId();
     if (!seat || salesId == null) {
       this.toast.showError('กรุณาเลือกเซลล์');
+      return;
+    }
+    if (seat.status !== 'AVAILABLE' && seat.status !== 'RESERVED') {
+      this.toast.showError('โต๊ะนี้ไม่ว่าง');
       return;
     }
 
@@ -1431,7 +1518,7 @@ export class OpenTablePageComponent implements OnInit {
       ? `ยอดเข้าร้าน (เปิดโดยเซลล์ ${saleName})`
       : `เซลล์ ${saleName}`;
     const ok = await this.confirmDialog.confirm({
-      title: 'เปิดโต๊ะ',
+      title: seat.status === 'RESERVED' ? 'เปิดโต๊ะ (ลูกค้ามาแล้ว)' : 'เปิดโต๊ะ',
       message: `เปิด ${seat.zoneLabel} · ${seat.code} · ${saleLine} ใช่หรือไม่?`,
       confirmLabel: 'เปิดโต๊ะ',
     });
@@ -1480,7 +1567,11 @@ export class OpenTablePageComponent implements OnInit {
   closeAddModal(): void {
     closeOpenShopFlatpickrCalendars();
     this.showAddModal.set(false);
-    this.purgePortaledModalsWhenNoneOpen();
+    // Defer sweep so Angular destroys `@if (showAddModal)` before we remove `body > app-modal`.
+    requestAnimationFrame(() => {
+      this.purgePortaledModalsWhenNoneOpen();
+      setTimeout(() => this.purgePortaledModalsWhenNoneOpen(), 0);
+    });
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
     }
@@ -1488,13 +1579,9 @@ export class OpenTablePageComponent implements OnInit {
 
   /** Portaled `app-modal` hosts can outlive `@if` destroy — remove stale overlays. */
   private purgePortaledModalsWhenNoneOpen(): void {
-    const sweep = (): void => {
-      if (this.anyModalOpen()) return;
-      document.body.classList.remove(APP_MODAL_BODY_LOCK_CLASS);
-      document.querySelectorAll('body > app-modal').forEach((el) => el.remove());
-    };
-    queueMicrotask(sweep);
-    setTimeout(sweep, 0);
+    if (this.anyModalOpen()) return;
+    document.body.classList.remove(APP_MODAL_BODY_LOCK_CLASS);
+    document.querySelectorAll('body > app-modal').forEach((el) => el.remove());
   }
 
   submitAddItems(): void {
@@ -1519,6 +1606,11 @@ export class OpenTablePageComponent implements OnInit {
         this.toast.showError('กรุณาเลือกประเภทและที่นั่ง');
         return;
       }
+      const seatStartedAt = this.roomSeatStartedAt().trim();
+      if (!isValidShopDatetimeLocal(seatStartedAt)) {
+        this.toast.showError('กรุณาระบุเวลาเริ่มใช้ให้ถูกต้อง');
+        return;
+      }
       let unitPrice = 0;
       if (rateType === 'HOURLY' || rateType === 'FLAT_RATE') {
         const parsed = parsePositiveIntFromText(this.roomChargeUnitPriceText());
@@ -1528,6 +1620,7 @@ export class OpenTablePageComponent implements OnInit {
         }
         unitPrice = parsed;
       }
+      closeOpenShopFlatpickrCalendars();
       this.beginSessionBillRefresh();
       this.runAction(
         this.openTableService.addRoomCharge({
@@ -1537,7 +1630,7 @@ export class OpenTablePageComponent implements OnInit {
           seatingId,
           rateType,
           unitPrice,
-          seatStartedAt: this.roomSeatStartedAt(),
+          seatStartedAt,
         }),
         'เพิ่มค่าห้องสำเร็จ',
         (detail) => {
@@ -1662,6 +1755,8 @@ export class OpenTablePageComponent implements OnInit {
       this.toast.showError('กรุณาระบุเวลาสต็อป');
       return;
     }
+    closeOpenShopFlatpickrCalendars();
+    this.beginSessionBillRefresh();
     this.runAction(
       this.openTableService.stopRoomCharge({
         shopId: this.shopId,
@@ -1671,13 +1766,13 @@ export class OpenTablePageComponent implements OnInit {
         seatStoppedAt,
       }),
       'สต็อปห้องสำเร็จ',
-      () => {
+      (detail) => {
         this.closeStopRoomModal();
-        this.loadSessionDetail(sessionId, { showLoading: false });
+        this.applySessionDetailAfterBillRefresh(detail, sessionId);
       },
       () => {
         this.closeStopRoomModal();
-        this.loadSessionDetail(sessionId, { showLoading: false });
+        this.cancelSessionBillRefresh(sessionId);
       },
     );
   }
@@ -1764,6 +1859,8 @@ export class OpenTablePageComponent implements OnInit {
       this.toast.showError('กรุณาระบุเวลาสต็อป');
       return;
     }
+    closeOpenShopFlatpickrCalendars();
+    this.beginSessionBillRefresh();
     this.runAction(
       this.openTableService.stopStaffDrink({
         shopId: this.shopId,
@@ -1773,14 +1870,14 @@ export class OpenTablePageComponent implements OnInit {
         seatStoppedAt,
       }),
       'สต็อปดื่มสำเร็จ',
-      () => {
+      (detail) => {
         this.closeStopDrinkModal();
-        this.loadSessionDetail(sessionId, { showLoading: false });
+        this.applySessionDetailAfterBillRefresh(detail, sessionId);
         this.reloadStaffEmployees();
       },
       () => {
         this.closeStopDrinkModal();
-        this.loadSessionDetail(sessionId, { showLoading: false });
+        this.cancelSessionBillRefresh(sessionId);
       },
     );
   }
@@ -1845,6 +1942,7 @@ export class OpenTablePageComponent implements OnInit {
       this.toast.showError(`ลบได้ไม่เกิน ${item.quantity} ${item.unitLabel}`);
       return;
     }
+    this.beginSessionBillRefresh();
     this.runAction(
       this.openTableService.voidSessionItems({
         shopId: this.shopId,
@@ -1863,13 +1961,13 @@ export class OpenTablePageComponent implements OnInit {
         ],
       }),
       'ลบรายการสำเร็จ — เพิ่มโปรหรือรายการใหม่ได้จากปุ่มเพิ่มรายการ',
-      () => {
+      (detail) => {
         this.closeVoidItemModal();
-        this.loadSessionDetail(sessionId, { showLoading: false });
+        this.applySessionDetailAfterBillRefresh(detail, sessionId);
       },
       () => {
         this.closeVoidItemModal();
-        this.loadSessionDetail(sessionId, { showLoading: false });
+        this.cancelSessionBillRefresh(sessionId);
       },
     );
   }
@@ -1891,6 +1989,7 @@ export class OpenTablePageComponent implements OnInit {
       this.toast.showError(`คืนได้ไม่เกิน ${item.quantity} ${item.unitLabel}`);
       return;
     }
+    this.beginSessionBillRefresh();
     this.runAction(
       this.openTableService.returnBeverage({
         shopId: this.shopId,
@@ -1902,13 +2001,13 @@ export class OpenTablePageComponent implements OnInit {
         quantity,
       }),
       'คืนเครื่องดื่มสำเร็จ',
-      () => {
+      (detail) => {
         this.closeReturnBeverageModal();
-        this.loadSessionDetail(sessionId, { showLoading: false });
+        this.applySessionDetailAfterBillRefresh(detail, sessionId);
       },
       () => {
         this.closeReturnBeverageModal();
-        this.loadSessionDetail(sessionId, { showLoading: false });
+        this.cancelSessionBillRefresh(sessionId);
       },
     );
   }
@@ -2088,12 +2187,12 @@ export class OpenTablePageComponent implements OnInit {
         // Clear busy before closing portaled modals — otherwise a detached overlay can
         // freeze on "กำลังบันทึก..." while finalize runs on the live component.
         this.actionBusy.set(false);
-        this.toast.showSuccess(successMessage);
         try {
           onSuccess(result);
         } catch {
           this.purgePortaledModalsWhenNoneOpen();
         }
+        this.toast.showSuccess(successMessage);
       });
   }
 }

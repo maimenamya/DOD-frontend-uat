@@ -1,8 +1,13 @@
-/* Floor-plan seat tiles — status by color only (no sub-label text). */
+/* Floor-plan seat tiles — neutral tile + status dot (top-right). */
 
 .open-table-seat-tile {
+  position: relative;
   border-width: 1px;
   border-style: solid;
+  background: var(--surface-elevated, var(--surface));
+  border-color: var(--border);
+  color: var(--text-primary);
+  font-weight: 600;
   transition:
     background var(--transition-smooth),
     border-color var(--transition-smooth),
@@ -10,50 +15,18 @@
     box-shadow var(--transition-smooth);
 }
 
-.open-table-seat-tile--available {
-  background: var(--seat-available-bg);
-  border-color: var(--seat-available-border);
-  color: var(--seat-available-text);
-  font-weight: 600;
-}
-
-.open-table-seat-tile--occupied {
-  background: var(--seat-occupied-bg);
-  border-color: var(--seat-occupied-border);
-  color: var(--seat-occupied-text);
-}
-
-.open-table-seat-tile--awaiting-clear {
-  background: var(--seat-awaiting-bg);
-  border-color: var(--seat-awaiting-border);
-  color: var(--seat-awaiting-text);
-}
-
-/* Selected ring matches status — no blue halo on amber “รอเคลีย” tiles. */
-.open-table-seat-tile--available.open-table-seat-tile--selected {
-  border-color: color-mix(in srgb, var(--seat-available-text) 75%, #ffffff);
-  color: var(--text-primary);
-  box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--seat-available-text) 45%, transparent),
-    0 0 12px color-mix(in srgb, var(--seat-available-text) 18%, transparent);
-}
-
-.open-table-seat-tile--occupied.open-table-seat-tile--selected {
-  background: color-mix(in srgb, var(--primary) 28%, var(--seat-occupied-bg));
-  border-color: var(--seat-occupied-border);
-  color: var(--seat-occupied-text);
+.open-table-seat-tile--selected {
+  border-color: var(--primary);
   box-shadow:
     0 0 0 2px var(--primary),
     0 0 16px color-mix(in srgb, var(--primary) 40%, transparent);
 }
 
-.open-table-seat-tile--awaiting-clear.open-table-seat-tile--selected {
-  background: color-mix(in srgb, var(--seat-awaiting-border) 32%, var(--seat-awaiting-bg));
-  border-color: var(--seat-awaiting-border);
-  color: var(--text-on-warning);
-  box-shadow:
-    0 0 0 2px var(--seat-awaiting-border),
-    0 0 16px color-mix(in srgb, var(--seat-awaiting-border) 40%, transparent);
+.open-table-seat-dot {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  pointer-events: none;
 }
 
 .open-table-status-dot {
@@ -65,13 +38,18 @@
 }
 
 .open-table-status-dot--available {
-  background: var(--seat-available-text);
-  box-shadow: 0 0 0 1px var(--seat-available-border);
+  background: #22c55e;
+  box-shadow: 0 0 6px color-mix(in srgb, #22c55e 55%, transparent);
+}
+
+.open-table-status-dot--reserved {
+  background: var(--seat-reserved-border);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--seat-reserved-border) 55%, transparent);
 }
 
 .open-table-status-dot--occupied {
-  background: var(--seat-occupied-border);
-  box-shadow: 0 0 6px color-mix(in srgb, var(--primary) 55%, transparent);
+  background: #ef4444;
+  box-shadow: 0 0 6px color-mix(in srgb, #ef4444 55%, transparent);
 }
 
 .open-table-status-dot--awaiting-clear {
@@ -95,8 +73,8 @@
 }
 
 .open-table-filter-swatch--available {
-  background: var(--seat-available-bg);
-  border-color: var(--seat-available-border);
+  background: color-mix(in srgb, #22c55e 12%, var(--surface));
+  border-color: color-mix(in srgb, #22c55e 45%, var(--border));
 }
 
 .open-table-filter-swatch.app-filter-chip-active {
@@ -106,20 +84,28 @@
 }
 
 .open-table-filter-swatch--available.app-filter-chip-active {
-  background: var(--seat-available-bg);
-  border-color: var(--seat-available-text);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--seat-available-text) 35%, transparent);
+  border-color: #22c55e;
+  box-shadow: 0 0 0 2px color-mix(in srgb, #22c55e 35%, transparent);
+}
+
+.open-table-filter-swatch--reserved {
+  background: var(--seat-reserved-bg);
+  border-color: var(--seat-reserved-border);
+}
+
+.open-table-filter-swatch--reserved.app-filter-chip-active {
+  border-color: var(--seat-reserved-border);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--seat-reserved-border) 40%, transparent);
 }
 
 .open-table-filter-swatch--occupied {
-  background: var(--seat-occupied-bg);
-  border-color: var(--seat-occupied-border);
+  background: color-mix(in srgb, #ef4444 12%, var(--surface));
+  border-color: color-mix(in srgb, #ef4444 45%, var(--border));
 }
 
 .open-table-filter-swatch--occupied.app-filter-chip-active {
-  background: var(--seat-occupied-bg);
-  border-color: var(--seat-occupied-border);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--seat-occupied-border) 45%, transparent);
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px color-mix(in srgb, #ef4444 40%, transparent);
 }
 
 .open-table-filter-swatch--awaiting-clear {
@@ -128,7 +114,6 @@
 }
 
 .open-table-filter-swatch--awaiting-clear.app-filter-chip-active {
-  background: var(--seat-awaiting-bg);
   border-color: var(--seat-awaiting-border);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--seat-awaiting-border) 40%, transparent);
 }
@@ -141,11 +126,15 @@
 }
 
 .open-table-filter-swatch--available .open-table-filter-swatch-inner {
-  background: var(--seat-available-text);
+  background: #22c55e;
+}
+
+.open-table-filter-swatch--reserved .open-table-filter-swatch-inner {
+  background: var(--seat-reserved-border);
 }
 
 .open-table-filter-swatch--occupied .open-table-filter-swatch-inner {
-  background: var(--seat-occupied-border);
+  background: #ef4444;
 }
 
 .open-table-filter-swatch--awaiting-clear .open-table-filter-swatch-inner {

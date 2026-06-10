@@ -63,6 +63,16 @@
           </button>
           <button
             type="button"
+            class="app-filter-chip open-table-filter-swatch open-table-filter-swatch--reserved"
+            [class.app-filter-chip-active]="statusFilter() === 'RESERVED'"
+            [attr.aria-label]="'จอง'"
+            title="จอง"
+            (click)="setStatusFilter('RESERVED')"
+          >
+            <span class="open-table-filter-swatch-inner" aria-hidden="true"></span>
+          </button>
+          <button
+            type="button"
             class="app-filter-chip open-table-filter-swatch open-table-filter-swatch--occupied"
             [class.app-filter-chip-active]="statusFilter() === 'OCCUPIED'"
             [attr.aria-label]="'มีลูกค้า'"
@@ -75,8 +85,8 @@
             type="button"
             class="app-filter-chip open-table-filter-swatch open-table-filter-swatch--awaiting-clear"
             [class.app-filter-chip-active]="statusFilter() === 'AWAITING_CLEAR'"
-            [attr.aria-label]="'รอเคลียโต๊ะ'"
-            title="รอเคลียโต๊ะ"
+            [attr.aria-label]="'รอลูกค้ากลับ'"
+            title="รอลูกค้ากลับ"
             (click)="setStatusFilter('AWAITING_CLEAR')"
           >
             <span class="open-table-filter-swatch-inner" aria-hidden="true"></span>
@@ -94,12 +104,13 @@
                   @for (seat of zone.seats; track seat.key) {
                     <button
                       type="button"
-                      class="rounded-input px-1.5 py-2.5 text-center transition-all duration-200"
+                      class="open-table-seat-tile rounded-input px-1.5 py-2.5 text-center transition-all duration-200"
                       [ngClass]="seatTileClasses(seat)"
                       [attr.aria-label]="seat.code + ' — ' + statusText(seat.status)"
                       [title]="statusText(seat.status)"
                       (click)="selectSeat(seat)"
                     >
+                      <span [ngClass]="statusDotClass(seat.status)" aria-hidden="true"></span>
                       <p class="text-xs font-semibold leading-tight">{{ seat.code }}</p>
                     </button>
                   }
@@ -189,6 +200,27 @@
 
         @if (seat.status === 'AVAILABLE') {
           <div class="space-y-3 rounded-input border border-theme-border bg-surface px-3 py-3">
+            <div class="open-table-staff-choice">
+              <span class="app-label">ประเภท</span>
+              <div class="app-segmented-control" role="group" aria-label="เปิดโต๊ะหรือจอง">
+                <button
+                  type="button"
+                  class="app-segmented-chip"
+                  [class.app-segmented-chip-active]="checkInMode() === 'OPEN'"
+                  (click)="setCheckInMode('OPEN')"
+                >
+                  เปิดโต๊ะ
+                </button>
+                <button
+                  type="button"
+                  class="app-segmented-chip"
+                  [class.app-segmented-chip-active]="checkInMode() === 'RESERVE'"
+                  (click)="setCheckInMode('RESERVE')"
+                >
+                  จอง
+                </button>
+              </div>
+            </div>
             <div class="space-y-1">
               <span class="text-sm text-text-secondary">เซลล์</span>
               <app-custom-dropdown
@@ -198,25 +230,62 @@
                 placeholder="เลือกเซลล์"
               />
             </div>
-            <label class="app-toggle">
-              <input
-                type="checkbox"
-                class="app-toggle-input"
-                [ngModel]="checkInCreditSaleToShop()"
-                (ngModelChange)="checkInCreditSaleToShop.set($event)"
+            @if (checkInMode() === 'OPEN') {
+              <label class="app-toggle">
+                <input
+                  type="checkbox"
+                  class="app-toggle-input"
+                  [ngModel]="checkInCreditSaleToShop()"
+                  (ngModelChange)="checkInCreditSaleToShop.set($event)"
+                />
+                <span class="app-toggle-track" aria-hidden="true"></span>
+                <span class="app-toggle-text text-sm">
+                  ยอดเข้าร้าน (ไม่นับยอดเซลล์ที่เลือก)
+                </span>
+              </label>
+            }
+            <button
+              type="button"
+              class="app-btn-primary w-full"
+              [disabled]="actionBusy() || checkInSalesId() == null"
+              (click)="submitSeatAction()"
+            >
+              @if (actionBusy()) {
+                {{ checkInMode() === 'RESERVE' ? 'กำลังจอง...' : 'กำลังเปิดโต๊ะ...' }}
+              } @else {
+                {{ checkInMode() === 'RESERVE' ? 'บันทึกจอง' : 'เปิดโต๊ะ' }}
+              }
+            </button>
+          </div>
+        } @else if (seat.status === 'RESERVED') {
+          <div class="space-y-3 rounded-input border border-theme-border bg-surface px-3 py-3">
+            <p class="text-sm text-text-secondary">
+              จองไว้ · เซลล์ {{ seat.saleName ?? '—' }}
+            </p>
+            <div class="space-y-1">
+              <span class="text-sm text-text-secondary">เซลล์ (เมื่อลูกค้ามา)</span>
+              <app-custom-dropdown
+                [options]="saleEmployeeOptions()"
+                [ngModel]="checkInSalesId()"
+                (ngModelChange)="onCheckInSalesChange($event)"
+                placeholder="เลือกเซลล์"
               />
-              <span class="app-toggle-track" aria-hidden="true"></span>
-              <span class="app-toggle-text text-sm">
-                ยอดเข้าร้าน (ไม่นับยอดเซลล์ที่เลือก)
-              </span>
-            </label>
+            </div>
             <button
               type="button"
               class="app-btn-primary w-full"
               [disabled]="actionBusy() || checkInSalesId() == null"
               (click)="checkInSelectedSeat()"
             >
-              {{ actionBusy() ? 'กำลังเปิดโต๊ะ...' : 'เปิดโต๊ะ' }}
+              {{ actionBusy() ? 'กำลังเปิดโต๊ะ...' : 'เปิดโต๊ะ (ลูกค้ามาแล้ว)' }}
+            </button>
+            <button
+              type="button"
+              class="app-btn-secondary w-full"
+              [disabled]="actionBusy()"
+              (click)="cancelSelectedReservation()"
+            >
+              ยกเลิกจอง
             </button>
           </div>
         } @else if (sessionDetailLoading()) {

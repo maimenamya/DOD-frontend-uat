@@ -1,6 +1,6 @@
 import type { SeatingRateType } from './seating';
 
-export type SeatStatus = 'AVAILABLE' | 'OCCUPIED' | 'AWAITING_CLEAR';
+export type SeatStatus = 'AVAILABLE' | 'RESERVED' | 'OCCUPIED' | 'AWAITING_CLEAR';
 
 export type FloorPlanSeat = {
   id: number;
@@ -11,6 +11,7 @@ export type FloorPlanSeat = {
   sessionId: number | null;
   sessionRevision: number | null;
   saleName: string | null;
+  reservedSaleId: number | null;
 };
 
 export type FloorPlanSeatingType = {
@@ -171,6 +172,17 @@ export type CheckInPayload = {
   salesId: number;
   /** Bill credit goes to shop, not the selected sale employee. */
   creditSaleToShop?: boolean;
+};
+
+export type ReserveSeatPayload = {
+  shopId: number;
+  seatingId: number;
+  salesId: number;
+};
+
+export type CancelReservationPayload = {
+  shopId: number;
+  seatingId: number;
 };
 
 export type SessionOrderItemType =

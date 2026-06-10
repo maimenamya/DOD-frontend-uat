@@ -165,9 +165,12 @@
     --seat-occupied-bg: color-mix(in srgb, var(--primary) 14%, #ffffff);
     --seat-occupied-border: color-mix(in srgb, var(--primary) 55%, #ffffff);
     --seat-occupied-text: #4338ca;
-    --seat-awaiting-bg: rgba(217, 119, 6, 0.12);
-    --seat-awaiting-border: #f59e0b;
-    --seat-awaiting-text: #b45309;
+    --seat-reserved-bg: rgba(234, 179, 8, 0.12);
+    --seat-reserved-border: #eab308;
+    --seat-reserved-text: #a16207;
+    --seat-awaiting-bg: rgba(100, 116, 139, 0.12);
+    --seat-awaiting-border: #94a3b8;
+    --seat-awaiting-text: #64748b;
 
     /* Shadows — soft floating glass */
     --shadow-card: 0 10px 40px rgba(148, 163, 184, 0.14), 0 2px 10px rgba(148, 163, 184, 0.06);
@@ -298,9 +301,12 @@
     --seat-occupied-bg: color-mix(in srgb, var(--primary) 22%, #161c27);
     --seat-occupied-border: color-mix(in srgb, var(--primary-light) 70%, #161c27);
     --seat-occupied-text: #c7d2fe;
-    --seat-awaiting-bg: rgba(245, 158, 11, 0.16);
-    --seat-awaiting-border: #fbbf24;
-    --seat-awaiting-text: #fde68a;
+    --seat-reserved-bg: rgba(234, 179, 8, 0.16);
+    --seat-reserved-border: #facc15;
+    --seat-reserved-text: #fde047;
+    --seat-awaiting-bg: rgba(148, 163, 184, 0.14);
+    --seat-awaiting-border: #94a3b8;
+    --seat-awaiting-text: #cbd5e1;
 
     --shadow-card: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     --shadow-elevated: 0 8px 28px 0 rgba(0, 0, 0, 0.32);
