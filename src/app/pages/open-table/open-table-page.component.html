@@ -411,10 +411,13 @@
                     <span>
                       - {{ row.roomCode }} x {{ row.quantity }} {{ row.unitLabel }}
                     </span>
-                    <span class="whitespace-nowrap text-[0.8125rem] text-text-secondary">
-                      เริ่มใช้ {{ row.seatStartedLabel }}
-                    </span>
                     @if (row.canStop) {
+                      <span class="whitespace-nowrap text-[0.8125rem] font-medium text-theme-accent">
+                        กำลังใช้
+                      </span>
+                      <span class="whitespace-nowrap text-[0.8125rem] text-text-secondary">
+                        เริ่มใช้ {{ row.seatStartedLabel }}
+                      </span>
                       <button
                         type="button"
                         class="app-btn-inline shrink-0"
@@ -423,6 +426,17 @@
                       >
                         สต็อป
                       </button>
+                    } @else if (row.seatStoppedLabel) {
+                      <span class="whitespace-nowrap text-[0.8125rem] font-medium text-text-secondary">
+                        สต็อปแล้ว · {{ row.seatStoppedLabel }}
+                      </span>
+                      <span class="whitespace-nowrap text-[0.8125rem] text-text-muted">
+                        เริ่มใช้ {{ row.seatStartedLabel }}
+                      </span>
+                    } @else {
+                      <span class="whitespace-nowrap text-[0.8125rem] text-text-secondary">
+                        เริ่มใช้ {{ row.seatStartedLabel }}
+                      </span>
                     }
                     <span class="ml-auto shrink-0 font-medium text-theme-accent">
                       {{ row.lineAmount | number: '1.0-0' }} บาท

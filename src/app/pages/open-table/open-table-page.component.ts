@@ -916,12 +916,14 @@ export class OpenTablePageComponent implements OnInit {
     this.sessionDetail.set(null);
   }
 
-  /** Paint skeleton at least one frame after modal close, then apply fresh detail. */
+  /** Paint skeleton briefly after modal close so bill lines (e.g. stopped room) read clearly. */
+  private static readonly MIN_BILL_SKELETON_MS = 320;
+
   private applySessionDetailAfterBillRefresh(
     detail: OpenTableSessionDetail,
     sessionId: number,
   ): void {
-    requestAnimationFrame(() => {
+    const apply = (): void => {
       if (this.selectedSeat()?.sessionId !== sessionId) {
         this.sessionDetailLoading.set(false);
         return;
@@ -929,6 +931,9 @@ export class OpenTablePageComponent implements OnInit {
       this.sessionDetail.set(detail);
       this.syncSeatRevisionFromDetail(detail);
       this.sessionDetailLoading.set(false);
+    };
+    requestAnimationFrame(() => {
+      setTimeout(apply, OpenTablePageComponent.MIN_BILL_SKELETON_MS);
     });
   }
 
@@ -1615,18 +1620,14 @@ export class OpenTablePageComponent implements OnInit {
     setTimeout(sweep, 50);
   }
 
-  private finishAddModalSuccess(
+  private finishBillMutationSuccess(
     detail: OpenTableSessionDetail,
     sessionId: number,
     successMessage: string,
+    closeModal: () => void,
     afterApply?: () => void,
   ): void {
-    closeOpenShopFlatpickrCalendars();
-    this.showAddModal.set(false);
-    this.schedulePortaledModalPurge();
-    if (this.selectedSeatKey()) {
-      this.showMobileSheet.set(true);
-    }
+    closeModal();
     this.toast.showSuccess(successMessage);
     if (detail.sessionId === sessionId) {
       this.applySessionDetailAfterBillRefresh(detail, sessionId);
@@ -1637,10 +1638,12 @@ export class OpenTablePageComponent implements OnInit {
     afterApply?.();
   }
 
-  private runAddModalMutation(
+  /** Bill mutations from portaled modals — close overlay, toast, then refresh bill panel. */
+  private runBillPanelMutation(
     request$: import('rxjs').Observable<OpenTableSessionDetail>,
     successMessage: string,
     sessionId: number,
+    closeModal: () => void,
     afterApply?: () => void,
   ): void {
     if (this.actionBusy()) return;
@@ -1664,9 +1667,16 @@ export class OpenTablePageComponent implements OnInit {
       .subscribe((detail) => {
         if (detail == null) {
           this.cancelSessionBillRefresh(sessionId);
+          closeModal();
           return;
         }
-        this.finishAddModalSuccess(detail, sessionId, successMessage, afterApply);
+        this.finishBillMutationSuccess(
+          detail,
+          sessionId,
+          successMessage,
+          closeModal,
+          afterApply,
+        );
       });
   }
 
@@ -1707,7 +1717,7 @@ export class OpenTablePageComponent implements OnInit {
         unitPrice = parsed;
       }
       this.beginSessionBillRefresh();
-      this.runAddModalMutation(
+      this.runBillPanelMutation(
         this.openTableService.addRoomCharge({
           shopId: this.shopId,
           sessionId,
@@ -1719,6 +1729,7 @@ export class OpenTablePageComponent implements OnInit {
         }),
         'เพิ่มค่าห้องสำเร็จ',
         sessionId,
+        () => this.closeAddModal(),
       );
       return;
     }
@@ -1743,7 +1754,7 @@ export class OpenTablePageComponent implements OnInit {
         : 'บันทึกรันดื่มพนักงานสำเร็จ';
 
     this.beginSessionBillRefresh();
-    this.runAddModalMutation(
+    this.runBillPanelMutation(
       this.openTableService.addOrderItems({
         shopId: this.shopId,
         sessionId,
@@ -1753,6 +1764,7 @@ export class OpenTablePageComponent implements OnInit {
       }),
       successMessage,
       sessionId,
+      () => this.closeAddModal(),
       () => {
         if (staffDrinks.length > 0) {
           this.reloadStaffEmployees();
@@ -1773,7 +1785,9 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   closeTransferModal(): void {
+    closeOpenShopFlatpickrCalendars();
     this.showTransferModal.set(false);
+    this.schedulePortaledModalPurge();
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
     }
@@ -1816,6 +1830,7 @@ export class OpenTablePageComponent implements OnInit {
     closeOpenShopFlatpickrCalendars();
     this.showStopRoomModal.set(false);
     this.stopRoomTarget.set(null);
+    this.schedulePortaledModalPurge();
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
     }
@@ -1834,9 +1849,8 @@ export class OpenTablePageComponent implements OnInit {
       this.toast.showError('กรุณาระบุเวลาสต็อป');
       return;
     }
-    closeOpenShopFlatpickrCalendars();
     this.beginSessionBillRefresh();
-    this.runAction(
+    this.runBillPanelMutation(
       this.openTableService.stopRoomCharge({
         shopId: this.shopId,
         sessionId,
@@ -1845,14 +1859,8 @@ export class OpenTablePageComponent implements OnInit {
         seatStoppedAt,
       }),
       'สต็อปห้องสำเร็จ',
-      (detail) => {
-        this.closeStopRoomModal();
-        this.applySessionDetailAfterBillRefresh(detail, sessionId);
-      },
-      () => {
-        this.closeStopRoomModal();
-        this.cancelSessionBillRefresh(sessionId);
-      },
+      sessionId,
+      () => this.closeStopRoomModal(),
     );
   }
 
@@ -1874,6 +1882,7 @@ export class OpenTablePageComponent implements OnInit {
     this.stopDrinkPreview.set(null);
     this.showStopDrinkModal.set(false);
     this.stopDrinkTarget.set(null);
+    this.schedulePortaledModalPurge();
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
     }
@@ -1938,9 +1947,8 @@ export class OpenTablePageComponent implements OnInit {
       this.toast.showError('กรุณาระบุเวลาสต็อป');
       return;
     }
-    closeOpenShopFlatpickrCalendars();
     this.beginSessionBillRefresh();
-    this.runAction(
+    this.runBillPanelMutation(
       this.openTableService.stopStaffDrink({
         shopId: this.shopId,
         sessionId,
@@ -1949,15 +1957,9 @@ export class OpenTablePageComponent implements OnInit {
         seatStoppedAt,
       }),
       'สต็อปดื่มสำเร็จ',
-      (detail) => {
-        this.closeStopDrinkModal();
-        this.applySessionDetailAfterBillRefresh(detail, sessionId);
-        this.reloadStaffEmployees();
-      },
-      () => {
-        this.closeStopDrinkModal();
-        this.cancelSessionBillRefresh(sessionId);
-      },
+      sessionId,
+      () => this.closeStopDrinkModal(),
+      () => this.reloadStaffEmployees(),
     );
   }
 
@@ -1971,6 +1973,7 @@ export class OpenTablePageComponent implements OnInit {
   closeReturnBeverageModal(): void {
     this.showReturnBeverageModal.set(false);
     this.returnBeverageTarget.set(null);
+    this.schedulePortaledModalPurge();
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
     }
@@ -1990,6 +1993,7 @@ export class OpenTablePageComponent implements OnInit {
   closeVoidItemModal(): void {
     this.showVoidItemModal.set(false);
     this.voidItemTarget.set(null);
+    this.schedulePortaledModalPurge();
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
     }
@@ -2022,7 +2026,7 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
     this.beginSessionBillRefresh();
-    this.runAction(
+    this.runBillPanelMutation(
       this.openTableService.voidSessionItems({
         shopId: this.shopId,
         sessionId,
@@ -2040,14 +2044,8 @@ export class OpenTablePageComponent implements OnInit {
         ],
       }),
       'ลบรายการสำเร็จ — เพิ่มโปรหรือรายการใหม่ได้จากปุ่มเพิ่มรายการ',
-      (detail) => {
-        this.closeVoidItemModal();
-        this.applySessionDetailAfterBillRefresh(detail, sessionId);
-      },
-      () => {
-        this.closeVoidItemModal();
-        this.cancelSessionBillRefresh(sessionId);
-      },
+      sessionId,
+      () => this.closeVoidItemModal(),
     );
   }
 
@@ -2069,7 +2067,7 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
     this.beginSessionBillRefresh();
-    this.runAction(
+    this.runBillPanelMutation(
       this.openTableService.returnBeverage({
         shopId: this.shopId,
         sessionId,
@@ -2080,14 +2078,8 @@ export class OpenTablePageComponent implements OnInit {
         quantity,
       }),
       'คืนเครื่องดื่มสำเร็จ',
-      (detail) => {
-        this.closeReturnBeverageModal();
-        this.applySessionDetailAfterBillRefresh(detail, sessionId);
-      },
-      () => {
-        this.closeReturnBeverageModal();
-        this.cancelSessionBillRefresh(sessionId);
-      },
+      sessionId,
+      () => this.closeReturnBeverageModal(),
     );
   }
 
