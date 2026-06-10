@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import {
   highlightInvalidForm,
   resetFormValidationFlag,
+  showControlError,
 } from '../../utils/form-validation.util';
 import {
   NonNullableFormBuilder,
@@ -19,6 +20,8 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './login.component.html',
 })
 export class LoginComponent {
+  protected readonly showControlError = showControlError;
+
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);

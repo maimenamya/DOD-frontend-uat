@@ -42,7 +42,13 @@
         </button>
       </div>
     } @else {
-      <form class="login-form" [class.app-form-was-validated]="formValidated()" [formGroup]="form" (ngSubmit)="submit()">
+      <form
+        class="login-form"
+        [class.app-form-was-validated]="formValidated()"
+        [formGroup]="form"
+        novalidate
+        (ngSubmit)="submit()"
+      >
         @if (error()) {
           <p class="login-error" role="alert">{{ error() }}</p>
         }
@@ -72,10 +78,10 @@
               placeholder="ชื่อผู้ใช้"
             />
           </div>
-          @if (form.controls.username.touched && form.controls.username.errors?.['required']) {
+          @if (showControlError(form.controls.username, formValidated()) && form.controls.username.errors?.['required']) {
             <p class="login-field-error">กรุณาระบุชื่อผู้ใช้</p>
           }
-          @if (form.controls.username.touched && form.controls.username.errors?.['minlength']) {
+          @if (showControlError(form.controls.username, formValidated()) && form.controls.username.errors?.['minlength']) {
             <p class="login-field-error">อย่างน้อย 3 ตัวอักษร</p>
           }
         </div>
@@ -102,7 +108,7 @@
               formControlName="password"
               autocomplete="current-password"
               class="glass-input"
-              placeholder="Password"
+              placeholder="รหัสผ่าน"
             />
             <button
               type="button"
@@ -130,10 +136,10 @@
               }
             </button>
           </div>
-          @if (form.controls.password.touched && form.controls.password.errors?.['required']) {
+          @if (showControlError(form.controls.password, formValidated()) && form.controls.password.errors?.['required']) {
             <p class="login-field-error">กรุณาระบุรหัสผ่าน</p>
           }
-          @if (form.controls.password.touched && form.controls.password.errors?.['minlength']) {
+          @if (showControlError(form.controls.password, formValidated()) && form.controls.password.errors?.['minlength']) {
             <p class="login-field-error">อย่างน้อย 6 ตัวอักษร</p>
           }
         </div>
