@@ -1111,6 +1111,19 @@
     @apply mt-1;
   }
 
+  .app-coming-soon-card {
+    @apply max-w-xl p-6;
+  }
+
+  .app-coming-soon-lead {
+    @apply text-lg font-semibold text-text-primary;
+  }
+
+  .app-coming-soon-detail {
+    @apply mt-2 text-sm text-text-secondary;
+    line-height: var(--leading-normal);
+  }
+
   /* ── Sidebar (rail → expand on hover, desktop) ── */
   .app-sidebar {
     @apply fixed inset-y-0 left-0 z-40 flex h-full min-h-screen min-h-[100dvh] w-64 flex-col text-text-primary backdrop-blur-glass transition-transform duration-300 ease-out;

@@ -78,6 +78,15 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
     icon: 'more',
     children: [{ path: '/dashboard/master-other-charges', label: 'รายการอื่นๆ' }],
   },
+  {
+    id: 'shop-settings',
+    label: 'ตั้งค่าร้าน',
+    icon: 'shop-rules',
+    children: [
+      { path: '/dashboard/stock', label: 'คลังสินค้า' },
+      { path: '/dashboard/shop-rules', label: 'กฎร้าน' },
+    ],
+  },
 ];
 
 @Component({

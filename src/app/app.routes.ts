@@ -23,6 +23,8 @@ import { MyProfileComponent } from './pages/my-profile/my-profile.component';
 import { OpenTablePageComponent } from './pages/open-table/open-table-page.component';
 import { ReportsPageComponent } from './pages/reports/reports-page.component';
 import { DailyExpensesPageComponent } from './pages/daily-expenses/daily-expenses-page.component';
+import { ShopRulesPageComponent } from './pages/shop-rules/shop-rules-page.component';
+import { StockPageComponent } from './pages/stock/stock-page.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -126,6 +128,16 @@ export const routes: Routes = [
         path: 'daily-expenses',
         component: DailyExpensesPageComponent,
         canActivate: [permissionGuard('daily_expenses')],
+      },
+      {
+        path: 'stock',
+        component: StockPageComponent,
+        canActivate: [permissionGuard('master_data')],
+      },
+      {
+        path: 'shop-rules',
+        component: ShopRulesPageComponent,
+        canActivate: [permissionGuard('master_data')],
       },
       { path: 'my-profile', component: MyProfileComponent },
       { path: 'sale-team', redirectTo: 'employees', pathMatch: 'full' },
