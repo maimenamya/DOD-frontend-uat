@@ -1,13 +1,126 @@
 <div class="app-page">
-  <header class="app-page-header">
-    <h1 class="app-page-title">คลังสินค้า</h1>
-    <p class="app-page-subtitle">จัดการสต็อกเครื่องดื่มและวัตถุดิบต่อสาขา</p>
-  </header>
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">คลังสินค้า</h1>
+      <p class="app-page-subtitle">
+        เลือกเครื่องดื่มจากเมนูแล้วกำหนดจำนวนคงเหลือ — เปิดโต๊ะจะตัดตามจำนวนจริง (เครื่องดื่ม / โปร / เมมเบอร์)
+      </p>
+    </div>
+    @if (canManage() && !loading()) {
+      <button type="button" (click)="openCreate()" class="app-btn-primary">เพิ่มรายการสต็อก</button>
+    }
+  </div>
 
-  <section class="app-card app-coming-soon-card">
-    <p class="app-coming-soon-lead">กำลังพัฒนา</p>
-    <p class="app-coming-soon-detail">
-      โมดูลคลังสินค้าจะรองรับรับเข้า-จ่ายออก นับสต็อก และเชื่อมกับเมนูเครื่องดื่ม/อาหาร
-    </p>
-  </section>
+  @if (showCreateModal() && canManage()) {
+    <app-modal (dismiss)="closeCreate()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">เพิ่มสต็อกเครื่องดื่ม</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeCreate()">✕</button>
+      </div>
+      <form
+        class="app-form-stack"
+        [class.app-form-was-validated]="createFormValidated()"
+        [formGroup]="createForm"
+        (ngSubmit)="submitCreate()"
+      >
+        <div class="app-form-group">
+          <label class="app-label">เครื่องดื่ม</label>
+          <app-custom-dropdown
+            formControlName="beverageId"
+            [options]="beverageOptions()"
+            placeholder="เลือกเครื่องดื่ม"
+          />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">จำนวนคงเหลือ</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            formControlName="quantityOnHand"
+            class="app-input"
+            (input)="sanitizeIntegerInput('create', $event)"
+          />
+        </div>
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
+          <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+            {{ submitting() ? 'กำลังบันทึก...' : 'บันทึก' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+
+  @if (editingItem(); as item) {
+    <app-modal (dismiss)="closeEdit()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">แก้ไขสต็อก — {{ item.beverage.name }}</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
+      </div>
+      <form
+        class="app-form-stack"
+        [class.app-form-was-validated]="editFormValidated()"
+        [formGroup]="editForm"
+        (ngSubmit)="submitEdit()"
+      >
+        <div class="app-form-group">
+          <label class="app-label">จำนวนคงเหลือ ({{ item.beverage.unitLabelTh }})</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            formControlName="quantityOnHand"
+            class="app-input"
+            (input)="sanitizeIntegerInput('edit', $event)"
+          />
+        </div>
+        <div class="app-form-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
+          <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+            {{ submitting() ? 'กำลังบันทึก...' : 'บันทึก' }}
+          </button>
+        </div>
+      </form>
+    </app-modal>
+  }
+
+  @if (loading()) {
+    <p class="app-muted">กำลังโหลด...</p>
+  } @else if (items().length === 0) {
+    <section class="app-card app-coming-soon-card">
+      <p class="app-coming-soon-lead">ยังไม่มีรายการสต็อก</p>
+      <p class="app-coming-soon-detail">กด «เพิ่มรายการสต็อก» แล้วเลือกเครื่องดื่มจากเมนู เช่น เบียร์ โค้ก</p>
+    </section>
+  } @else {
+    <div class="app-table-wrap">
+      <table class="app-table">
+        <thead>
+          <tr>
+            <th>เครื่องดื่ม</th>
+            <th>ประเภท</th>
+            <th>คงเหลือ</th>
+            @if (canManage()) {
+              <th></th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of items(); track row.id) {
+            <tr>
+              <td>{{ row.beverage.name }}</td>
+              <td>{{ row.beverage.category.name }}</td>
+              <td>{{ row.quantityOnHand }} {{ row.beverage.unitLabelTh }}</td>
+              @if (canManage()) {
+                <td class="app-table-actions">
+                  <button type="button" class="app-btn-ghost" (click)="openEdit(row)">แก้ไข</button>
+                  <button type="button" class="app-btn-ghost app-btn-danger-text" (click)="confirmRemove(row)">
+                    ลบ
+                  </button>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
 </div>
