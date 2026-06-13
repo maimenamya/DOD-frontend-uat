@@ -113,6 +113,7 @@ export type AdjustPackageBottlesPayload = SessionMutationBase & {
   unitLabelTh: string;
   action: 'WITHDRAW' | 'DEPOSIT';
   quantity: number;
+  displayName: string;
 };
 
 export type AddRoomChargePayload = SessionMutationBase & {

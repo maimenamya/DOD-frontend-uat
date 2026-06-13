@@ -510,7 +510,35 @@
           </button>
         } @else {
           <div>
-            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">รายการในบิล</p>
+            <div class="mb-2 flex flex-wrap items-center gap-2">
+              <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                รายการในบิล
+              </p>
+              @if (ledgerCanMutate() && (canWithdrawPackageBottle() || canDepositPackageBottleOnBill())) {
+                <span class="ml-auto flex flex-wrap gap-1">
+                  @if (canWithdrawPackageBottle()) {
+                    <button
+                      type="button"
+                      class="app-btn-secondary-sm"
+                      [disabled]="actionBusy()"
+                      (click)="openPackageBottleModal('WITHDRAW')"
+                    >
+                      เบิกขวด
+                    </button>
+                  }
+                  @if (canDepositPackageBottleOnBill()) {
+                    <button
+                      type="button"
+                      class="app-btn-secondary-sm"
+                      [disabled]="actionBusy()"
+                      (click)="openPackageBottleModal('DEPOSIT')"
+                    >
+                      ฝากขวด
+                    </button>
+                  }
+                </span>
+              }
+            </div>
             <div class="space-y-1 text-sm text-text-primary">
               @for (
                 item of sessionDetail()?.items ?? [];
@@ -531,32 +559,6 @@
                         <span class="font-mono text-theme-accent">{{ bottleLabel }}</span>
                       }
                     </span>
-                    @if (item.canAdjustPackageBottles) {
-                      <input
-                        type="text"
-                        inputmode="numeric"
-                        class="app-input h-7 w-10 shrink-0 px-1 text-center text-sm"
-                        [ngModel]="packageBottleQtyText(item)"
-                        (ngModelChange)="onPackageBottleQtyChange(item, $event)"
-                        aria-label="จำนวนขวด"
-                      />
-                      <button
-                        type="button"
-                        class="app-btn-inline shrink-0"
-                        [disabled]="actionBusy() || !item.canWithdrawPackageBottle"
-                        (click)="adjustPackageBottle(item, 'WITHDRAW')"
-                      >
-                        เบิก
-                      </button>
-                      <button
-                        type="button"
-                        class="app-btn-inline shrink-0"
-                        [disabled]="actionBusy() || !item.canDepositPackageBottle"
-                        (click)="adjustPackageBottle(item, 'DEPOSIT')"
-                      >
-                        ฝาก
-                      </button>
-                    }
                     @if (ledgerCanMutate() && item.canVoid) {
                       <button
                         type="button"
@@ -581,14 +583,6 @@
                       {{ itemLineTotal(item) | number: '1.0-0' }} บาท
                     </span>
                   </p>
-                  @if ((item.packageBottleMoves?.length ?? 0) > 0) {
-                    @for (move of item.packageBottleMoves ?? []; track move.id) {
-                      <p class="pl-4 text-xs leading-snug text-text-secondary">
-                        {{ move.action === 'WITHDRAW' ? 'เบิก' : 'ฝาก' }}
-                        {{ packageBottleMoveLabel(move) }}
-                      </p>
-                    }
-                  }
                 </div>
               } @empty {
                 <p class="text-text-secondary">ยังไม่มีรายการ</p>
@@ -1338,6 +1332,63 @@
       <button type="button" class="app-btn-secondary" (click)="closeVoidItemModal()">ยกเลิก</button>
       <button type="button" class="app-btn-danger" [disabled]="actionBusy()" (click)="confirmVoidItem()">
         {{ actionBusy() ? 'กำลังบันทึก...' : 'ยืนยันลบ' }}
+      </button>
+    </div>
+  </app-modal>
+}
+
+@if (showPackageBottleModal()) {
+  <app-modal layout="center" (dismiss)="closePackageBottleModal()">
+    <div class="app-modal-header">
+      <h2 class="app-modal-title">
+        {{ packageBottleAction() === 'WITHDRAW' ? 'เบิกขวด' : 'ฝากขวด' }}
+      </h2>
+      <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closePackageBottleModal()">
+        ✕
+      </button>
+    </div>
+    <div class="app-form-group">
+      <label class="app-label">เมม / โปร</label>
+      <app-custom-dropdown
+        [options]="packageBottleModalOptions()"
+        [ngModel]="packageBottleBillItemKey()"
+        (ngModelChange)="onPackageBottleBillItemChange($event)"
+        placeholder="เลือกเมมหรือโปร"
+      />
+    </div>
+    <div class="app-form-group">
+      <label class="app-label" for="package-bottle-display-name">ชื่อเหล้า</label>
+      <input
+        id="package-bottle-display-name"
+        type="text"
+        class="app-input"
+        [ngModel]="packageBottleDisplayNameText()"
+        (ngModelChange)="onPackageBottleDisplayNameChange($event)"
+        placeholder="เช่น รีเจนซี่"
+      />
+    </div>
+    <div class="app-form-group">
+      <label class="app-label" for="package-bottle-qty">จำนวนขวด</label>
+      <input
+        id="package-bottle-qty"
+        type="text"
+        inputmode="numeric"
+        autocomplete="off"
+        class="app-input"
+        [ngModel]="packageBottleQtyText()"
+        (ngModelChange)="onPackageBottleQtyChange($event)"
+        (keydown)="blockNonNumericKey($event)"
+      />
+    </div>
+    <div class="app-form-actions app-form-actions-top">
+      <button type="button" class="app-btn-secondary" (click)="closePackageBottleModal()">ยกเลิก</button>
+      <button
+        type="button"
+        class="app-btn-primary"
+        [disabled]="actionBusy()"
+        (click)="confirmPackageBottle()"
+      >
+        {{ actionBusy() ? 'กำลังบันทึก...' : 'ยืนยัน' }}
       </button>
     </div>
   </app-modal>

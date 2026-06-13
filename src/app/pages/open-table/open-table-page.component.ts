@@ -28,7 +28,6 @@ import type {
   OpenTableSessionDetail,
   SeatStatus,
   SessionOrderItem,
-  PackageBottleMoveLine,
   SessionRoomCharge,
   SessionStaffDrink,
 } from '../../models/open-table';
@@ -178,6 +177,7 @@ export class OpenTablePageComponent implements OnInit {
   readonly showStopRoomModal = signal(false);
   readonly showReturnBeverageModal = signal(false);
   readonly showVoidItemModal = signal(false);
+  readonly showPackageBottleModal = signal(false);
   readonly showCheckoutModal = signal(false);
   readonly checkoutAt = signal(currentDatetimeLocalValue());
   readonly checkoutPreview = signal<CheckoutPreview | null>(null);
@@ -192,6 +192,10 @@ export class OpenTablePageComponent implements OnInit {
   readonly returnBeverageQtyText = signal('1');
   readonly voidItemTarget = signal<SessionOrderItem | null>(null);
   readonly voidItemQtyText = signal('1');
+  readonly packageBottleAction = signal<'WITHDRAW' | 'DEPOSIT'>('WITHDRAW');
+  readonly packageBottleBillItemKey = signal<string | null>(null);
+  readonly packageBottleDisplayNameText = signal('');
+  readonly packageBottleQtyText = signal('1');
   readonly stopSeatTime = signal(currentDatetimeLocalValue());
   readonly addModalMode = signal<AddModalMode>('ORDER_LEDGER');
 
@@ -227,7 +231,6 @@ export class OpenTablePageComponent implements OnInit {
   readonly orderCocktailStaffRoleId = signal<number | null>(null);
   readonly orderCocktailStaffEmployeeId = signal<number | null>(null);
   readonly orderQtyText = signal('1');
-  readonly packageBottleQtyTextByKey = signal<Record<string, string>>({});
   readonly packageOpenMode = signal<PackageOpenMode>('NEW');
   readonly packageCustomerName = signal('');
   readonly selectedPackageDepositId = signal<number | null>(null);
@@ -388,6 +391,7 @@ export class OpenTablePageComponent implements OnInit {
       this.showStopRoomModal() ||
       this.showReturnBeverageModal() ||
       this.showVoidItemModal() ||
+      this.showPackageBottleModal() ||
       this.showCheckoutModal(),
   );
 
@@ -400,13 +404,37 @@ export class OpenTablePageComponent implements OnInit {
 
   readonly seatReserved = computed(() => this.selectedSeat()?.status === 'RESERVED');
 
-  /** ยังเพิ่มรายการ/ย้าย/เช็กบิลได้ — หลังเช็กบิลแล้วเป็น false */
   readonly ledgerCanMutate = computed(() => {
     if (!this.seatLedgerOpen()) return false;
     const detail = this.sessionDetail();
     if (detail?.canMutateLedger === false) return false;
     if (detail?.sessionStatus === 'BILLED') return false;
     return true;
+  });
+
+  readonly packageBottleBillItems = computed(() =>
+    (this.sessionDetail()?.items ?? []).filter((item) => item.canAdjustPackageBottles),
+  );
+
+  readonly canWithdrawPackageBottle = computed(() =>
+    this.packageBottleBillItems().some((item) => item.canWithdrawPackageBottle),
+  );
+
+  readonly canDepositPackageBottleOnBill = computed(() =>
+    this.packageBottleBillItems().some((item) => item.canDepositPackageBottle),
+  );
+
+  readonly packageBottleModalOptions = computed<DropdownOption[]>(() => {
+    const action = this.packageBottleAction();
+    return this.packageBottleBillItems()
+      .filter((item) =>
+        action === 'WITHDRAW' ? item.canWithdrawPackageBottle : item.canDepositPackageBottle,
+      )
+      .map((item) => ({
+        value: this.billItemKey(item),
+        label: `${item.itemType === 'MEMBERSHIP' ? 'เมม' : 'โปร'} ${item.label}`,
+        hint: `${item.packageBottlesRemaining ?? 0}/${item.packageBottlesTotal ?? 0} ขวด`,
+      }));
   });
 
   readonly saleEmployeeOptions = computed<DropdownOption[]>(() =>
@@ -2338,37 +2366,93 @@ export class OpenTablePageComponent implements OnInit {
     return `${item.itemId}|${item.itemType}|${item.unitPrice}|${item.isFreeMixer}|${item.unitLabelTh ?? item.unitLabel}|${item.itemName ?? item.label}`;
   }
 
-  packageBottleQtyText(item: SessionOrderItem): string {
-    return this.packageBottleQtyTextByKey()[this.billItemKey(item)] ?? '1';
+  private packageBottleItemByKey(key: string | null): SessionOrderItem | null {
+    if (!key) return null;
+    return this.packageBottleBillItems().find((item) => this.billItemKey(item) === key) ?? null;
   }
 
-  onPackageBottleQtyChange(item: SessionOrderItem, value: string): void {
-    const key = this.billItemKey(item);
-    this.packageBottleQtyTextByKey.update((map) => ({
-      ...map,
-      [key]: sanitizeDigitsOnly(value),
-    }));
+  defaultLiquorDisplayName(item: SessionOrderItem): string {
+    const list =
+      item.itemType === 'PROMOTION' ? this.promotionsRaw() : this.membershipsRaw();
+    const row = list.find((entry) => entry.id === item.itemId);
+    return row?.drink?.name?.trim() ?? '';
   }
 
-  packageBottleMoveLabel(move: PackageBottleMoveLine): string {
-    return `${move.displayName} ${move.quantity}`;
-  }
-
-  adjustPackageBottle(item: SessionOrderItem, action: 'WITHDRAW' | 'DEPOSIT'): void {
+  openPackageBottleModal(action: 'WITHDRAW' | 'DEPOSIT'): void {
     if (!this.ledgerCanMutate()) {
       this.toast.showError('โต๊ะนี้ถูกเช็กบิลแล้ว ไม่สามารถแก้รายการได้');
       return;
     }
+    this.packageBottleAction.set(action);
+    const options = this.packageBottleBillItems().filter((item) =>
+      action === 'WITHDRAW' ? item.canWithdrawPackageBottle : item.canDepositPackageBottle,
+    );
+    if (options.length === 0) {
+      this.toast.showError(
+        action === 'WITHDRAW' ? 'ไม่มีขวดเหลือให้เบิก' : 'ไม่สามารถฝากขวดเพิ่มได้',
+      );
+      return;
+    }
+    const first = options[0]!;
+    const key = this.billItemKey(first);
+    this.packageBottleBillItemKey.set(key);
+    this.packageBottleDisplayNameText.set(this.defaultLiquorDisplayName(first));
+    this.packageBottleQtyText.set('1');
+    this.showPackageBottleModal.set(true);
+    this.showMobileSheet.set(false);
+  }
+
+  closePackageBottleModal(): void {
+    this.showPackageBottleModal.set(false);
+    this.packageBottleBillItemKey.set(null);
+    this.packageBottleDisplayNameText.set('');
+    this.packageBottleQtyText.set('1');
+    this.schedulePortaledModalPurge();
+    if (this.selectedSeatKey()) {
+      this.showMobileSheet.set(true);
+    }
+  }
+
+  onPackageBottleBillItemChange(value: string | null): void {
+    const key = value == null || value === '' ? null : String(value);
+    this.packageBottleBillItemKey.set(key);
+    const item = this.packageBottleItemByKey(key);
+    if (item) {
+      this.packageBottleDisplayNameText.set(this.defaultLiquorDisplayName(item));
+    }
+  }
+
+  onPackageBottleQtyChange(value: string): void {
+    this.packageBottleQtyText.set(sanitizeDigitsOnly(value));
+  }
+
+  onPackageBottleDisplayNameChange(value: string): void {
+    this.packageBottleDisplayNameText.set(value);
+  }
+
+  confirmPackageBottle(): void {
+    if (!this.ledgerCanMutate()) {
+      this.toast.showError('โต๊ะนี้ถูกเช็กบิลแล้ว ไม่สามารถแก้รายการได้');
+      this.closePackageBottleModal();
+      return;
+    }
     const sessionId = this.selectedSeat()?.sessionId;
     const expectedRevision = this.requireExpectedRevision();
-    if (!sessionId || expectedRevision == null) {
-      this.toast.showError('ไม่พบเซสชัน');
+    const item = this.packageBottleItemByKey(this.packageBottleBillItemKey());
+    const action = this.packageBottleAction();
+    if (!sessionId || !item || expectedRevision == null) {
+      this.toast.showError('ไม่พบรายการ');
       return;
     }
     if (item.itemType !== 'PROMOTION' && item.itemType !== 'MEMBERSHIP') {
       return;
     }
-    const quantity = parsePositiveIntFromText(this.packageBottleQtyText(item));
+    const displayName = this.packageBottleDisplayNameText().trim();
+    if (!displayName) {
+      this.toast.showError('กรุณาระบุชื่อเหล้า');
+      return;
+    }
+    const quantity = parsePositiveIntFromText(this.packageBottleQtyText());
     if (quantity == null || quantity <= 0) {
       this.toast.showError('กรุณาระบุจำนวนขวด');
       return;
@@ -2386,10 +2470,11 @@ export class OpenTablePageComponent implements OnInit {
         unitLabelTh: item.unitLabelTh ?? item.unitLabel,
         action,
         quantity,
+        displayName,
       }),
       action === 'WITHDRAW' ? 'เบิกขวดสำเร็จ' : 'ฝากขวดสำเร็จ',
       sessionId,
-      () => {},
+      () => this.closePackageBottleModal(),
     );
   }
 
