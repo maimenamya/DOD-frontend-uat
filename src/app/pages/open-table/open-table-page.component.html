@@ -866,28 +866,96 @@
           </div>
         }
 
-        @if (orderLedgerCategory() === 'PROMOTION') {
+        @if (orderLedgerCategory() === 'PROMOTION' || orderLedgerCategory() === 'MEMBER') {
           <div class="app-form-group">
-            <label class="app-label">เลือกโปร</label>
-            <app-custom-dropdown
-              [options]="promotionDropdownOptions()"
-              [ngModel]="selectedPromotionId()"
-              (ngModelChange)="onPromotionChange($event)"
-              placeholder="เลือกโปร"
-            />
+            <label class="app-label">ประเภทการเปิด</label>
+            <div class="flex flex-wrap gap-2">
+              <button
+                type="button"
+                class="app-filter-chip"
+                [class.app-filter-chip-active]="packageOpenMode() === 'NEW'"
+                (click)="onPackageOpenModeChange('NEW')"
+              >
+                เปิดใหม่
+              </button>
+              <button
+                type="button"
+                class="app-filter-chip"
+                [class.app-filter-chip-active]="packageOpenMode() === 'DEPOSIT'"
+                (click)="onPackageOpenModeChange('DEPOSIT')"
+              >
+                อันที่ฝาก
+              </button>
+            </div>
           </div>
         }
 
+        @if (orderLedgerCategory() === 'PROMOTION') {
+          @if (packageOpenMode() === 'DEPOSIT') {
+            <div class="app-form-group">
+              <label class="app-label">เลือกรายการฝาก</label>
+              <app-custom-dropdown
+                [options]="packageDepositDropdownOptions()"
+                [ngModel]="selectedPackageDepositId()"
+                (ngModelChange)="onPackageDepositChange($event)"
+                placeholder="ชื่อลูกค้า — ชื่อโปร"
+              />
+            </div>
+          } @else {
+            <div class="app-form-group">
+              <label class="app-label">เลือกโปร</label>
+              <app-custom-dropdown
+                [options]="promotionDropdownOptions()"
+                [ngModel]="selectedPromotionId()"
+                (ngModelChange)="onPromotionChange($event)"
+                placeholder="เลือกโปร"
+              />
+            </div>
+            <div class="app-form-group">
+              <label class="app-label">ชื่อลูกค้า</label>
+              <input
+                type="text"
+                class="app-input"
+                [ngModel]="packageCustomerName()"
+                (ngModelChange)="onPackageCustomerNameChange($event)"
+                placeholder="ชื่อลูกค้าที่ฝาก"
+              />
+            </div>
+          }
+        }
+
         @if (orderLedgerCategory() === 'MEMBER') {
-          <div class="app-form-group">
-            <label class="app-label">เลือกเมมเบอร์</label>
-            <app-custom-dropdown
-              [options]="membershipDropdownOptions()"
-              [ngModel]="selectedMembershipId()"
-              (ngModelChange)="onMembershipChange($event)"
-              placeholder="เลือกเมมเบอร์"
-            />
-          </div>
+          @if (packageOpenMode() === 'DEPOSIT') {
+            <div class="app-form-group">
+              <label class="app-label">เลือกรายการฝาก</label>
+              <app-custom-dropdown
+                [options]="packageDepositDropdownOptions()"
+                [ngModel]="selectedPackageDepositId()"
+                (ngModelChange)="onPackageDepositChange($event)"
+                placeholder="ชื่อลูกค้า — ชื่อเมม"
+              />
+            </div>
+          } @else {
+            <div class="app-form-group">
+              <label class="app-label">เลือกเมมเบอร์</label>
+              <app-custom-dropdown
+                [options]="membershipDropdownOptions()"
+                [ngModel]="selectedMembershipId()"
+                (ngModelChange)="onMembershipChange($event)"
+                placeholder="เลือกเมมเบอร์"
+              />
+            </div>
+            <div class="app-form-group">
+              <label class="app-label">ชื่อลูกค้า</label>
+              <input
+                type="text"
+                class="app-input"
+                [ngModel]="packageCustomerName()"
+                (ngModelChange)="onPackageCustomerNameChange($event)"
+                placeholder="ชื่อลูกค้าที่ฝาก"
+              />
+            </div>
+          }
         }
 
         @if (orderLedgerCategory() === 'OTHER') {

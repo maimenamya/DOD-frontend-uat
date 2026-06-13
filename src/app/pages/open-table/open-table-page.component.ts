@@ -18,6 +18,7 @@ import {
 } from '../../components/custom-dropdown/custom-dropdown.component';
 import type { MstEmployee } from '../../models/employee';
 import type { MstFood, MstFoodCategory, MstMembership, MstPromotion } from '../../models/master-data';
+import type { PackageDepositRecord, PackageOpenMode } from '../../models/package-deposit';
 import type { MstRole } from '../../models/role';
 import type {
   AddItemsPayload,
@@ -38,6 +39,7 @@ import {
 import type { MstBeverage, MstBeverageCategory } from '../../models/beverage';
 import type { MstOtherCharge } from '../../models/other-charge';
 import { OtherChargeService } from '../../services/other-charge.service';
+import { PackageDepositService } from '../../services/package-deposit.service';
 import {
   ORDER_LEDGER_CATEGORY_LABELS,
   ORDER_LEDGER_CATEGORY_VALUES,
@@ -117,6 +119,7 @@ export class OpenTablePageComponent implements OnInit {
   private readonly openTableService = inject(OpenTableService);
   private readonly shopMaster = inject(ShopMasterService);
   private readonly otherChargeService = inject(OtherChargeService);
+  private readonly packageDepositService = inject(PackageDepositService);
   private readonly beverageService = inject(BeverageService);
   private readonly employeeService = inject(EmployeeService);
   private readonly roleService = inject(RoleService);
@@ -205,6 +208,7 @@ export class OpenTablePageComponent implements OnInit {
   private readonly cocktailsRaw = signal<{ id: number; name: string; drinkValue: number }[]>([]);
   private readonly promotionsRaw = signal<MstPromotion[]>([]);
   private readonly membershipsRaw = signal<MstMembership[]>([]);
+  private readonly packageDepositsRaw = signal<PackageDepositRecord[]>([]);
   readonly staffEmployees = signal<MstEmployee[]>([]);
   /** All positions from master MstRole table (excludes OWNER in dropdowns). */
   private readonly masterRolesFromApi = signal<MstRole[]>([]);
@@ -222,6 +226,9 @@ export class OpenTablePageComponent implements OnInit {
   readonly orderCocktailStaffRoleId = signal<number | null>(null);
   readonly orderCocktailStaffEmployeeId = signal<number | null>(null);
   readonly orderQtyText = signal('1');
+  readonly packageOpenMode = signal<PackageOpenMode>('NEW');
+  readonly packageCustomerName = signal('');
+  readonly selectedPackageDepositId = signal<number | null>(null);
 
   readonly staffLedgerRoleId = signal<number | null>(null);
   readonly staffLedgerEmployeeId = signal<number | null>(null);
@@ -510,6 +517,21 @@ export class OpenTablePageComponent implements OnInit {
       hint: `${m.packagePrice} บาท`,
     })),
   );
+
+  readonly showPackageOpenMode = computed(
+    () => this.orderLedgerCategory() === 'PROMOTION' || this.orderLedgerCategory() === 'MEMBER',
+  );
+
+  readonly packageDepositDropdownOptions = computed<DropdownOption[]>(() => {
+    const category = this.orderLedgerCategory();
+    const sourceType = category === 'PROMOTION' ? 'PROMOTION' : 'MEMBERSHIP';
+    return this.packageDepositsRaw()
+      .filter((row) => row.sourceType === sourceType)
+      .map((row) => ({
+        value: row.id,
+        label: `${row.customerName} — ${row.packageName}`,
+      }));
+  });
 
   readonly activeOtherCharges = computed(() =>
     this.openTableOtherChargesRaw().filter((c) => c.isActive),
@@ -927,11 +949,12 @@ export class OpenTablePageComponent implements OnInit {
       cocktails: this.shopMaster.getCocktails().pipe(catchError(() => of([]))),
       promotions: this.shopMaster.getPromotions().pipe(catchError(() => of([] as MstPromotion[]))),
       memberships: this.shopMaster.getMemberships().pipe(catchError(() => of([] as MstMembership[]))),
+      packageDeposits: this.packageDepositService.list().pipe(catchError(() => of([] as PackageDepositRecord[]))),
       otherCharges: this.otherChargeService.getAll().pipe(catchError(() => of([] as MstOtherCharge[]))),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(
-        ({ categories, foods, beverageCategories, beverages, cocktails, promotions, memberships, otherCharges }) => {
+        ({ categories, foods, beverageCategories, beverages, cocktails, promotions, memberships, packageDeposits, otherCharges }) => {
         this.foodCategoriesRaw.set(categories);
         this.foodsRaw.set(foods);
         this.beverageCategoriesRaw.set(beverageCategories);
@@ -941,6 +964,7 @@ export class OpenTablePageComponent implements OnInit {
         );
         this.promotionsRaw.set(promotions);
         this.membershipsRaw.set(memberships);
+        this.packageDepositsRaw.set(packageDeposits);
         this.openTableOtherChargesRaw.set(otherCharges);
       });
   }
@@ -1078,6 +1102,9 @@ export class OpenTablePageComponent implements OnInit {
     this.selectedOtherChargeId.set(null);
     this.orderCocktailStaffRoleId.set(null);
     this.orderCocktailStaffEmployeeId.set(null);
+    this.packageOpenMode.set('NEW');
+    this.packageCustomerName.set('');
+    this.selectedPackageDepositId.set(null);
 
     if (category === 'FOOD') {
       const firstCat = this.foodCategoriesRaw()[0];
@@ -1092,8 +1119,10 @@ export class OpenTablePageComponent implements OnInit {
       this.syncCocktailHostSelection();
     } else if (category === 'PROMOTION') {
       this.selectedPromotionId.set(this.promotionsRaw()[0]?.id ?? null);
+      this.syncPackageDepositSelection();
     } else if (category === 'MEMBER') {
       this.selectedMembershipId.set(this.membershipsRaw()[0]?.id ?? null);
+      this.syncPackageDepositSelection();
     } else if (category === 'OTHER') {
       this.selectedOtherChargeId.set(this.activeOtherCharges()[0]?.id ?? null);
     }
@@ -1282,6 +1311,41 @@ export class OpenTablePageComponent implements OnInit {
     );
   }
 
+  onPackageOpenModeChange(mode: PackageOpenMode): void {
+    this.packageOpenMode.set(mode);
+    this.syncPackageDepositSelection();
+  }
+
+  onPackageDepositChange(value: number | string | null): void {
+    const id = value == null || value === '' ? null : Number(value);
+    this.selectedPackageDepositId.set(
+      id != null && this.packageDepositsRaw().some((row) => row.id === id) ? id : null,
+    );
+  }
+
+  onPackageCustomerNameChange(value: string): void {
+    this.packageCustomerName.set(value);
+  }
+
+  private syncPackageDepositSelection(): void {
+    if (this.packageOpenMode() !== 'DEPOSIT') {
+      this.selectedPackageDepositId.set(null);
+      return;
+    }
+    const options = this.packageDepositDropdownOptions();
+    const first = options[0]?.value;
+    const current = this.selectedPackageDepositId();
+    if (current != null && options.some((o) => o.value === current)) return;
+    this.selectedPackageDepositId.set(typeof first === 'number' ? first : null);
+  }
+
+  private reloadPackageDeposits(): void {
+    this.packageDepositService
+      .list()
+      .pipe(catchError(() => of([] as PackageDepositRecord[])), takeUntilDestroyed(this.destroyRef))
+      .subscribe((rows) => this.packageDepositsRaw.set(rows));
+  }
+
   onOtherChargeChange(value: number | string | null): void {
     const id = value == null || value === '' ? null : Number(value);
     this.selectedOtherChargeId.set(
@@ -1372,21 +1436,89 @@ export class OpenTablePageComponent implements OnInit {
       }
       items.push({ itemId: cocktailId, quantity, type: 'COCKTAIL', hostEmployeeId: hostId });
     } else if (category === 'PROMOTION') {
-      const promoId = this.selectedPromotionId();
-      if (promoId == null) {
-        this.flagAddItemValidation();
-        this.toast.showError('กรุณาเลือกโปร');
-        return null;
+      const mode = this.packageOpenMode();
+      if (mode === 'DEPOSIT') {
+        const depositId = this.selectedPackageDepositId();
+        if (depositId == null) {
+          this.flagAddItemValidation();
+          this.toast.showError('กรุณาเลือกรายการฝาก');
+          return null;
+        }
+        const deposit = this.packageDepositsRaw().find((row) => row.id === depositId);
+        if (!deposit || deposit.sourceType !== 'PROMOTION') {
+          this.toast.showError('ไม่พบรายการฝาก');
+          return null;
+        }
+        items.push({
+          itemId: deposit.sourceId,
+          quantity,
+          type: 'PROMOTION',
+          packageDepositMode: 'DEPOSIT',
+          packageDepositId: depositId,
+        });
+      } else {
+        const promoId = this.selectedPromotionId();
+        if (promoId == null) {
+          this.flagAddItemValidation();
+          this.toast.showError('กรุณาเลือกโปร');
+          return null;
+        }
+        const customerName = this.packageCustomerName().trim();
+        if (!customerName) {
+          this.flagAddItemValidation();
+          this.toast.showError('กรุณาระบุชื่อลูกค้า');
+          return null;
+        }
+        items.push({
+          itemId: promoId,
+          quantity,
+          type: 'PROMOTION',
+          packageDepositMode: 'NEW',
+          customerName,
+        });
       }
-      items.push({ itemId: promoId, quantity, type: 'PROMOTION' });
     } else if (category === 'MEMBER') {
-      const memberId = this.selectedMembershipId();
-      if (memberId == null) {
-        this.flagAddItemValidation();
-        this.toast.showError('กรุณาเลือกเมมเบอร์');
-        return null;
+      const mode = this.packageOpenMode();
+      if (mode === 'DEPOSIT') {
+        const depositId = this.selectedPackageDepositId();
+        if (depositId == null) {
+          this.flagAddItemValidation();
+          this.toast.showError('กรุณาเลือกรายการฝาก');
+          return null;
+        }
+        const deposit = this.packageDepositsRaw().find((row) => row.id === depositId);
+        if (!deposit || deposit.sourceType !== 'MEMBERSHIP') {
+          this.toast.showError('ไม่พบรายการฝาก');
+          return null;
+        }
+        items.push({
+          itemId: deposit.sourceId,
+          quantity,
+          type: 'MEMBERSHIP',
+          packageDepositMode: 'DEPOSIT',
+          packageDepositId: depositId,
+        });
+      } else {
+        const memberId = this.selectedMembershipId();
+        if (memberId == null) {
+          this.flagAddItemValidation();
+          this.toast.showError('กรุณาเลือกเมมเบอร์');
+          return null;
+        }
+        const customerName = this.packageCustomerName().trim();
+        if (!customerName) {
+          this.flagAddItemValidation();
+          this.toast.showError('กรุณาระบุชื่อลูกค้า');
+          return null;
+        }
+        items.push({
+          itemId: memberId,
+          quantity,
+          type: 'MEMBERSHIP',
+          packageDepositMode: 'NEW',
+          customerName,
+        });
       }
-      items.push({ itemId: memberId, quantity, type: 'MEMBERSHIP' });
     } else if (category === 'OTHER') {
       const otherId = this.selectedOtherChargeId();
       if (otherId == null) {
@@ -1955,6 +2087,16 @@ export class OpenTablePageComponent implements OnInit {
       () => {
         if (staffDrinks.length > 0) {
           this.reloadStaffEmployees();
+        }
+        if (
+          items.some(
+            (row) =>
+              row.type === 'PROMOTION' ||
+              row.type === 'MEMBERSHIP' ||
+              row.packageDepositMode != null,
+          )
+        ) {
+          this.reloadPackageDeposits();
         }
       },
     );

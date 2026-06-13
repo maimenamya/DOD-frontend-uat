@@ -222,6 +222,9 @@ export type AddItemsPayload = SessionMutationBase & {
     quantity: number;
     type: SessionOrderItemType;
     hostEmployeeId?: number;
+    packageDepositMode?: 'NEW' | 'DEPOSIT';
+    customerName?: string;
+    packageDepositId?: number;
   }>;
   staffDrinks: Array<{
     employeeId: number;
