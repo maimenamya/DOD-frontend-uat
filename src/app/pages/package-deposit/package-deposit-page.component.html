@@ -2,69 +2,120 @@
   <div class="app-page-header">
     <div>
       <h1 class="app-page-title">ฝากเมม / โปร</h1>
-      <p class="app-page-subtitle">
-        รายการที่เปิดใหม่จากโต๊ะ — รอบหน้าเลือก «อันที่ฝาก» เพื่อใช้ต่อ (ราคา 0)
-      </p>
     </div>
   </div>
 
   @if (loading()) {
     <p class="app-loading-text">กำลังโหลด...</p>
   } @else {
-    <section class="app-card app-card-flush">
-      <div class="app-data-table-shell">
-        <div class="app-split-table app-split-table--wide">
-          <div class="app-split-table-header">
-            <table class="app-data-table app-split-table-grid">
-              <colgroup>
-                <col class="app-col-id" />
-                <col />
-                <col />
-                <col class="app-col-narrow" />
-              </colgroup>
-              <thead>
-                <tr>
-                  <th>No.</th>
-                  <th>ชื่อเมม / โปร</th>
-                  <th>ชื่อลูกค้า</th>
-                  <th>วันที่เปิด</th>
-                </tr>
-              </thead>
-            </table>
-          </div>
-          <div class="app-split-table-body app-scroll-region">
-            <table class="app-data-table app-split-table-grid">
-              <colgroup>
-                <col class="app-col-id" />
-                <col />
-                <col />
-                <col class="app-col-narrow" />
-              </colgroup>
-              <tbody>
-                @if (items().length === 0) {
+    <div class="flex flex-col gap-6">
+      <section class="app-card app-card-flush">
+        <h2 class="border-b border-border px-4 py-3 text-base font-semibold text-text-primary">
+          ฝากเมม
+        </h2>
+        <div class="app-data-table-shell">
+          <div class="app-split-table app-split-table--wide">
+            <div class="app-split-table-header">
+              <table class="app-data-table app-split-table-grid">
+                <colgroup>
+                  <col class="app-col-id" />
+                  <col />
+                  <col />
+                  <col class="app-col-narrow" />
+                </colgroup>
+                <thead>
                   <tr>
-                    <td colspan="4" class="app-table-empty">ยังไม่มีรายการฝาก</td>
+                    <th>No.</th>
+                    <th>ชื่อเมม</th>
+                    <th>ชื่อลูกค้า</th>
+                    <th>วันที่เปิด</th>
                   </tr>
-                } @else {
-                  @for (row of items(); track row.id; let i = $index) {
+                </thead>
+              </table>
+            </div>
+            <div class="app-split-table-body app-scroll-region">
+              <table class="app-data-table app-split-table-grid">
+                <colgroup>
+                  <col class="app-col-id" />
+                  <col />
+                  <col />
+                  <col class="app-col-narrow" />
+                </colgroup>
+                <tbody>
+                  @if (membershipItems().length === 0) {
                     <tr>
-                      <td class="app-cell-mono">{{ i + 1 }}</td>
-                      <td class="app-cell-primary">
-                        <span class="text-xs font-medium text-text-secondary">
-                          {{ packageSourceLabel(row.sourceType) }}
-                        </span>
-                        {{ row.packageName }}
-                      </td>
-                      <td>{{ row.customerName }}</td>
-                      <td class="whitespace-nowrap text-text-secondary">{{ row.openedOnLabel }}</td>
+                      <td colspan="4" class="app-table-empty">ยังไม่มีรายการฝากเมม</td>
                     </tr>
+                  } @else {
+                    @for (row of membershipItems(); track row.id; let i = $index) {
+                      <tr>
+                        <td class="app-cell-mono">{{ i + 1 }}</td>
+                        <td class="app-cell-primary">{{ row.packageName }}</td>
+                        <td>{{ row.customerName }}</td>
+                        <td class="whitespace-nowrap text-text-secondary">{{ row.openedOnLabel }}</td>
+                      </tr>
+                    }
                   }
-                }
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <section class="app-card app-card-flush">
+        <h2 class="border-b border-border px-4 py-3 text-base font-semibold text-text-primary">
+          ฝากโปร
+        </h2>
+        <div class="app-data-table-shell">
+          <div class="app-split-table app-split-table--wide">
+            <div class="app-split-table-header">
+              <table class="app-data-table app-split-table-grid">
+                <colgroup>
+                  <col class="app-col-id" />
+                  <col />
+                  <col />
+                  <col class="app-col-narrow" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>No.</th>
+                    <th>ชื่อโปร</th>
+                    <th>ชื่อลูกค้า</th>
+                    <th>วันที่เปิด</th>
+                  </tr>
+                </thead>
+              </table>
+            </div>
+            <div class="app-split-table-body app-scroll-region">
+              <table class="app-data-table app-split-table-grid">
+                <colgroup>
+                  <col class="app-col-id" />
+                  <col />
+                  <col />
+                  <col class="app-col-narrow" />
+                </colgroup>
+                <tbody>
+                  @if (promotionItems().length === 0) {
+                    <tr>
+                      <td colspan="4" class="app-table-empty">ยังไม่มีรายการฝากโปร</td>
+                    </tr>
+                  } @else {
+                    @for (row of promotionItems(); track row.id; let i = $index) {
+                      <tr>
+                        <td class="app-cell-mono">{{ i + 1 }}</td>
+                        <td class="app-cell-primary">{{ row.packageName }}</td>
+                        <td>{{ row.customerName }}</td>
+                        <td class="whitespace-nowrap text-text-secondary">{{ row.openedOnLabel }}</td>
+                      </tr>
+                    }
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
   }
 </div>

@@ -2322,6 +2322,45 @@ export class OpenTablePageComponent implements OnInit {
     this.returnBeverageQtyText.set(sanitizeDigitsOnly(value));
   }
 
+  packageBottleLabel(item: SessionOrderItem): string | null {
+    if (item.packageBottlesRemaining == null || item.packageBottlesTotal == null) {
+      return null;
+    }
+    return `${item.packageBottlesRemaining}/${item.packageBottlesTotal}`;
+  }
+
+  adjustPackageBottle(item: SessionOrderItem, action: 'WITHDRAW' | 'DEPOSIT'): void {
+    if (!this.ledgerCanMutate()) {
+      this.toast.showError('โต๊ะนี้ถูกเช็กบิลแล้ว ไม่สามารถแก้รายการได้');
+      return;
+    }
+    const sessionId = this.selectedSeat()?.sessionId;
+    const expectedRevision = this.requireExpectedRevision();
+    if (!sessionId || expectedRevision == null) {
+      this.toast.showError('ไม่พบเซสชัน');
+      return;
+    }
+    if (item.itemType !== 'PROMOTION' && item.itemType !== 'MEMBERSHIP') {
+      return;
+    }
+    this.submitBillPanelMutation(
+      this.openTableService.adjustPackageBottles({
+        shopId: this.shopId,
+        sessionId,
+        expectedRevision,
+        itemType: item.itemType,
+        itemId: item.itemId,
+        unitPrice: item.unitPrice,
+        isFreeMixer: Boolean(item.isFreeMixer),
+        unitLabelTh: item.unitLabelTh ?? item.unitLabel,
+        action,
+      }),
+      action === 'WITHDRAW' ? 'เบิกขวดสำเร็จ' : 'ฝากขวดสำเร็จ',
+      sessionId,
+      () => {},
+    );
+  }
+
   openVoidItemModal(item: SessionOrderItem): void {
     this.voidItemTarget.set(item);
     this.voidItemQtyText.set('1');

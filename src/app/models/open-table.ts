@@ -64,6 +64,11 @@ export type SessionOrderItem = {
   isCocktailHost?: boolean;
   canReturn?: boolean;
   canVoid?: boolean;
+  packageBottlesTotal?: number;
+  packageBottlesRemaining?: number;
+  canAdjustPackageBottles?: boolean;
+  canWithdrawPackageBottle?: boolean;
+  canDepositPackageBottle?: boolean;
 };
 
 export type VoidSessionItemsPayload = SessionMutationBase & {
@@ -89,6 +94,15 @@ export type ReturnBeveragePayload = SessionMutationBase & {
   unitPrice: number;
   isFreeMixer: boolean;
   quantity: number;
+};
+
+export type AdjustPackageBottlesPayload = SessionMutationBase & {
+  itemType: 'PROMOTION' | 'MEMBERSHIP';
+  itemId: number;
+  unitPrice: number;
+  isFreeMixer: boolean;
+  unitLabelTh: string;
+  action: 'WITHDRAW' | 'DEPOSIT';
 };
 
 export type AddRoomChargePayload = SessionMutationBase & {

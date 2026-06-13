@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 
 import type { PackageDepositRecord } from '../../models/package-deposit';
 import { PackageDepositService } from '../../services/package-deposit.service';
@@ -16,6 +16,14 @@ export class PackageDepositPageComponent implements OnInit {
   readonly items = signal<PackageDepositRecord[]>([]);
   readonly loading = signal(true);
 
+  readonly membershipItems = computed(() =>
+    this.items().filter((row) => row.sourceType === 'MEMBERSHIP'),
+  );
+
+  readonly promotionItems = computed(() =>
+    this.items().filter((row) => row.sourceType === 'PROMOTION'),
+  );
+
   ngOnInit(): void {
     this.loadItems();
   }
@@ -32,9 +40,5 @@ export class PackageDepositPageComponent implements OnInit {
         this.loading.set(false);
       },
     });
-  }
-
-  packageSourceLabel(type: PackageDepositRecord['sourceType']): string {
-    return type === 'MEMBERSHIP' ? 'เมม' : 'โปร';
   }
 }
