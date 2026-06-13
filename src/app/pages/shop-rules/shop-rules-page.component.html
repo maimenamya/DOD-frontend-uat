@@ -1,13 +1,219 @@
 <div class="app-page">
   <header class="app-page-header">
-    <h1 class="app-page-title">กฎร้าน</h1>
-    <p class="app-page-subtitle">ตั้งค่ากฎธุรกิจเฉพาะสาขา เช่น ดื่มตามเวลานั่ง มาสาย วันหยุด</p>
+    <div>
+      <h1 class="app-page-title">กฎร้าน</h1>
+      <p class="app-page-subtitle">ตั้งค่ากฎธุรกิจเฉพาะสาขา — ดื่มตามเวลานั่ง และค่าปรับมาสาย/ขาด (เตรียมไว้สำหรับระบบตอกบัตร)</p>
+    </div>
   </header>
 
-  <section class="app-card app-coming-soon-card">
-    <p class="app-coming-soon-lead">กำลังพัฒนา</p>
-    <p class="app-coming-soon-detail">
-      จะรองรับกฎเช่น คิดดื่มทุก 15/30/45 นาที หักเงินมาสาย และโควต้าวันหยุดตามตำแหน่ง
-    </p>
-  </section>
+  @if (loading()) {
+    <p class="app-muted">กำลังโหลด...</p>
+  } @else {
+    <form
+      class="app-form-stack shop-rules-form"
+      [class.app-form-was-validated]="formValidated()"
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+    >
+      <section class="app-card shop-rules-section">
+        <h2 class="shop-rules-section-title">เวลานั่งดื่ม</h2>
+        <p class="app-field-hint shop-rules-section-hint">
+          กำหนดจำนวนดื่มเมื่อนั่งครบ 15 / 30 / 45 นาที — เลือกปัดทิ้งหรือปัดขึ้นเมื่อเวลาอยู่ระหว่างขั้น
+        </p>
+
+        <div class="shop-rules-tier-grid">
+          <div class="app-form-group">
+            <label class="app-label">15 นาที</label>
+            <div class="app-number-stepper">
+              <button
+                type="button"
+                class="app-number-stepper-btn"
+                [disabled]="!canManage() || submitting()"
+                (click)="stepTier('seatDrinkTier15Drinks', -1)"
+                aria-label="ลดจำนวนดื่ม 15 นาที"
+              >
+                −
+              </button>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                class="app-input app-input-number app-number-stepper-input"
+                formControlName="seatDrinkTier15Drinks"
+                [readonly]="!canManage()"
+              />
+              <button
+                type="button"
+                class="app-number-stepper-btn"
+                [disabled]="!canManage() || submitting()"
+                (click)="stepTier('seatDrinkTier15Drinks', 1)"
+                aria-label="เพิ่มจำนวนดื่ม 15 นาที"
+              >
+                +
+              </button>
+            </div>
+            <p class="app-field-hint">ดื่ม</p>
+          </div>
+
+          <div class="app-form-group">
+            <label class="app-label">30 นาที</label>
+            <div class="app-number-stepper">
+              <button
+                type="button"
+                class="app-number-stepper-btn"
+                [disabled]="!canManage() || submitting()"
+                (click)="stepTier('seatDrinkTier30Drinks', -1)"
+                aria-label="ลดจำนวนดื่ม 30 นาที"
+              >
+                −
+              </button>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                class="app-input app-input-number app-number-stepper-input"
+                formControlName="seatDrinkTier30Drinks"
+                [readonly]="!canManage()"
+              />
+              <button
+                type="button"
+                class="app-number-stepper-btn"
+                [disabled]="!canManage() || submitting()"
+                (click)="stepTier('seatDrinkTier30Drinks', 1)"
+                aria-label="เพิ่มจำนวนดื่ม 30 นาที"
+              >
+                +
+              </button>
+            </div>
+            <p class="app-field-hint">ดื่ม</p>
+          </div>
+
+          <div class="app-form-group">
+            <label class="app-label">45 นาที</label>
+            <div class="app-number-stepper">
+              <button
+                type="button"
+                class="app-number-stepper-btn"
+                [disabled]="!canManage() || submitting()"
+                (click)="stepTier('seatDrinkTier45Drinks', -1)"
+                aria-label="ลดจำนวนดื่ม 45 นาที"
+              >
+                −
+              </button>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                class="app-input app-input-number app-number-stepper-input"
+                formControlName="seatDrinkTier45Drinks"
+                [readonly]="!canManage()"
+              />
+              <button
+                type="button"
+                class="app-number-stepper-btn"
+                [disabled]="!canManage() || submitting()"
+                (click)="stepTier('seatDrinkTier45Drinks', 1)"
+                aria-label="เพิ่มจำนวนดื่ม 45 นาที"
+              >
+                +
+              </button>
+            </div>
+            <p class="app-field-hint">ดื่ม</p>
+          </div>
+        </div>
+
+        <div class="app-form-group shop-rules-rounding">
+          <label class="app-label">การปัดผล</label>
+          <app-custom-dropdown
+            formControlName="seatDrinkRounding"
+            [options]="roundingOptions"
+            placeholder="เลือกการปัด"
+          />
+        </div>
+      </section>
+
+      <section class="app-card shop-rules-section">
+        <h2 class="shop-rules-section-title">มาสาย / ขาด</h2>
+        <p class="app-field-hint shop-rules-section-hint">
+          เก็บไว้ใช้เมื่อมีระบบตอกบัตรเข้า–ออกงาน — ยังไม่เชื่อมคำนวณเงินเดือนอัตโนมัติ
+        </p>
+
+        <div class="shop-rules-attendance-grid">
+          <div class="app-form-group">
+            <label class="app-label">มาสาย</label>
+            <div class="app-number-stepper">
+              <button
+                type="button"
+                class="app-number-stepper-btn"
+                [disabled]="!canManage() || submitting()"
+                (click)="stepMoney('lateFinePerMinuteBaht', -1)"
+                aria-label="ลดค่าปรับมาสาย"
+              >
+                −
+              </button>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                class="app-input app-input-number app-number-stepper-input"
+                formControlName="lateFinePerMinuteBaht"
+                [readonly]="!canManage()"
+              />
+              <button
+                type="button"
+                class="app-number-stepper-btn"
+                [disabled]="!canManage() || submitting()"
+                (click)="stepMoney('lateFinePerMinuteBaht', 1)"
+                aria-label="เพิ่มค่าปรับมาสาย"
+              >
+                +
+              </button>
+            </div>
+            <p class="app-field-hint">บาท / นาที</p>
+          </div>
+
+          <div class="app-form-group">
+            <label class="app-label">ขาด</label>
+            <div class="app-number-stepper">
+              <button
+                type="button"
+                class="app-number-stepper-btn"
+                [disabled]="!canManage() || submitting()"
+                (click)="stepMoney('absenceDeductionBaht', -100)"
+                aria-label="ลดยอดหักขาด"
+              >
+                −
+              </button>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                class="app-input app-input-number app-number-stepper-input"
+                formControlName="absenceDeductionBaht"
+                [readonly]="!canManage()"
+              />
+              <button
+                type="button"
+                class="app-number-stepper-btn"
+                [disabled]="!canManage() || submitting()"
+                (click)="stepMoney('absenceDeductionBaht', 100)"
+                aria-label="เพิ่มยอดหักขาด"
+              >
+                +
+              </button>
+            </div>
+            <p class="app-field-hint">บาท / วัน</p>
+          </div>
+        </div>
+      </section>
+
+      @if (canManage()) {
+        <div class="shop-rules-actions">
+          <button type="submit" class="app-btn-primary" [disabled]="submitting() || form.pristine">
+            {{ submitting() ? 'กำลังบันทึก...' : 'บันทึกกฎร้าน' }}
+          </button>
+        </div>
+      }
+    </form>
+  }
 </div>

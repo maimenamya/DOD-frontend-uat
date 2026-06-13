@@ -24,6 +24,7 @@ import { OpenTablePageComponent } from './pages/open-table/open-table-page.compo
 import { ReportsPageComponent } from './pages/reports/reports-page.component';
 import { DailyExpensesPageComponent } from './pages/daily-expenses/daily-expenses-page.component';
 import { ShopRulesPageComponent } from './pages/shop-rules/shop-rules-page.component';
+import { PackageDepositPageComponent } from './pages/package-deposit/package-deposit-page.component';
 import { StockPageComponent } from './pages/stock/stock-page.component';
 
 export const routes: Routes = [
@@ -102,6 +103,11 @@ export const routes: Routes = [
       {
         path: 'master-memberships',
         component: MasterMembershipPageComponent,
+        canActivate: [permissionGuard('master_data')],
+      },
+      {
+        path: 'package-deposits',
+        component: PackageDepositPageComponent,
         canActivate: [permissionGuard('master_data')],
       },
       {

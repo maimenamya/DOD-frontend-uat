@@ -1,3 +1,4 @@
+import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import {
   highlightInvalidForm,
@@ -22,7 +23,7 @@ import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-stock-page',
-  imports: [ReactiveFormsModule, AppModalComponent, CustomDropdownComponent],
+  imports: [ReactiveFormsModule, AppModalComponent, CustomDropdownComponent, DecimalPipe],
   templateUrl: './stock-page.component.html',
 })
 export class StockPageComponent implements OnInit {
@@ -114,7 +115,7 @@ export class StockPageComponent implements OnInit {
 
   submitCreate(): void {
     if (!this.canManage()) return;
-    if (!highlightInvalidForm(this.createForm, this.createFormValidated)) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
 
     const beverageId = this.createForm.controls.beverageId.value;
     const quantityOnHand = Number(this.createForm.controls.quantityOnHand.value);
@@ -137,7 +138,7 @@ export class StockPageComponent implements OnInit {
   submitEdit(): void {
     const item = this.editingItem();
     if (!item || !this.canManage()) return;
-    if (!highlightInvalidForm(this.editForm, this.editFormValidated)) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
 
     const quantityOnHand = Number(this.editForm.controls.quantityOnHand.value);
     this.submitting.set(true);

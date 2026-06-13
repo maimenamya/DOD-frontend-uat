@@ -69,6 +69,8 @@ export class MasterPromotionPageComponent implements OnInit {
     drinkId: [0, [Validators.required, Validators.min(1)]],
     quantity: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     isFreeMixer: [false],
+    allowDeposit: [false],
+    freeDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
   });
 
   readonly editForm = this.fb.group({
@@ -77,6 +79,8 @@ export class MasterPromotionPageComponent implements OnInit {
     drinkId: [0, [Validators.required, Validators.min(1)]],
     quantity: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     isFreeMixer: [false],
+    allowDeposit: [false],
+    freeDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
   });
 
   ngOnInit(): void {
@@ -112,6 +116,10 @@ export class MasterPromotionPageComponent implements OnInit {
     return value ? 'ใช่' : 'ไม่';
   }
 
+  allowDepositLabel(value: boolean): string {
+    return value ? 'ได้' : 'ไม่ได้';
+  }
+
   onCreateDrinkCategoryChange(value: number | string | null): void {
     const id = value == null || value === '' ? null : Number(value);
     if (id == null || !Number.isFinite(id)) return;
@@ -138,6 +146,8 @@ export class MasterPromotionPageComponent implements OnInit {
       drinkId: 0,
       quantity: '',
       isFreeMixer: false,
+      allowDeposit: false,
+      freeDrinks: '',
     });
     this.syncCreateDrinkId();
     this.showCreateModal.set(true);
@@ -158,6 +168,8 @@ const beverage = this.beverages().find((b) => b.id === item.drinkId);
       drinkId: item.drinkId,
       quantity: String(item.quantity),
       isFreeMixer: item.isFreeMixer,
+      allowDeposit: item.allowDeposit ?? false,
+      freeDrinks: String(item.freeDrinks ?? 0),
     });
     this.editingItem.set(item);
   }
@@ -175,6 +187,7 @@ const beverage = this.beverages().find((b) => b.id === item.drinkId);
       ...raw,
       packagePrice: Number.parseInt(raw.packagePrice, 10),
       quantity: Number.parseInt(raw.quantity, 10),
+      freeDrinks: Number.parseInt(raw.freeDrinks, 10),
     };
     this.shopMaster.createPromotion(payload).subscribe({
       next: () => {
@@ -200,6 +213,7 @@ const beverage = this.beverages().find((b) => b.id === item.drinkId);
       ...raw,
       packagePrice: Number.parseInt(raw.packagePrice, 10),
       quantity: Number.parseInt(raw.quantity, 10),
+      freeDrinks: Number.parseInt(raw.freeDrinks, 10),
     };
     this.shopMaster.updatePromotion(item.id, payload).subscribe({
       next: () => {
@@ -231,7 +245,7 @@ const beverage = this.beverages().find((b) => b.id === item.drinkId);
 
   sanitizeIntegerInput(
     form: 'create' | 'edit',
-    controlName: 'packagePrice' | 'quantity',
+    controlName: 'packagePrice' | 'quantity' | 'freeDrinks',
     event: Event,
   ): void {
     const input = event.target as HTMLInputElement;

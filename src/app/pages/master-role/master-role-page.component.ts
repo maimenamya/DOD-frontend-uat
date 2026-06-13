@@ -17,24 +17,12 @@ import {
   PERMISSION_GROUP_SHORT_LABEL_TH,
   type PermissionGroup,
 } from '../../models/permission-group';
-import type {
-  DrinkAccrualMode,
-  DrinkAccrualRounding,
-  MstRole,
-  RoleCategory,
-} from '../../models/role';
+import type { MstRole, RoleCategory } from '../../models/role';
 import { AuthService } from '../../services/auth.service';
 import { RoleService } from '../../services/role.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
 import { roleDisplayNameTh } from '../../utils/role-display.util';
-import {
-  DRINK_ACCRUAL_MODE_OPTIONS,
-  DRINK_ACCRUAL_ROUNDING_OPTIONS,
-  drinkAccrualPreviewLine,
-  resolveDrinkAccrualMode,
-  resolveDrinkAccrualRounding,
-} from '../../utils/drink-accrual.util';
 
 const CATEGORY_DROPDOWN_OPTIONS: DropdownOption[] = [
   { value: 'STAFF', label: 'พนักงาน' },
@@ -54,8 +42,6 @@ export class MasterRolePageComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
   readonly categoryDropdownOptions = CATEGORY_DROPDOWN_OPTIONS;
-  readonly drinkAccrualModeOptions = DRINK_ACCRUAL_MODE_OPTIONS;
-  readonly drinkAccrualRoundingOptions = DRINK_ACCRUAL_ROUNDING_OPTIONS;
   readonly roleDisplayNameTh = roleDisplayNameTh;
 
   readonly canManage = computed(() => this.auth.canWriteOnPage('manage_roles'));
@@ -84,22 +70,10 @@ export class MasterRolePageComponent implements OnInit {
 
   readonly createIsEntertainer = signal(false);
   readonly editIsEntertainer = signal(false);
-  readonly createAccrualMode = signal<DrinkAccrualMode>('HOUR_BLOCKS');
-  readonly editAccrualMode = signal<DrinkAccrualMode>('HOUR_BLOCKS');
-  readonly createDrinkPreview = signal('');
-  readonly editDrinkPreview = signal('');
 
   ngOnInit(): void {
-    this.wireRoleForm(this.createForm, {
-      isEntertainer: this.createIsEntertainer,
-      accrualMode: this.createAccrualMode,
-      preview: this.createDrinkPreview,
-    });
-    this.wireRoleForm(this.editForm, {
-      isEntertainer: this.editIsEntertainer,
-      accrualMode: this.editAccrualMode,
-      preview: this.editDrinkPreview,
-    });
+    this.wireRoleForm(this.createForm, this.createIsEntertainer);
+    this.wireRoleForm(this.editForm, this.editIsEntertainer);
     this.loadRoles();
   }
 
@@ -119,7 +93,6 @@ export class MasterRolePageComponent implements OnInit {
   }
 
   openCreate(): void {
-    
     resetFormValidationFlag(this.createFormValidated);
     if (this.loading()) return;
     this.createForm.reset({
@@ -128,10 +101,7 @@ export class MasterRolePageComponent implements OnInit {
       permissionGroup: 'EMPLOYEE',
       category: 'STAFF',
       startDrinks: '0',
-      nextHourDrinks: '0',
       defaultPricePerDrink: '0',
-      drinkAccrualMode: 'HOUR_BLOCKS',
-      drinkAccrualRounding: 'FLOOR',
     });
     this.showCreateModal.set(true);
   }
@@ -141,7 +111,6 @@ export class MasterRolePageComponent implements OnInit {
   }
 
   openEdit(role: MstRole): void {
-    
     resetFormValidationFlag(this.editFormValidated);
     const lockPermissionGroup = role.permissionGroup === 'OWNER';
     this.editForm.reset({
@@ -150,10 +119,7 @@ export class MasterRolePageComponent implements OnInit {
       permissionGroup: role.permissionGroup,
       category: role.category ?? (role.name === 'PR' ? 'ENTERTAINER' : 'STAFF'),
       startDrinks: String(role.startDrinks),
-      nextHourDrinks: String(role.nextHourDrinks),
       defaultPricePerDrink: String(role.defaultPricePerDrink),
-      drinkAccrualMode: resolveDrinkAccrualMode(role.drinkAccrualMode),
-      drinkAccrualRounding: resolveDrinkAccrualRounding(role.drinkAccrualRounding),
     });
     this.editingRole.set(role);
     if (lockPermissionGroup) {
@@ -233,23 +199,15 @@ export class MasterRolePageComponent implements OnInit {
     return category === 'ENTERTAINER' ? 'เด็กนั่งดริ้ง' : 'พนักงาน';
   }
 
-  accrualModeLabel(mode?: DrinkAccrualMode | null): string {
-    return (
-      DRINK_ACCRUAL_MODE_OPTIONS.find((o) => o.value === resolveDrinkAccrualMode(mode))?.label ??
-      '—'
-    );
-  }
-
   sanitizeIntegerInput(
     form: 'create' | 'edit',
-    controlName: 'startDrinks' | 'nextHourDrinks' | 'defaultPricePerDrink',
+    controlName: 'startDrinks' | 'defaultPricePerDrink',
     event: Event,
   ): void {
     const input = event.target as HTMLInputElement;
     const sanitized = input.value.replace(/\D+/g, '');
     const targetForm = form === 'create' ? this.createForm : this.editForm;
     targetForm.controls[controlName].setValue(sanitized, { emitEvent: false });
-    this.refreshDrinkPreview(targetForm, form === 'create' ? this.createDrinkPreview : this.editDrinkPreview);
   }
 
   private buildRoleForm() {
@@ -259,28 +217,18 @@ export class MasterRolePageComponent implements OnInit {
       permissionGroup: ['EMPLOYEE' as PermissionGroup, Validators.required],
       category: ['STAFF' as RoleCategory, Validators.required],
       startDrinks: ['0', [Validators.pattern(/^\d+$/)]],
-      nextHourDrinks: ['0', [Validators.pattern(/^\d+$/)]],
       defaultPricePerDrink: ['0', [Validators.pattern(/^\d+$/)]],
-      drinkAccrualMode: ['HOUR_BLOCKS' as DrinkAccrualMode, Validators.required],
-      drinkAccrualRounding: ['FLOOR' as DrinkAccrualRounding, Validators.required],
     });
   }
 
   private wireRoleForm(
     form: ReturnType<MasterRolePageComponent['buildRoleForm']>,
-    signals: {
-      isEntertainer: ReturnType<typeof signal<boolean>>;
-      accrualMode: ReturnType<typeof signal<DrinkAccrualMode>>;
-      preview: ReturnType<typeof signal<string>>;
-    },
+    isEntertainer: ReturnType<typeof signal<boolean>>,
   ): void {
     const refresh = () => {
       const category = form.controls.category.value as RoleCategory;
-      const isEntertainer = category === 'ENTERTAINER';
-      signals.isEntertainer.set(isEntertainer);
-      signals.accrualMode.set(form.controls.drinkAccrualMode.value as DrinkAccrualMode);
-      this.applyEntertainerDrinkValidators(form, isEntertainer);
-      this.refreshDrinkPreview(form, signals.preview);
+      isEntertainer.set(category === 'ENTERTAINER');
+      this.applyEntertainerDrinkValidators(form, category === 'ENTERTAINER');
     };
 
     form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => refresh());
@@ -297,29 +245,9 @@ export class MasterRolePageComponent implements OnInit {
     form.controls.defaultPricePerDrink.setValidators(requiredPattern);
     form.controls.defaultPricePerDrink.updateValueAndValidity({ emitEvent: false });
 
-    for (const name of ['startDrinks', 'nextHourDrinks'] as const) {
-      const control = form.controls[name];
-      control.setValidators(isEntertainer ? requiredPattern : optionalPattern);
-      control.updateValueAndValidity({ emitEvent: false });
-    }
-  }
-
-  private refreshDrinkPreview(
-    form: ReturnType<MasterRolePageComponent['buildRoleForm']>,
-    preview: ReturnType<typeof signal<string>>,
-  ): void {
-    if ((form.controls.category.value as RoleCategory) !== 'ENTERTAINER') {
-      preview.set('');
-      return;
-    }
-    const drinksPerHour = Number.parseInt(form.controls.nextHourDrinks.value, 10);
-    preview.set(
-      drinkAccrualPreviewLine(
-        drinksPerHour,
-        resolveDrinkAccrualMode(form.controls.drinkAccrualMode.value as DrinkAccrualMode),
-        resolveDrinkAccrualRounding(form.controls.drinkAccrualRounding.value as DrinkAccrualRounding),
-      ),
-    );
+    const startDrinks = form.controls.startDrinks;
+    startDrinks.setValidators(isEntertainer ? requiredPattern : optionalPattern);
+    startDrinks.updateValueAndValidity({ emitEvent: false });
   }
 
   private buildPayload(
@@ -333,10 +261,8 @@ export class MasterRolePageComponent implements OnInit {
       permissionGroup: raw.permissionGroup,
       category: raw.category,
       startDrinks: Number.parseInt(isEntertainer ? raw.startDrinks : '0', 10),
-      nextHourDrinks: Number.parseInt(isEntertainer ? raw.nextHourDrinks : '0', 10),
+      nextHourDrinks: 0,
       defaultPricePerDrink: Number.parseInt(raw.defaultPricePerDrink, 10),
-      drinkAccrualMode: isEntertainer ? raw.drinkAccrualMode : 'HOUR_BLOCKS',
-      drinkAccrualRounding: isEntertainer ? raw.drinkAccrualRounding : 'FLOOR',
     };
   }
 }

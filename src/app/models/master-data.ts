@@ -49,6 +49,7 @@ export interface DrinkPackageRow {
   drinkId: number;
   quantity: number;
   isFreeMixer: boolean;
+  allowDeposit: boolean;
   freeDrinks?: number;
   shopId: number;
   createdAt: string;
@@ -64,5 +65,6 @@ export interface DrinkPackagePayload {
   drinkId: number;
   quantity: number;
   isFreeMixer: boolean;
+  allowDeposit: boolean;
   freeDrinks?: number;
 }

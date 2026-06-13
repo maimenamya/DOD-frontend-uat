@@ -70,6 +70,16 @@
           </label>
         </div>
         <div class="app-form-group">
+          <label class="app-label">ฝากได้</label>
+          <label class="app-toggle" aria-label="เปิดหรือปิดการฝากขวดคงเหลือ">
+            <input type="checkbox" class="app-toggle-input" formControlName="allowDeposit" />
+            <span class="app-toggle-track"></span>
+            <span class="app-toggle-text">{{
+              createForm.controls.allowDeposit.value ? 'ได้' : 'ไม่ได้'
+            }}</span>
+          </label>
+        </div>
+        <div class="app-form-group">
           <label class="app-label">จำนวนฟรี PR ดริ้งก์</label>
           <input
             type="text"
@@ -152,6 +162,16 @@
           </label>
         </div>
         <div class="app-form-group">
+          <label class="app-label">ฝากได้</label>
+          <label class="app-toggle" aria-label="เปิดหรือปิดการฝากขวดคงเหลือ">
+            <input type="checkbox" class="app-toggle-input" formControlName="allowDeposit" />
+            <span class="app-toggle-track"></span>
+            <span class="app-toggle-text">{{
+              editForm.controls.allowDeposit.value ? 'ได้' : 'ไม่ได้'
+            }}</span>
+          </label>
+        </div>
+        <div class="app-form-group">
           <label class="app-label">จำนวนฟรี PR ดริ้งก์</label>
           <input
             type="text"
@@ -190,6 +210,7 @@
                 <col />
                 <col />
                 <col />
+                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -202,6 +223,7 @@
                   <th class="app-cell-right">จำนวน</th>
                   <th class="app-cell-right">ราคาแพ็กเกจ</th>
                   <th>ฟรีมิกซ์เซอร์</th>
+                  <th>ฝากได้</th>
                   <th class="app-cell-right">ฟรี PR ดริ้งก์</th>
                   @if (canManage()) {
                     <th class="app-cell-right">จัดการ</th>
@@ -214,6 +236,7 @@
             <table class="app-data-table app-split-table-grid">
               <colgroup>
                 <col class="app-col-id" />
+                <col />
                 <col />
                 <col />
                 <col />
@@ -235,6 +258,7 @@
                       {{ item.packagePrice | number: '1.0-0' }}
                     </td>
                     <td>{{ freeMixerLabel(item.isFreeMixer) }}</td>
+                    <td>{{ allowDepositLabel(item.allowDeposit ?? false) }}</td>
                     <td class="app-cell-right">{{ item.freeDrinks ?? 0 }}</td>
                     @if (canManage()) {
                       <td class="app-cell-right">

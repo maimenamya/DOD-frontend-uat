@@ -63,41 +63,8 @@
               class="app-input"
               (input)="sanitizeIntegerInput('create', 'startDrinks', $event)"
             />
-            <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ</p>
+            <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ · ดื่มตามเวลานั่งตั้งที่เมนู กฎร้าน</p>
           </div>
-          <div class="app-form-group">
-            <label class="app-label">ดื่มต่อชั่วโมง</label>
-            <input
-              type="text"
-              inputmode="numeric"
-              pattern="[0-9]*"
-              formControlName="nextHourDrinks"
-              class="app-input"
-              (input)="sanitizeIntegerInput('create', 'nextHourDrinks', $event)"
-            />
-            <p class="app-field-hint">เช่น 4 ดื่ม/ชม. → นั่ง 15 นาที ≈ 1 ดื่ม (โหมดตามนาที)</p>
-          </div>
-          <div class="app-form-group">
-            <label class="app-label">คิดตาม</label>
-            <app-custom-dropdown
-              formControlName="drinkAccrualMode"
-              [options]="drinkAccrualModeOptions"
-              placeholder="เลือกวิธีคิด"
-            />
-          </div>
-          @if (createAccrualMode() === 'MINUTE_LINEAR') {
-            <div class="app-form-group">
-              <label class="app-label">ปัดผล</label>
-              <app-custom-dropdown
-                formControlName="drinkAccrualRounding"
-                [options]="drinkAccrualRoundingOptions"
-                placeholder="เลือกการปัด"
-              />
-            </div>
-          }
-          @if (createDrinkPreview()) {
-            <p class="app-field-hint">ตัวอย่างรันดื่มตามเวลานั่ง: {{ createDrinkPreview() }}</p>
-          }
         }
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
@@ -163,41 +130,8 @@
               class="app-input"
               (input)="sanitizeIntegerInput('edit', 'startDrinks', $event)"
             />
-            <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ</p>
+            <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ · ดื่มตามเวลานั่งตั้งที่เมนู กฎร้าน</p>
           </div>
-          <div class="app-form-group">
-            <label class="app-label">ดื่มต่อชั่วโมง</label>
-            <input
-              type="text"
-              inputmode="numeric"
-              pattern="[0-9]*"
-              formControlName="nextHourDrinks"
-              class="app-input"
-              (input)="sanitizeIntegerInput('edit', 'nextHourDrinks', $event)"
-            />
-            <p class="app-field-hint">เช่น 4 ดื่ม/ชม. → นั่ง 15 นาที ≈ 1 ดื่ม (โหมดตามนาที)</p>
-          </div>
-          <div class="app-form-group">
-            <label class="app-label">คิดตาม</label>
-            <app-custom-dropdown
-              formControlName="drinkAccrualMode"
-              [options]="drinkAccrualModeOptions"
-              placeholder="เลือกวิธีคิด"
-            />
-          </div>
-          @if (editAccrualMode() === 'MINUTE_LINEAR') {
-            <div class="app-form-group">
-              <label class="app-label">ปัดผล</label>
-              <app-custom-dropdown
-                formControlName="drinkAccrualRounding"
-                [options]="drinkAccrualRoundingOptions"
-                placeholder="เลือกการปัด"
-              />
-            </div>
-          }
-          @if (editDrinkPreview()) {
-            <p class="app-field-hint">ตัวอย่างรันดื่มตามเวลานั่ง: {{ editDrinkPreview() }}</p>
-          }
         }
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
@@ -227,7 +161,6 @@
                 <col />
                 <col />
                 <col />
-                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -240,7 +173,6 @@
                   <th>กลุ่มสิทธิ์</th>
                   <th>ประเภท</th>
                   <th class="app-cell-right">สตาร์ทดื่ม</th>
-                  <th class="app-cell-right">รันดื่ม</th>
                   <th class="app-cell-right">ราคา</th>
                   @if (canManage()) {
                     <th class="app-cell-right">จัดการ</th>
@@ -253,7 +185,6 @@
             <table class="app-data-table app-split-table-grid">
               <colgroup>
                 <col class="app-col-id" />
-                <col />
                 <col />
                 <col />
                 <col />
@@ -273,7 +204,6 @@
                     <td>{{ permissionGroupLabel(role.permissionGroup) }}</td>
                     <td>{{ categoryLabel(role.category) }}</td>
                     <td class="app-cell-right">{{ role.startDrinks }}</td>
-                    <td class="app-cell-right">{{ role.nextHourDrinks }}</td>
                     <td class="app-cell-right app-cell-highlight-violet">
                       {{ role.defaultPricePerDrink | number: '1.0-0' }}
                     </td>

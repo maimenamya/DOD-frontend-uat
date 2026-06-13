@@ -59,11 +59,12 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
   },
   {
     id: 'marketing',
-    label: 'MstPromotion/Member',
+    label: 'Pro/Mem',
     icon: 'marketing',
     children: [
       { path: '/dashboard/master-promotions', label: 'โปรโมชั่น' },
       { path: '/dashboard/master-memberships', label: 'เมมเบอร์' },
+      { path: '/dashboard/package-deposits', label: 'ฝาก' },
     ],
   },
   {

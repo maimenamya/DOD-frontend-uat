@@ -74,7 +74,7 @@
   } @else {
     <section class="app-card app-card-flush">
       <div class="app-data-table-shell">
-        <div class="app-split-table">
+        <div class="app-split-table app-split-table--mobile-stack">
           <div class="app-split-table-header">
             <table class="app-data-table app-split-table-grid">
               <colgroup>
@@ -112,7 +112,7 @@
                   <tr>
                     <td class="app-cell-mono">{{ i + 1 }}</td>
                     <td class="app-cell-primary">{{ item.name }}</td>
-                    <td class="app-cell-mono">{{ item.code }}</td>
+                    <td class="text-text-secondary" data-label="รหัส">{{ item.code }}</td>
                     @if (canManage()) {
                       <td class="app-cell-right">
                         <div class="app-table-actions">

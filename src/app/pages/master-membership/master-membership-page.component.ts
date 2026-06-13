@@ -69,6 +69,7 @@ export class MasterMembershipPageComponent implements OnInit {
     drinkId: [0, [Validators.required, Validators.min(1)]],
     quantity: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     isFreeMixer: [false],
+    allowDeposit: [false],
     freeDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
   });
 
@@ -78,6 +79,7 @@ export class MasterMembershipPageComponent implements OnInit {
     drinkId: [0, [Validators.required, Validators.min(1)]],
     quantity: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     isFreeMixer: [false],
+    allowDeposit: [false],
     freeDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
   });
 
@@ -114,6 +116,10 @@ export class MasterMembershipPageComponent implements OnInit {
     return value ? 'ใช่' : 'ไม่';
   }
 
+  allowDepositLabel(value: boolean): string {
+    return value ? 'ได้' : 'ไม่ได้';
+  }
+
   onCreateDrinkCategoryChange(value: number | string | null): void {
     const id = value == null || value === '' ? null : Number(value);
     if (id == null || !Number.isFinite(id)) return;
@@ -140,6 +146,7 @@ export class MasterMembershipPageComponent implements OnInit {
       drinkId: 0,
       quantity: '',
       isFreeMixer: false,
+      allowDeposit: false,
       freeDrinks: '',
     });
     this.syncCreateDrinkId();
@@ -161,6 +168,7 @@ const beverage = this.beverages().find((b) => b.id === item.drinkId);
       drinkId: item.drinkId,
       quantity: String(item.quantity),
       isFreeMixer: item.isFreeMixer,
+      allowDeposit: item.allowDeposit ?? false,
       freeDrinks: String(item.freeDrinks ?? 0),
     });
     this.editingItem.set(item);

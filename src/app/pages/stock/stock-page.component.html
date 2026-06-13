@@ -3,7 +3,7 @@
     <div>
       <h1 class="app-page-title">คลังสินค้า</h1>
       <p class="app-page-subtitle">
-        เลือกเครื่องดื่มจากเมนูแล้วกำหนดจำนวนคงเหลือ — เปิดโต๊ะจะตัดตามจำนวนจริง (เครื่องดื่ม / โปร / เมมเบอร์)
+        เลือกเครื่องดื่มจากเมนูแล้วกำหนดจำนวนคงเหลือ — เปิดโต๊ะตัดตามจำนวนที่เบิกจริง (โปร/เมม ตัดตามชุดใน master)
       </p>
     </div>
     @if (canManage() && !loading()) {
@@ -84,43 +84,75 @@
   }
 
   @if (loading()) {
-    <p class="app-muted">กำลังโหลด...</p>
+    <p class="app-loading-text">กำลังโหลด...</p>
   } @else if (items().length === 0) {
-    <section class="app-card app-coming-soon-card">
-      <p class="app-coming-soon-lead">ยังไม่มีรายการสต็อก</p>
-      <p class="app-coming-soon-detail">กด «เพิ่มรายการสต็อก» แล้วเลือกเครื่องดื่มจากเมนู เช่น เบียร์ โค้ก</p>
-    </section>
+    <p class="app-empty-state">ยังไม่มีรายการสต็อก — กด «เพิ่มรายการสต็อก» แล้วเลือกเครื่องดื่มจากเมนู</p>
   } @else {
-    <div class="app-table-wrap">
-      <table class="app-table">
-        <thead>
-          <tr>
-            <th>เครื่องดื่ม</th>
-            <th>ประเภท</th>
-            <th>คงเหลือ</th>
-            @if (canManage()) {
-              <th></th>
-            }
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of items(); track row.id) {
-            <tr>
-              <td>{{ row.beverage.name }}</td>
-              <td>{{ row.beverage.category.name }}</td>
-              <td>{{ row.quantityOnHand }} {{ row.beverage.unitLabelTh }}</td>
-              @if (canManage()) {
-                <td class="app-table-actions">
-                  <button type="button" class="app-btn-ghost" (click)="openEdit(row)">แก้ไข</button>
-                  <button type="button" class="app-btn-ghost app-btn-danger-text" (click)="confirmRemove(row)">
-                    ลบ
-                  </button>
-                </td>
-              }
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+    <section class="app-card app-card-flush">
+      <div class="app-data-table-shell">
+        <div class="app-split-table app-split-table--mobile-stack">
+          <div class="app-split-table-header">
+            <table class="app-data-table app-split-table-grid">
+              <colgroup>
+                <col class="app-col-id" />
+                <col />
+                <col class="app-col-narrow" />
+                @if (canManage()) {
+                  <col class="app-col-actions" />
+                }
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>เครื่องดื่ม</th>
+                  <th class="app-cell-right">คงเหลือ</th>
+                  @if (canManage()) {
+                    <th class="app-cell-right">จัดการ</th>
+                  }
+                </tr>
+              </thead>
+            </table>
+          </div>
+          <div class="app-split-table-body app-scroll-region">
+            <table class="app-data-table app-split-table-grid">
+              <colgroup>
+                <col class="app-col-id" />
+                <col />
+                <col class="app-col-narrow" />
+                @if (canManage()) {
+                  <col class="app-col-actions" />
+                }
+              </colgroup>
+              <tbody>
+                @for (row of items(); track row.id; let i = $index) {
+                  <tr>
+                    <td class="app-cell-mono">{{ i + 1 }}</td>
+                    <td class="app-cell-primary">{{ row.beverage.name }}</td>
+                    <td
+                      class="app-cell-right app-cell-highlight-violet"
+                      data-label="คงเหลือ"
+                    >
+                      {{ row.quantityOnHand | number: '1.0-0' }} {{ row.beverage.unitLabelTh }}
+                    </td>
+                    @if (canManage()) {
+                      <td class="app-cell-right">
+                        <div class="app-table-actions">
+                          <button type="button" class="app-btn-secondary-sm" (click)="openEdit(row)">
+                            แก้ไข
+                          </button>
+                          <button type="button" class="app-btn-danger-sm" (click)="confirmRemove(row)">
+                            ลบ
+                          </button>
+                        </div>
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
   }
 </div>
