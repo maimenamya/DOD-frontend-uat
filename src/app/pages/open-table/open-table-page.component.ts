@@ -28,6 +28,7 @@ import type {
   OpenTableSessionDetail,
   SeatStatus,
   SessionOrderItem,
+  PackageBottleMoveLine,
   SessionRoomCharge,
   SessionStaffDrink,
 } from '../../models/open-table';
@@ -226,6 +227,7 @@ export class OpenTablePageComponent implements OnInit {
   readonly orderCocktailStaffRoleId = signal<number | null>(null);
   readonly orderCocktailStaffEmployeeId = signal<number | null>(null);
   readonly orderQtyText = signal('1');
+  readonly packageBottleQtyTextByKey = signal<Record<string, string>>({});
   readonly packageOpenMode = signal<PackageOpenMode>('NEW');
   readonly packageCustomerName = signal('');
   readonly selectedPackageDepositId = signal<number | null>(null);
@@ -2329,6 +2331,26 @@ export class OpenTablePageComponent implements OnInit {
     return `${item.packageBottlesRemaining}/${item.packageBottlesTotal}`;
   }
 
+  billItemKey(item: SessionOrderItem): string {
+    return `${item.itemId}|${item.itemType}|${item.unitPrice}|${item.isFreeMixer}|${item.unitLabelTh ?? item.unitLabel}|${item.itemName ?? item.label}`;
+  }
+
+  packageBottleQtyText(item: SessionOrderItem): string {
+    return this.packageBottleQtyTextByKey()[this.billItemKey(item)] ?? '1';
+  }
+
+  onPackageBottleQtyChange(item: SessionOrderItem, value: string): void {
+    const key = this.billItemKey(item);
+    this.packageBottleQtyTextByKey.update((map) => ({
+      ...map,
+      [key]: sanitizeDigitsOnly(value),
+    }));
+  }
+
+  packageBottleMoveLabel(move: PackageBottleMoveLine): string {
+    return `${move.displayName} ${move.quantity}`;
+  }
+
   adjustPackageBottle(item: SessionOrderItem, action: 'WITHDRAW' | 'DEPOSIT'): void {
     if (!this.ledgerCanMutate()) {
       this.toast.showError('โต๊ะนี้ถูกเช็กบิลแล้ว ไม่สามารถแก้รายการได้');
@@ -2343,6 +2365,11 @@ export class OpenTablePageComponent implements OnInit {
     if (item.itemType !== 'PROMOTION' && item.itemType !== 'MEMBERSHIP') {
       return;
     }
+    const quantity = parsePositiveIntFromText(this.packageBottleQtyText(item));
+    if (quantity == null || quantity <= 0) {
+      this.toast.showError('กรุณาระบุจำนวนขวด');
+      return;
+    }
     this.submitBillPanelMutation(
       this.openTableService.adjustPackageBottles({
         shopId: this.shopId,
@@ -2350,10 +2377,12 @@ export class OpenTablePageComponent implements OnInit {
         expectedRevision,
         itemType: item.itemType,
         itemId: item.itemId,
+        itemName: item.itemName ?? item.label,
         unitPrice: item.unitPrice,
         isFreeMixer: Boolean(item.isFreeMixer),
         unitLabelTh: item.unitLabelTh ?? item.unitLabel,
         action,
+        quantity,
       }),
       action === 'WITHDRAW' ? 'เบิกขวดสำเร็จ' : 'ฝากขวดสำเร็จ',
       sessionId,

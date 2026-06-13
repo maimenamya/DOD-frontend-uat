@@ -514,64 +514,82 @@
             <div class="space-y-1 text-sm text-text-primary">
               @for (
                 item of sessionDetail()?.items ?? [];
-                track item.itemId + item.itemType + item.unitPrice + item.isFreeMixer
+                track billItemKey(item)
               ) {
-                <p class="flex flex-wrap items-baseline gap-x-1 gap-y-0.5 leading-snug">
-                  <span class="min-w-0">
-                    - {{ item.label }}
-                    @if (item.hostLabel) {
-                      <span class="text-text-secondary">({{ item.hostLabel }})</span>
+                <div class="space-y-0.5">
+                  <p class="flex flex-wrap items-baseline gap-x-1 gap-y-0.5 leading-snug">
+                    <span class="min-w-0">
+                      - {{ item.label }}
+                      @if (item.hostLabel) {
+                        <span class="text-text-secondary">({{ item.hostLabel }})</span>
+                      }
+                      x {{ item.quantity }} {{ item.unitLabel }}
+                      @if (item.isFreeMixer) {
+                        <span class="text-theme-accent">(ฟรีมิกซ์)</span>
+                      }
+                      @if (packageBottleLabel(item); as bottleLabel) {
+                        <span class="font-mono text-theme-accent">{{ bottleLabel }}</span>
+                      }
+                    </span>
+                    @if (item.canAdjustPackageBottles) {
+                      <input
+                        type="text"
+                        inputmode="numeric"
+                        class="app-input h-7 w-10 shrink-0 px-1 text-center text-sm"
+                        [ngModel]="packageBottleQtyText(item)"
+                        (ngModelChange)="onPackageBottleQtyChange(item, $event)"
+                        aria-label="จำนวนขวด"
+                      />
+                      <button
+                        type="button"
+                        class="app-btn-inline shrink-0"
+                        [disabled]="actionBusy() || !item.canWithdrawPackageBottle"
+                        (click)="adjustPackageBottle(item, 'WITHDRAW')"
+                      >
+                        เบิก
+                      </button>
+                      <button
+                        type="button"
+                        class="app-btn-inline shrink-0"
+                        [disabled]="actionBusy() || !item.canDepositPackageBottle"
+                        (click)="adjustPackageBottle(item, 'DEPOSIT')"
+                      >
+                        ฝาก
+                      </button>
                     }
-                    x {{ item.quantity }} {{ item.unitLabel }}
-                    @if (item.isFreeMixer) {
-                      <span class="text-theme-accent">(ฟรีมิกซ์)</span>
+                    @if (ledgerCanMutate() && item.canVoid) {
+                      <button
+                        type="button"
+                        class="app-btn-inline shrink-0"
+                        [disabled]="actionBusy()"
+                        (click)="openVoidItemModal(item)"
+                      >
+                        ลบ
+                      </button>
                     }
-                    @if (packageBottleLabel(item); as bottleLabel) {
-                      <span class="font-mono text-theme-accent">{{ bottleLabel }}</span>
+                    @if (item.canReturn) {
+                      <button
+                        type="button"
+                        class="app-btn-inline shrink-0"
+                        [disabled]="actionBusy()"
+                        (click)="openReturnBeverageModal(item)"
+                      >
+                        คืนของ
+                      </button>
                     }
-                  </span>
-                  @if (item.canAdjustPackageBottles) {
-                    <button
-                      type="button"
-                      class="app-btn-inline shrink-0"
-                      [disabled]="actionBusy() || !item.canWithdrawPackageBottle"
-                      (click)="adjustPackageBottle(item, 'WITHDRAW')"
-                    >
-                      เบิก
-                    </button>
-                    <button
-                      type="button"
-                      class="app-btn-inline shrink-0"
-                      [disabled]="actionBusy() || !item.canDepositPackageBottle"
-                      (click)="adjustPackageBottle(item, 'DEPOSIT')"
-                    >
-                      ฝาก
-                    </button>
+                    <span class="ml-auto shrink-0 font-medium text-theme-accent">
+                      {{ itemLineTotal(item) | number: '1.0-0' }} บาท
+                    </span>
+                  </p>
+                  @if ((item.packageBottleMoves?.length ?? 0) > 0) {
+                    @for (move of item.packageBottleMoves ?? []; track move.id) {
+                      <p class="pl-4 text-xs leading-snug text-text-secondary">
+                        {{ move.action === 'WITHDRAW' ? 'เบิก' : 'ฝาก' }}
+                        {{ packageBottleMoveLabel(move) }}
+                      </p>
+                    }
                   }
-                  @if (ledgerCanMutate() && item.canVoid) {
-                    <button
-                      type="button"
-                      class="app-btn-inline shrink-0"
-                      [disabled]="actionBusy()"
-                      (click)="openVoidItemModal(item)"
-                    >
-                      ลบ
-                    </button>
-                  }
-                  @if (item.canReturn) {
-                    <button
-                      type="button"
-                      class="app-btn-inline shrink-0"
-                      [disabled]="actionBusy()"
-                      (click)="openReturnBeverageModal(item)"
-                    >
-                      คืนของ
-                    </button>
-                  }
-                  <span class="ml-auto shrink-0 font-medium text-theme-accent">
-                    {{ itemLineTotal(item) | number: '1.0-0' }} บาท
-                  </span>
-                </p>
+                </div>
               } @empty {
                 <p class="text-text-secondary">ยังไม่มีรายการ</p>
               }

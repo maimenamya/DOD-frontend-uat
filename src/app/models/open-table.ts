@@ -69,6 +69,14 @@ export type SessionOrderItem = {
   canAdjustPackageBottles?: boolean;
   canWithdrawPackageBottle?: boolean;
   canDepositPackageBottle?: boolean;
+  packageBottleMoves?: PackageBottleMoveLine[];
+};
+
+export type PackageBottleMoveLine = {
+  id: number;
+  action: 'WITHDRAW' | 'DEPOSIT';
+  displayName: string;
+  quantity: number;
 };
 
 export type VoidSessionItemsPayload = SessionMutationBase & {
@@ -99,10 +107,12 @@ export type ReturnBeveragePayload = SessionMutationBase & {
 export type AdjustPackageBottlesPayload = SessionMutationBase & {
   itemType: 'PROMOTION' | 'MEMBERSHIP';
   itemId: number;
+  itemName: string;
   unitPrice: number;
   isFreeMixer: boolean;
   unitLabelTh: string;
   action: 'WITHDRAW' | 'DEPOSIT';
+  quantity: number;
 };
 
 export type AddRoomChargePayload = SessionMutationBase & {
