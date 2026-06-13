@@ -108,7 +108,7 @@ export const routes: Routes = [
       {
         path: 'package-deposits',
         component: PackageDepositPageComponent,
-        canActivate: [permissionGuard('master_data')],
+        canActivate: [permissionGuard('open_table')],
       },
       {
         path: 'master-other-charges',

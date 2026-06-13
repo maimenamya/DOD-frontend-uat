@@ -64,7 +64,6 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
     children: [
       { path: '/dashboard/master-promotions', label: 'โปรโมชั่น' },
       { path: '/dashboard/master-memberships', label: 'เมมเบอร์' },
-      { path: '/dashboard/package-deposits', label: 'ฝาก' },
     ],
   },
   {

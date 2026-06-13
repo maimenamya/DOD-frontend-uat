@@ -528,7 +528,10 @@ export class OpenTablePageComponent implements OnInit {
     const category = this.orderLedgerCategory();
     const sourceType = category === 'PROMOTION' ? 'PROMOTION' : 'MEMBERSHIP';
     return this.packageDepositsRaw()
-      .filter((row) => row.sourceType === sourceType)
+      .filter(
+        (row) =>
+          row.sourceType === sourceType && row.status === 'OPEN' && row.bottlesRemaining > 0,
+      )
       .map((row) => ({
         value: row.id,
         label: `${row.customerName} — ${row.packageName}`,

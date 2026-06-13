@@ -2,6 +2,9 @@
   <div class="app-page-header">
     <div>
       <h1 class="app-page-title">ฝากเมม / โปร</h1>
+      <p class="app-page-subtitle text-text-secondary">
+        นับขวดเป็นจำนวนเต็ม — หมายเหตุบอกสภาพจริงเช่น เหลือครึ่งขวด
+      </p>
     </div>
   </div>
 
@@ -13,109 +16,154 @@
         <h2 class="border-b border-border px-4 py-3 text-base font-semibold text-text-primary">
           ฝากเมม
         </h2>
-        <div class="app-data-table-shell">
-          <div class="app-split-table app-split-table--wide">
-            <div class="app-split-table-header">
-              <table class="app-data-table app-split-table-grid">
-                <colgroup>
-                  <col class="app-col-id" />
-                  <col />
-                  <col />
-                  <col class="app-col-narrow" />
-                </colgroup>
-                <thead>
-                  <tr>
-                    <th>No.</th>
-                    <th>ชื่อเมม</th>
-                    <th>ชื่อลูกค้า</th>
-                    <th>วันที่เปิด</th>
-                  </tr>
-                </thead>
-              </table>
-            </div>
-            <div class="app-split-table-body app-scroll-region">
-              <table class="app-data-table app-split-table-grid">
-                <colgroup>
-                  <col class="app-col-id" />
-                  <col />
-                  <col />
-                  <col class="app-col-narrow" />
-                </colgroup>
-                <tbody>
-                  @if (membershipItems().length === 0) {
-                    <tr>
-                      <td colspan="4" class="app-table-empty">ยังไม่มีรายการฝากเมม</td>
-                    </tr>
-                  } @else {
-                    @for (row of membershipItems(); track row.id; let i = $index) {
-                      <tr>
-                        <td class="app-cell-mono">{{ i + 1 }}</td>
-                        <td class="app-cell-primary">{{ row.packageName }}</td>
-                        <td>{{ row.customerName }}</td>
-                        <td class="whitespace-nowrap text-text-secondary">{{ row.openedOnLabel }}</td>
-                      </tr>
-                    }
-                  }
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        <ng-container *ngTemplateOutlet="depositTable; context: { $implicit: membershipItems(), emptyText: 'ยังไม่มีรายการฝากเมม', nameHeader: 'ชื่อเมม' }" />
       </section>
 
       <section class="app-card app-card-flush">
         <h2 class="border-b border-border px-4 py-3 text-base font-semibold text-text-primary">
           ฝากโปร
         </h2>
-        <div class="app-data-table-shell">
-          <div class="app-split-table app-split-table--wide">
-            <div class="app-split-table-header">
-              <table class="app-data-table app-split-table-grid">
-                <colgroup>
-                  <col class="app-col-id" />
-                  <col />
-                  <col />
-                  <col class="app-col-narrow" />
-                </colgroup>
-                <thead>
-                  <tr>
-                    <th>No.</th>
-                    <th>ชื่อโปร</th>
-                    <th>ชื่อลูกค้า</th>
-                    <th>วันที่เปิด</th>
-                  </tr>
-                </thead>
-              </table>
-            </div>
-            <div class="app-split-table-body app-scroll-region">
-              <table class="app-data-table app-split-table-grid">
-                <colgroup>
-                  <col class="app-col-id" />
-                  <col />
-                  <col />
-                  <col class="app-col-narrow" />
-                </colgroup>
-                <tbody>
-                  @if (promotionItems().length === 0) {
-                    <tr>
-                      <td colspan="4" class="app-table-empty">ยังไม่มีรายการฝากโปร</td>
-                    </tr>
-                  } @else {
-                    @for (row of promotionItems(); track row.id; let i = $index) {
-                      <tr>
-                        <td class="app-cell-mono">{{ i + 1 }}</td>
-                        <td class="app-cell-primary">{{ row.packageName }}</td>
-                        <td>{{ row.customerName }}</td>
-                        <td class="whitespace-nowrap text-text-secondary">{{ row.openedOnLabel }}</td>
-                      </tr>
-                    }
-                  }
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        <ng-container *ngTemplateOutlet="depositTable; context: { $implicit: promotionItems(), emptyText: 'ยังไม่มีรายการฝากโปร', nameHeader: 'ชื่อโปร' }" />
       </section>
     </div>
   }
 </div>
+
+<ng-template #depositTable let-rows let-emptyText="emptyText" let-nameHeader="nameHeader">
+  <div class="app-data-table-shell">
+    <div class="app-split-table app-split-table--wide">
+      <div class="app-split-table-header">
+        <table class="app-data-table app-split-table-grid">
+          <colgroup>
+            <col class="app-col-id" />
+            <col />
+            <col />
+            <col class="app-col-narrow" />
+            <col class="app-col-narrow" />
+            <col class="app-col-narrow" />
+            <col class="app-col-actions" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>{{ nameHeader }}</th>
+              <th>ชื่อลูกค้า</th>
+              <th>วันที่เปิด</th>
+              <th>ขวดคงเหลือ</th>
+              <th>สถานะ</th>
+              <th>จัดการ</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+      <div class="app-split-table-body app-scroll-region">
+        <table class="app-data-table app-split-table-grid">
+          <colgroup>
+            <col class="app-col-id" />
+            <col />
+            <col />
+            <col class="app-col-narrow" />
+            <col class="app-col-narrow" />
+            <col class="app-col-narrow" />
+            <col class="app-col-actions" />
+          </colgroup>
+          <tbody>
+            @if (rows.length === 0) {
+              <tr>
+                <td colspan="7" class="app-table-empty">{{ emptyText }}</td>
+              </tr>
+            } @else {
+              @for (row of rows; track row.id; let i = $index) {
+                <tr>
+                  <td class="app-cell-mono">{{ i + 1 }}</td>
+                  <td class="app-cell-primary">{{ row.packageName }}</td>
+                  <td>{{ row.customerName }}</td>
+                  <td class="whitespace-nowrap text-text-secondary">{{ row.openedOnLabel }}</td>
+                  <td class="whitespace-nowrap font-mono text-sm">{{ row.bottlesLabel }}</td>
+                  <td class="whitespace-nowrap text-sm">
+                    @if (row.status === 'OPEN') {
+                      <span class="app-badge app-badge-staff">{{ statusLabel(row) }}</span>
+                    } @else {
+                      <span class="text-text-secondary">{{ statusLabel(row) }}</span>
+                    }
+                  </td>
+                  <td>
+                    <div class="flex flex-wrap gap-1">
+                      @if (row.canDeposit) {
+                        <button type="button" class="app-btn-secondary-sm" (click)="openDeposit(row)">
+                          ฝาก
+                        </button>
+                      }
+                      @if (row.canClose) {
+                        <button type="button" class="app-btn-danger-sm" (click)="confirmClose(row)">
+                          ปิด
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+@if (depositTarget()) {
+  <app-modal layout="center" (dismiss)="closeDepositModal()">
+    <div class="app-modal-header">
+      <h2 class="app-modal-title">ฝาก — {{ depositTarget()!.packageName }}</h2>
+      <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeDepositModal()">
+        ✕
+      </button>
+    </div>
+    <form
+      class="app-modal-body space-y-4"
+      [class.app-form-was-validated]="depositFormValidated()"
+      [formGroup]="depositForm"
+      (ngSubmit)="submitDeposit()"
+    >
+      <p class="text-sm text-text-secondary">
+        ลูกค้า:
+        <span class="font-medium text-text-primary">{{ depositTarget()!.customerName }}</span>
+        · คงเหลือตอนนี้:
+        <span class="font-mono">{{ depositTarget()!.bottlesLabel }}</span>
+      </p>
+
+      <div class="app-form-group">
+        <label class="app-label" for="deposit-quantity">จำนวนขวดที่ฝากคืน</label>
+        <input
+          id="deposit-quantity"
+          type="number"
+          min="1"
+          step="1"
+          class="app-input"
+          formControlName="quantity"
+          [class.app-input-invalid]="depositFormValidated() && depositForm.controls.quantity.invalid"
+        />
+        <p class="app-hint">นับเป็นขวดเต็มเสมอ — เช่น เหลือครึ่งขวดให้ใส่ 1</p>
+      </div>
+
+      <div class="app-form-group">
+        <label class="app-label" for="deposit-remainder-note">หมายเหตุ (ไม่บังคับ)</label>
+        <input
+          id="deposit-remainder-note"
+          type="text"
+          class="app-input"
+          formControlName="remainderNote"
+          placeholder="เช่น เหลือครึ่งขวด, เหลือ 3 ส่วน"
+        />
+        <p class="app-hint">บอกสภาพจริงที่เหลือ — ใช้แสดงผลเท่านั้น ไม่กระทบจำนวนขวด</p>
+      </div>
+
+      <div class="app-modal-footer">
+        <button type="button" class="app-btn-secondary" (click)="closeDepositModal()">ยกเลิก</button>
+        <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+          {{ submitting() ? 'กำลังบันทึก...' : 'บันทึกการฝาก' }}
+        </button>
+      </div>
+    </form>
+  </app-modal>
+}
