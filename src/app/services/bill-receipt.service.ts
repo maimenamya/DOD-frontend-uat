@@ -219,6 +219,7 @@ export class BillReceiptService {
     html: string;
   } {
     const widthMm = receipt.paperWidthMm >= 80 ? 80 : 58;
+    const narrow = widthMm < 80;
     const title = escapeHtml(receipt.billReference);
     const shopTitle = escapeHtml(receipt.shopName.trim() || 'บิล');
     const headerBlock = receipt.headerText?.trim()
@@ -227,13 +228,18 @@ export class BillReceiptService {
     const footerBlock = receipt.footerText?.trim()
       ? `<div class="center footer">${escapeHtml(receipt.footerText.trim())}</div>`
       : '';
+    const nameMax = narrow ? 12 : 20;
+    const amountHeader = narrow ? 'รวม' : 'ราคารวม';
+
+    const kvRow = (label: string, value: string) =>
+      `<tr><td class="kv-label">${escapeHtml(label)}</td><td class="kv-value">${escapeHtml(value)}</td></tr>`;
 
     const itemRows = receipt.lines
       .map((line) => {
-        const name = escapeHtml(truncateReceiptName(line.name, 18));
+        const name = escapeHtml(truncateReceiptName(line.name, nameMax));
         const qty = escapeHtml(String(line.quantity));
         const amount = escapeHtml(formatReceiptMoney(line.lineTotal));
-        return `<div class="item-row"><span class="item-name">${name}</span><span class="item-qty">${qty}</span><span class="item-amt">${amount}</span></div>`;
+        return `<tr><td class="item-name">${name}</td><td class="item-qty">${qty}</td><td class="item-amt">${amount}</td></tr>`;
       })
       .join('');
 
@@ -246,76 +252,110 @@ export class BillReceiptService {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet" />
   <style>
-    @page { margin: 2mm; size: ${widthMm}mm auto; }
+    @page { margin: 0; size: ${widthMm}mm auto; }
     * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: ${widthMm}mm;
+      max-width: ${widthMm}mm;
+      overflow: hidden;
+    }
     body {
       font-family: 'Sarabun', 'Tahoma', sans-serif;
-      font-size: 11px;
-      line-height: 1.35;
-      margin: 0;
-      padding: 3mm 2mm;
+      font-size: ${narrow ? '9pt' : '10.5pt'};
+      line-height: 1.3;
+      padding: ${narrow ? '1.5mm 1mm' : '2mm 2mm'};
       color: #000;
-      width: ${widthMm - 4}mm;
     }
-    .shop-title { font-size: 15px; font-weight: 700; text-align: center; margin-bottom: 2px; }
-    .bill-title { font-size: 15px; font-weight: 700; text-align: center; margin: 4px 0 8px; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .shop-title { font-size: ${narrow ? '13pt' : '15pt'}; font-weight: 700; text-align: center; margin: 0 0 2px; }
+    .bill-title { font-size: ${narrow ? '13pt' : '15pt'}; font-weight: 700; text-align: center; margin: 4px 0 6px; }
     .center { text-align: center; margin: 2px 0; }
-    .footer { margin-top: 8px; }
-    .row {
-      display: flex;
-      justify-content: space-between;
-      gap: 4px;
-      margin: 2px 0;
+    .footer { margin-top: 6px; }
+    .kv-label {
+      width: 36%;
+      vertical-align: top;
+      padding: 1px 2px 1px 0;
+      white-space: nowrap;
     }
-    .row > span:first-child { flex-shrink: 0; }
-    .row > span:last-child { text-align: right; word-break: break-word; }
+    .kv-value {
+      width: 64%;
+      vertical-align: top;
+      padding: 1px 0;
+      text-align: right;
+      word-break: break-word;
+    }
     .dash {
       border: none;
       border-top: 1px dashed #000;
-      margin: 6px 0;
+      margin: 5px 0;
     }
-    .items-header, .item-row {
-      display: grid;
-      grid-template-columns: 1fr auto auto;
-      gap: 4px 6px;
-      align-items: baseline;
+    .items .item-name {
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      padding: 1px 2px 1px 0;
+      vertical-align: top;
     }
-    .items-header { font-weight: 700; margin-bottom: 2px; }
-    .item-name { word-break: break-word; }
-    .item-qty, .item-amt { text-align: right; white-space: nowrap; }
-    .grand {
-      display: flex;
-      justify-content: space-between;
-      font-size: 16px;
+    .items .item-qty {
+      width: ${narrow ? '8mm' : '10mm'};
+      text-align: right;
+      padding: 1px 1px;
+      vertical-align: top;
+      white-space: nowrap;
+    }
+    .items .item-amt {
+      width: ${narrow ? '15mm' : '18mm'};
+      text-align: right;
+      padding: 1px 0 1px 1px;
+      vertical-align: top;
+      white-space: nowrap;
+      font-size: ${narrow ? '8.5pt' : '10pt'};
+    }
+    .items-head { font-weight: 700; }
+    .items-head .item-qty,
+    .items-head .item-amt { font-size: ${narrow ? '8pt' : '9.5pt'}; }
+    .grand td {
+      font-size: ${narrow ? '12pt' : '14pt'};
       font-weight: 700;
-      margin: 6px 0;
+      padding: 4px 0;
     }
-    .powered { text-align: center; margin-top: 10px; font-size: 10px; }
+    .grand .kv-value { white-space: nowrap; }
+    .powered { text-align: center; margin-top: 8px; font-size: 8pt; }
   </style>
 </head>
 <body>
   <div class="shop-title">${shopTitle}</div>
   ${headerBlock}
   <div class="bill-title">บิล</div>
-  <div class="row"><span>ทานที่ร้าน</span><span>${escapeHtml(receipt.dineInLabel)}</span></div>
-  <div class="row"><span>ชื่อพนักงาน</span><span>${escapeHtml(receipt.staffLabel)}</span></div>
-  <div class="row"><span>เวลาเข้า</span><span>${escapeHtml(receipt.checkedInLabel)}</span></div>
-  <div class="row"><span>เวลาที่พิมพ์</span><span>${escapeHtml(receipt.printedAtLabel)}</span></div>
+  <table class="kv">
+    ${kvRow('ทานที่ร้าน', receipt.dineInLabel)}
+    ${kvRow('ชื่อพนักงาน', receipt.staffLabel)}
+    ${kvRow('เวลาเข้า', receipt.checkedInLabel)}
+    ${kvRow('เวลาที่พิมพ์', receipt.printedAtLabel)}
+  </table>
   <hr class="dash" />
-  <div class="items-header">
-    <span>สินค้า</span><span>Qty</span><span>ราคารวม</span>
-  </div>
-  ${itemRows}
+  <table class="items">
+    <colgroup>
+      <col />
+      <col style="width:${narrow ? '8mm' : '10mm'}" />
+      <col style="width:${narrow ? '15mm' : '18mm'}" />
+    </colgroup>
+    <tr class="items-head">
+      <td class="item-name">สินค้า</td>
+      <td class="item-qty">Qty</td>
+      <td class="item-amt">${amountHeader}</td>
+    </tr>
+    ${itemRows}
+  </table>
   <hr class="dash" />
-  <div class="row">
-    <span>ยอดรวม</span>
-    <span>${escapeHtml(String(receipt.totalQuantity))}  ${escapeHtml(formatReceiptMoney(receipt.grandTotal))}</span>
-  </div>
+  <table class="kv">
+    ${kvRow('ยอดรวม', `${receipt.totalQuantity}  ${formatReceiptMoney(receipt.grandTotal)}`)}
+  </table>
   <hr class="dash" />
-  <div class="grand">
-    <span>ทั้งหมด</span>
-    <span>฿${escapeHtml(formatReceiptMoney(receipt.grandTotal))}</span>
-  </div>
+  <table class="kv grand">
+    ${kvRow('ทั้งหมด', `฿${formatReceiptMoney(receipt.grandTotal)}`)}
+  </table>
   ${footerBlock}
   <div class="powered">Powered by DOD</div>
 </body>
