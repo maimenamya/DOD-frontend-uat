@@ -214,9 +214,7 @@ export class BillReceiptService {
     this.triggerPrintWhenReady(
       targetWindow,
       built.widthMm,
-      built.printWidthMm,
       built.rasterPx,
-      built.sheetPx,
       () => this.removePrintFrame(iframe),
     );
     return true;
@@ -226,16 +224,14 @@ export class BillReceiptService {
     html: string;
     rasterPx: number;
     widthMm: number;
-    printWidthMm: number;
     sheetPx: number;
   } {
     const widthMm = receipt.paperWidthMm >= 80 ? 80 : 58;
     const narrow = widthMm < 80;
-    /** Bitmap width — below driver max so right edge is not clipped on POS-58. */
-    const rasterPx = narrow ? 288 : 544;
-    const sheetPx = narrow ? 264 : 512;
-    /** Physical print width (mm) — inset from 58mm label for non-printable margins. */
-    const printWidthMm = narrow ? 46 : 72;
+    /** Standard 58mm dot width — bitmap prints edge-to-edge; safe zone is inner padding. */
+    const rasterPx = narrow ? 384 : 576;
+    const sidePadPx = narrow ? 36 : 24;
+    const sheetPx = rasterPx - sidePadPx * 2;
     const title = escapeHtml(receipt.billReference);
     const shopTitle = escapeHtml(receipt.shopName.trim() || 'บิล');
     const headerBlock = receipt.headerText?.trim()
@@ -244,8 +240,10 @@ export class BillReceiptService {
     const footerBlock = receipt.footerText?.trim()
       ? `<div class="receipt-foot-text">${escapeHtml(receipt.footerText.trim())}</div>`
       : '';
-    const nameMax = narrow ? 14 : 22;
+    const nameMax = narrow ? 12 : 22;
     const amountHeader = narrow ? 'รวม' : 'ราคารวม';
+    const bodyFont = narrow ? '10px' : '12px';
+    const amtFont = narrow ? '9px' : '11px';
 
     const kvRow = (label: string, value: string) =>
       `<tr><td class="kv-label">${escapeHtml(label)}</td><td class="kv-value">${escapeHtml(value)}</td></tr>`;
@@ -279,16 +277,21 @@ export class BillReceiptService {
     }
     body {
       font-family: 'Sarabun', 'Tahoma', sans-serif;
-      font-size: ${narrow ? '11px' : '12px'};
-      line-height: 1.3;
-      padding: 6px 0 10px;
+      font-size: ${bodyFont};
+      line-height: 1.25;
+      padding: 0;
       color: #000;
     }
+    .raster-frame {
+      width: ${rasterPx}px;
+      max-width: ${rasterPx}px;
+      margin: 0;
+      padding: 4px ${sidePadPx}px 10px;
+      background: #fff;
+    }
     .sheet {
-      width: ${sheetPx}px;
-      max-width: ${sheetPx}px;
-      margin: 0 auto;
-      padding: 0 8px 8px;
+      width: 100%;
+      max-width: 100%;
     }
     .receipt-head,
     .receipt-foot {
@@ -346,29 +349,29 @@ export class BillReceiptService {
       vertical-align: top;
     }
     .items .item-qty {
-      width: 14%;
+      width: 12%;
       text-align: right;
-      padding: 1px 6px 1px 0;
+      padding: 1px 4px 1px 0;
       vertical-align: top;
       white-space: nowrap;
     }
     .items .item-amt {
-      width: 42%;
+      width: 46%;
       text-align: right;
-      padding: 1px 2px 1px 0;
+      padding: 1px 0;
       vertical-align: top;
       white-space: nowrap;
-      font-size: ${narrow ? '10px' : '11px'};
+      font-size: ${amtFont};
     }
     .items-head { font-weight: 700; }
     .items-head .item-qty {
       text-align: right;
-      padding-right: 6px;
+      padding-right: 4px;
     }
     .items-head .item-qty,
-    .items-head .item-amt { font-size: ${narrow ? '10px' : '11px'}; }
+    .items-head .item-amt { font-size: ${amtFont}; }
     .grand td {
-      font-size: ${narrow ? '14px' : '16px'};
+      font-size: ${narrow ? '12px' : '16px'};
       font-weight: 700;
       padding: 4px 0;
     }
@@ -382,6 +385,7 @@ export class BillReceiptService {
   </style>
 </head>
 <body>
+  <div class="raster-frame">
   <div class="sheet">
   <header class="receipt-head">
   <div class="shop-title">${shopTitle}</div>
@@ -398,9 +402,9 @@ export class BillReceiptService {
   <hr class="dash" />
   <table class="items">
     <colgroup>
-      <col style="width:44%" />
-      <col style="width:14%" />
-      <col style="width:42%" />
+      <col style="width:40%" />
+      <col style="width:12%" />
+      <col style="width:48%" />
     </colgroup>
     <tr class="items-head">
       <td class="item-name">สินค้า</td>
@@ -423,17 +427,16 @@ export class BillReceiptService {
   <div class="powered">Powered by DOD</div>
   </footer>
   </div>
+  </div>
 </body>
 </html>`;
-    return { html, rasterPx, widthMm, printWidthMm, sheetPx };
+    return { html, rasterPx, widthMm, sheetPx };
   }
 
   private triggerPrintWhenReady(
     targetWindow: Window,
     widthMm: number,
-    printWidthMm: number,
     rasterPx: number,
-    sheetPx: number,
     cleanup?: () => void,
   ): void {
     const frameDoc = targetWindow.document;
@@ -447,24 +450,24 @@ export class BillReceiptService {
           await frameDoc.fonts?.ready;
           await new Promise((resolve) => setTimeout(resolve, 350));
 
-          const sheet = frameDoc.querySelector('.sheet');
-          if (!sheet) {
+          const rasterFrame = frameDoc.querySelector('.raster-frame');
+          if (!rasterFrame) {
             targetWindow.focus();
             targetWindow.print();
             return;
           }
 
-          const sheetEl = sheet as HTMLElement;
-          const captureHeight = Math.max(sheetEl.scrollHeight, sheetEl.offsetHeight);
+          const frameEl = rasterFrame as HTMLElement;
+          const captureHeight = Math.max(frameEl.scrollHeight, frameEl.offsetHeight);
           const { default: html2canvas } = await import('html2canvas');
-          const captured = await html2canvas(sheetEl, {
+          const captured = await html2canvas(frameEl, {
             backgroundColor: '#ffffff',
             scale: 1,
             useCORS: true,
             logging: false,
-            width: sheetPx,
+            width: rasterPx,
             height: captureHeight,
-            windowWidth: sheetPx,
+            windowWidth: rasterPx,
             windowHeight: captureHeight,
           });
           const raster = finalizeReceiptCanvas(captured, rasterPx);
@@ -478,10 +481,10 @@ export class BillReceiptService {
   html, body { margin: 0; padding: 0; width: ${widthMm}mm; }
   img {
     display: block;
-    width: ${printWidthMm}mm;
-    max-width: ${printWidthMm}mm;
+    width: ${widthMm}mm;
+    max-width: ${widthMm}mm;
     height: auto;
-    margin: 0 auto;
+    margin: 0;
   }
 </style></head>
 <body><img src="${dataUrl}" alt="ใบเสร็จ" /></body></html>`);
