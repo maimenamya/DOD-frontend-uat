@@ -206,7 +206,6 @@ export class BillReceiptService {
     const built = this.buildReceiptPrintDocument(receipt);
     const targetWindow = printWindow ?? this.openPrintWindow();
     if (!targetWindow) {
-      built.revoke?.();
       return false;
     }
 
@@ -215,102 +214,140 @@ export class BillReceiptService {
       targetWindow.document.write(built.html);
       targetWindow.document.close();
     } catch {
-      built.revoke?.();
       if (!printWindow) targetWindow.close();
       return false;
     }
 
-    this.triggerPrintWhenReady(targetWindow, built.revoke);
+    this.triggerPrintWhenReady(targetWindow);
     return true;
   }
 
   private buildReceiptPrintDocument(receipt: BillReceiptResponse['receipt']): {
     html: string;
-    revoke?: () => void;
   } {
     const widthMm = receipt.paperWidthMm >= 80 ? 80 : 58;
     const title = escapeHtml(receipt.billReference);
+    const shopTitle = escapeHtml(receipt.shopName.trim() || 'บิล');
+    const headerBlock = receipt.headerText?.trim()
+      ? `<div class="center">${escapeHtml(receipt.headerText.trim())}</div>`
+      : '';
+    const footerBlock = receipt.footerText?.trim()
+      ? `<div class="center footer">${escapeHtml(receipt.footerText.trim())}</div>`
+      : '';
 
-    if (receipt.receiptPngBase64) {
-      const binary = atob(receipt.receiptPngBase64.replace(/\s/g, ''));
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i += 1) {
-        bytes[i] = binary.charCodeAt(i);
-      }
-      const blobUrl = URL.createObjectURL(new Blob([bytes], { type: 'image/png' }));
-      const html = `<!DOCTYPE html>
-<html lang="th">
-<head>
-  <meta charset="utf-8" />
-  <title>ใบเสร็จ ${title}</title>
-  <style>
-    @page { margin: 0; size: ${widthMm}mm auto; }
-    body { margin: 0; padding: 0; }
-    img { display: block; width: ${widthMm}mm; height: auto; }
-  </style>
-</head>
-<body>
-  <img src="${blobUrl}" alt="ใบเสร็จ" />
-</body>
-</html>`;
-      return { html, revoke: () => URL.revokeObjectURL(blobUrl) };
-    }
+    const itemRows = receipt.lines
+      .map((line) => {
+        const name = escapeHtml(truncateReceiptName(line.name, 18));
+        const qty = escapeHtml(String(line.quantity));
+        const amount = escapeHtml(formatReceiptMoney(line.lineTotal));
+        return `<div class="item-row"><span class="item-name">${name}</span><span class="item-qty">${qty}</span><span class="item-amt">${amount}</span></div>`;
+      })
+      .join('');
 
     const html = `<!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="utf-8" />
   <title>ใบเสร็จ ${title}</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     @page { margin: 2mm; size: ${widthMm}mm auto; }
+    * { box-sizing: border-box; }
     body {
       font-family: 'Sarabun', 'Tahoma', sans-serif;
-      font-size: 12px;
+      font-size: 11px;
+      line-height: 1.35;
       margin: 0;
-      padding: 4px;
+      padding: 3mm 2mm;
       color: #000;
       width: ${widthMm - 4}mm;
     }
-    .line { white-space: pre-wrap; font-size: 11px; line-height: 1.35; }
+    .shop-title { font-size: 15px; font-weight: 700; text-align: center; margin-bottom: 2px; }
+    .bill-title { font-size: 15px; font-weight: 700; text-align: center; margin: 4px 0 8px; }
+    .center { text-align: center; margin: 2px 0; }
+    .footer { margin-top: 8px; }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 4px;
+      margin: 2px 0;
+    }
+    .row > span:first-child { flex-shrink: 0; }
+    .row > span:last-child { text-align: right; word-break: break-word; }
+    .dash {
+      border: none;
+      border-top: 1px dashed #000;
+      margin: 6px 0;
+    }
+    .items-header, .item-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 4px 6px;
+      align-items: baseline;
+    }
+    .items-header { font-weight: 700; margin-bottom: 2px; }
+    .item-name { word-break: break-word; }
+    .item-qty, .item-amt { text-align: right; white-space: nowrap; }
     .grand {
-      font-size: 18px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 16px;
       font-weight: 700;
       margin: 6px 0;
     }
+    .powered { text-align: center; margin-top: 10px; font-size: 10px; }
   </style>
 </head>
 <body>
-  ${receipt.textLines
-    .map((line) => {
-      if (line.includes('ทั้งหมด')) {
-        return `<div class="grand line">${escapeHtml(line)}</div>`;
-      }
-      return `<div class="line">${escapeHtml(line)}</div>`;
-    })
-    .join('')}
+  <div class="shop-title">${shopTitle}</div>
+  ${headerBlock}
+  <div class="bill-title">บิล</div>
+  <div class="row"><span>ทานที่ร้าน</span><span>${escapeHtml(receipt.dineInLabel)}</span></div>
+  <div class="row"><span>ชื่อพนักงาน</span><span>${escapeHtml(receipt.staffLabel)}</span></div>
+  <div class="row"><span>เวลาเข้า</span><span>${escapeHtml(receipt.checkedInLabel)}</span></div>
+  <div class="row"><span>เวลาที่พิมพ์</span><span>${escapeHtml(receipt.printedAtLabel)}</span></div>
+  <hr class="dash" />
+  <div class="items-header">
+    <span>สินค้า</span><span>Qty</span><span>ราคารวม</span>
+  </div>
+  ${itemRows}
+  <hr class="dash" />
+  <div class="row">
+    <span>ยอดรวม</span>
+    <span>${escapeHtml(String(receipt.totalQuantity))}  ${escapeHtml(formatReceiptMoney(receipt.grandTotal))}</span>
+  </div>
+  <hr class="dash" />
+  <div class="grand">
+    <span>ทั้งหมด</span>
+    <span>฿${escapeHtml(formatReceiptMoney(receipt.grandTotal))}</span>
+  </div>
+  ${footerBlock}
+  <div class="powered">Powered by DOD</div>
 </body>
 </html>`;
     return { html };
   }
 
-  private triggerPrintWhenReady(targetWindow: Window, revoke?: () => void): void {
+  private triggerPrintWhenReady(targetWindow: Window): void {
     const frameDoc = targetWindow.document;
     let printed = false;
-
-    const cleanup = () => {
-      revoke?.();
-    };
 
     const triggerPrint = () => {
       if (printed) return;
       printed = true;
-      try {
+      const run = async () => {
+        try {
+          await frameDoc.fonts?.ready;
+        } catch {
+          // ignore
+        }
+        await new Promise((resolve) => setTimeout(resolve, 150));
         targetWindow.focus();
         targetWindow.print();
-      } finally {
-        setTimeout(cleanup, 1000);
-      }
+      };
+      void run();
     };
 
     const img = frameDoc.querySelector('img');
@@ -325,8 +362,13 @@ export class BillReceiptService {
       return;
     }
 
-    targetWindow.onload = () => triggerPrint();
-    setTimeout(triggerPrint, 500);
+    if (frameDoc.fonts?.status === 'loaded') {
+      triggerPrint();
+      return;
+    }
+    frameDoc.fonts?.addEventListener('loadingdone', () => triggerPrint(), { once: true });
+    targetWindow.addEventListener('load', () => triggerPrint(), { once: true });
+    setTimeout(triggerPrint, 2000);
   }
 
   /** Download ESC/POS bytes for testing with USB/BT print tools. */
@@ -352,4 +394,16 @@ function escapeHtml(value: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+function formatReceiptMoney(amount: number): string {
+  return amount.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+function truncateReceiptName(name: string, maxChars: number): string {
+  if (name.length <= maxChars) return name;
+  return `${name.slice(0, Math.max(1, maxChars - 1))}…`;
 }
