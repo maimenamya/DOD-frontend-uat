@@ -230,7 +230,7 @@ export class BillReceiptService {
     const narrow = widthMm < 80;
     /** Standard 58mm dot width — bitmap prints edge-to-edge; safe zone is inner padding. */
     const rasterPx = narrow ? 384 : 576;
-    const sidePadPx = narrow ? 36 : 24;
+    const sidePadPx = narrow ? 44 : 24;
     const sheetPx = rasterPx - sidePadPx * 2;
     const title = escapeHtml(receipt.billReference);
     const shopTitle = escapeHtml(receipt.shopName.trim() || 'บิล');
@@ -253,7 +253,7 @@ export class BillReceiptService {
         const name = escapeHtml(truncateReceiptName(receiptLineDisplayName(line.name), nameMax));
         const qty = escapeHtml(String(line.quantity));
         const amount = escapeHtml(formatReceiptMoney(line.lineTotal));
-        return `<div class="item-row"><span class="item-name">${name}</span><span class="item-tail"><span class="item-qty">${qty}</span><span class="item-amt">${amount}</span></span></div>`;
+        return `<div class="item-row"><span class="item-name">${name}</span><span class="item-qty">${qty}</span><span class="item-amt">${amount}</span></div>`;
       })
       .join('');
 
@@ -303,7 +303,7 @@ export class BillReceiptService {
     .kv-row {
       display: flex;
       align-items: baseline;
-      gap: 6px;
+      gap: 4px;
       padding: 1px 0;
     }
     .kv-label {
@@ -317,7 +317,7 @@ export class BillReceiptService {
     }
     .kv-totals .kv-row {
       justify-content: flex-start;
-      gap: 6px;
+      gap: 4px;
     }
     .kv-totals .kv-value {
       text-align: left;
@@ -327,37 +327,32 @@ export class BillReceiptService {
     .item-row {
       display: flex;
       align-items: baseline;
-      justify-content: space-between;
-      gap: 8px;
+      justify-content: flex-start;
+      gap: 4px;
       padding: 1px 0;
     }
     .item-name {
       flex: 0 1 auto;
       min-width: 0;
+      max-width: 58%;
       word-break: break-word;
       overflow-wrap: anywhere;
     }
-    .item-tail {
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
-      flex: 0 0 auto;
-      white-space: nowrap;
-    }
     .item-qty {
       flex: 0 0 auto;
-      min-width: 1.1em;
+      min-width: 1em;
       text-align: right;
+      white-space: nowrap;
     }
     .item-amt {
       flex: 0 0 auto;
       text-align: right;
+      white-space: nowrap;
       font-size: ${amtFont};
     }
     .items-head {
       font-weight: 700;
     }
-    .items-head .item-tail { gap: 6px; }
     .items-head .item-qty,
     .items-head .item-amt { font-size: ${amtFont}; }
     .grand .kv-row {
@@ -421,10 +416,8 @@ export class BillReceiptService {
   <div class="items">
     <div class="item-row items-head">
       <span class="item-name">สินค้า</span>
-      <span class="item-tail">
-        <span class="item-qty">Qty</span>
-        <span class="item-amt">${amountHeader}</span>
-      </span>
+      <span class="item-qty">Qty</span>
+      <span class="item-amt">${amountHeader}</span>
     </div>
     ${itemRows}
   </div>
