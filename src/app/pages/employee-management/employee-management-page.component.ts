@@ -11,6 +11,8 @@ import {
 } from '@angular/forms';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
+import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
 import {
   CustomDropdownComponent,
   type DropdownOption,
@@ -29,10 +31,21 @@ import {
   roleOptionLabel,
   teamForRole,
 } from '../../utils/employee-team.util';
+import {
+  MasterListQueryState,
+  createMasterListView,
+  masterListRowNumber,
+} from '../../utils/master-list.util';
 
 @Component({
   selector: 'app-employee-management-page',
-  imports: [ReactiveFormsModule, CustomDropdownComponent, AppModalComponent],
+  imports: [
+    ReactiveFormsModule,
+    CustomDropdownComponent,
+    AppModalComponent,
+    MasterListToolbarComponent,
+    ListPaginatorComponent,
+  ],
   templateUrl: './employee-management-page.component.html',
 })
 export class EmployeeManagementPageComponent implements OnInit {
@@ -67,13 +80,19 @@ export class EmployeeManagementPageComponent implements OnInit {
     return list.filter((r) => r.permissionGroup !== 'OWNER');
   });
 
-  readonly filteredEmployees = computed(() => {
+  readonly employeesByRole = computed(() => {
     const roleName = this.selectedRoleName();
     if (!roleName) {
       return [];
     }
     return this.allEmployees().filter((e) => e.role?.name === roleName);
   });
+
+  readonly listQuery = new MasterListQueryState();
+  readonly listView = createMasterListView(this.employeesByRole, this.listQuery, (emp) =>
+    `${emp.employeeId} ${emp.nickname} ${emp.role ? roleDisplayNameTh(emp.role) : ''}`,
+  );
+  readonly masterListRowNumber = masterListRowNumber;
 
   readonly selectedRole = computed(() =>
     this.tabRoles().find((r) => r.name === this.selectedRoleName()),
@@ -174,6 +193,7 @@ export class EmployeeManagementPageComponent implements OnInit {
     this.selectedRoleName.set(roleName);
     this.showCreateForm.set(false);
     this.editingEmployee.set(null);
+    this.listQuery.onSearchChange('');
     const role = this.roles().find((r) => r.name === roleName);
     if (role) {
       this.createForm.patchValue({ roleId: role.id });

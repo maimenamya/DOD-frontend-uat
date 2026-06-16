@@ -2,9 +2,6 @@
   <div class="app-page-header">
     <div>
       <h1 class="app-page-title">คลังสินค้า</h1>
-      <p class="app-page-subtitle">
-        เลือกเครื่องดื่มจากเมนูแล้วกำหนดจำนวนคงเหลือ — เปิดโต๊ะตัดตามจำนวนที่เบิกจริง (โปร/เมม ตัดตามชุดใน master)
-      </p>
     </div>
     @if (canManage() && !loading()) {
       <button type="button" (click)="openCreate()" class="app-btn-primary">เพิ่มรายการสต็อก</button>

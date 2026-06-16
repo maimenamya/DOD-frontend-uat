@@ -63,7 +63,24 @@
               class="app-input"
               (input)="sanitizeIntegerInput('create', 'startDrinks', $event)"
             />
-            <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ · ดื่มตามเวลานั่งตั้งที่เมนู กฎร้าน</p>
+            <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ</p>
+          </div>
+          <div class="app-form-group">
+            <label class="app-label">รันดื่มต่อชม.</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              formControlName="nextHourDrinks"
+              class="app-input"
+              (input)="sanitizeIntegerInput('create', 'nextHourDrinks', $event)"
+            />
+            <p class="app-field-hint">
+              ทุกชั่วโมงเต็มที่นั่งครบ 60 นาที · เศษนาที (เช่น 15 นาทีหลังชม.) ใช้
+              <a routerLink="/dashboard/shop-rules" class="app-field-hint-link" (click)="closeCreate()"
+                >กฎร้าน → เวลานั่งดื่ม</a
+              >
+            </p>
           </div>
         }
         <div class="app-form-actions">
@@ -130,7 +147,24 @@
               class="app-input"
               (input)="sanitizeIntegerInput('edit', 'startDrinks', $event)"
             />
-            <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ · ดื่มตามเวลานั่งตั้งที่เมนู กฎร้าน</p>
+            <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ</p>
+          </div>
+          <div class="app-form-group">
+            <label class="app-label">รันดื่มต่อชม.</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              formControlName="nextHourDrinks"
+              class="app-input"
+              (input)="sanitizeIntegerInput('edit', 'nextHourDrinks', $event)"
+            />
+            <p class="app-field-hint">
+              ทุกชั่วโมงเต็มที่นั่งครบ 60 นาที · เศษนาที (เช่น 15 นาทีหลังชม.) ใช้
+              <a routerLink="/dashboard/shop-rules" class="app-field-hint-link" (click)="closeEdit()"
+                >กฎร้าน → เวลานั่งดื่ม</a
+              >
+            </p>
           </div>
         }
         <div class="app-form-actions">
@@ -168,6 +202,7 @@
                 <col />
                 <col />
                 <col />
+                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -180,6 +215,7 @@
                   <th>กลุ่มสิทธิ์</th>
                   <th>ประเภท</th>
                   <th class="app-cell-right">สตาร์ทดื่ม</th>
+                  <th class="app-cell-right">รันดื่ม/ชม.</th>
                   <th class="app-cell-right">ราคา</th>
                   @if (canManage()) {
                     <th class="app-cell-right">จัดการ</th>
@@ -192,6 +228,7 @@
             <table class="app-data-table app-split-table-grid">
               <colgroup>
                 <col class="app-col-id" />
+                <col />
                 <col />
                 <col />
                 <col />
@@ -211,6 +248,7 @@
                     <td>{{ permissionGroupLabel(role.permissionGroup) }}</td>
                     <td>{{ categoryLabel(role.category) }}</td>
                     <td class="app-cell-right">{{ role.startDrinks }}</td>
+                    <td class="app-cell-right">{{ role.nextHourDrinks }}</td>
                     <td class="app-cell-right app-cell-highlight-violet">
                       {{ role.defaultPricePerDrink | number: '1.0-0' }}
                     </td>

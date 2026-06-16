@@ -520,35 +520,9 @@
           </button>
         } @else {
           <div>
-            <div class="mb-2 flex flex-wrap items-center gap-2">
-              <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                รายการในบิล
-              </p>
-              @if (ledgerCanMutate() && (canWithdrawPackageBottle() || canDepositPackageBottleOnBill())) {
-                <span class="ml-auto flex flex-wrap gap-1">
-                  @if (canWithdrawPackageBottle()) {
-                    <button
-                      type="button"
-                      class="app-btn-secondary-sm"
-                      [disabled]="actionBusy()"
-                      (click)="openPackageBottleModal('WITHDRAW')"
-                    >
-                      เบิกขวด
-                    </button>
-                  }
-                  @if (canDepositPackageBottleOnBill()) {
-                    <button
-                      type="button"
-                      class="app-btn-secondary-sm"
-                      [disabled]="actionBusy()"
-                      (click)="openPackageBottleModal('DEPOSIT')"
-                    >
-                      ฝากขวด
-                    </button>
-                  }
-                </span>
-              }
-            </div>
+            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">
+              รายการในบิล
+            </p>
             <div class="space-y-1 text-sm text-text-primary">
               @for (
                 item of sessionDetail()?.items ?? [];
@@ -1146,7 +1120,7 @@
               (ngModelChange)="staffSeatStartedAt.set($event)"
             />
             <p class="app-field-hint">
-              รันดื่มตามเวลานั่งจากกฎร้าน (15/30/45 นาที) · สตาร์ทดื่มแยกตามสวิตช์ด้านบน
+              รันดื่มตามเวลานั่งจากกฎร้าน (เศษนาทีหลังชม.เต็ม) · สตาร์ทดื่มแยกตามสวิตช์ด้านบน
             </p>
           </div>
         }

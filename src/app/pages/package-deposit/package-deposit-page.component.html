@@ -31,23 +31,23 @@
 
 <ng-template #depositTable let-rows let-emptyText="emptyText" let-nameHeader="nameHeader">
   <div class="app-data-table-shell">
-    <div class="app-split-table app-split-table--wide">
+    <div class="app-split-table app-split-table--wide package-deposit-split">
       <div class="app-split-table-header">
         <table class="app-data-table app-split-table-grid">
           <colgroup>
-            <col class="app-col-id" />
-            <col />
-            <col />
-            <col class="app-col-narrow" />
-            <col class="app-col-narrow" />
-            <col class="app-col-narrow" />
-            <col class="app-col-actions" />
+            <col class="pd-col-no" />
+            <col class="pd-col-package" />
+            <col class="pd-col-customer" />
+            <col class="pd-col-date" />
+            <col class="pd-col-bottles" />
+            <col class="pd-col-status" />
+            <col class="pd-col-actions" />
           </colgroup>
           <thead>
             <tr>
               <th>No.</th>
-              <th>{{ nameHeader }}</th>
-              <th>ชื่อลูกค้า</th>
+              <th class="text-left">{{ nameHeader }}</th>
+              <th class="text-left">ชื่อลูกค้า</th>
               <th>วันที่เปิด</th>
               <th>ขวดคงเหลือ</th>
               <th>สถานะ</th>
@@ -59,13 +59,13 @@
       <div class="app-split-table-body app-scroll-region">
         <table class="app-data-table app-split-table-grid">
           <colgroup>
-            <col class="app-col-id" />
-            <col />
-            <col />
-            <col class="app-col-narrow" />
-            <col class="app-col-narrow" />
-            <col class="app-col-narrow" />
-            <col class="app-col-actions" />
+            <col class="pd-col-no" />
+            <col class="pd-col-package" />
+            <col class="pd-col-customer" />
+            <col class="pd-col-date" />
+            <col class="pd-col-bottles" />
+            <col class="pd-col-status" />
+            <col class="pd-col-actions" />
           </colgroup>
           <tbody>
             @if (rows.length === 0) {
@@ -75,20 +75,25 @@
             } @else {
               @for (row of rows; track row.id; let i = $index) {
                 <tr>
-                  <td class="app-cell-mono">{{ i + 1 }}</td>
-                  <td class="app-cell-primary">{{ row.packageName }}</td>
-                  <td>{{ row.customerName }}</td>
+                  <td class="app-cell-mono text-text-secondary">{{ i + 1 }}</td>
+                  <td class="app-cell-primary text-left">{{ row.packageName }}</td>
+                  <td class="text-left">{{ row.customerName }}</td>
                   <td class="whitespace-nowrap text-text-secondary">{{ row.openedOnLabel }}</td>
-                  <td class="whitespace-nowrap font-mono text-sm">{{ row.bottlesLabel }}</td>
-                  <td class="whitespace-nowrap text-sm">
-                    @if (row.status === 'OPEN') {
-                      <span class="app-badge app-badge-staff">{{ statusLabel(row) }}</span>
-                    } @else {
-                      <span class="text-text-secondary">{{ statusLabel(row) }}</span>
+                  <td class="whitespace-nowrap">
+                    <span class="font-mono text-sm font-medium text-text-primary">{{ row.bottlesLabel }}</span>
+                    @if (row.remainderNote) {
+                      <div class="mt-0.5 text-xs leading-snug text-text-secondary">{{ row.remainderNote }}</div>
                     }
                   </td>
                   <td>
-                    <div class="flex flex-wrap gap-1">
+                    @if (row.status === 'OPEN') {
+                      <span class="app-badge app-badge-staff package-deposit-status-open">{{ statusLabel(row) }}</span>
+                    } @else {
+                      <span class="app-badge app-badge-default">{{ statusLabel(row) }}</span>
+                    }
+                  </td>
+                  <td>
+                    <div class="app-table-actions justify-center">
                       @if (row.canDeposit) {
                         <button type="button" class="app-btn-secondary-sm" (click)="openDeposit(row)">
                           ฝาก

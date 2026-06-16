@@ -3247,7 +3247,7 @@
 
   /* ── Filter chips ── */
   .app-filter-bar {
-    @apply flex flex-wrap gap-2;
+    @apply mb-4 flex flex-wrap gap-2;
   }
 
   .app-filter-chip {
@@ -3391,6 +3391,11 @@
 
   .app-field-hint-link {
     @apply font-semibold text-theme-accent underline-offset-2 hover:underline;
+  }
+
+  .app-callout-info {
+    @apply rounded-input border border-theme-border px-3 py-2.5;
+    background: color-mix(in srgb, var(--surface) 88%, var(--primary) 12%);
   }
 
   /* ── Grids & profile ── */
@@ -3541,6 +3546,69 @@
     height: var(--dashboard-rank-body);
     min-height: var(--dashboard-rank-body);
     max-height: var(--dashboard-rank-body);
+  }
+
+  /** Package deposit (ฝากเมม/โปร) — wider cols; Thai headers without uppercase squeeze */
+  @media (min-width: 640px) {
+    .app-card-flush .app-data-table-shell:has(.package-deposit-split) {
+      overflow-x: auto;
+    }
+  }
+
+  .package-deposit-split .app-split-table-header th {
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: 0.8125rem;
+  }
+
+  .package-deposit-split .app-split-table-header th.text-left,
+  .package-deposit-split .app-split-table-body td.text-left {
+    text-align: left;
+    padding-inline-start: 1rem;
+    padding-inline-end: 0.75rem;
+  }
+
+  .package-deposit-split .app-split-table-grid col.pd-col-no {
+    width: 3rem;
+  }
+
+  .package-deposit-split .app-split-table-grid col.pd-col-package {
+    width: 24%;
+  }
+
+  .package-deposit-split .app-split-table-grid col.pd-col-customer {
+    width: 18%;
+  }
+
+  .package-deposit-split .app-split-table-grid col.pd-col-date {
+    width: 7.5rem;
+  }
+
+  .package-deposit-split .app-split-table-grid col.pd-col-bottles {
+    width: 7.5rem;
+  }
+
+  .package-deposit-split .app-split-table-grid col.pd-col-status {
+    width: 6.5rem;
+  }
+
+  .package-deposit-split .app-split-table-grid col.pd-col-actions {
+    width: 9rem;
+  }
+
+  .package-deposit-split .app-split-table-header .app-split-table-grid,
+  .package-deposit-split .app-split-table-body .app-split-table-grid {
+    min-width: 44rem;
+  }
+
+  .package-deposit-status-open {
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: 0.75rem;
+  }
+
+  .package-deposit-split .app-table-actions {
+    gap: 0.375rem;
   }
 
   .dashboard-rank-table-empty {

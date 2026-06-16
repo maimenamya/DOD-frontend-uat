@@ -5,6 +5,7 @@ import {
 } from '../../utils/form-validation.util';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
@@ -38,7 +39,7 @@ const CATEGORY_DROPDOWN_OPTIONS: DropdownOption[] = [
 
 @Component({
   selector: 'app-master-role-page',
-  imports: [ReactiveFormsModule, AppModalComponent, DecimalPipe, CustomDropdownComponent, MasterListToolbarComponent, ListPaginatorComponent],
+  imports: [ReactiveFormsModule, AppModalComponent, DecimalPipe, CustomDropdownComponent, MasterListToolbarComponent, ListPaginatorComponent, RouterLink],
   templateUrl: './master-role-page.component.html',
 })
 export class MasterRolePageComponent implements OnInit {
@@ -113,6 +114,7 @@ export class MasterRolePageComponent implements OnInit {
       permissionGroup: 'EMPLOYEE',
       category: 'STAFF',
       startDrinks: '0',
+      nextHourDrinks: '0',
       defaultPricePerDrink: '0',
     });
     this.showCreateModal.set(true);
@@ -131,6 +133,7 @@ export class MasterRolePageComponent implements OnInit {
       permissionGroup: role.permissionGroup,
       category: role.category ?? (role.name === 'PR' ? 'ENTERTAINER' : 'STAFF'),
       startDrinks: String(role.startDrinks),
+      nextHourDrinks: String(role.nextHourDrinks),
       defaultPricePerDrink: String(role.defaultPricePerDrink),
     });
     this.editingRole.set(role);
@@ -213,7 +216,7 @@ export class MasterRolePageComponent implements OnInit {
 
   sanitizeIntegerInput(
     form: 'create' | 'edit',
-    controlName: 'startDrinks' | 'defaultPricePerDrink',
+    controlName: 'startDrinks' | 'nextHourDrinks' | 'defaultPricePerDrink',
     event: Event,
   ): void {
     const input = event.target as HTMLInputElement;
@@ -229,6 +232,7 @@ export class MasterRolePageComponent implements OnInit {
       permissionGroup: ['EMPLOYEE' as PermissionGroup, Validators.required],
       category: ['STAFF' as RoleCategory, Validators.required],
       startDrinks: ['0', [Validators.pattern(/^\d+$/)]],
+      nextHourDrinks: ['0', [Validators.pattern(/^\d+$/)]],
       defaultPricePerDrink: ['0', [Validators.pattern(/^\d+$/)]],
     });
   }
@@ -260,6 +264,10 @@ export class MasterRolePageComponent implements OnInit {
     const startDrinks = form.controls.startDrinks;
     startDrinks.setValidators(isEntertainer ? requiredPattern : optionalPattern);
     startDrinks.updateValueAndValidity({ emitEvent: false });
+
+    const nextHourDrinks = form.controls.nextHourDrinks;
+    nextHourDrinks.setValidators(isEntertainer ? requiredPattern : optionalPattern);
+    nextHourDrinks.updateValueAndValidity({ emitEvent: false });
   }
 
   private buildPayload(
@@ -273,7 +281,7 @@ export class MasterRolePageComponent implements OnInit {
       permissionGroup: raw.permissionGroup,
       category: raw.category,
       startDrinks: Number.parseInt(isEntertainer ? raw.startDrinks : '0', 10),
-      nextHourDrinks: 0,
+      nextHourDrinks: Number.parseInt(isEntertainer ? raw.nextHourDrinks : '0', 10),
       defaultPricePerDrink: Number.parseInt(raw.defaultPricePerDrink, 10),
     };
   }

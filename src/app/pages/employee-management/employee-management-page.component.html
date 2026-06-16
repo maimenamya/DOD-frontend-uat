@@ -27,6 +27,14 @@
     </div>
   }
 
+  @if (!loading() && tabRoles().length > 0) {
+    <app-master-list-toolbar
+      [search]="listQuery.search()"
+      placeholder="ค้นหารหัสหรือชื่อเล่น..."
+      (searchChange)="listQuery.onSearchChange($event)"
+    />
+  }
+
   @if (showCreateForm() && canManage() && !loading()) {
     <app-modal (dismiss)="closeCreateForm()">
       <div class="app-modal-header">
@@ -133,8 +141,10 @@
 
   @if (loading()) {
     <p class="app-loading-text">กำลังโหลด...</p>
-  } @else if (filteredEmployees().length === 0) {
+  } @else if (employeesByRole().length === 0 && !listQuery.search().trim()) {
     <p class="app-empty-state">ยังไม่มีพนักงานในตำแหน่งนี้</p>
+  } @else if (listView().total === 0) {
+    <p class="app-empty-state">ไม่พบรายการที่ตรงกับคำค้น</p>
   } @else {
     <section class="app-card app-card-flush">
       <div class="app-data-table-shell">
@@ -175,9 +185,9 @@
                 }
               </colgroup>
               <tbody>
-                @for (emp of filteredEmployees(); track emp.id; let i = $index) {
+                @for (emp of listView().items; track emp.id; let i = $index) {
                   <tr>
-                    <td class="app-cell-mono">{{ i + 1 }}</td>
+                    <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
                     <td class="app-cell-mono">{{ emp.employeeId }}</td>
                     <td class="app-cell-primary">{{ emp.nickname }}</td>
                     <td>
@@ -211,5 +221,15 @@
         </div>
       </div>
     </section>
+    <app-list-paginator
+      [page]="listView().page"
+      [totalPages]="listView().totalPages"
+      [total]="listView().total"
+      [limit]="listView().limit"
+      [rangeStart]="listView().rangeStart"
+      [rangeEnd]="listView().rangeEnd"
+      (pageChange)="listQuery.goToPage($event)"
+      (limitChange)="listQuery.onLimitChange($event)"
+    />
   }
 </div>

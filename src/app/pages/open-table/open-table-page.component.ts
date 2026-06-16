@@ -420,14 +420,6 @@ export class OpenTablePageComponent implements OnInit {
     (this.sessionDetail()?.items ?? []).filter((item) => item.canAdjustPackageBottles),
   );
 
-  readonly canWithdrawPackageBottle = computed(() =>
-    this.packageBottleBillItems().some((item) => item.canWithdrawPackageBottle),
-  );
-
-  readonly canDepositPackageBottleOnBill = computed(() =>
-    this.packageBottleBillItems().some((item) => item.canDepositPackageBottle),
-  );
-
   readonly packageBottleModalOptions = computed<DropdownOption[]>(() => {
     const action = this.packageBottleAction();
     return this.packageBottleBillItems()
