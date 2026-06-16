@@ -2690,6 +2690,13 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
 
+    const printWin = this.billReceiptService.shouldOpenPrintWindowOnDesktop()
+      ? this.billReceiptService.openPrintWindow()
+      : null;
+    if (this.billReceiptService.shouldOpenPrintWindowOnDesktop() && !printWin) {
+      this.toast.showError('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ — อนุญาตป็อปอัปแล้วลองใหม่');
+    }
+
     this.runAction(
       this.openTableService.checkoutBill({
         shopId: this.shopId,
@@ -2702,7 +2709,7 @@ export class OpenTablePageComponent implements OnInit {
       (result) => {
         this.closeCheckoutModal();
         this.lastCheckoutBillId.set(result.billId);
-        this.tryPrintCheckoutReceipt(result);
+        this.tryPrintCheckoutReceipt(result, printWin);
         const seatKey = this.selectedSeatKey();
         if (result.sessionClosed) {
           this.closeAddModal();
@@ -2718,6 +2725,7 @@ export class OpenTablePageComponent implements OnInit {
         }
       },
       () => {
+        this.billReceiptService.closePrintWindow(printWin);
         this.closeCheckoutModal();
         this.closeAddModal();
       },
@@ -2725,14 +2733,25 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   /** Railway/cloud API cannot reach printers — print on the device at the shop. */
-  private tryPrintCheckoutReceipt(result: CheckoutResult): void {
+  private tryPrintCheckoutReceipt(
+    result: CheckoutResult,
+    printWin?: Window | null,
+  ): void {
     const receiptResponse = result.receipt;
-    if (!receiptResponse) return;
+    if (!receiptResponse) {
+      this.billReceiptService.closePrintWindow(printWin);
+      return;
+    }
 
     const channel = receiptResponse.receipt.printChannel ?? 'auto';
-    if (channel === 'off') return;
+    if (channel === 'off') {
+      this.billReceiptService.closePrintWindow(printWin);
+      return;
+    }
 
-    const outcome = this.billReceiptService.printReceipt(receiptResponse.receipt);
+    const outcome = this.billReceiptService.printReceipt(receiptResponse.receipt, {
+      printWindow: printWin,
+    });
     if (outcome.ok && outcome.method === 'rawbt') {
       const isIos = /iPad|iPhone|iPod/i.test(navigator.userAgent);
       this.toast.showSuccess(
@@ -2740,6 +2759,10 @@ export class OpenTablePageComponent implements OnInit {
           ? 'ส่งไปแอปพิมพ์แล้ว — กดพิมพ์ในแอป (ครั้งแรกต้องจับคู่ BT)'
           : 'ส่งไป RawBT แล้ว — กดพิมพ์ในแอป (ครั้งแรกต้องจับคู่ BT)',
       );
+      return;
+    }
+    if (outcome.ok && outcome.method === 'browser') {
+      this.toast.showSuccess('เปิดหน้าพิมพ์แล้ว — เลือกเครื่องพิมพ์ POS-58');
       return;
     }
     if (!outcome.ok) {
@@ -2753,18 +2776,36 @@ export class OpenTablePageComponent implements OnInit {
       this.toast.showError('ไม่พบบิลล่าสุด — เช็กบิลใหม่หรือเปิดโต๊ะนี้อีกครั้ง');
       return;
     }
+
+    const printWin = this.billReceiptService.shouldOpenPrintWindowOnDesktop()
+      ? this.billReceiptService.openPrintWindow()
+      : null;
+    if (this.billReceiptService.shouldOpenPrintWindowOnDesktop() && !printWin) {
+      this.toast.showError('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ — อนุญาตป็อปอัปแล้วลองใหม่');
+      return;
+    }
+
     this.billReceiptService.getBillReceipt(billId).subscribe({
       next: (response) => {
-        const outcome = this.billReceiptService.printReceipt(response.receipt);
+        const outcome = this.billReceiptService.printReceipt(response.receipt, {
+          printWindow: printWin,
+        });
         if (outcome.ok && outcome.method === 'rawbt') {
           this.toast.showSuccess('ส่งไป RawBT แล้ว');
+          return;
+        }
+        if (outcome.ok && outcome.method === 'browser') {
+          this.toast.showSuccess('เปิดหน้าพิมพ์แล้ว — เลือกเครื่องพิมพ์ POS-58');
           return;
         }
         if (!outcome.ok) {
           this.toast.showError(outcome.message ?? 'พิมพ์ใบเสร็จไม่สำเร็จ');
         }
       },
-      error: () => this.toast.showError('โหลดใบเสร็จไม่สำเร็จ'),
+      error: () => {
+        this.billReceiptService.closePrintWindow(printWin);
+        this.toast.showError('โหลดใบเสร็จไม่สำเร็จ');
+      },
     });
   }
 
