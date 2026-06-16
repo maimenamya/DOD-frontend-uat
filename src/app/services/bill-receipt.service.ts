@@ -211,15 +211,24 @@ export class BillReceiptService {
       return false;
     }
 
-    this.triggerPrintWhenReady(targetWindow, () => this.removePrintFrame(iframe));
+    this.triggerPrintWhenReady(
+      targetWindow,
+      built.widthMm,
+      built.rasterPx,
+      () => this.removePrintFrame(iframe),
+    );
     return true;
   }
 
   private buildReceiptPrintDocument(receipt: BillReceiptResponse['receipt']): {
     html: string;
+    rasterPx: number;
+    widthMm: number;
   } {
     const widthMm = receipt.paperWidthMm >= 80 ? 80 : 58;
     const narrow = widthMm < 80;
+    const rasterPx = narrow ? 384 : 576;
+    const sheetPx = narrow ? 336 : 528;
     const title = escapeHtml(receipt.billReference);
     const shopTitle = escapeHtml(receipt.shopName.trim() || 'บิล');
     const headerBlock = receipt.headerText?.trim()
@@ -230,7 +239,6 @@ export class BillReceiptService {
       : '';
     const nameMax = narrow ? 14 : 22;
     const amountHeader = narrow ? 'รวม' : 'ราคารวม';
-    const sheetMm = narrow ? 50 : 74;
 
     const kvRow = (label: string, value: string) =>
       `<tr><td class="kv-label">${escapeHtml(label)}</td><td class="kv-value">${escapeHtml(value)}</td></tr>`;
@@ -258,19 +266,20 @@ export class BillReceiptService {
     html, body {
       margin: 0;
       padding: 0;
-      width: ${widthMm}mm;
-      max-width: ${widthMm}mm;
+      width: ${rasterPx}px;
+      max-width: ${rasterPx}px;
+      background: #fff;
     }
     body {
       font-family: 'Sarabun', 'Tahoma', sans-serif;
-      font-size: ${narrow ? '8.5pt' : '10pt'};
-      line-height: 1.25;
-      padding: 2mm 0;
+      font-size: ${narrow ? '11px' : '12px'};
+      line-height: 1.3;
+      padding: 8px 0;
       color: #000;
     }
     .sheet {
-      width: ${sheetMm}mm;
-      max-width: ${sheetMm}mm;
+      width: ${sheetPx}px;
+      max-width: ${sheetPx}px;
       margin: 0 auto;
       overflow: hidden;
     }
@@ -282,7 +291,7 @@ export class BillReceiptService {
     .receipt-body { width: 100%; }
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .shop-title {
-      font-size: ${narrow ? '13pt' : '15pt'};
+      font-size: ${narrow ? '15px' : '17px'};
       font-weight: 700;
       text-align: center;
       margin: 0 0 2px;
@@ -294,7 +303,7 @@ export class BillReceiptService {
       width: 100%;
     }
     .bill-title {
-      font-size: ${narrow ? '13pt' : '15pt'};
+      font-size: ${narrow ? '15px' : '17px'};
       font-weight: 700;
       text-align: center;
       margin: 4px 0 6px;
@@ -342,13 +351,13 @@ export class BillReceiptService {
       padding: 1px 0;
       vertical-align: top;
       white-space: nowrap;
-      font-size: ${narrow ? '8pt' : '9.5pt'};
+      font-size: ${narrow ? '10px' : '11px'};
     }
     .items-head { font-weight: 700; }
     .items-head .item-qty,
-    .items-head .item-amt { font-size: ${narrow ? '8pt' : '9.5pt'}; }
+    .items-head .item-amt { font-size: ${narrow ? '10px' : '11px'}; }
     .grand td {
-      font-size: ${narrow ? '12pt' : '14pt'};
+      font-size: ${narrow ? '14px' : '16px'};
       font-weight: 700;
       padding: 4px 0;
     }
@@ -356,7 +365,7 @@ export class BillReceiptService {
     .powered {
       text-align: center;
       margin-top: 6px;
-      font-size: 8pt;
+      font-size: 10px;
       width: 100%;
     }
   </style>
@@ -405,10 +414,15 @@ export class BillReceiptService {
   </div>
 </body>
 </html>`;
-    return { html };
+    return { html, rasterPx, widthMm };
   }
 
-  private triggerPrintWhenReady(targetWindow: Window, cleanup?: () => void): void {
+  private triggerPrintWhenReady(
+    targetWindow: Window,
+    widthMm: number,
+    rasterPx: number,
+    cleanup?: () => void,
+  ): void {
     const frameDoc = targetWindow.document;
     let printed = false;
 
@@ -418,11 +432,40 @@ export class BillReceiptService {
       const run = async () => {
         try {
           await frameDoc.fonts?.ready;
+          await new Promise((resolve) => setTimeout(resolve, 350));
+
+          const sheet = frameDoc.querySelector('.sheet');
+          if (!sheet) {
+            targetWindow.focus();
+            targetWindow.print();
+            return;
+          }
+
+          const { default: html2canvas } = await import('html2canvas');
+          const captured = await html2canvas(sheet as HTMLElement, {
+            backgroundColor: '#ffffff',
+            scale: 1,
+            useCORS: true,
+            logging: false,
+          });
+          const raster = finalizeReceiptCanvas(captured, rasterPx);
+          const dataUrl = raster.toDataURL('image/png');
+
+          frameDoc.open();
+          frameDoc.write(`<!DOCTYPE html>
+<html lang="th"><head><meta charset="utf-8" />
+<style>
+  @page { margin: 0; size: ${widthMm}mm auto; }
+  html, body { margin: 0; padding: 0; }
+  img { display: block; width: ${widthMm}mm; max-width: ${widthMm}mm; height: auto; }
+</style></head>
+<body><img src="${dataUrl}" alt="ใบเสร็จ" /></body></html>`);
+          frameDoc.close();
+
+          await new Promise((resolve) => setTimeout(resolve, 150));
+          targetWindow.focus();
+          targetWindow.print();
         } catch {
-          // ignore
-        }
-        await new Promise((resolve) => setTimeout(resolve, 200));
-        try {
           targetWindow.focus();
           targetWindow.print();
         } finally {
@@ -438,7 +481,7 @@ export class BillReceiptService {
     }
     frameDoc.fonts?.addEventListener('loadingdone', () => triggerPrint(), { once: true });
     targetWindow.addEventListener('load', () => triggerPrint(), { once: true });
-    setTimeout(triggerPrint, 2500);
+    setTimeout(triggerPrint, 3000);
   }
 
   downloadEscPos(receipt: BillReceiptResponse['receipt']): void {
@@ -489,4 +532,33 @@ function receiptLineDisplayName(name: string): string {
     return rest ? `ดื่ม ${rest}` : 'ดื่ม';
   }
   return trimmed;
+}
+
+function finalizeReceiptCanvas(source: HTMLCanvasElement, targetWidth: number): HTMLCanvasElement {
+  if (source.width > targetWidth) {
+    return scaleCanvasToWidth(source, targetWidth);
+  }
+  if (source.width === targetWidth) return source;
+  const out = document.createElement('canvas');
+  out.width = targetWidth;
+  out.height = source.height;
+  const ctx = out.getContext('2d');
+  if (!ctx) return source;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, out.width, out.height);
+  const x = Math.floor((targetWidth - source.width) / 2);
+  ctx.drawImage(source, x, 0);
+  return out;
+}
+
+function scaleCanvasToWidth(source: HTMLCanvasElement, targetWidth: number): HTMLCanvasElement {
+  const scaled = document.createElement('canvas');
+  scaled.width = targetWidth;
+  scaled.height = Math.max(1, Math.round(source.height * (targetWidth / source.width)));
+  const ctx = scaled.getContext('2d');
+  if (!ctx) return source;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, scaled.width, scaled.height);
+  ctx.drawImage(source, 0, 0, scaled.width, scaled.height);
+  return scaled;
 }
