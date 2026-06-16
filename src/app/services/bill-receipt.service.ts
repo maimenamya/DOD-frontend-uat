@@ -214,7 +214,9 @@ export class BillReceiptService {
     this.triggerPrintWhenReady(
       targetWindow,
       built.widthMm,
+      built.printWidthMm,
       built.rasterPx,
+      built.sheetPx,
       () => this.removePrintFrame(iframe),
     );
     return true;
@@ -224,11 +226,16 @@ export class BillReceiptService {
     html: string;
     rasterPx: number;
     widthMm: number;
+    printWidthMm: number;
+    sheetPx: number;
   } {
     const widthMm = receipt.paperWidthMm >= 80 ? 80 : 58;
     const narrow = widthMm < 80;
-    const rasterPx = narrow ? 384 : 576;
-    const sheetPx = narrow ? 336 : 528;
+    /** Bitmap width — slightly below 384 so thermal driver does not clip the right edge. */
+    const rasterPx = narrow ? 304 : 544;
+    const sheetPx = narrow ? 288 : 512;
+    /** Physical print width (mm) — smaller than paper label for non-printable margins. */
+    const printWidthMm = narrow ? 50 : 72;
     const title = escapeHtml(receipt.billReference);
     const shopTitle = escapeHtml(receipt.shopName.trim() || 'บิล');
     const headerBlock = receipt.headerText?.trim()
@@ -339,14 +346,14 @@ export class BillReceiptService {
       vertical-align: top;
     }
     .items .item-qty {
-      width: 12%;
-      text-align: right;
-      padding: 1px 0;
+      width: 11%;
+      text-align: left;
+      padding: 1px 4px 1px 2px;
       vertical-align: top;
       white-space: nowrap;
     }
     .items .item-amt {
-      width: 24%;
+      width: 35%;
       text-align: right;
       padding: 1px 0;
       vertical-align: top;
@@ -354,6 +361,10 @@ export class BillReceiptService {
       font-size: ${narrow ? '10px' : '11px'};
     }
     .items-head { font-weight: 700; }
+    .items-head .item-qty {
+      text-align: left;
+      padding-left: 2px;
+    }
     .items-head .item-qty,
     .items-head .item-amt { font-size: ${narrow ? '10px' : '11px'}; }
     .grand td {
@@ -387,9 +398,9 @@ export class BillReceiptService {
   <hr class="dash" />
   <table class="items">
     <colgroup>
-      <col style="width:64%" />
-      <col style="width:12%" />
-      <col style="width:24%" />
+      <col style="width:54%" />
+      <col style="width:11%" />
+      <col style="width:35%" />
     </colgroup>
     <tr class="items-head">
       <td class="item-name">สินค้า</td>
@@ -414,13 +425,15 @@ export class BillReceiptService {
   </div>
 </body>
 </html>`;
-    return { html, rasterPx, widthMm };
+    return { html, rasterPx, widthMm, printWidthMm, sheetPx };
   }
 
   private triggerPrintWhenReady(
     targetWindow: Window,
     widthMm: number,
+    printWidthMm: number,
     rasterPx: number,
+    sheetPx: number,
     cleanup?: () => void,
   ): void {
     const frameDoc = targetWindow.document;
@@ -447,6 +460,8 @@ export class BillReceiptService {
             scale: 1,
             useCORS: true,
             logging: false,
+            width: sheetPx,
+            windowWidth: sheetPx,
           });
           const raster = finalizeReceiptCanvas(captured, rasterPx);
           const dataUrl = raster.toDataURL('image/png');
@@ -456,8 +471,14 @@ export class BillReceiptService {
 <html lang="th"><head><meta charset="utf-8" />
 <style>
   @page { margin: 0; size: ${widthMm}mm auto; }
-  html, body { margin: 0; padding: 0; }
-  img { display: block; width: ${widthMm}mm; max-width: ${widthMm}mm; height: auto; }
+  html, body { margin: 0; padding: 0; width: ${widthMm}mm; }
+  img {
+    display: block;
+    width: ${printWidthMm}mm;
+    max-width: ${printWidthMm}mm;
+    height: auto;
+    margin: 0 auto;
+  }
 </style></head>
 <body><img src="${dataUrl}" alt="ใบเสร็จ" /></body></html>`);
           frameDoc.close();
