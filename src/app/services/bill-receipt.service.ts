@@ -231,11 +231,11 @@ export class BillReceiptService {
   } {
     const widthMm = receipt.paperWidthMm >= 80 ? 80 : 58;
     const narrow = widthMm < 80;
-    /** Bitmap width — slightly below 384 so thermal driver does not clip the right edge. */
-    const rasterPx = narrow ? 304 : 544;
-    const sheetPx = narrow ? 288 : 512;
-    /** Physical print width (mm) — smaller than paper label for non-printable margins. */
-    const printWidthMm = narrow ? 50 : 72;
+    /** Bitmap width — below driver max so right edge is not clipped on POS-58. */
+    const rasterPx = narrow ? 288 : 544;
+    const sheetPx = narrow ? 264 : 512;
+    /** Physical print width (mm) — inset from 58mm label for non-printable margins. */
+    const printWidthMm = narrow ? 46 : 72;
     const title = escapeHtml(receipt.billReference);
     const shopTitle = escapeHtml(receipt.shopName.trim() || 'บิล');
     const headerBlock = receipt.headerText?.trim()
@@ -281,14 +281,14 @@ export class BillReceiptService {
       font-family: 'Sarabun', 'Tahoma', sans-serif;
       font-size: ${narrow ? '11px' : '12px'};
       line-height: 1.3;
-      padding: 8px 0;
+      padding: 6px 0 10px;
       color: #000;
     }
     .sheet {
       width: ${sheetPx}px;
       max-width: ${sheetPx}px;
       margin: 0 auto;
-      overflow: hidden;
+      padding: 0 8px 8px;
     }
     .receipt-head,
     .receipt-foot {
@@ -330,7 +330,7 @@ export class BillReceiptService {
     .kv-value {
       width: 62%;
       vertical-align: top;
-      padding: 1px 0;
+      padding: 1px 4px 1px 0;
       text-align: right;
       word-break: break-word;
     }
@@ -346,24 +346,24 @@ export class BillReceiptService {
       vertical-align: top;
     }
     .items .item-qty {
-      width: 11%;
-      text-align: left;
-      padding: 1px 4px 1px 2px;
+      width: 14%;
+      text-align: right;
+      padding: 1px 6px 1px 0;
       vertical-align: top;
       white-space: nowrap;
     }
     .items .item-amt {
-      width: 35%;
+      width: 42%;
       text-align: right;
-      padding: 1px 0;
+      padding: 1px 2px 1px 0;
       vertical-align: top;
       white-space: nowrap;
       font-size: ${narrow ? '10px' : '11px'};
     }
     .items-head { font-weight: 700; }
     .items-head .item-qty {
-      text-align: left;
-      padding-left: 2px;
+      text-align: right;
+      padding-right: 6px;
     }
     .items-head .item-qty,
     .items-head .item-amt { font-size: ${narrow ? '10px' : '11px'}; }
@@ -398,9 +398,9 @@ export class BillReceiptService {
   <hr class="dash" />
   <table class="items">
     <colgroup>
-      <col style="width:54%" />
-      <col style="width:11%" />
-      <col style="width:35%" />
+      <col style="width:44%" />
+      <col style="width:14%" />
+      <col style="width:42%" />
     </colgroup>
     <tr class="items-head">
       <td class="item-name">สินค้า</td>
@@ -454,14 +454,18 @@ export class BillReceiptService {
             return;
           }
 
+          const sheetEl = sheet as HTMLElement;
+          const captureHeight = Math.max(sheetEl.scrollHeight, sheetEl.offsetHeight);
           const { default: html2canvas } = await import('html2canvas');
-          const captured = await html2canvas(sheet as HTMLElement, {
+          const captured = await html2canvas(sheetEl, {
             backgroundColor: '#ffffff',
             scale: 1,
             useCORS: true,
             logging: false,
             width: sheetPx,
+            height: captureHeight,
             windowWidth: sheetPx,
+            windowHeight: captureHeight,
           });
           const raster = finalizeReceiptCanvas(captured, rasterPx);
           const dataUrl = raster.toDataURL('image/png');
