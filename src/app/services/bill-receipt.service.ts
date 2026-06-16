@@ -223,16 +223,14 @@ export class BillReceiptService {
     const title = escapeHtml(receipt.billReference);
     const shopTitle = escapeHtml(receipt.shopName.trim() || 'บิล');
     const headerBlock = receipt.headerText?.trim()
-      ? `<div class="center">${escapeHtml(receipt.headerText.trim())}</div>`
+      ? `<div class="receipt-subhead">${escapeHtml(receipt.headerText.trim())}</div>`
       : '';
     const footerBlock = receipt.footerText?.trim()
-      ? `<div class="center footer">${escapeHtml(receipt.footerText.trim())}</div>`
+      ? `<div class="receipt-foot-text">${escapeHtml(receipt.footerText.trim())}</div>`
       : '';
     const nameMax = narrow ? 14 : 22;
     const amountHeader = narrow ? 'รวม' : 'ราคารวม';
-    const contentPad = narrow ? '2mm 5mm 2mm 2mm' : '2mm 3mm';
-    const qtyCol = narrow ? '6mm' : '9mm';
-    const amtCol = narrow ? '12mm' : '16mm';
+    const sheetMm = narrow ? 50 : 74;
 
     const kvRow = (label: string, value: string) =>
       `<tr><td class="kv-label">${escapeHtml(label)}</td><td class="kv-value">${escapeHtml(value)}</td></tr>`;
@@ -262,29 +260,59 @@ export class BillReceiptService {
       padding: 0;
       width: ${widthMm}mm;
       max-width: ${widthMm}mm;
-      overflow: hidden;
     }
     body {
       font-family: 'Sarabun', 'Tahoma', sans-serif;
       font-size: ${narrow ? '8.5pt' : '10pt'};
       line-height: 1.25;
-      padding: ${contentPad};
+      padding: 2mm 0;
       color: #000;
     }
-    .sheet { width: 100%; max-width: 100%; overflow: hidden; }
+    .sheet {
+      width: ${sheetMm}mm;
+      max-width: ${sheetMm}mm;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .receipt-head,
+    .receipt-foot {
+      width: 100%;
+      text-align: center;
+    }
+    .receipt-body { width: 100%; }
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    .shop-title { font-size: ${narrow ? '13pt' : '15pt'}; font-weight: 700; text-align: center; margin: 0 0 2px; }
-    .bill-title { font-size: ${narrow ? '13pt' : '15pt'}; font-weight: 700; text-align: center; margin: 4px 0 6px; }
-    .center { text-align: center; margin: 2px 0; }
-    .footer { margin-top: 6px; }
+    .shop-title {
+      font-size: ${narrow ? '13pt' : '15pt'};
+      font-weight: 700;
+      text-align: center;
+      margin: 0 0 2px;
+      width: 100%;
+    }
+    .receipt-subhead {
+      text-align: center;
+      margin: 0 0 2px;
+      width: 100%;
+    }
+    .bill-title {
+      font-size: ${narrow ? '13pt' : '15pt'};
+      font-weight: 700;
+      text-align: center;
+      margin: 4px 0 6px;
+      width: 100%;
+    }
+    .receipt-foot-text {
+      text-align: center;
+      margin: 6px 0 2px;
+      width: 100%;
+    }
     .kv-label {
-      width: 36%;
+      width: 38%;
       vertical-align: top;
       padding: 1px 2px 1px 0;
       white-space: nowrap;
     }
     .kv-value {
-      width: 64%;
+      width: 62%;
       vertical-align: top;
       padding: 1px 0;
       text-align: right;
@@ -302,14 +330,14 @@ export class BillReceiptService {
       vertical-align: top;
     }
     .items .item-qty {
-      width: ${qtyCol};
+      width: 12%;
       text-align: right;
       padding: 1px 0;
       vertical-align: top;
       white-space: nowrap;
     }
     .items .item-amt {
-      width: ${amtCol};
+      width: 24%;
       text-align: right;
       padding: 1px 0;
       vertical-align: top;
@@ -325,14 +353,22 @@ export class BillReceiptService {
       padding: 4px 0;
     }
     .grand .kv-value { white-space: nowrap; }
-    .powered { text-align: center; margin-top: 8px; font-size: 8pt; }
+    .powered {
+      text-align: center;
+      margin-top: 6px;
+      font-size: 8pt;
+      width: 100%;
+    }
   </style>
 </head>
 <body>
   <div class="sheet">
+  <header class="receipt-head">
   <div class="shop-title">${shopTitle}</div>
   ${headerBlock}
   <div class="bill-title">บิล</div>
+  </header>
+  <div class="receipt-body">
   <table class="kv">
     ${kvRow('ทานที่ร้าน', receipt.dineInLabel)}
     ${kvRow('ชื่อพนักงาน', receipt.staffLabel)}
@@ -342,9 +378,9 @@ export class BillReceiptService {
   <hr class="dash" />
   <table class="items">
     <colgroup>
-      <col />
-      <col style="width:${qtyCol}" />
-      <col style="width:${amtCol}" />
+      <col style="width:64%" />
+      <col style="width:12%" />
+      <col style="width:24%" />
     </colgroup>
     <tr class="items-head">
       <td class="item-name">สินค้า</td>
@@ -361,8 +397,11 @@ export class BillReceiptService {
   <table class="kv grand">
     ${kvRow('ทั้งหมด', `฿${formatReceiptMoney(receipt.grandTotal)}`)}
   </table>
+  </div>
+  <footer class="receipt-foot">
   ${footerBlock}
   <div class="powered">Powered by DOD</div>
+  </footer>
   </div>
 </body>
 </html>`;
