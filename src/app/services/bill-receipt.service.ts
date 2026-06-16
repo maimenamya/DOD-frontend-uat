@@ -14,8 +14,8 @@ export type ReceiptPrintOutcome = {
 };
 
 export type PrintReceiptOptions = {
-  /** Open with openPrintWindow() on the same user click — Chrome needs this before async API. */
-  printWindow?: Window | null;
+  /** Create with createPrintFrame() on the same user click — before async API. */
+  printFrame?: HTMLIFrameElement | null;
 };
 
 const RAWBT_PACKAGE = 'ru.a402d.rawbtprinter';
@@ -32,40 +32,37 @@ export class BillReceiptService {
   }
 
   /**
-   * Call synchronously on button click (before HTTP) so Chrome allows print after API returns.
+   * Hidden iframe in the same tab — avoids Chrome popup blocker (unlike window.open).
+   * Call synchronously on button click before HTTP.
    */
-  openPrintWindow(): Window | null {
+  createPrintFrame(): HTMLIFrameElement | null {
     try {
-      const win = window.open('', '_blank', 'noopener,noreferrer,width=420,height=720');
-      if (!win) return null;
-      win.document.open();
-      win.document.write(`<!DOCTYPE html>
-<html lang="th">
-<head>
-  <meta charset="utf-8" />
-  <title>ใบเสร็จ</title>
-  <style>
-    body { font-family: system-ui, sans-serif; padding: 24px; text-align: center; color: #333; }
-  </style>
-</head>
-<body><p>กำลังโหลดใบเสร็จ…</p></body>
-</html>`);
-      win.document.close();
-      return win;
+      const iframe = document.createElement('iframe');
+      iframe.setAttribute('aria-hidden', 'true');
+      iframe.title = 'ใบเสร็จ';
+      iframe.style.cssText =
+        'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0;pointer-events:none';
+      document.body.appendChild(iframe);
+      const win = iframe.contentWindow;
+      if (!win || !iframe.contentDocument) {
+        iframe.remove();
+        return null;
+      }
+      return iframe;
     } catch {
       return null;
     }
   }
 
-  closePrintWindow(printWindow?: Window | null): void {
+  removePrintFrame(printFrame?: HTMLIFrameElement | null): void {
     try {
-      printWindow?.close();
+      printFrame?.remove();
     } catch {
       // ignore
     }
   }
 
-  shouldOpenPrintWindowOnDesktop(channel?: ReceiptPrintChannel): boolean {
+  shouldUseBrowserPrintOnDesktop(channel?: ReceiptPrintChannel): boolean {
     if (channel === 'off') return false;
     if (detectReceiptPrintPlatform() !== 'desktop') return false;
     if (channel === 'bridging_app') return false;
@@ -88,7 +85,7 @@ export class BillReceiptService {
     options?: PrintReceiptOptions,
   ): ReceiptPrintOutcome {
     if (channel === 'off') {
-      this.closePrintWindow(options?.printWindow);
+      this.removePrintFrame(options?.printFrame);
       return {
         ok: true,
         method: 'none',
@@ -96,41 +93,39 @@ export class BillReceiptService {
       };
     }
     if (channel === 'browser_pdf') {
-      return this.browserPrintOutcome(receipt, options?.printWindow);
+      return this.browserPrintOutcome(receipt, options?.printFrame);
     }
     if (channel === 'bridging_app') {
-      this.closePrintWindow(options?.printWindow);
+      this.removePrintFrame(options?.printFrame);
       return this.printViaBridgingApp(receipt, this.detectBridgingPlatform());
     }
     if (channel === 'wifi_raw') {
       const bridged = this.printViaBridgingApp(receipt, this.detectBridgingPlatform());
       if (bridged.ok) {
-        this.closePrintWindow(options?.printWindow);
+        this.removePrintFrame(options?.printFrame);
         return bridged;
       }
-      return this.browserPrintOutcome(receipt, options?.printWindow);
+      return this.browserPrintOutcome(receipt, options?.printFrame);
     }
 
-    // auto — PC browser, phone/tablet bridging app
     const platform = detectReceiptPrintPlatform();
     if (platform === 'desktop') {
-      return this.browserPrintOutcome(receipt, options?.printWindow);
+      return this.browserPrintOutcome(receipt, options?.printFrame);
     }
-    this.closePrintWindow(options?.printWindow);
+    this.removePrintFrame(options?.printFrame);
     return this.printViaBridgingApp(receipt, platform);
   }
 
   private browserPrintOutcome(
     receipt: BillReceiptResponse['receipt'],
-    printWindow?: Window | null,
+    printFrame?: HTMLIFrameElement | null,
   ): ReceiptPrintOutcome {
-    const ok = this.printBrowserReceipt(receipt, printWindow);
+    const ok = this.printBrowserReceipt(receipt, printFrame);
     if (!ok) {
       return {
         ok: false,
         method: 'browser',
-        message:
-          'เปิดหน้าพิมพ์ไม่ได้ — อนุญาตป็อปอัปจากเว็บนี้ แล้วกดพิมพ์ใบเสร็จอีกครั้ง',
+        message: 'เปิดหน้าพิมพ์ไม่ได้ — ลองกดพิมพ์ใบเสร็จอีกครั้ง',
       };
     }
     return { ok: true, method: 'browser' };
@@ -140,11 +135,6 @@ export class BillReceiptService {
     return detectReceiptPrintPlatform() === 'ios' ? 'ios' : 'android';
   }
 
-  /**
-   * Desktop → Chrome print dialog (USB printer).
-   * Android → RawBT intent + rawbt:base64 (ESC/POS raster).
-   * iOS → rawbt:base64 via bridging app (TSP-Print / แอปที่รองรับ URL scheme).
-   */
   printViaBridgingApp(
     receipt: BillReceiptResponse['receipt'],
     platform: 'android' | 'ios',
@@ -195,30 +185,33 @@ export class BillReceiptService {
     }
   }
 
-  /**
-   * Print from the shop PC browser (USB / Bluetooth thermal).
-   * Pass printWindow from openPrintWindow() when calling after async HTTP.
-   */
   printBrowserReceipt(
     receipt: BillReceiptResponse['receipt'],
-    printWindow?: Window | null,
+    printFrame?: HTMLIFrameElement | null,
   ): boolean {
     const built = this.buildReceiptPrintDocument(receipt);
-    const targetWindow = printWindow ?? this.openPrintWindow();
-    if (!targetWindow) {
+    const iframe = printFrame ?? this.createPrintFrame();
+    if (!iframe) {
+      return false;
+    }
+
+    const targetWindow = iframe.contentWindow;
+    const frameDoc = iframe.contentDocument ?? targetWindow?.document;
+    if (!targetWindow || !frameDoc) {
+      this.removePrintFrame(iframe);
       return false;
     }
 
     try {
-      targetWindow.document.open();
-      targetWindow.document.write(built.html);
-      targetWindow.document.close();
+      frameDoc.open();
+      frameDoc.write(built.html);
+      frameDoc.close();
     } catch {
-      if (!printWindow) targetWindow.close();
+      this.removePrintFrame(iframe);
       return false;
     }
 
-    this.triggerPrintWhenReady(targetWindow);
+    this.triggerPrintWhenReady(targetWindow, () => this.removePrintFrame(iframe));
     return true;
   }
 
@@ -330,7 +323,7 @@ export class BillReceiptService {
     return { html };
   }
 
-  private triggerPrintWhenReady(targetWindow: Window): void {
+  private triggerPrintWhenReady(targetWindow: Window, cleanup?: () => void): void {
     const frameDoc = targetWindow.document;
     let printed = false;
 
@@ -343,24 +336,16 @@ export class BillReceiptService {
         } catch {
           // ignore
         }
-        await new Promise((resolve) => setTimeout(resolve, 150));
-        targetWindow.focus();
-        targetWindow.print();
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        try {
+          targetWindow.focus();
+          targetWindow.print();
+        } finally {
+          setTimeout(() => cleanup?.(), 1000);
+        }
       };
       void run();
     };
-
-    const img = frameDoc.querySelector('img');
-    if (img) {
-      if (img.complete) {
-        requestAnimationFrame(() => triggerPrint());
-      } else {
-        img.addEventListener('load', () => triggerPrint(), { once: true });
-        img.addEventListener('error', () => triggerPrint(), { once: true });
-        setTimeout(triggerPrint, 3000);
-      }
-      return;
-    }
 
     if (frameDoc.fonts?.status === 'loaded') {
       triggerPrint();
@@ -368,10 +353,9 @@ export class BillReceiptService {
     }
     frameDoc.fonts?.addEventListener('loadingdone', () => triggerPrint(), { once: true });
     targetWindow.addEventListener('load', () => triggerPrint(), { once: true });
-    setTimeout(triggerPrint, 2000);
+    setTimeout(triggerPrint, 2500);
   }
 
-  /** Download ESC/POS bytes for testing with USB/BT print tools. */
   downloadEscPos(receipt: BillReceiptResponse['receipt']): void {
     const binary = atob(receipt.escPosBase64);
     const bytes = new Uint8Array(binary.length);

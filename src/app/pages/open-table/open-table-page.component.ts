@@ -2690,12 +2690,9 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
 
-    const printWin = this.billReceiptService.shouldOpenPrintWindowOnDesktop()
-      ? this.billReceiptService.openPrintWindow()
+    const printFrame = this.billReceiptService.shouldUseBrowserPrintOnDesktop()
+      ? this.billReceiptService.createPrintFrame()
       : null;
-    if (this.billReceiptService.shouldOpenPrintWindowOnDesktop() && !printWin) {
-      this.toast.showError('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ — อนุญาตป็อปอัปแล้วลองใหม่');
-    }
 
     this.runAction(
       this.openTableService.checkoutBill({
@@ -2709,7 +2706,7 @@ export class OpenTablePageComponent implements OnInit {
       (result) => {
         this.closeCheckoutModal();
         this.lastCheckoutBillId.set(result.billId);
-        this.tryPrintCheckoutReceipt(result, printWin);
+        this.tryPrintCheckoutReceipt(result, printFrame);
         const seatKey = this.selectedSeatKey();
         if (result.sessionClosed) {
           this.closeAddModal();
@@ -2725,7 +2722,7 @@ export class OpenTablePageComponent implements OnInit {
         }
       },
       () => {
-        this.billReceiptService.closePrintWindow(printWin);
+        this.billReceiptService.removePrintFrame(printFrame);
         this.closeCheckoutModal();
         this.closeAddModal();
       },
@@ -2735,22 +2732,22 @@ export class OpenTablePageComponent implements OnInit {
   /** Railway/cloud API cannot reach printers — print on the device at the shop. */
   private tryPrintCheckoutReceipt(
     result: CheckoutResult,
-    printWin?: Window | null,
+    printFrame?: HTMLIFrameElement | null,
   ): void {
     const receiptResponse = result.receipt;
     if (!receiptResponse) {
-      this.billReceiptService.closePrintWindow(printWin);
+      this.billReceiptService.removePrintFrame(printFrame);
       return;
     }
 
     const channel = receiptResponse.receipt.printChannel ?? 'auto';
     if (channel === 'off') {
-      this.billReceiptService.closePrintWindow(printWin);
+      this.billReceiptService.removePrintFrame(printFrame);
       return;
     }
 
     const outcome = this.billReceiptService.printReceipt(receiptResponse.receipt, {
-      printWindow: printWin,
+      printFrame,
     });
     if (outcome.ok && outcome.method === 'rawbt') {
       const isIos = /iPad|iPhone|iPod/i.test(navigator.userAgent);
@@ -2777,18 +2774,14 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
 
-    const printWin = this.billReceiptService.shouldOpenPrintWindowOnDesktop()
-      ? this.billReceiptService.openPrintWindow()
+    const printFrame = this.billReceiptService.shouldUseBrowserPrintOnDesktop()
+      ? this.billReceiptService.createPrintFrame()
       : null;
-    if (this.billReceiptService.shouldOpenPrintWindowOnDesktop() && !printWin) {
-      this.toast.showError('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ — อนุญาตป็อปอัปแล้วลองใหม่');
-      return;
-    }
 
     this.billReceiptService.getBillReceipt(billId).subscribe({
       next: (response) => {
         const outcome = this.billReceiptService.printReceipt(response.receipt, {
-          printWindow: printWin,
+          printFrame,
         });
         if (outcome.ok && outcome.method === 'rawbt') {
           this.toast.showSuccess('ส่งไป RawBT แล้ว');
@@ -2803,7 +2796,7 @@ export class OpenTablePageComponent implements OnInit {
         }
       },
       error: () => {
-        this.billReceiptService.closePrintWindow(printWin);
+        this.billReceiptService.removePrintFrame(printFrame);
         this.toast.showError('โหลดใบเสร็จไม่สำเร็จ');
       },
     });
