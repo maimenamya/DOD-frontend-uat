@@ -228,15 +228,18 @@ export class BillReceiptService {
     const footerBlock = receipt.footerText?.trim()
       ? `<div class="center footer">${escapeHtml(receipt.footerText.trim())}</div>`
       : '';
-    const nameMax = narrow ? 12 : 20;
+    const nameMax = narrow ? 14 : 22;
     const amountHeader = narrow ? 'รวม' : 'ราคารวม';
+    const contentPad = narrow ? '2mm 5mm 2mm 2mm' : '2mm 3mm';
+    const qtyCol = narrow ? '6mm' : '9mm';
+    const amtCol = narrow ? '12mm' : '16mm';
 
     const kvRow = (label: string, value: string) =>
       `<tr><td class="kv-label">${escapeHtml(label)}</td><td class="kv-value">${escapeHtml(value)}</td></tr>`;
 
     const itemRows = receipt.lines
       .map((line) => {
-        const name = escapeHtml(truncateReceiptName(line.name, nameMax));
+        const name = escapeHtml(truncateReceiptName(receiptLineDisplayName(line.name), nameMax));
         const qty = escapeHtml(String(line.quantity));
         const amount = escapeHtml(formatReceiptMoney(line.lineTotal));
         return `<tr><td class="item-name">${name}</td><td class="item-qty">${qty}</td><td class="item-amt">${amount}</td></tr>`;
@@ -263,11 +266,12 @@ export class BillReceiptService {
     }
     body {
       font-family: 'Sarabun', 'Tahoma', sans-serif;
-      font-size: ${narrow ? '9pt' : '10.5pt'};
-      line-height: 1.3;
-      padding: ${narrow ? '1.5mm 1mm' : '2mm 2mm'};
+      font-size: ${narrow ? '8.5pt' : '10pt'};
+      line-height: 1.25;
+      padding: ${contentPad};
       color: #000;
     }
+    .sheet { width: 100%; max-width: 100%; overflow: hidden; }
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .shop-title { font-size: ${narrow ? '13pt' : '15pt'}; font-weight: 700; text-align: center; margin: 0 0 2px; }
     .bill-title { font-size: ${narrow ? '13pt' : '15pt'}; font-weight: 700; text-align: center; margin: 4px 0 6px; }
@@ -298,19 +302,19 @@ export class BillReceiptService {
       vertical-align: top;
     }
     .items .item-qty {
-      width: ${narrow ? '8mm' : '10mm'};
+      width: ${qtyCol};
       text-align: right;
-      padding: 1px 1px;
+      padding: 1px 0;
       vertical-align: top;
       white-space: nowrap;
     }
     .items .item-amt {
-      width: ${narrow ? '15mm' : '18mm'};
+      width: ${amtCol};
       text-align: right;
-      padding: 1px 0 1px 1px;
+      padding: 1px 0;
       vertical-align: top;
       white-space: nowrap;
-      font-size: ${narrow ? '8.5pt' : '10pt'};
+      font-size: ${narrow ? '8pt' : '9.5pt'};
     }
     .items-head { font-weight: 700; }
     .items-head .item-qty,
@@ -325,6 +329,7 @@ export class BillReceiptService {
   </style>
 </head>
 <body>
+  <div class="sheet">
   <div class="shop-title">${shopTitle}</div>
   ${headerBlock}
   <div class="bill-title">บิล</div>
@@ -338,8 +343,8 @@ export class BillReceiptService {
   <table class="items">
     <colgroup>
       <col />
-      <col style="width:${narrow ? '8mm' : '10mm'}" />
-      <col style="width:${narrow ? '15mm' : '18mm'}" />
+      <col style="width:${qtyCol}" />
+      <col style="width:${amtCol}" />
     </colgroup>
     <tr class="items-head">
       <td class="item-name">สินค้า</td>
@@ -358,6 +363,7 @@ export class BillReceiptService {
   </table>
   ${footerBlock}
   <div class="powered">Powered by DOD</div>
+  </div>
 </body>
 </html>`;
     return { html };
@@ -430,4 +436,18 @@ function formatReceiptMoney(amount: number): string {
 function truncateReceiptName(name: string, maxChars: number): string {
   if (name.length <= maxChars) return name;
   return `${name.slice(0, Math.max(1, maxChars - 1))}…`;
+}
+
+/** บิลเก่าอาจเก็บ "รันดื่ม ชื่อ (ตำแหน่ง)" — แสดงบนใบเสร็จเป็น "ดื่ม ชื่อ" */
+function receiptLineDisplayName(name: string): string {
+  const trimmed = name.trim();
+  if (trimmed.startsWith('ดื่ม ')) return trimmed;
+  if (trimmed.startsWith('รันดื่ม ')) {
+    const rest = trimmed
+      .slice('รันดื่ม '.length)
+      .replace(/\s*\([^)]*\)\s*$/, '')
+      .trim();
+    return rest ? `ดื่ม ${rest}` : 'ดื่ม';
+  }
+  return trimmed;
 }
