@@ -3204,6 +3204,47 @@
     @apply mt-4 text-center;
   }
 
+  /* ── Master list search + pagination ── */
+  .app-master-list-toolbar {
+    @apply mb-4;
+  }
+
+  .app-master-list-search {
+    @apply block;
+  }
+
+  .app-master-list-search-input {
+    @apply w-full max-w-md;
+  }
+
+  .app-list-paginator {
+    @apply flex flex-col gap-3 border-t border-theme-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .app-list-paginator-summary {
+    @apply text-sm text-text-secondary;
+  }
+
+  .app-list-paginator-controls {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .app-list-paginator-limit {
+    @apply flex items-center gap-2;
+  }
+
+  .app-list-paginator-limit-label {
+    @apply whitespace-nowrap text-sm text-text-secondary;
+  }
+
+  .app-list-paginator-select {
+    @apply w-auto min-w-[4.5rem] py-1.5;
+  }
+
+  .app-list-paginator-page {
+    @apply whitespace-nowrap px-1 text-sm text-text-secondary;
+  }
+
   /* ── Filter chips ── */
   .app-filter-bar {
     @apply flex flex-wrap gap-2;

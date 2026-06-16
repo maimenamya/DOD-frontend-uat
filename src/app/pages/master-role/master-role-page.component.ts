@@ -8,6 +8,8 @@ import { DecimalPipe } from '@angular/common';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
+import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
 import {
   CustomDropdownComponent,
   type DropdownOption,
@@ -23,6 +25,11 @@ import { RoleService } from '../../services/role.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
 import { roleDisplayNameTh } from '../../utils/role-display.util';
+import {
+  MasterListQueryState,
+  createMasterListView,
+  masterListRowNumber,
+} from '../../utils/master-list.util';
 
 const CATEGORY_DROPDOWN_OPTIONS: DropdownOption[] = [
   { value: 'STAFF', label: 'พนักงาน' },
@@ -31,7 +38,7 @@ const CATEGORY_DROPDOWN_OPTIONS: DropdownOption[] = [
 
 @Component({
   selector: 'app-master-role-page',
-  imports: [ReactiveFormsModule, AppModalComponent, DecimalPipe, CustomDropdownComponent],
+  imports: [ReactiveFormsModule, AppModalComponent, DecimalPipe, CustomDropdownComponent, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './master-role-page.component.html',
 })
 export class MasterRolePageComponent implements OnInit {
@@ -58,6 +65,11 @@ export class MasterRolePageComponent implements OnInit {
   });
 
   readonly roles = signal<MstRole[]>([]);
+  readonly listQuery = new MasterListQueryState();
+  readonly listView = createMasterListView(this.roles, this.listQuery, (role) =>
+    `${role.name} ${roleDisplayNameTh(role)} ${role.category}`,
+  );
+  readonly masterListRowNumber = masterListRowNumber;
   readonly loading = signal(true);
   readonly submitting = signal(false);
   readonly createFormValidated = signal(false);

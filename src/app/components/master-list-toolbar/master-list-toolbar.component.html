@@ -1,0 +1,13 @@
+<div class="app-master-list-toolbar">
+  <label class="app-master-list-search">
+    <span class="sr-only">ค้นหา</span>
+    <input
+      type="search"
+      class="app-input app-master-list-search-input"
+      [value]="search()"
+      [placeholder]="placeholder()"
+      (input)="onInput($event)"
+      autocomplete="off"
+    />
+  </label>
+</div>

@@ -500,6 +500,16 @@
             }
             ลูกค้ายังนั่งอยู่
           </p>
+          @if (lastCheckoutBillId()) {
+            <button
+              type="button"
+              class="app-btn-secondary w-full mb-2"
+              [disabled]="actionBusy()"
+              (click)="reprintLastReceipt()"
+            >
+              พิมพ์ใบเสร็จ
+            </button>
+          }
           <button
             type="button"
             class="app-btn-primary w-full"
@@ -559,6 +569,26 @@
                         <span class="font-mono text-theme-accent">{{ bottleLabel }}</span>
                       }
                     </span>
+                    @if (ledgerCanMutate() && item.canWithdrawPackageBottle) {
+                      <button
+                        type="button"
+                        class="app-btn-inline shrink-0"
+                        [disabled]="actionBusy()"
+                        (click)="openPackageBottleModal('WITHDRAW', item)"
+                      >
+                        เบิก
+                      </button>
+                    }
+                    @if (ledgerCanMutate() && item.canDepositPackageBottle) {
+                      <button
+                        type="button"
+                        class="app-btn-inline shrink-0"
+                        [disabled]="actionBusy()"
+                        (click)="openPackageBottleModal('DEPOSIT', item)"
+                      >
+                        ฝาก
+                      </button>
+                    }
                     @if (ledgerCanMutate() && item.canVoid) {
                       <button
                         type="button"
@@ -1342,6 +1372,9 @@
     <div class="app-modal-header">
       <h2 class="app-modal-title">
         {{ packageBottleAction() === 'WITHDRAW' ? 'เบิกขวด' : 'ฝากขวด' }}
+        @if (packageBottleModalItemLabel(); as itemLabel) {
+          <span class="text-base font-normal text-text-secondary"> — {{ itemLabel }}</span>
+        }
       </h2>
       <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closePackageBottleModal()">
         ✕
@@ -1355,6 +1388,15 @@
         (ngModelChange)="onPackageBottleBillItemChange($event)"
         placeholder="เลือกเมมหรือโปร"
       />
+      @if (packageBottleModalMaxQty() != null) {
+        <p class="app-field-hint">
+          @if (packageBottleAction() === 'WITHDRAW') {
+            เบิกได้สูงสุด {{ packageBottleModalMaxQty() }} ขวด
+          } @else {
+            ฝากเพิ่มได้สูงสุด {{ packageBottleModalMaxQty() }} ขวด
+          }
+        </p>
+      }
     </div>
     <div class="app-form-group">
       <label class="app-label" for="package-bottle-display-name">ชื่อเหล้า</label>

@@ -12,15 +12,22 @@ import {
 } from '@angular/forms';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
+import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
 import type { MstSeating, MstSeatingType } from '../../models/seating';
 import { AuthService } from '../../services/auth.service';
 import { ShopMasterService } from '../../services/shop-master.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
+import {
+  MasterListQueryState,
+  createMasterListView,
+  masterListRowNumber,
+} from '../../utils/master-list.util';
 
 @Component({
   selector: 'app-master-seating-list-page',
-  imports: [ReactiveFormsModule, AppModalComponent, RouterLink],
+  imports: [ReactiveFormsModule, AppModalComponent, RouterLink, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './master-seating-list-page.component.html',
 })
 export class MasterSeatingListPageComponent implements OnInit {
@@ -46,6 +53,12 @@ export class MasterSeatingListPageComponent implements OnInit {
     if (typeId == null) return [];
     return this.seatings().filter((s) => s.seatingTypeId === typeId);
   });
+
+  readonly listQuery = new MasterListQueryState();
+  readonly listView = createMasterListView(this.filteredSeatings, this.listQuery, (item) =>
+    `${item.code} ${item.seatingType?.name ?? ''} ${this.statusLabel(item.status)}`,
+  );
+  readonly masterListRowNumber = masterListRowNumber;
 
   readonly selectedSeatingType = computed(() =>
     this.seatingTypes().find((t) => t.id === this.selectedSeatingTypeId()) ?? null,
@@ -100,6 +113,7 @@ export class MasterSeatingListPageComponent implements OnInit {
 
   selectSeatingType(typeId: number): void {
     this.selectedSeatingTypeId.set(typeId);
+    this.listQuery.resetPage();
     this.showCreateModal.set(false);
     this.editingItem.set(null);
   }

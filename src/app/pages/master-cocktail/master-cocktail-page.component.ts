@@ -10,15 +10,22 @@ import {
 } from '@angular/forms';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
+import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
 import type { MstCocktail } from '../../models/master-data';
 import { AuthService } from '../../services/auth.service';
 import { ShopMasterService } from '../../services/shop-master.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
+import {
+  MasterListQueryState,
+  createMasterListView,
+  masterListRowNumber,
+} from '../../utils/master-list.util';
 
 @Component({
   selector: 'app-master-cocktail-page',
-  imports: [ReactiveFormsModule, AppModalComponent],
+  imports: [ReactiveFormsModule, AppModalComponent, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './master-cocktail-page.component.html',
 })
 export class MasterCocktailPageComponent implements OnInit {
@@ -30,6 +37,9 @@ export class MasterCocktailPageComponent implements OnInit {
 
   readonly canManage = computed(() => this.auth.canWriteOnPage('master_data'));
   readonly cocktails = signal<MstCocktail[]>([]);
+  readonly listQuery = new MasterListQueryState();
+  readonly listView = createMasterListView(this.cocktails, this.listQuery, (item) => item.name);
+  readonly masterListRowNumber = masterListRowNumber;
   readonly loading = signal(true);
   readonly submitting = signal(false);
   readonly createFormValidated = signal(false);

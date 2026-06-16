@@ -1,0 +1,118 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">เครื่องพิมพ์ใบเสร็จ</h1>
+      <p class="app-page-subtitle">ตั้งค่าต่อสาขา — แต่ละร้านอาจใช้ PC, Android หรือ iPhone ไม่เหมือนกัน</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="app-card app-card-section">
+      <div class="app-card-body">
+        <div class="app-skeleton" style="min-height: 14rem"></div>
+      </div>
+    </div>
+  } @else {
+    <form class="app-form-stack" [formGroup]="form" (ngSubmit)="submit()">
+      <section class="app-card app-card-section">
+        <div class="app-card-body app-form-stack">
+          <h2 class="text-base font-semibold text-text-primary">วิธีพิมพ์หลังเช็คบิล</h2>
+          <p class="app-field-hint">
+            เลือกตามอุปกรณ์หลักที่เคาน์เตอร์ใช้ — ใบเสร็จเป็นภาพ (ไทยไม่เพี้ยน) ทุกโหมด
+          </p>
+
+          <div class="app-form-group">
+            <label class="app-label" for="print-mode">โหมดพิมพ์</label>
+            <app-custom-dropdown
+              id="print-mode"
+              formControlName="printMode"
+              [options]="printModeOptions"
+              placeholder="เลือกโหมดพิมพ์"
+            />
+          </div>
+
+          <div class="app-form-group">
+            <label class="app-label" for="paper-width">ความกว้างกระดาษ</label>
+            <app-custom-dropdown
+              id="paper-width"
+              formControlName="paperWidthMm"
+              [options]="paperWidthOptions"
+            />
+          </div>
+
+          @if (form.controls.printMode.value === 'wifi_raw') {
+            <div class="app-form-group">
+              <label class="app-label" for="printer-host">IP เครื่องปริ้น (Wi‑Fi/LAN)</label>
+              <input
+                id="printer-host"
+                type="text"
+                class="app-input"
+                formControlName="printerHost"
+                placeholder="เช่น 192.168.1.100"
+                autocomplete="off"
+              />
+              <p class="app-field-hint">
+                ใช้เมื่อเครื่องปริ้นเชื่อม Wi‑Fi และ API รันในเครือข่ายเดียวกัน — บน Railway มักใช้แอปตัวกลางแทน
+              </p>
+            </div>
+            <div class="app-form-group">
+              <label class="app-label" for="printer-port">พอร์ต</label>
+              <input
+                id="printer-port"
+                type="text"
+                class="app-input"
+                formControlName="printerPort"
+                inputmode="numeric"
+                autocomplete="off"
+              />
+            </div>
+          }
+
+          <div class="app-form-group">
+            <label class="app-label" for="header-text">ข้อความหัวใบเสร็จ (ไม่บังคับ)</label>
+            <input
+              id="header-text"
+              type="text"
+              class="app-input"
+              formControlName="headerText"
+              placeholder="เช่น For Fun"
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="app-form-group">
+            <label class="app-label" for="footer-text">ข้อความท้ายใบเสร็จ (ไม่บังคับ)</label>
+            <input
+              id="footer-text"
+              type="text"
+              class="app-input"
+              formControlName="footerText"
+              placeholder="เช่น FORFUN"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section class="app-card app-card-section">
+        <div class="app-card-body">
+          <h2 class="text-base font-semibold text-text-primary mb-2">คู่มือสั้นๆ</h2>
+          <ul class="list-disc space-y-1 pl-5 text-sm text-text-secondary">
+            <li><strong>PC Windows</strong> — โหมด เบราว์เซอร์ หรือ อัตโนมัติ + ลง driver USB</li>
+            <li><strong>แท็บเล็ต Android</strong> — โหมด แอปตัวกลาง + ติดตั้ง RawBT</li>
+            <li><strong>iPhone / iPad</strong> — โหมด แอปตัวกลาง + แอป TSP-Print (หรือที่รองรับ rawbt:)</li>
+            <li>หลังเช็คบิลยังกด <strong>พิมพ์ใบเสร็จ</strong> ซ้ำได้ที่โต๊ะที่เช็กบิลแล้ว</li>
+          </ul>
+        </div>
+      </section>
+
+      @if (canManage()) {
+        <div class="flex justify-end">
+          <button type="submit" class="app-btn-primary" [disabled]="submitting()">
+            {{ submitting() ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า' }}
+          </button>
+        </div>
+      }
+    </form>
+  }
+</div>

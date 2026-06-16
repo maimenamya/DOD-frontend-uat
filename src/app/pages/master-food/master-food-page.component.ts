@@ -13,15 +13,22 @@ import {
 import { forkJoin } from 'rxjs';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
+import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
 import type { MstFood, MstFoodCategory } from '../../models/master-data';
 import { AuthService } from '../../services/auth.service';
 import { ShopMasterService } from '../../services/shop-master.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
+import {
+  MasterListQueryState,
+  createMasterListView,
+  masterListRowNumber,
+} from '../../utils/master-list.util';
 
 @Component({
   selector: 'app-master-food-page',
-  imports: [DecimalPipe, ReactiveFormsModule, AppModalComponent, RouterLink],
+  imports: [DecimalPipe, ReactiveFormsModule, AppModalComponent, RouterLink, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './master-food-page.component.html',
 })
 export class MasterFoodPageComponent implements OnInit {
@@ -47,6 +54,12 @@ export class MasterFoodPageComponent implements OnInit {
     if (id == null) return [];
     return this.foods().filter((item) => item.categoryId === id);
   });
+
+  readonly listQuery = new MasterListQueryState();
+  readonly listView = createMasterListView(this.filteredFoods, this.listQuery, (item) =>
+    `${item.name} ${item.category?.name ?? ''}`,
+  );
+  readonly masterListRowNumber = masterListRowNumber;
 
   readonly selectedCategory = computed(() => {
     const id = this.selectedCategoryId();
@@ -104,6 +117,7 @@ export class MasterFoodPageComponent implements OnInit {
 
   selectCategoryTab(categoryId: number): void {
     this.selectedCategoryId.set(categoryId);
+    this.listQuery.resetPage();
     this.showCreateModal.set(false);
     this.editingItem.set(null);
   }

@@ -23,6 +23,7 @@ import type { MstRole } from '../../models/role';
 import type {
   AddItemsPayload,
   CheckoutPreview,
+  CheckoutResult,
   FloorPlanKpi,
   StopStaffDrinkPreview,
   OpenTableSessionDetail,
@@ -53,6 +54,7 @@ import { AuthService } from '../../services/auth.service';
 import { BeverageService } from '../../services/beverage.service';
 import { EmployeeService } from '../../services/employee.service';
 import { OpenTableService } from '../../services/open-table.service';
+import { BillReceiptService } from '../../services/bill-receipt.service';
 import { RoleService } from '../../services/role.service';
 import { ShopMasterService } from '../../services/shop-master.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
@@ -117,6 +119,7 @@ export class OpenTablePageComponent implements OnInit {
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly openTableService = inject(OpenTableService);
+  private readonly billReceiptService = inject(BillReceiptService);
   private readonly shopMaster = inject(ShopMasterService);
   private readonly otherChargeService = inject(OtherChargeService);
   private readonly packageDepositService = inject(PackageDepositService);
@@ -182,6 +185,7 @@ export class OpenTablePageComponent implements OnInit {
   readonly checkoutAt = signal(currentDatetimeLocalValue());
   readonly checkoutPreview = signal<CheckoutPreview | null>(null);
   readonly checkoutPreviewLoading = signal(false);
+  readonly lastCheckoutBillId = signal<number | null>(null);
   private checkoutPreviewTimer: ReturnType<typeof setTimeout> | null = null;
   readonly stopDrinkTarget = signal<SessionStaffDrink | null>(null);
   readonly stopDrinkPreview = signal<StopStaffDrinkPreview | null>(null);
@@ -2378,14 +2382,14 @@ export class OpenTablePageComponent implements OnInit {
     return row?.drink?.name?.trim() ?? '';
   }
 
-  openPackageBottleModal(action: 'WITHDRAW' | 'DEPOSIT'): void {
+  openPackageBottleModal(action: 'WITHDRAW' | 'DEPOSIT', item?: SessionOrderItem): void {
     if (!this.ledgerCanMutate()) {
       this.toast.showError('โต๊ะนี้ถูกเช็กบิลแล้ว ไม่สามารถแก้รายการได้');
       return;
     }
     this.packageBottleAction.set(action);
-    const options = this.packageBottleBillItems().filter((item) =>
-      action === 'WITHDRAW' ? item.canWithdrawPackageBottle : item.canDepositPackageBottle,
+    const options = this.packageBottleBillItems().filter((row) =>
+      action === 'WITHDRAW' ? row.canWithdrawPackageBottle : row.canDepositPackageBottle,
     );
     if (options.length === 0) {
       this.toast.showError(
@@ -2393,13 +2397,43 @@ export class OpenTablePageComponent implements OnInit {
       );
       return;
     }
-    const first = options[0]!;
-    const key = this.billItemKey(first);
+
+    let selected = item;
+    if (selected) {
+      const allowed =
+        action === 'WITHDRAW'
+          ? selected.canWithdrawPackageBottle
+          : selected.canDepositPackageBottle;
+      if (!allowed) {
+        this.toast.showError(
+          action === 'WITHDRAW' ? 'ไม่มีขวดเหลือให้เบิก' : 'ไม่สามารถฝากขวดเพิ่มได้',
+        );
+        return;
+      }
+    } else {
+      selected = options[0]!;
+    }
+
+    const key = this.billItemKey(selected);
     this.packageBottleBillItemKey.set(key);
-    this.packageBottleDisplayNameText.set(this.defaultLiquorDisplayName(first));
+    this.packageBottleDisplayNameText.set(this.defaultLiquorDisplayName(selected));
     this.packageBottleQtyText.set('1');
     this.showPackageBottleModal.set(true);
     this.showMobileSheet.set(false);
+  }
+
+  packageBottleModalMaxQty(): number | null {
+    const item = this.packageBottleItemByKey(this.packageBottleBillItemKey());
+    if (!item) return null;
+    if (this.packageBottleAction() === 'WITHDRAW') {
+      return item.packageBottlesRemaining ?? 0;
+    }
+    return (item.packageBottlesTotal ?? 0) - (item.packageBottlesRemaining ?? 0);
+  }
+
+  packageBottleModalItemLabel(): string | null {
+    const item = this.packageBottleItemByKey(this.packageBottleBillItemKey());
+    return item?.label ?? null;
   }
 
   closePackageBottleModal(): void {
@@ -2455,6 +2489,15 @@ export class OpenTablePageComponent implements OnInit {
     const quantity = parsePositiveIntFromText(this.packageBottleQtyText());
     if (quantity == null || quantity <= 0) {
       this.toast.showError('กรุณาระบุจำนวนขวด');
+      return;
+    }
+    const maxQty = this.packageBottleModalMaxQty();
+    if (maxQty != null && quantity > maxQty) {
+      this.toast.showError(
+        action === 'WITHDRAW'
+          ? `เบิกได้สูงสุด ${maxQty} ขวด`
+          : `ฝากเพิ่มได้สูงสุด ${maxQty} ขวด`,
+      );
       return;
     }
     this.submitBillPanelMutation(
@@ -2661,6 +2704,8 @@ export class OpenTablePageComponent implements OnInit {
       'เช็กบิลสำเร็จ',
       (result) => {
         this.closeCheckoutModal();
+        this.lastCheckoutBillId.set(result.billId);
+        this.tryPrintCheckoutReceipt(result);
         const seatKey = this.selectedSeatKey();
         if (result.sessionClosed) {
           this.closeAddModal();
@@ -2680,6 +2725,50 @@ export class OpenTablePageComponent implements OnInit {
         this.closeAddModal();
       },
     );
+  }
+
+  /** Railway/cloud API cannot reach printers — print on the device at the shop. */
+  private tryPrintCheckoutReceipt(result: CheckoutResult): void {
+    const receiptResponse = result.receipt;
+    if (!receiptResponse) return;
+
+    const channel = receiptResponse.receipt.printChannel ?? 'auto';
+    if (channel === 'off') return;
+
+    const outcome = this.billReceiptService.printReceipt(receiptResponse.receipt);
+    if (outcome.ok && outcome.method === 'rawbt') {
+      const isIos = /iPad|iPhone|iPod/i.test(navigator.userAgent);
+      this.toast.showSuccess(
+        isIos
+          ? 'ส่งไปแอปพิมพ์แล้ว — กดพิมพ์ในแอป (ครั้งแรกต้องจับคู่ BT)'
+          : 'ส่งไป RawBT แล้ว — กดพิมพ์ในแอป (ครั้งแรกต้องจับคู่ BT)',
+      );
+      return;
+    }
+    if (!outcome.ok) {
+      this.toast.showError(outcome.message ?? 'เปิดหน้าพิมพ์ไม่ได้ — ลองกดพิมพ์ใบเสร็จอีกครั้ง');
+    }
+  }
+
+  reprintLastReceipt(): void {
+    const billId = this.lastCheckoutBillId();
+    if (billId == null) {
+      this.toast.showError('ไม่พบบิลล่าสุด — เช็กบิลใหม่หรือเปิดโต๊ะนี้อีกครั้ง');
+      return;
+    }
+    this.billReceiptService.getBillReceipt(billId).subscribe({
+      next: (response) => {
+        const outcome = this.billReceiptService.printReceipt(response.receipt);
+        if (outcome.ok && outcome.method === 'rawbt') {
+          this.toast.showSuccess('ส่งไป RawBT แล้ว');
+          return;
+        }
+        if (!outcome.ok) {
+          this.toast.showError(outcome.message ?? 'พิมพ์ใบเสร็จไม่สำเร็จ');
+        }
+      },
+      error: () => this.toast.showError('โหลดใบเสร็จไม่สำเร็จ'),
+    });
   }
 
   async releaseCustomerFromSeat(): Promise<void> {

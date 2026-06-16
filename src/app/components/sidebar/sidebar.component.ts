@@ -88,7 +88,10 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
     id: 'shop-settings',
     label: 'ตั้งค่าร้าน',
     icon: 'shop-rules',
-    children: [{ path: '/dashboard/shop-rules', label: 'กฎร้าน' }],
+    children: [
+      { path: '/dashboard/shop-rules', label: 'กฎร้าน' },
+      { path: '/dashboard/receipt-printer', label: 'เครื่องพิมพ์ใบเสร็จ' },
+    ],
   },
 ];
 

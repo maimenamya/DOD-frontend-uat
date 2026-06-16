@@ -119,15 +119,23 @@
 
   @if (loading()) {
     <p class="app-loading-text">กำลังโหลด...</p>
-  } @else if (seatingTypes().length > 0 && filteredSeatings().length === 0) {
-    <p class="app-empty-state">
-      @if (seatings().length === 0) {
-        ยังไม่มีที่นั่ง — กดเพิ่มที่นั่งเพื่อสร้างในประเภท «{{ selectedSeatingType()?.name }}»
-      } @else {
-        ไม่มีที่นั่งในประเภท «{{ selectedSeatingType()?.name }}»
-      }
-    </p>
-  } @else if (filteredSeatings().length > 0) {
+  } @else if (seatingTypes().length > 0) {
+    <app-master-list-toolbar
+      [search]="listQuery.search()"
+      (searchChange)="listQuery.onSearchChange($event)"
+    />
+
+    @if (filteredSeatings().length === 0 && !listQuery.search().trim()) {
+      <p class="app-empty-state">
+        @if (seatings().length === 0) {
+          ยังไม่มีที่นั่ง — กดเพิ่มที่นั่งเพื่อสร้างในประเภท «{{ selectedSeatingType()?.name }}»
+        } @else {
+          ไม่มีที่นั่งในประเภท «{{ selectedSeatingType()?.name }}»
+        }
+      </p>
+    } @else if (listView().total === 0) {
+      <p class="app-empty-state">ไม่พบรายการที่ตรงกับคำค้น</p>
+    } @else {
     <section class="app-card app-card-flush">
       <div class="app-data-table-shell">
         <div class="app-split-table app-split-table--wide">
@@ -167,9 +175,9 @@
                 }
               </colgroup>
               <tbody>
-                @for (item of filteredSeatings(); track item.id; let i = $index) {
+                @for (item of listView().items; track item.id; let i = $index) {
                   <tr>
-                    <td class="app-cell-mono">{{ i + 1 }}</td>
+                    <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
                     <td class="app-cell-primary">{{ item.code }}</td>
                     <td>{{ billingModeLabel(item.chargesRoomFee) }}</td>
                     <td>{{ statusLabel(item.status) }}</td>
@@ -193,5 +201,16 @@
         </div>
       </div>
     </section>
+    <app-list-paginator
+      [page]="listView().page"
+      [totalPages]="listView().totalPages"
+      [total]="listView().total"
+      [limit]="listView().limit"
+      [rangeStart]="listView().rangeStart"
+      [rangeEnd]="listView().rangeEnd"
+      (pageChange)="listQuery.goToPage($event)"
+      (limitChange)="listQuery.onLimitChange($event)"
+    />
+    }
   }
 </div>

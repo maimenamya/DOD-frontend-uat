@@ -12,6 +12,8 @@ import {
 import { forkJoin } from 'rxjs';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
+import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
 import { CustomDropdownComponent } from '../../components/custom-dropdown/custom-dropdown.component';
 import type { MstBeverage } from '../../models/beverage';
 import type { MstBeverageStock } from '../../models/beverage-stock';
@@ -20,10 +22,15 @@ import { BeverageService } from '../../services/beverage.service';
 import { BeverageStockService } from '../../services/beverage-stock.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
+import {
+  MasterListQueryState,
+  createMasterListView,
+  masterListRowNumber,
+} from '../../utils/master-list.util';
 
 @Component({
   selector: 'app-stock-page',
-  imports: [ReactiveFormsModule, AppModalComponent, CustomDropdownComponent, DecimalPipe],
+  imports: [ReactiveFormsModule, AppModalComponent, CustomDropdownComponent, DecimalPipe, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './stock-page.component.html',
 })
 export class StockPageComponent implements OnInit {
@@ -36,6 +43,11 @@ export class StockPageComponent implements OnInit {
 
   readonly canManage = computed(() => this.auth.canWriteOnPage('master_data'));
   readonly items = signal<MstBeverageStock[]>([]);
+  readonly listQuery = new MasterListQueryState();
+  readonly listView = createMasterListView(this.items, this.listQuery, (row) =>
+    `${row.beverage?.name ?? ''} ${row.beverage?.category?.name ?? ''} ${row.beverage?.unitLabelTh ?? ''}`,
+  );
+  readonly masterListRowNumber = masterListRowNumber;
   readonly beverages = signal<MstBeverage[]>([]);
   readonly loading = signal(true);
   readonly submitting = signal(false);

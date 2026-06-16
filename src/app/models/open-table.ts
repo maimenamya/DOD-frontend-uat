@@ -1,4 +1,5 @@
 import type { SeatingRateType } from './seating';
+import type { BillReceiptResponse } from './bill-receipt';
 
 export type SeatStatus = 'AVAILABLE' | 'RESERVED' | 'OCCUPIED' | 'AWAITING_CLEAR';
 
@@ -304,6 +305,7 @@ export type CheckoutResult = {
   totalDrinks: number;
   checkedOutLabel?: string;
   sessionClosed: boolean;
+  receipt?: BillReceiptResponse;
 };
 
 export type ReleaseCustomerPayload = SessionMutationBase;

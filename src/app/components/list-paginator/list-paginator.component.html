@@ -1,0 +1,26 @@
+<div class="app-list-paginator">
+  <p class="app-list-paginator-summary">
+    @if (total() === 0) {
+      ไม่มีรายการ
+    } @else {
+      แสดง {{ rangeStart() }}–{{ rangeEnd() }} จาก {{ total() }} รายการ
+    }
+  </p>
+  <div class="app-list-paginator-controls">
+    <label class="app-list-paginator-limit">
+      <span class="app-list-paginator-limit-label">ต่อหน้า</span>
+      <select class="app-input app-list-paginator-select" [value]="limit()" (change)="onLimitSelect($event)">
+        @for (size of pageSizeOptions; track size) {
+          <option [value]="size">{{ size }}</option>
+        }
+      </select>
+    </label>
+    <button type="button" class="app-btn-secondary-sm" [disabled]="!canGoPrev()" (click)="goPrev()">
+      ก่อนหน้า
+    </button>
+    <span class="app-list-paginator-page">หน้า {{ page() }} / {{ totalPages() }}</span>
+    <button type="button" class="app-btn-secondary-sm" [disabled]="!canGoNext()" (click)="goNext()">
+      ถัดไป
+    </button>
+  </div>
+</div>

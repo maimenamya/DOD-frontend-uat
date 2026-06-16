@@ -13,6 +13,8 @@ import {
 import { forkJoin } from 'rxjs';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
+import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
 import {
   CustomDropdownComponent,
   type DropdownOption,
@@ -24,10 +26,15 @@ import { BeverageService } from '../../services/beverage.service';
 import { ShopMasterService } from '../../services/shop-master.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
+import {
+  MasterListQueryState,
+  createMasterListView,
+  masterListRowNumber,
+} from '../../utils/master-list.util';
 
 @Component({
   selector: 'app-master-promotion-page',
-  imports: [DecimalPipe, FormsModule, ReactiveFormsModule, AppModalComponent, CustomDropdownComponent],
+  imports: [DecimalPipe, FormsModule, ReactiveFormsModule, AppModalComponent, CustomDropdownComponent, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './master-promotion-page.component.html',
 })
 export class MasterPromotionPageComponent implements OnInit {
@@ -40,6 +47,11 @@ export class MasterPromotionPageComponent implements OnInit {
 
   readonly canManage = computed(() => this.auth.canWriteOnPage('master_data'));
   readonly promotions = signal<MstPromotion[]>([]);
+  readonly listQuery = new MasterListQueryState();
+  readonly listView = createMasterListView(this.promotions, this.listQuery, (item) =>
+    `${item.name} ${item.drink?.name ?? ''}`,
+  );
+  readonly masterListRowNumber = masterListRowNumber;
   readonly beverages = signal<MstBeverage[]>([]);
   readonly beverageCategories = signal<MstBeverageCategory[]>([]);
   readonly createDrinkCategoryId = signal<number | null>(null);

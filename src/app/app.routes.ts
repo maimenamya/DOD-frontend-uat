@@ -24,6 +24,7 @@ import { OpenTablePageComponent } from './pages/open-table/open-table-page.compo
 import { ReportsPageComponent } from './pages/reports/reports-page.component';
 import { DailyExpensesPageComponent } from './pages/daily-expenses/daily-expenses-page.component';
 import { ShopRulesPageComponent } from './pages/shop-rules/shop-rules-page.component';
+import { ReceiptPrinterPageComponent } from './pages/receipt-printer/receipt-printer-page.component';
 import { PackageDepositPageComponent } from './pages/package-deposit/package-deposit-page.component';
 import { StockPageComponent } from './pages/stock/stock-page.component';
 
@@ -143,6 +144,11 @@ export const routes: Routes = [
       {
         path: 'shop-rules',
         component: ShopRulesPageComponent,
+        canActivate: [permissionGuard('master_data')],
+      },
+      {
+        path: 'receipt-printer',
+        component: ReceiptPrinterPageComponent,
         canActivate: [permissionGuard('master_data')],
       },
       { path: 'my-profile', component: MyProfileComponent },

@@ -13,6 +13,8 @@ import {
 import { forkJoin } from 'rxjs';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
+import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
 import type { MstBeverage, MstBeverageCategory } from '../../models/beverage';
 import { AuthService } from '../../services/auth.service';
 import { BeverageService } from '../../services/beverage.service';
@@ -20,10 +22,15 @@ import { ShopMasterService } from '../../services/shop-master.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
 import { isMixerCategoryKind } from '../../utils/beverage-category-kind.util';
+import {
+  MasterListQueryState,
+  createMasterListView,
+  masterListRowNumber,
+} from '../../utils/master-list.util';
 
 @Component({
   selector: 'app-master-drink-page',
-  imports: [DecimalPipe, ReactiveFormsModule, AppModalComponent, RouterLink],
+  imports: [DecimalPipe, ReactiveFormsModule, AppModalComponent, RouterLink, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './master-drink-page.component.html',
 })
 export class MasterDrinkPageComponent implements OnInit {
@@ -50,6 +57,12 @@ export class MasterDrinkPageComponent implements OnInit {
     if (id == null) return [];
     return this.beverages().filter((item) => item.categoryId === id);
   });
+
+  readonly listQuery = new MasterListQueryState();
+  readonly listView = createMasterListView(this.filteredBeverages, this.listQuery, (item) =>
+    `${item.name} ${item.unitLabelTh} ${item.category?.name ?? ''}`,
+  );
+  readonly masterListRowNumber = masterListRowNumber;
 
   readonly selectedCategory = computed(() => {
     const id = this.selectedCategoryId();
@@ -116,6 +129,7 @@ export class MasterDrinkPageComponent implements OnInit {
 
   selectCategoryTab(categoryId: number): void {
     this.selectedCategoryId.set(categoryId);
+    this.listQuery.resetPage();
     this.showCreateModal.set(false);
     this.editingBeverage.set(null);
   }

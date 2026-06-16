@@ -197,6 +197,13 @@
   } @else if (promotions().length === 0) {
     <p class="app-empty-state">ยังไม่มีข้อมูลโปรโมชั่น</p>
   } @else {
+    <app-master-list-toolbar
+      [search]="listQuery.search()"
+      (searchChange)="listQuery.onSearchChange($event)"
+    />
+    @if (listView().total === 0) {
+      <p class="app-empty-state">ไม่พบรายการที่ตรงกับคำค้น</p>
+    } @else {
     <section class="app-card app-card-flush">
       <div class="app-data-table-shell">
         <div class="app-split-table app-split-table--wide">
@@ -248,9 +255,9 @@
                 }
               </colgroup>
               <tbody>
-                @for (item of promotions(); track item.id; let i = $index) {
+                @for (item of listView().items; track item.id; let i = $index) {
                   <tr>
-                    <td class="app-cell-mono">{{ i + 1 }}</td>
+                    <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
                     <td class="app-cell-primary">{{ item.name }}</td>
                     <td>{{ drinkName(item) }}</td>
                     <td class="app-cell-right">{{ item.quantity }}</td>
@@ -280,5 +287,16 @@
         </div>
       </div>
     </section>
+    <app-list-paginator
+      [page]="listView().page"
+      [totalPages]="listView().totalPages"
+      [total]="listView().total"
+      [limit]="listView().limit"
+      [rangeStart]="listView().rangeStart"
+      [rangeEnd]="listView().rangeEnd"
+      (pageChange)="listQuery.goToPage($event)"
+      (limitChange)="listQuery.onLimitChange($event)"
+    />
+    }
   }
 </div>

@@ -10,16 +10,23 @@ import {
 } from '@angular/forms';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
+import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
 import type { MstBeverageCategory } from '../../models/beverage';
 import { AuthService } from '../../services/auth.service';
 import { ShopMasterService } from '../../services/shop-master.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
 import { isMixerCategoryKind } from '../../utils/beverage-category-kind.util';
+import {
+  MasterListQueryState,
+  createMasterListView,
+  masterListRowNumber,
+} from '../../utils/master-list.util';
 
 @Component({
   selector: 'app-master-beverage-category-page',
-  imports: [ReactiveFormsModule, AppModalComponent],
+  imports: [ReactiveFormsModule, AppModalComponent, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './master-beverage-category-page.component.html',
 })
 export class MasterBeverageCategoryPageComponent implements OnInit {
@@ -31,6 +38,11 @@ export class MasterBeverageCategoryPageComponent implements OnInit {
 
   readonly canManage = computed(() => this.auth.canWriteOnPage('master_data'));
   readonly categories = signal<MstBeverageCategory[]>([]);
+  readonly listQuery = new MasterListQueryState();
+  readonly listView = createMasterListView(this.categories, this.listQuery, (item) =>
+    `${item.name} ${isMixerCategoryKind(item.kind) ? 'ฟรีมิกซ์โต๊ะ' : ''}`,
+  );
+  readonly masterListRowNumber = masterListRowNumber;
   readonly loading = signal(true);
   readonly submitting = signal(false);
   readonly createFormValidated = signal(false);

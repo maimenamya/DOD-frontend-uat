@@ -11,15 +11,22 @@ import {
 } from '@angular/forms';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
+import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
 import type { MstPrTag } from '../../models/pr-tag';
 import { AuthService } from '../../services/auth.service';
 import { PrTagService } from '../../services/pr-tag.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
+import {
+  MasterListQueryState,
+  createMasterListView,
+  masterListRowNumber,
+} from '../../utils/master-list.util';
 
 @Component({
   selector: 'app-master-pr-tag-page',
-  imports: [DecimalPipe, ReactiveFormsModule, AppModalComponent],
+  imports: [DecimalPipe, ReactiveFormsModule, AppModalComponent, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './master-pr-tag-page.component.html',
 })
 export class MasterPrTagPageComponent implements OnInit {
@@ -31,6 +38,9 @@ export class MasterPrTagPageComponent implements OnInit {
 
   readonly canManage = computed(() => this.auth.canWriteOnPage('master_data'));
   readonly items = signal<MstPrTag[]>([]);
+  readonly listQuery = new MasterListQueryState();
+  readonly listView = createMasterListView(this.items, this.listQuery, (item) => item.name);
+  readonly masterListRowNumber = masterListRowNumber;
   readonly loading = signal(true);
   readonly submitting = signal(false);
   readonly createFormValidated = signal(false);
