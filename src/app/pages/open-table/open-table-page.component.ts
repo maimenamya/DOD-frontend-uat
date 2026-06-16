@@ -406,6 +406,11 @@ export class OpenTablePageComponent implements OnInit {
     () => this.selectedSeat()?.status === 'AWAITING_CLEAR',
   );
 
+  /** Bill to reprint — from session API after refresh, or in-memory right after checkout. */
+  readonly reprintBillId = computed(
+    () => this.sessionDetail()?.billId ?? this.lastCheckoutBillId(),
+  );
+
   readonly seatReserved = computed(() => this.selectedSeat()?.status === 'RESERVED');
 
   readonly ledgerCanMutate = computed(() => {
@@ -2743,7 +2748,7 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   reprintLastReceipt(): void {
-    const billId = this.lastCheckoutBillId();
+    const billId = this.reprintBillId();
     if (billId == null) {
       this.toast.showError('ไม่พบบิลล่าสุด — เช็กบิลใหม่หรือเปิดโต๊ะนี้อีกครั้ง');
       return;

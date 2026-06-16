@@ -213,6 +213,18 @@ export class BillReceiptService {
       cleanup();
     };
 
+    const img = frameDoc.querySelector('img');
+    if (img) {
+      if (img.complete) {
+        requestAnimationFrame(() => triggerPrint());
+      } else {
+        img.addEventListener('load', () => triggerPrint(), { once: true });
+        img.addEventListener('error', () => triggerPrint(), { once: true });
+        setTimeout(triggerPrint, 2000);
+      }
+      return true;
+    }
+
     frameWindow.onload = triggerPrint;
     setTimeout(triggerPrint, 400);
 

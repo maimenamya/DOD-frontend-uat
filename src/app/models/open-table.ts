@@ -192,6 +192,8 @@ export type OpenTableSessionDetail = {
   revision: number;
   sessionStatus?: TxnActiveSessionStatus;
   lastCheckedOutLabel?: string;
+  /** Bill from latest checkout — for reprint while awaiting customer release. */
+  billId?: number;
   canReleaseCustomer?: boolean;
   /** False after checkout — no new items/transfers until seat released. */
   canMutateLedger?: boolean;
