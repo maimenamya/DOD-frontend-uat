@@ -411,11 +411,11 @@ export class BillReceiptService {
   </table>
   <hr class="dash" />
   <table class="kv">
-    ${kvRow('ยอดรวม', `${receipt.totalQuantity}  ${formatReceiptMoney(receipt.grandTotal)}`)}
+    ${kvRow(`ยอดรวม (${receipt.totalQuantity} ชิ้น)`, formatReceiptMoney(receipt.grandTotal))}
   </table>
   <hr class="dash" />
   <table class="kv grand">
-    ${kvRow('ทั้งหมด', `฿${formatReceiptMoney(receipt.grandTotal)}`)}
+    ${kvRow('ทั้งหมด', `฿ ${formatReceiptMoney(receipt.grandTotal)}`)}
   </table>
   </div>
   <footer class="receipt-foot">
