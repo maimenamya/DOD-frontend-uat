@@ -254,7 +254,7 @@ export class BillReceiptService {
     const infoFont = narrow ? '20px' : '21px';
     const amtPadRightPx = narrow ? 4 : 6;
     const colQtyPx = narrow ? 34 : 48;
-    const colAmtPx = narrow ? 136 : 168;
+    const colAmtPx = narrow ? 140 : 168;
     const colNamePx = sheetPx - colQtyPx - colAmtPx;
 
     const itemsColgroup = `<colgroup>
@@ -274,6 +274,9 @@ export class BillReceiptService {
       const qtyCell = `<td class="item-qty">${escapeHtml(qty)}</td>`;
       return `<tr${cls}><td class="item-name">${escapeHtml(label)}</td>${qtyCell}${amtCell(escapeHtml(amount))}</tr>`;
     };
+
+    const grandRow = (label: string, amount: string) =>
+      `<tr class="grand-row"><td class="item-name" colspan="2">${escapeHtml(label)}</td>${amtCell(escapeHtml(amount))}</tr>`;
 
     const sectionBreak = `<tr class="section-break"><td colspan="3"></td></tr>`;
 
@@ -357,6 +360,9 @@ export class BillReceiptService {
     .items .item-amt {
       padding: 0;
       vertical-align: top;
+      width: ${colAmtPx}px;
+      max-width: ${colAmtPx}px;
+      overflow: hidden;
     }
     .amt-val {
       display: block;
@@ -385,12 +391,8 @@ export class BillReceiptService {
       padding-top: 4px;
       padding-bottom: 4px;
     }
-    tr.grand-row .item-qty {
-      padding-top: 4px;
-      padding-bottom: 4px;
-    }
     tr.grand-row .amt-val {
-      font-size: ${bodyFont};
+      font-size: ${grandFont};
       font-weight: 700;
       padding-top: 4px;
       padding-bottom: 4px;
@@ -459,7 +461,7 @@ export class BillReceiptService {
     ${sectionBreak}
     ${itemGridRow('ยอดรวม', String(receipt.totalQuantity), formatReceiptMoney(receipt.grandTotal), 'subtotal-row')}
     ${sectionBreak}
-    ${itemGridRow('ทั้งหมด', '', `฿${formatReceiptMoney(receipt.grandTotal)}`, 'grand-row')}
+    ${grandRow('ทั้งหมด', `฿${formatReceiptMoney(receipt.grandTotal)}`)}
   </table>
   </div>
   <footer class="receipt-foot">
