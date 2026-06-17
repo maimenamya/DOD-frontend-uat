@@ -232,7 +232,7 @@ export class BillReceiptService {
     const narrow = widthMm < 80;
     /** Standard 58mm dot width — bitmap prints edge-to-edge. */
     const rasterPx = narrow ? 384 : 576;
-    const padLeftPx = narrow ? 16 : 14;
+    const padLeftPx = narrow ? 4 : 10;
     const padRightPx = narrow ? 28 : 16;
     const padBottomPx = narrow ? 28 : 18;
     const printBottomPadPx = narrow ? 20 : 14;
@@ -347,7 +347,7 @@ export class BillReceiptService {
     .items .item-name {
       word-break: break-word;
       overflow-wrap: anywhere;
-      padding: 1px 4px 1px 4px;
+      padding: 1px 4px 1px 2px;
       vertical-align: top;
     }
     .items .item-qty {
