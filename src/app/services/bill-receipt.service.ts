@@ -171,7 +171,7 @@ export class BillReceiptService {
 
   /** Same html2canvas receipt as PC → JPEG → thermer://?data= (not backend text lines). */
   private async dispatchThermerPrint(receipt: BillReceiptResponse['receipt']): Promise<void> {
-    for (const quality of [0.88, 0.78, 0.68, 0.58]) {
+    for (const quality of [0.92, 0.86, 0.78, 0.68]) {
       const base64 = await this.renderReceiptJpegBase64(receipt, quality);
       if (!base64) break;
       const url = thermerUrlFromEntries({
@@ -504,17 +504,17 @@ export class BillReceiptService {
     const footerBlock = receipt.footerText?.trim()
       ? `<div class="receipt-foot-text">${escapeHtml(receipt.footerText.trim())}</div>`
       : '';
-    const nameMax = narrow ? 11 : 22;
+    const nameMax = narrow ? 12 : 22;
     const amountHeader = narrow ? 'รวม' : 'ราคารวม';
-    const bodyFont = narrow ? '22px' : '23px';
-    const headFont = narrow ? '28px' : '29px';
-    const grandFont = narrow ? '26px' : '27px';
-    const footFont = narrow ? '18px' : '16px';
-    const infoFont = narrow ? '17px' : '18px';
-    const amtPadRightPx = narrow ? 12 : 10;
-    const grandAmtPadRightPx = narrow ? 20 : 14;
-    const colQtyPx = narrow ? 30 : 48;
-    const colAmtPx = narrow ? 132 : 164;
+    const bodyFont = narrow ? '24px' : '25px';
+    const headFont = narrow ? '30px' : '31px';
+    const grandFont = narrow ? '28px' : '29px';
+    const footFont = narrow ? '19px' : '17px';
+    const infoFont = narrow ? '20px' : '20px';
+    const amtPadRightPx = narrow ? 10 : 10;
+    const grandAmtPadRightPx = narrow ? 18 : 14;
+    const colQtyPx = narrow ? 34 : 48;
+    const colAmtPx = narrow ? 126 : 164;
     const colNamePx = sheetPx - colQtyPx - colAmtPx;
 
     const itemsColgroup = `<colgroup>
@@ -570,8 +570,8 @@ export class BillReceiptService {
     body {
       font-family: 'Sarabun', 'Tahoma', sans-serif;
       font-size: ${bodyFont};
-      font-weight: 400;
-      line-height: 1.25;
+      font-weight: 500;
+      line-height: 1.38;
       padding: 0;
       color: #000;
       -webkit-print-color-adjust: exact;
@@ -597,22 +597,22 @@ export class BillReceiptService {
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .items td {
       font-size: ${bodyFont};
-      font-weight: 400;
+      font-weight: 500;
       color: #000;
     }
     .info-label {
       white-space: nowrap;
-      font-weight: 400;
+      font-weight: 500;
     }
     .items .item-name {
       word-break: break-word;
       overflow-wrap: anywhere;
-      padding: 1px 4px 1px 4px;
+      padding: 3px 4px 3px 4px;
       vertical-align: top;
     }
     .items .item-qty {
       text-align: center;
-      padding: 1px 2px;
+      padding: 3px 2px;
       vertical-align: top;
       white-space: nowrap;
       font-variant-numeric: tabular-nums;
@@ -628,7 +628,7 @@ export class BillReceiptService {
       width: 100%;
       box-sizing: border-box;
       text-align: right;
-      padding: 1px ${amtPadRightPx}px 1px 0;
+      padding: 3px ${amtPadRightPx}px 3px 0;
       white-space: nowrap;
       font-variant-numeric: tabular-nums;
     }
@@ -652,6 +652,11 @@ export class BillReceiptService {
       height: 4px;
       background: #000;
       flex: 0 0 10px;
+    }
+    tr.subtotal-row .item-name,
+    tr.subtotal-row .item-qty,
+    tr.subtotal-row .amt-val {
+      font-weight: 700;
     }
     tr.grand-row .item-name {
       font-size: ${grandFont};
