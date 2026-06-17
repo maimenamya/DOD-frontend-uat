@@ -280,8 +280,7 @@ export class BillReceiptService {
     const grandRow = (label: string, amount: string) =>
       itemGridRow(label, '', amount, 'grand-row');
 
-    const dashChars = narrow ? 38 : 48;
-    const zoneDash = `<div class="zone-dash">${'-'.repeat(dashChars)}</div>`;
+    const zoneDash = '<div class="zone-dash" aria-hidden="true"></div>';
 
     const itemRows = receipt.lines
       .map((line) => {
@@ -383,14 +382,17 @@ export class BillReceiptService {
     .zone-dash {
       display: block;
       width: 100%;
-      text-align: center;
-      font-size: 16px;
-      font-weight: 400;
-      line-height: 1;
-      margin: 8px 0;
-      color: #000;
-      white-space: nowrap;
-      overflow: hidden;
+      height: 4px;
+      margin: 10px 0;
+      background: repeating-linear-gradient(
+        to right,
+        #000 0,
+        #000 10px,
+        #fff 10px,
+        #fff 14px
+      );
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
     tr.grand-row .item-name {
       font-size: ${grandFont};
