@@ -216,6 +216,8 @@ export class BillReceiptService {
       built.widthMm,
       built.rasterPx,
       built.printBottomPadPx,
+      built.padLeftPx,
+      built.sheetPx,
       () => this.removePrintFrame(iframe),
     );
     return true;
@@ -227,6 +229,7 @@ export class BillReceiptService {
     widthMm: number;
     sheetPx: number;
     printBottomPadPx: number;
+    padLeftPx: number;
   } {
     const widthMm = receipt.paperWidthMm >= 80 ? 80 : 58;
     const narrow = widthMm < 80;
@@ -381,7 +384,7 @@ export class BillReceiptService {
     .zone-gap {
       display: block;
       width: 100%;
-      height: 28px;
+      height: 36px;
     }
     tr.grand-row .item-name {
       font-size: ${grandFont};
@@ -479,7 +482,7 @@ export class BillReceiptService {
   </div>
 </body>
 </html>`;
-    return { html, rasterPx, widthMm, sheetPx, printBottomPadPx };
+    return { html, rasterPx, widthMm, sheetPx, printBottomPadPx, padLeftPx };
   }
 
   private triggerPrintWhenReady(
@@ -487,8 +490,12 @@ export class BillReceiptService {
     widthMm: number,
     rasterPx: number,
     printBottomPadPx: number,
+    padLeftPx: number,
+    contentWidthPx: number,
     cleanup?: () => void,
   ): void {
+    const captureScale = 2;
+    const zoneLinePx = 6;
     const frameDoc = targetWindow.document;
     let printed = false;
 
@@ -512,7 +519,7 @@ export class BillReceiptService {
           const { default: html2canvas } = await import('html2canvas');
           const captured = await html2canvas(frameEl, {
             backgroundColor: '#ffffff',
-            scale: 1,
+            scale: captureScale,
             useCORS: true,
             logging: false,
             width: rasterPx,
@@ -520,8 +527,14 @@ export class BillReceiptService {
             windowWidth: rasterPx,
             windowHeight: captureHeight,
           });
+          const withRules = drawReceiptZoneRules(captured, frameEl, {
+            padLeftPx,
+            contentWidthPx,
+            linePx: zoneLinePx * captureScale,
+            captureScale,
+          });
           const raster = padReceiptCanvasBottom(
-            drawReceiptZoneRules(finalizeReceiptCanvas(captured, rasterPx), frameEl),
+            finalizeReceiptCanvas(withRules, rasterPx),
             printBottomPadPx,
           );
           const dataUrl = raster.toDataURL('image/png');
@@ -627,17 +640,28 @@ function receiptLineDisplayName(name: string): string {
 function drawReceiptZoneRules(
   canvas: HTMLCanvasElement,
   frameEl: HTMLElement,
-  linePx = 4,
-  gapPadTop = 12,
+  opts: {
+    padLeftPx: number;
+    contentWidthPx: number;
+    linePx: number;
+    captureScale: number;
+  },
 ): HTMLCanvasElement {
   const ctx = canvas.getContext('2d');
   if (!ctx) return canvas;
   const frameRect = frameEl.getBoundingClientRect();
-  ctx.fillStyle = '#000000';
+  const x = Math.round(opts.padLeftPx * opts.captureScale);
+  const w = Math.round(opts.contentWidthPx * opts.captureScale);
+  const wipeH = opts.linePx + 4 * opts.captureScale;
+
   frameEl.querySelectorAll('.zone-gap').forEach((gap) => {
     const r = gap.getBoundingClientRect();
-    const y = Math.round(r.top - frameRect.top + gapPadTop);
-    ctx.fillRect(0, y, canvas.width, linePx);
+    const yCss = r.top - frameRect.top + r.height / 2;
+    const y = Math.round(yCss * opts.captureScale - opts.linePx / 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x, y - 2 * opts.captureScale, w, wipeH);
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(x, y, w, opts.linePx);
   });
   return canvas;
 }
@@ -680,6 +704,7 @@ function scaleCanvasToWidth(source: HTMLCanvasElement, targetWidth: number): HTM
   if (!ctx) return source;
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, scaled.width, scaled.height);
+  ctx.imageSmoothingEnabled = false;
   ctx.drawImage(source, 0, 0, scaled.width, scaled.height);
   return scaled;
 }
