@@ -171,7 +171,7 @@ export class BillReceiptService {
       return {
         ok: true,
         method: 'thermer',
-        message: 'ส่งไป Thermer แล้ว — กดพิมพ์ในแอป (ครั้งแรกต้องจับคู่ Bluetooth)',
+        message: 'ส่งไป Thermer แล้ว — กดพิมพ์ในแอป (ใบเสร็จแบบภาพ จัดหน้าเหมือน PC)',
       };
     }
     return {
@@ -830,25 +830,27 @@ export class BillReceiptService {
 }
 
 function buildThermerPrintUrl(receipt: BillReceiptResponse['receipt']): string | null {
+  const png = receipt.receiptPngBase64?.replace(/\s/g, '') ?? '';
+  if (png) {
+    const imageUrl = thermerUrlFromEntries({
+      '0': { type: 1, align: 0, base64Image: png },
+    });
+    if (imageUrl) return imageUrl;
+  }
+
   const content = (receipt.textLines ?? []).join('\n').trim();
   if (!content) return null;
 
-  // Thermer expects thermer://?data= + URL-encoded JSON object keyed "0","1",… (not an array).
-  // One multi-line text entry — free tier allows few entries; full receipt fits in one block.
-  const entries: Record<string, ThermerPrintEntry> = {
-    '0': {
-      type: 0,
-      content,
-      bold: 0,
-      align: 0,
-      format: 0,
-    },
-  };
+  return thermerUrlFromEntries({
+    '0': { type: 0, content, bold: 0, align: 0, format: 0 },
+  });
+}
 
+/** Thermer: thermer://?data= + object {"0":{type,...}} — image type 1 keeps receipt layout. */
+function thermerUrlFromEntries(entries: Record<string, ThermerPrintEntry>): string | null {
   const json = JSON.stringify(entries);
-  const encoded = encodeURIComponent(json);
-  const url = `thermer://?data=${encoded}`;
-  if (url.length > 120_000) return null;
+  const url = `thermer://?data=${encodeURIComponent(json)}`;
+  if (url.length > 800_000) return null;
   return url;
 }
 
