@@ -2750,6 +2750,12 @@ export class OpenTablePageComponent implements OnInit {
     const outcome = this.billReceiptService.printReceipt(receiptResponse.receipt, {
       printFrame,
     });
+    if (outcome.ok && outcome.method === 'thermer') {
+      this.toast.showSuccess(
+        outcome.message ?? 'ส่งไป Thermer แล้ว — กดพิมพ์ในแอป (ครั้งแรกต้องจับคู่ BT)',
+      );
+      return;
+    }
     if (outcome.ok && outcome.method === 'rawbt') {
       const isIos = /iPad|iPhone|iPod/i.test(navigator.userAgent);
       this.toast.showSuccess(
@@ -2760,11 +2766,11 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
     if (outcome.ok && outcome.method === 'browser') {
-      const isMobile = detectReceiptPrintPlatform() !== 'desktop';
       this.toast.showSuccess(
-        isMobile
-          ? 'เปิดหน้าพิมพ์แล้ว — เลือกเครื่องพิมพ์หรือบันทึก PDF'
-          : 'เปิดหน้าพิมพ์แล้ว — เลือกเครื่องพิมพ์ POS-58',
+        outcome.message ??
+          (detectReceiptPrintPlatform() !== 'desktop'
+            ? 'แสดงใบเสร็จแล้ว — กดปุ่ม พิมพ์ ด้านล่าง'
+            : 'เปิดหน้าพิมพ์แล้ว — เลือกเครื่องพิมพ์ POS-58'),
       );
       return;
     }
@@ -2789,16 +2795,22 @@ export class OpenTablePageComponent implements OnInit {
         const outcome = this.billReceiptService.printReceipt(response.receipt, {
           printFrame,
         });
-        if (outcome.ok && outcome.method === 'rawbt') {
+        if (outcome.ok && outcome.method === 'thermer') {
+      this.toast.showSuccess(
+        outcome.message ?? 'ส่งไป Thermer แล้ว — กดพิมพ์ในแอป (ครั้งแรกต้องจับคู่ BT)',
+      );
+      return;
+    }
+    if (outcome.ok && outcome.method === 'rawbt') {
           this.toast.showSuccess('ส่งไป RawBT แล้ว');
           return;
         }
         if (outcome.ok && outcome.method === 'browser') {
-          const isMobile = detectReceiptPrintPlatform() !== 'desktop';
           this.toast.showSuccess(
-            isMobile
-              ? 'เปิดหน้าพิมพ์แล้ว — เลือกเครื่องพิมพ์หรือบันทึก PDF'
-              : 'เปิดหน้าพิมพ์แล้ว — เลือกเครื่องพิมพ์ POS-58',
+            outcome.message ??
+              (detectReceiptPrintPlatform() !== 'desktop'
+                ? 'แสดงใบเสร็จแล้ว — กดปุ่ม พิมพ์ ด้านล่าง'
+                : 'เปิดหน้าพิมพ์แล้ว — เลือกเครื่องพิมพ์ POS-58'),
           );
           return;
         }

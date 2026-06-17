@@ -9,7 +9,7 @@ import { detectReceiptPrintPlatform } from '../utils/receipt-print-platform.util
 
 export type ReceiptPrintOutcome = {
   ok: boolean;
-  method: 'browser' | 'rawbt' | 'none';
+  method: 'browser' | 'rawbt' | 'thermer' | 'none';
   message?: string;
 };
 
@@ -62,11 +62,9 @@ export class BillReceiptService {
     }
   }
 
-  /** True when checkout/reprint should open a hidden iframe on user click (before async API). */
+  /** Desktop only — mobile uses on-screen sheet (iOS blocks hidden iframe print after async). */
   shouldPreparePrintFrame(): boolean {
-    const platform = detectReceiptPrintPlatform();
-    if (platform === 'desktop' || platform === 'ios') return true;
-    return false;
+    return detectReceiptPrintPlatform() === 'desktop';
   }
 
   /** @deprecated use shouldPreparePrintFrame */
@@ -105,6 +103,10 @@ export class BillReceiptService {
       this.removePrintFrame(options?.printFrame);
       return this.printViaBridgingApp(receipt, this.detectBridgingPlatform());
     }
+    if (channel === 'thermer') {
+      this.removePrintFrame(options?.printFrame);
+      return this.printViaThermer(receipt);
+    }
     if (channel === 'wifi_raw') {
       const bridged = this.printViaBridgingApp(receipt, this.detectBridgingPlatform());
       if (bridged.ok) {
@@ -119,11 +121,14 @@ export class BillReceiptService {
       return this.browserPrintOutcome(receipt, options?.printFrame);
     }
 
-    // auto on mobile — Android: RawBT; iPhone: browser (no rawbt: without bridging app installed).
+    // auto on mobile — Android: RawBT; iPhone/iPad: Thermer (thermer://).
     if (platform === 'android') {
       this.removePrintFrame(options?.printFrame);
       return this.printViaBridgingApp(receipt, 'android');
     }
+    this.removePrintFrame(options?.printFrame);
+    const thermer = this.printViaThermer(receipt);
+    if (thermer.ok) return thermer;
     return this.browserPrintOutcome(receipt, options?.printFrame);
   }
 
@@ -139,11 +144,41 @@ export class BillReceiptService {
         message: 'เปิดหน้าพิมพ์ไม่ได้ — ลองกดพิมพ์ใบเสร็จอีกครั้ง',
       };
     }
+    if (detectReceiptPrintPlatform() !== 'desktop') {
+      return {
+        ok: true,
+        method: 'browser',
+        message: 'แสดงใบเสร็จแล้ว — กดปุ่ม พิมพ์ ด้านล่าง',
+      };
+    }
     return { ok: true, method: 'browser' };
   }
 
   private detectBridgingPlatform(): 'android' | 'ios' {
     return detectReceiptPrintPlatform() === 'ios' ? 'ios' : 'android';
+  }
+
+  printViaThermer(receipt: BillReceiptResponse['receipt']): ReceiptPrintOutcome {
+    const url = buildThermerPrintUrl(receipt);
+    if (!url) {
+      return {
+        ok: false,
+        method: 'thermer',
+        message: 'สร้างข้อมูลใบเสร็จสำหรับ Thermer ไม่ได้',
+      };
+    }
+    if (this.navigatePrintUrl(url)) {
+      return {
+        ok: true,
+        method: 'thermer',
+        message: 'ส่งไป Thermer แล้ว — กดพิมพ์ในแอป (ครั้งแรกต้องจับคู่ Bluetooth)',
+      };
+    }
+    return {
+      ok: false,
+      method: 'thermer',
+      message: 'ส่งไป Thermer ไม่ได้ — ติดตั้งแอป Thermer แล้วลองอีกครั้ง',
+    };
   }
 
   printViaBridgingApp(
@@ -200,8 +235,16 @@ export class BillReceiptService {
     receipt: BillReceiptResponse['receipt'],
     printFrame?: HTMLIFrameElement | null,
   ): boolean {
+    this.removePrintFrame(printFrame);
+    if (detectReceiptPrintPlatform() !== 'desktop') {
+      return this.showMobileReceiptPrintSheet(receipt);
+    }
+    return this.printDesktopBrowserReceipt(receipt);
+  }
+
+  private printDesktopBrowserReceipt(receipt: BillReceiptResponse['receipt']): boolean {
     const built = this.buildReceiptPrintDocument(receipt);
-    const iframe = printFrame ?? this.createPrintFrame();
+    const iframe = this.createPrintFrame();
     if (!iframe) {
       return false;
     }
@@ -230,6 +273,192 @@ export class BillReceiptService {
       () => this.removePrintFrame(iframe),
     );
     return true;
+  }
+
+  /** iOS/Android — preview + print on second tap (keeps user gesture for window.print). */
+  private showMobileReceiptPrintSheet(receipt: BillReceiptResponse['receipt']): boolean {
+    try {
+      document.getElementById('dod-receipt-print-overlay')?.remove();
+
+      const widthMm = receipt.paperWidthMm >= 80 ? 80 : 58;
+      const pngBase64 = receipt.receiptPngBase64?.replace(/\s/g, '') ?? '';
+      const dataUrl = pngBase64 ? `data:image/png;base64,${pngBase64}` : null;
+
+      const overlay = document.createElement('div');
+      overlay.id = 'dod-receipt-print-overlay';
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-label', 'ใบเสร็จ');
+      overlay.style.cssText =
+        'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.55);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;box-sizing:border-box';
+
+      const panel = document.createElement('div');
+      panel.style.cssText =
+        'background:#fff;width:100%;max-width:22rem;border-radius:12px;padding:12px;box-sizing:border-box;max-height:85vh;display:flex;flex-direction:column';
+
+      const title = document.createElement('p');
+      title.textContent = 'ใบเสร็จ';
+      title.style.cssText =
+        'margin:0 0 8px;font:600 18px Sarabun,Tahoma,sans-serif;text-align:center;color:#111';
+
+      const preview = document.createElement('div');
+      preview.style.cssText =
+        'flex:1;overflow:auto;background:#f8f8f8;border-radius:8px;padding:8px;display:flex;justify-content:center';
+
+      const img = document.createElement('img');
+      img.alt = 'ใบเสร็จ';
+      img.style.cssText = `display:block;width:${widthMm}mm;max-width:100%;height:auto`;
+      if (dataUrl) {
+        img.src = dataUrl;
+      } else {
+        img.style.minHeight = '120px';
+        title.textContent = 'ใบเสร็จ — กดพิมพ์เพื่อสร้างภาพ';
+      }
+      preview.appendChild(img);
+
+      const hint = document.createElement('p');
+      hint.textContent = 'กด พิมพ์ แล้วเลือกเครื่องพิมพ์หรือบันทึก PDF';
+      hint.style.cssText =
+        'margin:10px 0 0;font:400 14px Sarabun,Tahoma,sans-serif;text-align:center;color:#555';
+
+      const btnRow = document.createElement('div');
+      btnRow.style.cssText = 'display:flex;gap:10px;margin-top:12px';
+
+      const printBtn = document.createElement('button');
+      printBtn.type = 'button';
+      printBtn.textContent = 'พิมพ์';
+      printBtn.style.cssText =
+        'flex:1;padding:12px 8px;font:600 17px Sarabun,Tahoma,sans-serif;border:none;border-radius:8px;background:#4f46e5;color:#fff';
+
+      const closeBtn = document.createElement('button');
+      closeBtn.type = 'button';
+      closeBtn.textContent = 'ปิด';
+      closeBtn.style.cssText =
+        'flex:1;padding:12px 8px;font:600 17px Sarabun,Tahoma,sans-serif;border:1px solid #ccc;border-radius:8px;background:#fff;color:#111';
+
+      const cleanup = () => overlay.remove();
+
+      closeBtn.addEventListener('click', cleanup);
+      overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) cleanup();
+      });
+
+      printBtn.addEventListener('click', () => {
+        void (async () => {
+          printBtn.disabled = true;
+          printBtn.textContent = 'กำลังพิมพ์...';
+          try {
+            const url =
+              dataUrl ?? (await this.renderReceiptDataUrlForMobile(receipt));
+            if (!url) {
+              printBtn.disabled = false;
+              printBtn.textContent = 'พิมพ์';
+              return;
+            }
+            if (!dataUrl) {
+              img.src = url;
+            }
+            this.openMobilePrintWindow(url, widthMm);
+          } finally {
+            printBtn.disabled = false;
+            printBtn.textContent = 'พิมพ์';
+          }
+        })();
+      });
+
+      btnRow.appendChild(printBtn);
+      btnRow.appendChild(closeBtn);
+      panel.appendChild(title);
+      panel.appendChild(preview);
+      panel.appendChild(hint);
+      panel.appendChild(btnRow);
+      overlay.appendChild(panel);
+      document.body.appendChild(overlay);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private openMobilePrintWindow(dataUrl: string, widthMm: number): void {
+    const html = buildReceiptImagePrintHtml(dataUrl, widthMm, true);
+    const popup = window.open('', '_blank');
+    if (popup) {
+      popup.document.open();
+      popup.document.write(html);
+      popup.document.close();
+      return;
+    }
+    this.printImageInFullscreenFrame(html);
+  }
+
+  private printImageInFullscreenFrame(html: string): void {
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('aria-hidden', 'true');
+    iframe.style.cssText =
+      'position:fixed;top:0;left:0;width:100%;height:100%;border:0;z-index:100001;background:#fff';
+    document.body.appendChild(iframe);
+    const win = iframe.contentWindow;
+    const doc = iframe.contentDocument ?? win?.document;
+    if (!win || !doc) {
+      iframe.remove();
+      return;
+    }
+    doc.open();
+    doc.write(html);
+    doc.close();
+    const remove = () => iframe.remove();
+    win.addEventListener('afterprint', remove, { once: true });
+    setTimeout(remove, 15000);
+  }
+
+  private async renderReceiptDataUrlForMobile(
+    receipt: BillReceiptResponse['receipt'],
+  ): Promise<string | null> {
+    const built = this.buildReceiptPrintDocument(receipt);
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText =
+      'position:fixed;left:-9999px;top:0;width:400px;height:1200px;border:0;opacity:0;pointer-events:none';
+    document.body.appendChild(iframe);
+
+    const targetWindow = iframe.contentWindow;
+    const frameDoc = iframe.contentDocument ?? targetWindow?.document;
+    if (!targetWindow || !frameDoc) {
+      iframe.remove();
+      return null;
+    }
+
+    try {
+      frameDoc.open();
+      frameDoc.write(built.html);
+      frameDoc.close();
+      await frameDoc.fonts?.ready;
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      const rasterFrame = frameDoc.querySelector('.raster-frame') as HTMLElement | null;
+      if (!rasterFrame) return null;
+
+      const captureHeight = Math.max(rasterFrame.scrollHeight, rasterFrame.offsetHeight);
+      const { default: html2canvas } = await import('html2canvas');
+      const captured = await html2canvas(rasterFrame, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        width: built.rasterPx,
+        height: captureHeight,
+        windowWidth: built.rasterPx,
+        windowHeight: captureHeight,
+      });
+      const raster = padReceiptCanvasBottom(
+        finalizeReceiptCanvas(captured, built.rasterPx),
+        built.printBottomPadPx,
+      );
+      return raster.toDataURL('image/png');
+    } catch {
+      return null;
+    } finally {
+      iframe.remove();
+    }
   }
 
   private buildReceiptPrintDocument(receipt: BillReceiptResponse['receipt']): {
@@ -598,6 +827,64 @@ export class BillReceiptService {
     anchor.click();
     URL.revokeObjectURL(url);
   }
+}
+
+function buildThermerPrintUrl(receipt: BillReceiptResponse['receipt']): string | null {
+  const lines = receipt.textLines ?? [];
+  const content = lines.join('\n').trim();
+  if (!content) return null;
+
+  const entries: ThermerTextEntry[] = [];
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      entries.push({ type: 0, content: ' ', bold: 0, align: 0, format: 0 });
+      continue;
+    }
+    const centered = line.length > trimmed.length + 2 && /^\s+\S/.test(line);
+    const isGrand = trimmed.startsWith('ทั้งหมด');
+    const isHead = trimmed === 'บิล' || trimmed === receipt.shopName.trim();
+    entries.push({
+      type: 0,
+      content: trimmed,
+      bold: isGrand || isHead ? 1 : 0,
+      align: centered ? 1 : 0,
+      format: isGrand ? 2 : 0,
+    });
+  }
+
+  const json = JSON.stringify(entries);
+  const encoded = encodeURIComponent(json);
+  const url = `thermer://${encoded}`;
+  if (url.length > 120_000) return null;
+  return url;
+}
+
+type ThermerTextEntry = {
+  type: 0;
+  content: string;
+  bold: 0 | 1;
+  align: 0 | 1 | 2;
+  format: 0 | 1 | 2 | 3 | 4;
+};
+
+function buildReceiptImagePrintHtml(
+  dataUrl: string,
+  widthMm: number,
+  autoPrint: boolean,
+): string {
+  const onload = autoPrint
+    ? ` onload="setTimeout(function(){window.focus();window.print();},300)"`
+    : '';
+  return `<!DOCTYPE html>
+<html lang="th"><head><meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  @page { margin: 0; size: ${widthMm}mm auto; }
+  html, body { margin: 0; padding: 0; width: ${widthMm}mm; background: #fff; }
+  img { display: block; width: ${widthMm}mm; max-width: 100%; height: auto; margin: 0; }
+</style></head>
+<body><img src="${dataUrl}" alt="ใบเสร็จ"${onload} /></body></html>`;
 }
 
 function buildReceiptZoneDash(widthPx: number): string {
