@@ -2752,7 +2752,7 @@ export class OpenTablePageComponent implements OnInit {
     });
     if (outcome.ok && outcome.method === 'thermer') {
       this.toast.showSuccess(
-        outcome.message ?? 'ส่งไป Thermer แล้ว — กดพิมพ์ในแอป (ครั้งแรกต้องจับคู่ BT)',
+        outcome.message ?? 'กำลังส่งใบเสร็จไป Thermer...',
       );
       return;
     }
@@ -2797,7 +2797,7 @@ export class OpenTablePageComponent implements OnInit {
         });
         if (outcome.ok && outcome.method === 'thermer') {
       this.toast.showSuccess(
-        outcome.message ?? 'ส่งไป Thermer แล้ว — กดพิมพ์ในแอป (ครั้งแรกต้องจับคู่ BT)',
+        outcome.message ?? 'กำลังส่งใบเสร็จไป Thermer...',
       );
       return;
     }

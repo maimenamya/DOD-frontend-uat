@@ -19,6 +19,8 @@ export type PrintReceiptOptions = {
 };
 
 const RAWBT_PACKAGE = 'ru.a402d.rawbtprinter';
+/** iOS Safari truncates very long custom-scheme URLs — keep Thermer payload under this. */
+const THERMER_MAX_URL_LEN = 180_000;
 
 @Injectable({ providedIn: 'root' })
 export class BillReceiptService {
@@ -159,26 +161,40 @@ export class BillReceiptService {
   }
 
   printViaThermer(receipt: BillReceiptResponse['receipt']): ReceiptPrintOutcome {
-    const url = buildThermerPrintUrl(receipt);
-    if (!url) {
-      return {
-        ok: false,
-        method: 'thermer',
-        message: 'สร้างข้อมูลใบเสร็จสำหรับ Thermer ไม่ได้',
-      };
-    }
-    if (this.navigatePrintUrl(url)) {
-      return {
-        ok: true,
-        method: 'thermer',
-        message: 'ส่งไป Thermer แล้ว — กดพิมพ์ในแอป (ใบเสร็จแบบภาพ จัดหน้าเหมือน PC)',
-      };
-    }
+    void this.dispatchThermerPrint(receipt);
     return {
-      ok: false,
+      ok: true,
       method: 'thermer',
-      message: 'ส่งไป Thermer ไม่ได้ — ติดตั้งแอป Thermer แล้วลองอีกครั้ง',
+      message: 'กำลังส่งใบเสร็จไป Thermer...',
     };
+  }
+
+  /** Same html2canvas receipt as PC → JPEG → thermer://?data= (not backend text lines). */
+  private async dispatchThermerPrint(receipt: BillReceiptResponse['receipt']): Promise<void> {
+    for (const quality of [0.88, 0.78, 0.68, 0.58]) {
+      const base64 = await this.renderReceiptJpegBase64(receipt, quality);
+      if (!base64) break;
+      const url = thermerUrlFromEntries({
+        '0': { type: 1, align: 0, base64Image: base64 },
+      });
+      if (url && url.length <= THERMER_MAX_URL_LEN && this.navigatePrintUrl(url)) {
+        return;
+      }
+    }
+    this.showMobileReceiptPrintSheet(receipt);
+  }
+
+  private async renderReceiptJpegBase64(
+    receipt: BillReceiptResponse['receipt'],
+    quality: number,
+  ): Promise<string | null> {
+    const dataUrl = await this.renderReceiptDataUrlForMobile(receipt, {
+      format: 'jpeg',
+      jpegQuality: quality,
+    });
+    if (!dataUrl) return null;
+    const match = dataUrl.match(/^data:image\/jpeg;base64,(.+)$/);
+    return match?.[1] ?? null;
   }
 
   printViaBridgingApp(
@@ -281,8 +297,6 @@ export class BillReceiptService {
       document.getElementById('dod-receipt-print-overlay')?.remove();
 
       const widthMm = receipt.paperWidthMm >= 80 ? 80 : 58;
-      const pngBase64 = receipt.receiptPngBase64?.replace(/\s/g, '') ?? '';
-      const dataUrl = pngBase64 ? `data:image/png;base64,${pngBase64}` : null;
 
       const overlay = document.createElement('div');
       overlay.id = 'dod-receipt-print-overlay';
@@ -307,12 +321,12 @@ export class BillReceiptService {
       const img = document.createElement('img');
       img.alt = 'ใบเสร็จ';
       img.style.cssText = `display:block;width:${widthMm}mm;max-width:100%;height:auto`;
-      if (dataUrl) {
-        img.src = dataUrl;
-      } else {
-        img.style.minHeight = '120px';
-        title.textContent = 'ใบเสร็จ — กดพิมพ์เพื่อสร้างภาพ';
-      }
+      img.style.minHeight = '120px';
+      void this.renderReceiptDataUrlForMobile(receipt, { format: 'jpeg', jpegQuality: 0.88 }).then(
+        (url) => {
+          if (url) img.src = url;
+        },
+      );
       preview.appendChild(img);
 
       const hint = document.createElement('p');
@@ -347,16 +361,16 @@ export class BillReceiptService {
           printBtn.disabled = true;
           printBtn.textContent = 'กำลังพิมพ์...';
           try {
-            const url =
-              dataUrl ?? (await this.renderReceiptDataUrlForMobile(receipt));
+            const url = await this.renderReceiptDataUrlForMobile(receipt, {
+              format: 'jpeg',
+              jpegQuality: 0.88,
+            });
             if (!url) {
               printBtn.disabled = false;
               printBtn.textContent = 'พิมพ์';
               return;
             }
-            if (!dataUrl) {
-              img.src = url;
-            }
+            img.src = url;
             this.openMobilePrintWindow(url, widthMm);
           } finally {
             printBtn.disabled = false;
@@ -413,6 +427,7 @@ export class BillReceiptService {
 
   private async renderReceiptDataUrlForMobile(
     receipt: BillReceiptResponse['receipt'],
+    opts?: { format?: 'png' | 'jpeg'; jpegQuality?: number },
   ): Promise<string | null> {
     const built = this.buildReceiptPrintDocument(receipt);
     const iframe = document.createElement('iframe');
@@ -453,6 +468,9 @@ export class BillReceiptService {
         finalizeReceiptCanvas(captured, built.rasterPx),
         built.printBottomPadPx,
       );
+      if (opts?.format === 'jpeg') {
+        return raster.toDataURL('image/jpeg', opts.jpegQuality ?? 0.88);
+      }
       return raster.toDataURL('image/png');
     } catch {
       return null;
@@ -829,28 +847,11 @@ export class BillReceiptService {
   }
 }
 
-function buildThermerPrintUrl(receipt: BillReceiptResponse['receipt']): string | null {
-  const png = receipt.receiptPngBase64?.replace(/\s/g, '') ?? '';
-  if (png) {
-    const imageUrl = thermerUrlFromEntries({
-      '0': { type: 1, align: 0, base64Image: png },
-    });
-    if (imageUrl) return imageUrl;
-  }
-
-  const content = (receipt.textLines ?? []).join('\n').trim();
-  if (!content) return null;
-
-  return thermerUrlFromEntries({
-    '0': { type: 0, content, bold: 0, align: 0, format: 0 },
-  });
-}
-
 /** Thermer: thermer://?data= + object {"0":{type,...}} — image type 1 keeps receipt layout. */
 function thermerUrlFromEntries(entries: Record<string, ThermerPrintEntry>): string | null {
   const json = JSON.stringify(entries);
   const url = `thermer://?data=${encodeURIComponent(json)}`;
-  if (url.length > 800_000) return null;
+  if (url.length > THERMER_MAX_URL_LEN) return null;
   return url;
 }
 
