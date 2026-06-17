@@ -62,11 +62,17 @@ export class BillReceiptService {
     }
   }
 
+  /** True when checkout/reprint should open a hidden iframe on user click (before async API). */
+  shouldPreparePrintFrame(): boolean {
+    const platform = detectReceiptPrintPlatform();
+    if (platform === 'desktop' || platform === 'ios') return true;
+    return false;
+  }
+
+  /** @deprecated use shouldPreparePrintFrame */
   shouldUseBrowserPrintOnDesktop(channel?: ReceiptPrintChannel): boolean {
-    if (channel === 'off') return false;
-    if (detectReceiptPrintPlatform() !== 'desktop') return false;
-    if (channel === 'bridging_app') return false;
-    return true;
+    void channel;
+    return this.shouldPreparePrintFrame();
   }
 
   /**
@@ -112,8 +118,13 @@ export class BillReceiptService {
     if (platform === 'desktop') {
       return this.browserPrintOutcome(receipt, options?.printFrame);
     }
-    this.removePrintFrame(options?.printFrame);
-    return this.printViaBridgingApp(receipt, platform);
+
+    // auto on mobile — Android: RawBT; iPhone: browser (no rawbt: without bridging app installed).
+    if (platform === 'android') {
+      this.removePrintFrame(options?.printFrame);
+      return this.printViaBridgingApp(receipt, 'android');
+    }
+    return this.browserPrintOutcome(receipt, options?.printFrame);
   }
 
   private browserPrintOutcome(

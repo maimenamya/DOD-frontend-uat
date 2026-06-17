@@ -19,7 +19,7 @@ export interface ShopReceiptPrinterConfig {
 export type ShopReceiptPrinterInput = Omit<ShopReceiptPrinterConfig, 'shopId'>;
 
 export const RECEIPT_PRINT_MODE_OPTIONS: Array<{ value: ReceiptPrintChannel; label: string }> = [
-  { value: 'auto', label: 'อัตโนมัติ (แนะนำ) — PC เบราว์เซอร์ / มือถือ แอปตัวกลาง' },
+  { value: 'auto', label: 'อัตโนมัติ — PC/Android แอปตัวกลาง / iPhone หน้าพิมพ์เบราว์เซอร์' },
   { value: 'browser_pdf', label: 'เบราว์เซอร์ — PC หรือแท็บเล็ต (หน้าต่าง Print)' },
   {
     value: 'bridging_app',

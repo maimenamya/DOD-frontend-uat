@@ -55,6 +55,7 @@ import { BeverageService } from '../../services/beverage.service';
 import { EmployeeService } from '../../services/employee.service';
 import { OpenTableService } from '../../services/open-table.service';
 import { BillReceiptService } from '../../services/bill-receipt.service';
+import { detectReceiptPrintPlatform } from '../../utils/receipt-print-platform.util';
 import { RoleService } from '../../services/role.service';
 import { ShopMasterService } from '../../services/shop-master.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
@@ -2690,7 +2691,7 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
 
-    const printFrame = this.billReceiptService.shouldUseBrowserPrintOnDesktop()
+    const printFrame = this.billReceiptService.shouldPreparePrintFrame()
       ? this.billReceiptService.createPrintFrame()
       : null;
 
@@ -2759,7 +2760,12 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
     if (outcome.ok && outcome.method === 'browser') {
-      this.toast.showSuccess('เปิดหน้าพิมพ์แล้ว — เลือกเครื่องพิมพ์ POS-58');
+      const isMobile = detectReceiptPrintPlatform() !== 'desktop';
+      this.toast.showSuccess(
+        isMobile
+          ? 'เปิดหน้าพิมพ์แล้ว — เลือกเครื่องพิมพ์หรือบันทึก PDF'
+          : 'เปิดหน้าพิมพ์แล้ว — เลือกเครื่องพิมพ์ POS-58',
+      );
       return;
     }
     if (!outcome.ok) {
@@ -2774,7 +2780,7 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
 
-    const printFrame = this.billReceiptService.shouldUseBrowserPrintOnDesktop()
+    const printFrame = this.billReceiptService.shouldPreparePrintFrame()
       ? this.billReceiptService.createPrintFrame()
       : null;
 
@@ -2788,7 +2794,12 @@ export class OpenTablePageComponent implements OnInit {
           return;
         }
         if (outcome.ok && outcome.method === 'browser') {
-          this.toast.showSuccess('เปิดหน้าพิมพ์แล้ว — เลือกเครื่องพิมพ์ POS-58');
+          const isMobile = detectReceiptPrintPlatform() !== 'desktop';
+          this.toast.showSuccess(
+            isMobile
+              ? 'เปิดหน้าพิมพ์แล้ว — เลือกเครื่องพิมพ์หรือบันทึก PDF'
+              : 'เปิดหน้าพิมพ์แล้ว — เลือกเครื่องพิมพ์ POS-58',
+          );
           return;
         }
         if (!outcome.ok) {
