@@ -830,42 +830,39 @@ export class BillReceiptService {
 }
 
 function buildThermerPrintUrl(receipt: BillReceiptResponse['receipt']): string | null {
-  const lines = receipt.textLines ?? [];
-  const content = lines.join('\n').trim();
+  const content = (receipt.textLines ?? []).join('\n').trim();
   if (!content) return null;
 
-  const entries: ThermerTextEntry[] = [];
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed) {
-      entries.push({ type: 0, content: ' ', bold: 0, align: 0, format: 0 });
-      continue;
-    }
-    const centered = line.length > trimmed.length + 2 && /^\s+\S/.test(line);
-    const isGrand = trimmed.startsWith('ทั้งหมด');
-    const isHead = trimmed === 'บิล' || trimmed === receipt.shopName.trim();
-    entries.push({
+  // Thermer expects thermer://?data= + URL-encoded JSON object keyed "0","1",… (not an array).
+  // One multi-line text entry — free tier allows few entries; full receipt fits in one block.
+  const entries: Record<string, ThermerPrintEntry> = {
+    '0': {
       type: 0,
-      content: trimmed,
-      bold: isGrand || isHead ? 1 : 0,
-      align: centered ? 1 : 0,
-      format: isGrand ? 2 : 0,
-    });
-  }
+      content,
+      bold: 0,
+      align: 0,
+      format: 0,
+    },
+  };
 
   const json = JSON.stringify(entries);
   const encoded = encodeURIComponent(json);
-  const url = `thermer://${encoded}`;
+  const url = `thermer://?data=${encoded}`;
   if (url.length > 120_000) return null;
   return url;
 }
 
-type ThermerTextEntry = {
-  type: 0;
-  content: string;
-  bold: 0 | 1;
-  align: 0 | 1 | 2;
-  format: 0 | 1 | 2 | 3 | 4;
+type ThermerPrintEntry = {
+  type: number;
+  content?: string;
+  bold?: number;
+  align?: number;
+  format?: number;
+  path?: string;
+  base64Image?: string;
+  value?: string;
+  height?: number;
+  size?: number;
 };
 
 function buildReceiptImagePrintHtml(
