@@ -232,7 +232,7 @@ export class BillReceiptService {
     const narrow = widthMm < 80;
     /** Standard 58mm dot width — bitmap prints edge-to-edge. */
     const rasterPx = narrow ? 384 : 576;
-    const padLeftPx = narrow ? 10 : 12;
+    const padLeftPx = narrow ? 14 : 12;
     const padRightPx = narrow ? 22 : 14;
     const padBottomPx = narrow ? 24 : 16;
     const printBottomPadPx = narrow ? 16 : 12;
@@ -247,25 +247,28 @@ export class BillReceiptService {
       : '';
     const nameMax = narrow ? 11 : 22;
     const amountHeader = narrow ? 'รวม' : 'ราคารวม';
-    const bodyFont = narrow ? '18px' : '19px';
-    const amtFont = narrow ? '16px' : '17px';
-    const headFont = narrow ? '23px' : '24px';
-    const grandFont = narrow ? '21px' : '22px';
-    const footFont = narrow ? '16px' : '14px';
+    const bodyFont = narrow ? '20px' : '21px';
+    const amtFont = narrow ? '17px' : '18px';
+    const headFont = narrow ? '25px' : '26px';
+    const grandFont = narrow ? '23px' : '24px';
+    const footFont = narrow ? '17px' : '15px';
+    const amtPadRightPx = narrow ? 10 : 8;
 
     const itemsColgroup = `<colgroup>
-      <col style="width:52%" />
+      <col style="width:48%" />
       <col style="width:12%" />
-      <col style="width:36%" />
+      <col style="width:40%" />
     </colgroup>`;
 
-    const kvRow = (label: string, value: string) =>
-      `<tr><td class="kv-label">${escapeHtml(label)}</td><td class="kv-value">${escapeHtml(value)}</td></tr>`;
+    const infoRow = (label: string, value: string) =>
+      `<tr><td class="item-name info-label" colspan="2">${escapeHtml(label)}</td><td class="item-amt">${escapeHtml(value)}</td></tr>`;
 
     const itemGridRow = (label: string, qty: string, amount: string, rowClass = '') => {
       const cls = rowClass ? ` class="${rowClass}"` : '';
       return `<tr${cls}><td class="item-name">${escapeHtml(label)}</td><td class="item-qty">${escapeHtml(qty)}</td><td class="item-amt">${escapeHtml(amount)}</td></tr>`;
     };
+
+    const sectionBreak = `<tr class="section-break"><td colspan="3"></td></tr>`;
 
     const itemRows = receipt.lines
       .map((line) => {
@@ -319,18 +322,9 @@ export class BillReceiptService {
     }
     .receipt-body { width: 100%; }
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    .kv-label {
-      width: 42%;
-      vertical-align: top;
-      padding: 1px 2px 1px 0;
+    .info-label {
       white-space: nowrap;
-    }
-    .kv-value {
-      width: 58%;
-      vertical-align: top;
-      padding: 1px 0;
-      text-align: right;
-      word-break: break-word;
+      font-weight: 400;
     }
     .items .item-name {
       word-break: break-word;
@@ -344,24 +338,37 @@ export class BillReceiptService {
       padding: 1px 2px;
       vertical-align: top;
       white-space: nowrap;
+      font-variant-numeric: tabular-nums;
     }
     .items .item-amt {
-      width: 36%;
+      width: 40%;
       text-align: right;
-      padding: 1px 10px 1px 0;
+      padding: 1px ${amtPadRightPx}px 1px 0;
       vertical-align: top;
       white-space: nowrap;
       font-size: ${amtFont};
+      font-variant-numeric: tabular-nums;
     }
     .items-head { font-weight: 700; }
     .items-head .item-qty,
     .items-head .item-amt { font-size: ${amtFont}; }
-    .grand .item-name,
-    .grand .item-qty,
-    .grand .item-amt {
+    tr.section-break td {
+      border-top: 1px dashed #000;
+      padding: 0;
+      height: 6px;
+      line-height: 0;
+      font-size: 0;
+    }
+    tr.grand-row .item-name,
+    tr.grand-row .item-qty,
+    tr.grand-row .item-amt {
       font-size: ${grandFont};
       font-weight: 700;
-      padding: 4px 0;
+      padding-top: 4px;
+      padding-bottom: 4px;
+    }
+    tr.grand-row .item-amt {
+      padding-right: ${amtPadRightPx}px;
     }
     .shop-title {
       font-size: ${headFont};
@@ -411,31 +418,23 @@ export class BillReceiptService {
   <div class="bill-title">บิล</div>
   </header>
   <div class="receipt-body">
-  <table class="kv">
-    ${kvRow('ทานที่ร้าน', receipt.dineInLabel)}
-    ${kvRow('ชื่อพนักงาน', receipt.staffLabel)}
-    ${kvRow('เวลาเข้า', receipt.checkedInLabel)}
-    ${kvRow('เวลาที่พิมพ์', receipt.printedAtLabel)}
-  </table>
-  <hr class="dash" />
   <table class="items">
     ${itemsColgroup}
+    ${infoRow('ทานที่ร้าน', receipt.dineInLabel)}
+    ${infoRow('ชื่อพนักงาน', receipt.staffLabel)}
+    ${infoRow('เวลาเข้า', receipt.checkedInLabel)}
+    ${infoRow('เวลาที่พิมพ์', receipt.printedAtLabel)}
+    ${sectionBreak}
     <tr class="items-head">
       <td class="item-name">สินค้า</td>
       <td class="item-qty">Qty</td>
       <td class="item-amt">${amountHeader}</td>
     </tr>
     ${itemRows}
-  </table>
-  <hr class="dash" />
-  <table class="items">
-    ${itemsColgroup}
-    ${itemGridRow('ยอดรวม', String(receipt.totalQuantity), formatReceiptMoney(receipt.grandTotal))}
-  </table>
-  <hr class="dash" />
-  <table class="items grand">
-    ${itemsColgroup}
-    ${itemGridRow('ทั้งหมด', '', `฿ ${formatReceiptMoney(receipt.grandTotal)}`, 'grand')}
+    ${sectionBreak}
+    ${itemGridRow('ยอดรวม', String(receipt.totalQuantity), formatReceiptMoney(receipt.grandTotal), 'subtotal-row')}
+    ${sectionBreak}
+    ${itemGridRow('ทั้งหมด', '', `฿ ${formatReceiptMoney(receipt.grandTotal)}`, 'grand-row')}
   </table>
   </div>
   <footer class="receipt-foot">
