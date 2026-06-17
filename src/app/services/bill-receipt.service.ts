@@ -233,7 +233,7 @@ export class BillReceiptService {
     /** Standard 58mm dot width — bitmap prints edge-to-edge. */
     const rasterPx = narrow ? 384 : 576;
     const padLeftPx = narrow ? 10 : 12;
-    const padRightPx = narrow ? 16 : 14;
+    const padRightPx = narrow ? 22 : 14;
     const padBottomPx = narrow ? 24 : 16;
     const printBottomPadPx = narrow ? 16 : 12;
     const sheetPx = rasterPx - padLeftPx - padRightPx;
@@ -348,7 +348,7 @@ export class BillReceiptService {
     .items .item-amt {
       width: 36%;
       text-align: right;
-      padding: 1px 6px 1px 0;
+      padding: 1px 10px 1px 0;
       vertical-align: top;
       white-space: nowrap;
       font-size: ${amtFont};
