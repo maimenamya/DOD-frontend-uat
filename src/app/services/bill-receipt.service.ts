@@ -247,11 +247,10 @@ export class BillReceiptService {
       : '';
     const nameMax = narrow ? 11 : 22;
     const amountHeader = narrow ? 'รวม' : 'ราคารวม';
-    const bodyFont = narrow ? '20px' : '21px';
-    const amtFont = narrow ? '17px' : '18px';
-    const headFont = narrow ? '25px' : '26px';
-    const grandFont = narrow ? '23px' : '24px';
-    const footFont = narrow ? '17px' : '15px';
+    const bodyFont = narrow ? '22px' : '23px';
+    const headFont = narrow ? '28px' : '29px';
+    const grandFont = narrow ? '26px' : '27px';
+    const footFont = narrow ? '18px' : '16px';
     const amtPadRightPx = narrow ? 10 : 8;
 
     const itemsColgroup = `<colgroup>
@@ -286,7 +285,7 @@ export class BillReceiptService {
   <title>ใบเสร็จ ${title}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet" />
   <style>
     @page { margin: 0; size: ${widthMm}mm auto; }
     * { box-sizing: border-box; }
@@ -300,9 +299,12 @@ export class BillReceiptService {
     body {
       font-family: 'Sarabun', 'Tahoma', sans-serif;
       font-size: ${bodyFont};
+      font-weight: 400;
       line-height: 1.25;
       padding: 0;
       color: #000;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
     .raster-frame {
       width: ${rasterPx}px;
@@ -322,6 +324,11 @@ export class BillReceiptService {
     }
     .receipt-body { width: 100%; }
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .items td {
+      font-size: ${bodyFont};
+      font-weight: 400;
+      color: #000;
+    }
     .info-label {
       white-space: nowrap;
       font-weight: 400;
@@ -346,12 +353,10 @@ export class BillReceiptService {
       padding: 1px ${amtPadRightPx}px 1px 0;
       vertical-align: top;
       white-space: nowrap;
-      font-size: ${amtFont};
       font-variant-numeric: tabular-nums;
     }
     .items-head { font-weight: 700; }
-    .items-head .item-qty,
-    .items-head .item-amt { font-size: ${amtFont}; }
+    .items-head td { font-weight: 700; }
     tr.section-break td {
       border-top: 1px dashed #000;
       padding: 0;
@@ -359,16 +364,22 @@ export class BillReceiptService {
       line-height: 0;
       font-size: 0;
     }
+    tr.subtotal-row .item-amt {
+      padding: 1px ${amtPadRightPx}px 1px 0;
+      font-size: ${bodyFont};
+      font-weight: 400;
+    }
     tr.grand-row .item-name,
-    tr.grand-row .item-qty,
-    tr.grand-row .item-amt {
+    tr.grand-row .item-qty {
       font-size: ${grandFont};
       font-weight: 700;
       padding-top: 4px;
       padding-bottom: 4px;
     }
     tr.grand-row .item-amt {
-      padding-right: ${amtPadRightPx}px;
+      font-size: ${grandFont};
+      font-weight: 700;
+      padding: 4px ${amtPadRightPx}px 4px 0;
     }
     .shop-title {
       font-size: ${headFont};
