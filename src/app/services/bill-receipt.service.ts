@@ -280,7 +280,7 @@ export class BillReceiptService {
     const grandRow = (label: string, amount: string) =>
       itemGridRow(label, '', amount, 'grand-row');
 
-    const zoneDash = '<div class="zone-dash" aria-hidden="true"></div>';
+    const zoneDash = buildReceiptZoneDash(sheetPx);
 
     const itemRows = receipt.lines
       .map((line) => {
@@ -380,19 +380,20 @@ export class BillReceiptService {
     .items-head { font-weight: 700; }
     .items-head td { font-weight: 700; }
     .zone-dash {
-      display: block;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 4px;
       width: 100%;
-      height: 4px;
       margin: 10px 0;
-      background: repeating-linear-gradient(
-        to right,
-        #000 0,
-        #000 10px,
-        #fff 10px,
-        #fff 14px
-      );
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
+      overflow: hidden;
+    }
+    .zone-dash-seg {
+      display: block;
+      width: 10px;
+      height: 4px;
+      background: #000;
+      flex: 0 0 10px;
     }
     tr.grand-row .item-name {
       font-size: ${grandFont};
@@ -586,6 +587,14 @@ export class BillReceiptService {
     anchor.click();
     URL.revokeObjectURL(url);
   }
+}
+
+function buildReceiptZoneDash(widthPx: number): string {
+  const dashW = 10;
+  const gap = 4;
+  const count = Math.ceil(widthPx / (dashW + gap)) + 1;
+  const segments = '<span class="zone-dash-seg"></span>'.repeat(count);
+  return `<div class="zone-dash" aria-hidden="true">${segments}</div>`;
 }
 
 function formatReceiptDateTimeLabel(value: string): string {
