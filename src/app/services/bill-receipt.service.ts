@@ -232,10 +232,10 @@ export class BillReceiptService {
     const narrow = widthMm < 80;
     /** Standard 58mm dot width — bitmap prints edge-to-edge. */
     const rasterPx = narrow ? 384 : 576;
-    const padLeftPx = narrow ? 12 : 12;
-    const padRightPx = narrow ? 22 : 14;
-    const padBottomPx = narrow ? 24 : 16;
-    const printBottomPadPx = narrow ? 16 : 12;
+    const padLeftPx = narrow ? 16 : 14;
+    const padRightPx = narrow ? 28 : 16;
+    const padBottomPx = narrow ? 28 : 18;
+    const printBottomPadPx = narrow ? 20 : 14;
     const sheetPx = rasterPx - padLeftPx - padRightPx;
     const title = escapeHtml(receipt.billReference);
     const shopTitle = escapeHtml(receipt.shopName.trim() || 'บิล');
@@ -252,9 +252,9 @@ export class BillReceiptService {
     const grandFont = narrow ? '26px' : '27px';
     const footFont = narrow ? '18px' : '16px';
     const infoFont = narrow ? '20px' : '21px';
-    const amtPadRightPx = narrow ? 4 : 6;
-    const colQtyPx = narrow ? 34 : 48;
-    const colAmtPx = narrow ? 140 : 168;
+    const amtPadRightPx = narrow ? 10 : 8;
+    const colQtyPx = narrow ? 32 : 48;
+    const colAmtPx = narrow ? 124 : 164;
     const colNamePx = sheetPx - colQtyPx - colAmtPx;
 
     const itemsColgroup = `<colgroup>
@@ -278,7 +278,7 @@ export class BillReceiptService {
     const grandRow = (label: string, amount: string) =>
       `<tr class="grand-row"><td class="item-name" colspan="2">${escapeHtml(label)}</td>${amtCell(escapeHtml(amount))}</tr>`;
 
-    const sectionBreak = `<tr class="section-break"><td colspan="3"></td></tr>`;
+    const sectionBreak = `<tr class="section-break"><td colspan="3"><div class="row-dash"></div></td></tr>`;
 
     const itemRows = receipt.lines
       .map((line) => {
@@ -347,7 +347,7 @@ export class BillReceiptService {
     .items .item-name {
       word-break: break-word;
       overflow-wrap: anywhere;
-      padding: 1px 2px 1px 0;
+      padding: 1px 4px 1px 4px;
       vertical-align: top;
     }
     .items .item-qty {
@@ -362,7 +362,6 @@ export class BillReceiptService {
       vertical-align: top;
       width: ${colAmtPx}px;
       max-width: ${colAmtPx}px;
-      overflow: hidden;
     }
     .amt-val {
       display: block;
@@ -379,11 +378,21 @@ export class BillReceiptService {
     .items-head { font-weight: 700; }
     .items-head td { font-weight: 700; }
     tr.section-break td {
+      padding: 5px 0 2px;
+      border: none;
+      vertical-align: middle;
+    }
+    .row-dash,
+    .receipt-dash {
+      display: block;
+      width: 100%;
+      height: 0;
+      border: none;
       border-top: 1px dashed #000;
-      padding: 0;
-      height: 6px;
-      line-height: 0;
-      font-size: 0;
+      margin: 0;
+    }
+    .receipt-dash {
+      margin: 6px 0;
     }
     tr.grand-row .item-name {
       font-size: ${grandFont};
@@ -463,6 +472,7 @@ export class BillReceiptService {
     ${sectionBreak}
     ${grandRow('ทั้งหมด', `฿${formatReceiptMoney(receipt.grandTotal)}`)}
   </table>
+  <div class="receipt-dash"></div>
   </div>
   <footer class="receipt-foot">
   ${footerBlock}
