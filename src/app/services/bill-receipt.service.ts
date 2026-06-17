@@ -232,8 +232,8 @@ export class BillReceiptService {
     const narrow = widthMm < 80;
     /** Standard 58mm dot width — bitmap prints edge-to-edge. */
     const rasterPx = narrow ? 384 : 576;
-    const padLeftPx = narrow ? 14 : 12;
-    const padRightPx = narrow ? 24 : 14;
+    const padLeftPx = narrow ? 12 : 12;
+    const padRightPx = narrow ? 22 : 14;
     const padBottomPx = narrow ? 24 : 16;
     const printBottomPadPx = narrow ? 16 : 12;
     const sheetPx = rasterPx - padLeftPx - padRightPx;
@@ -251,9 +251,10 @@ export class BillReceiptService {
     const headFont = narrow ? '28px' : '29px';
     const grandFont = narrow ? '26px' : '27px';
     const footFont = narrow ? '18px' : '16px';
-    const amtPadRightPx = narrow ? 8 : 8;
-    const colQtyPx = narrow ? 36 : 48;
-    const colAmtPx = narrow ? 120 : 168;
+    const infoFont = narrow ? '20px' : '21px';
+    const amtPadRightPx = narrow ? 4 : 6;
+    const colQtyPx = narrow ? 34 : 48;
+    const colAmtPx = narrow ? 136 : 168;
     const colNamePx = sheetPx - colQtyPx - colAmtPx;
 
     const itemsColgroup = `<colgroup>
@@ -262,13 +263,11 @@ export class BillReceiptService {
       <col style="width:${colAmtPx}px" />
     </colgroup>`;
 
-    const amtCell = (value: string, allowWrap = false) => {
-      const wrapCls = allowWrap ? ' amt-val-wrap' : '';
-      return `<td class="item-amt"><span class="amt-val${wrapCls}">${value}</span></td>`;
-    };
+    const amtCell = (value: string) =>
+      `<td class="item-amt"><span class="amt-val">${value}</span></td>`;
 
     const infoRow = (label: string, value: string) =>
-      `<tr class="info-row"><td class="item-name info-label">${escapeHtml(label)}</td><td class="item-qty"></td>${amtCell(formatReceiptInfoValue(value), true)}</tr>`;
+      `<tr class="info-row"><td class="item-name info-label">${escapeHtml(label)}</td><td class="item-qty"></td>${amtCell(escapeHtml(value))}</tr>`;
 
     const itemGridRow = (label: string, qty: string, amount: string, rowClass = '') => {
       const cls = rowClass ? ` class="${rowClass}"` : '';
@@ -368,9 +367,8 @@ export class BillReceiptService {
       white-space: nowrap;
       font-variant-numeric: tabular-nums;
     }
-    .amt-val-wrap {
-      white-space: normal;
-      line-height: 1.15;
+    tr.info-row .amt-val {
+      font-size: ${infoFont};
     }
     .items-head { font-weight: 700; }
     .items-head td { font-weight: 700; }
@@ -381,15 +379,18 @@ export class BillReceiptService {
       line-height: 0;
       font-size: 0;
     }
-    tr.grand-row .item-name,
-    tr.grand-row .item-qty {
+    tr.grand-row .item-name {
       font-size: ${grandFont};
       font-weight: 700;
       padding-top: 4px;
       padding-bottom: 4px;
     }
+    tr.grand-row .item-qty {
+      padding-top: 4px;
+      padding-bottom: 4px;
+    }
     tr.grand-row .amt-val {
-      font-size: ${grandFont};
+      font-size: ${bodyFont};
       font-weight: 700;
       padding-top: 4px;
       padding-bottom: 4px;
@@ -458,7 +459,7 @@ export class BillReceiptService {
     ${sectionBreak}
     ${itemGridRow('ยอดรวม', String(receipt.totalQuantity), formatReceiptMoney(receipt.grandTotal), 'subtotal-row')}
     ${sectionBreak}
-    ${itemGridRow('ทั้งหมด', '', `฿ ${formatReceiptMoney(receipt.grandTotal)}`, 'grand-row')}
+    ${itemGridRow('ทั้งหมด', '', `฿${formatReceiptMoney(receipt.grandTotal)}`, 'grand-row')}
   </table>
   </div>
   <footer class="receipt-foot">
@@ -569,15 +570,6 @@ export class BillReceiptService {
     anchor.click();
     URL.revokeObjectURL(url);
   }
-}
-
-function formatReceiptInfoValue(value: string): string {
-  const trimmed = value.trim();
-  const dateTime = trimmed.match(/^(\S+)\s+(\d{2}:\d{2})$/);
-  if (dateTime) {
-    return `${escapeHtml(dateTime[1])}<br>${escapeHtml(dateTime[2])}`;
-  }
-  return escapeHtml(trimmed);
 }
 
 function escapeHtml(value: string): string {
