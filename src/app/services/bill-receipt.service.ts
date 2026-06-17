@@ -216,8 +216,6 @@ export class BillReceiptService {
       built.widthMm,
       built.rasterPx,
       built.printBottomPadPx,
-      built.padLeftPx,
-      built.sheetPx,
       () => this.removePrintFrame(iframe),
     );
     return true;
@@ -282,7 +280,8 @@ export class BillReceiptService {
     const grandRow = (label: string, amount: string) =>
       itemGridRow(label, '', amount, 'grand-row');
 
-    const zoneGap = '<div class="zone-gap"></div>';
+    const dashChars = narrow ? 38 : 48;
+    const zoneDash = `<div class="zone-dash">${'-'.repeat(dashChars)}</div>`;
 
     const itemRows = receipt.lines
       .map((line) => {
@@ -381,10 +380,17 @@ export class BillReceiptService {
     }
     .items-head { font-weight: 700; }
     .items-head td { font-weight: 700; }
-    .zone-gap {
+    .zone-dash {
       display: block;
       width: 100%;
-      height: 36px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1;
+      margin: 8px 0;
+      color: #000;
+      white-space: nowrap;
+      overflow: hidden;
     }
     tr.grand-row .item-name {
       font-size: ${grandFont};
@@ -423,11 +429,6 @@ export class BillReceiptService {
       width: 100%;
       font-size: ${bodyFont};
     }
-    .dash {
-      border: none;
-      border-top: 1px dashed #000;
-      margin: 5px 0;
-    }
     .powered {
       text-align: center;
       margin-top: 6px;
@@ -452,7 +453,7 @@ export class BillReceiptService {
     ${infoRow('เวลาเข้า', receipt.checkedInLabel)}
     ${infoRow('เวลาที่พิมพ์', receipt.printedAtLabel)}
   </table>
-  ${zoneGap}
+  ${zoneDash}
   <table class="items">
     ${itemsColgroup}
     <tr class="items-head">
@@ -462,17 +463,17 @@ export class BillReceiptService {
     </tr>
     ${itemRows}
   </table>
-  ${zoneGap}
+  ${zoneDash}
   <table class="items">
     ${itemsColgroup}
     ${itemGridRow('ยอดรวม', String(receipt.totalQuantity), formatReceiptMoney(receipt.grandTotal), 'subtotal-row')}
   </table>
-  ${zoneGap}
+  ${zoneDash}
   <table class="items">
     ${itemsColgroup}
     ${grandRow('ทั้งหมด', `฿${formatReceiptMoney(receipt.grandTotal)}`)}
   </table>
-  ${zoneGap}
+  ${zoneDash}
   </div>
   <footer class="receipt-foot">
   ${footerBlock}
@@ -490,12 +491,9 @@ export class BillReceiptService {
     widthMm: number,
     rasterPx: number,
     printBottomPadPx: number,
-    padLeftPx: number,
-    contentWidthPx: number,
     cleanup?: () => void,
   ): void {
     const captureScale = 2;
-    const zoneLinePx = 6;
     const frameDoc = targetWindow.document;
     let printed = false;
 
@@ -527,14 +525,8 @@ export class BillReceiptService {
             windowWidth: rasterPx,
             windowHeight: captureHeight,
           });
-          const withRules = drawReceiptZoneRules(captured, frameEl, {
-            padLeftPx,
-            contentWidthPx,
-            linePx: zoneLinePx * captureScale,
-            captureScale,
-          });
           const raster = padReceiptCanvasBottom(
-            finalizeReceiptCanvas(withRules, rasterPx),
+            finalizeReceiptCanvas(captured, rasterPx),
             printBottomPadPx,
           );
           const dataUrl = raster.toDataURL('image/png');
@@ -635,35 +627,6 @@ function receiptLineDisplayName(name: string): string {
     return rest ? `ดื่ม ${rest}` : 'ดื่ม';
   }
   return trimmed;
-}
-
-function drawReceiptZoneRules(
-  canvas: HTMLCanvasElement,
-  frameEl: HTMLElement,
-  opts: {
-    padLeftPx: number;
-    contentWidthPx: number;
-    linePx: number;
-    captureScale: number;
-  },
-): HTMLCanvasElement {
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return canvas;
-  const frameRect = frameEl.getBoundingClientRect();
-  const x = Math.round(opts.padLeftPx * opts.captureScale);
-  const w = Math.round(opts.contentWidthPx * opts.captureScale);
-  const wipeH = opts.linePx + 4 * opts.captureScale;
-
-  frameEl.querySelectorAll('.zone-gap').forEach((gap) => {
-    const r = gap.getBoundingClientRect();
-    const yCss = r.top - frameRect.top + r.height / 2;
-    const y = Math.round(yCss * opts.captureScale - opts.linePx / 2);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(x, y - 2 * opts.captureScale, w, wipeH);
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(x, y, w, opts.linePx);
-  });
-  return canvas;
 }
 
 function padReceiptCanvasBottom(source: HTMLCanvasElement, extraPx: number): HTMLCanvasElement {
