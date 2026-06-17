@@ -230,10 +230,7 @@ export class BillReceiptService {
     const narrow = widthMm < 80;
     /** Standard 58mm dot width — bitmap prints edge-to-edge. */
     const rasterPx = narrow ? 384 : 576;
-    /** POS-58 drivers often shift bitmap right — less left pad, more right pad in image. */
-    const sidePadLeftPx = narrow ? 4 : 16;
-    const sidePadRightPx = narrow ? 56 : 24;
-    const sheetPx = rasterPx - sidePadLeftPx - sidePadRightPx;
+    const sheetPx = rasterPx;
     const title = escapeHtml(receipt.billReference);
     const shopTitle = escapeHtml(receipt.shopName.trim() || 'บิล');
     const headerBlock = receipt.headerText?.trim()
@@ -242,16 +239,27 @@ export class BillReceiptService {
     const footerBlock = receipt.footerText?.trim()
       ? `<div class="receipt-foot-text">${escapeHtml(receipt.footerText.trim())}</div>`
       : '';
-    const nameMax = narrow ? 12 : 22;
+    const nameMax = narrow ? 11 : 22;
     const amountHeader = narrow ? 'รวม' : 'ราคารวม';
-    const bodyFont = narrow ? '15px' : '16px';
-    const amtFont = narrow ? '14px' : '15px';
-    const headFont = narrow ? '20px' : '22px';
-    const grandFont = narrow ? '18px' : '20px';
-    const footFont = narrow ? '14px' : '12px';
+    const bodyFont = narrow ? '18px' : '19px';
+    const amtFont = narrow ? '16px' : '17px';
+    const headFont = narrow ? '23px' : '24px';
+    const grandFont = narrow ? '21px' : '22px';
+    const footFont = narrow ? '16px' : '14px';
+
+    const itemsColgroup = `<colgroup>
+      <col style="width:52%" />
+      <col style="width:12%" />
+      <col style="width:36%" />
+    </colgroup>`;
 
     const kvRow = (label: string, value: string) =>
       `<tr><td class="kv-label">${escapeHtml(label)}</td><td class="kv-value">${escapeHtml(value)}</td></tr>`;
+
+    const itemGridRow = (label: string, qty: string, amount: string, rowClass = '') => {
+      const cls = rowClass ? ` class="${rowClass}"` : '';
+      return `<tr${cls}><td class="item-name">${escapeHtml(label)}</td><td class="item-qty">${escapeHtml(qty)}</td><td class="item-amt">${escapeHtml(amount)}</td></tr>`;
+    };
 
     const itemRows = receipt.lines
       .map((line) => {
@@ -291,7 +299,7 @@ export class BillReceiptService {
       width: ${rasterPx}px;
       max-width: ${rasterPx}px;
       margin: 0;
-      padding: 4px ${sidePadRightPx}px 10px ${sidePadLeftPx}px;
+      padding: 0;
       background: #fff;
     }
     .sheet {
@@ -342,12 +350,13 @@ export class BillReceiptService {
     .items-head { font-weight: 700; }
     .items-head .item-qty,
     .items-head .item-amt { font-size: ${amtFont}; }
-    .grand td {
+    .grand .item-name,
+    .grand .item-qty,
+    .grand .item-amt {
       font-size: ${grandFont};
       font-weight: 700;
       padding: 4px 0;
     }
-    .grand .kv-value { white-space: nowrap; }
     .shop-title {
       font-size: ${headFont};
       font-weight: 700;
@@ -404,11 +413,7 @@ export class BillReceiptService {
   </table>
   <hr class="dash" />
   <table class="items">
-    <colgroup>
-      <col style="width:52%" />
-      <col style="width:12%" />
-      <col style="width:36%" />
-    </colgroup>
+    ${itemsColgroup}
     <tr class="items-head">
       <td class="item-name">สินค้า</td>
       <td class="item-qty">Qty</td>
@@ -417,12 +422,14 @@ export class BillReceiptService {
     ${itemRows}
   </table>
   <hr class="dash" />
-  <table class="kv">
-    ${kvRow('ยอดรวม', `${receipt.totalQuantity}  ${formatReceiptMoney(receipt.grandTotal)}`)}
+  <table class="items">
+    ${itemsColgroup}
+    ${itemGridRow('ยอดรวม', String(receipt.totalQuantity), formatReceiptMoney(receipt.grandTotal))}
   </table>
   <hr class="dash" />
-  <table class="kv grand">
-    ${kvRow('ทั้งหมด', `฿ ${formatReceiptMoney(receipt.grandTotal)}`)}
+  <table class="items grand">
+    ${itemsColgroup}
+    ${itemGridRow('ทั้งหมด', '', `฿ ${formatReceiptMoney(receipt.grandTotal)}`, 'grand')}
   </table>
   </div>
   <footer class="receipt-foot">
