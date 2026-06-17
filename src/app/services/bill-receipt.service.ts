@@ -228,10 +228,12 @@ export class BillReceiptService {
   } {
     const widthMm = receipt.paperWidthMm >= 80 ? 80 : 58;
     const narrow = widthMm < 80;
-    /** Standard 58mm dot width — bitmap prints edge-to-edge; safe zone is inner padding. */
+    /** Standard 58mm dot width — bitmap prints edge-to-edge. */
     const rasterPx = narrow ? 384 : 576;
-    const sidePadPx = narrow ? 44 : 24;
-    const sheetPx = rasterPx - sidePadPx * 2;
+    /** POS-58 drivers often shift bitmap right — less left pad, more right pad in image. */
+    const sidePadLeftPx = narrow ? 4 : 16;
+    const sidePadRightPx = narrow ? 56 : 24;
+    const sheetPx = rasterPx - sidePadLeftPx - sidePadRightPx;
     const title = escapeHtml(receipt.billReference);
     const shopTitle = escapeHtml(receipt.shopName.trim() || 'บิล');
     const headerBlock = receipt.headerText?.trim()
@@ -286,7 +288,7 @@ export class BillReceiptService {
       width: ${rasterPx}px;
       max-width: ${rasterPx}px;
       margin: 0;
-      padding: 4px ${sidePadPx}px 10px;
+      padding: 4px ${sidePadRightPx}px 10px ${sidePadLeftPx}px;
       background: #fff;
     }
     .sheet {
@@ -582,8 +584,8 @@ function finalizeReceiptCanvas(source: HTMLCanvasElement, targetWidth: number): 
   if (!ctx) return source;
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, out.width, out.height);
-  const x = Math.floor((targetWidth - source.width) / 2);
-  ctx.drawImage(source, x, 0);
+  // Left-align — centering added empty left gutter on drivers that already shift right.
+  ctx.drawImage(source, 0, 0);
   return out;
 }
 
