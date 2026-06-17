@@ -215,6 +215,7 @@ export class BillReceiptService {
       targetWindow,
       built.widthMm,
       built.rasterPx,
+      built.printBottomPadPx,
       () => this.removePrintFrame(iframe),
     );
     return true;
@@ -225,12 +226,17 @@ export class BillReceiptService {
     rasterPx: number;
     widthMm: number;
     sheetPx: number;
+    printBottomPadPx: number;
   } {
     const widthMm = receipt.paperWidthMm >= 80 ? 80 : 58;
     const narrow = widthMm < 80;
     /** Standard 58mm dot width — bitmap prints edge-to-edge. */
     const rasterPx = narrow ? 384 : 576;
-    const sheetPx = rasterPx;
+    const padLeftPx = narrow ? 10 : 12;
+    const padRightPx = narrow ? 16 : 14;
+    const padBottomPx = narrow ? 24 : 16;
+    const printBottomPadPx = narrow ? 16 : 12;
+    const sheetPx = rasterPx - padLeftPx - padRightPx;
     const title = escapeHtml(receipt.billReference);
     const shopTitle = escapeHtml(receipt.shopName.trim() || 'บิล');
     const headerBlock = receipt.headerText?.trim()
@@ -299,7 +305,7 @@ export class BillReceiptService {
       width: ${rasterPx}px;
       max-width: ${rasterPx}px;
       margin: 0;
-      padding: 0;
+      padding: 0 ${padRightPx}px ${padBottomPx}px ${padLeftPx}px;
       background: #fff;
     }
     .sheet {
@@ -342,7 +348,7 @@ export class BillReceiptService {
     .items .item-amt {
       width: 36%;
       text-align: right;
-      padding: 1px 0;
+      padding: 1px 6px 1px 0;
       vertical-align: top;
       white-space: nowrap;
       font-size: ${amtFont};
@@ -440,13 +446,14 @@ export class BillReceiptService {
   </div>
 </body>
 </html>`;
-    return { html, rasterPx, widthMm, sheetPx };
+    return { html, rasterPx, widthMm, sheetPx, printBottomPadPx };
   }
 
   private triggerPrintWhenReady(
     targetWindow: Window,
     widthMm: number,
     rasterPx: number,
+    printBottomPadPx: number,
     cleanup?: () => void,
   ): void {
     const frameDoc = targetWindow.document;
@@ -480,7 +487,10 @@ export class BillReceiptService {
             windowWidth: rasterPx,
             windowHeight: captureHeight,
           });
-          const raster = finalizeReceiptCanvas(captured, rasterPx);
+          const raster = padReceiptCanvasBottom(
+            finalizeReceiptCanvas(captured, rasterPx),
+            printBottomPadPx,
+          );
           const dataUrl = raster.toDataURL('image/png');
 
           frameDoc.open();
@@ -570,6 +580,19 @@ function receiptLineDisplayName(name: string): string {
     return rest ? `ดื่ม ${rest}` : 'ดื่ม';
   }
   return trimmed;
+}
+
+function padReceiptCanvasBottom(source: HTMLCanvasElement, extraPx: number): HTMLCanvasElement {
+  if (extraPx <= 0) return source;
+  const out = document.createElement('canvas');
+  out.width = source.width;
+  out.height = source.height + extraPx;
+  const ctx = out.getContext('2d');
+  if (!ctx) return source;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, out.width, out.height);
+  ctx.drawImage(source, 0, 0);
+  return out;
 }
 
 function finalizeReceiptCanvas(source: HTMLCanvasElement, targetWidth: number): HTMLCanvasElement {
