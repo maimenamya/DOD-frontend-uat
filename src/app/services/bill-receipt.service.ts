@@ -279,7 +279,7 @@ export class BillReceiptService {
     const grandRow = (label: string, amount: string) =>
       itemGridRow(label, '', amount, 'grand-row');
 
-    const sectionBreak = `<tr class="section-break"><td colspan="3"><div class="row-rule"></div></td></tr>`;
+    const zoneGap = '<div class="zone-gap"></div>';
 
     const itemRows = receipt.lines
       .map((line) => {
@@ -378,26 +378,10 @@ export class BillReceiptService {
     }
     .items-head { font-weight: 700; }
     .items-head td { font-weight: 700; }
-    tr.section-break td {
-      padding: 10px 0 8px;
-      border: none;
-      vertical-align: middle;
-    }
-    .row-rule,
-    .receipt-rule {
+    .zone-gap {
       display: block;
       width: 100%;
-      height: 2px;
-      min-height: 2px;
-      background-color: #000;
-      margin: 0;
-      padding: 0;
-      border: 0;
-      line-height: 0;
-      font-size: 0;
-    }
-    .receipt-rule {
-      margin: 10px 0 8px;
+      height: 28px;
     }
     tr.grand-row .item-name {
       font-size: ${grandFont};
@@ -464,19 +448,28 @@ export class BillReceiptService {
     ${infoRow('ชื่อพนักงาน', receipt.staffLabel)}
     ${infoRow('เวลาเข้า', receipt.checkedInLabel)}
     ${infoRow('เวลาที่พิมพ์', receipt.printedAtLabel)}
-    ${sectionBreak}
+  </table>
+  ${zoneGap}
+  <table class="items">
+    ${itemsColgroup}
     <tr class="items-head">
       <td class="item-name">สินค้า</td>
       <td class="item-qty">Qty</td>
       <td class="item-amt"><span class="amt-val">${amountHeader}</span></td>
     </tr>
     ${itemRows}
-    ${sectionBreak}
+  </table>
+  ${zoneGap}
+  <table class="items">
+    ${itemsColgroup}
     ${itemGridRow('ยอดรวม', String(receipt.totalQuantity), formatReceiptMoney(receipt.grandTotal), 'subtotal-row')}
-    ${sectionBreak}
+  </table>
+  ${zoneGap}
+  <table class="items">
+    ${itemsColgroup}
     ${grandRow('ทั้งหมด', `฿${formatReceiptMoney(receipt.grandTotal)}`)}
   </table>
-  <div class="receipt-rule"></div>
+  ${zoneGap}
   </div>
   <footer class="receipt-foot">
   ${footerBlock}
@@ -528,7 +521,7 @@ export class BillReceiptService {
             windowHeight: captureHeight,
           });
           const raster = padReceiptCanvasBottom(
-            finalizeReceiptCanvas(captured, rasterPx),
+            drawReceiptZoneRules(finalizeReceiptCanvas(captured, rasterPx), frameEl),
             printBottomPadPx,
           );
           const dataUrl = raster.toDataURL('image/png');
@@ -629,6 +622,24 @@ function receiptLineDisplayName(name: string): string {
     return rest ? `ดื่ม ${rest}` : 'ดื่ม';
   }
   return trimmed;
+}
+
+function drawReceiptZoneRules(
+  canvas: HTMLCanvasElement,
+  frameEl: HTMLElement,
+  linePx = 4,
+  gapPadTop = 12,
+): HTMLCanvasElement {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return canvas;
+  const frameRect = frameEl.getBoundingClientRect();
+  ctx.fillStyle = '#000000';
+  frameEl.querySelectorAll('.zone-gap').forEach((gap) => {
+    const r = gap.getBoundingClientRect();
+    const y = Math.round(r.top - frameRect.top + gapPadTop);
+    ctx.fillRect(0, y, canvas.width, linePx);
+  });
+  return canvas;
 }
 
 function padReceiptCanvasBottom(source: HTMLCanvasElement, extraPx: number): HTMLCanvasElement {
