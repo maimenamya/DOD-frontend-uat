@@ -253,7 +253,7 @@ export class BillReceiptService {
     const footFont = narrow ? '18px' : '16px';
     const infoFont = narrow ? '17px' : '18px';
     const amtPadRightPx = narrow ? 12 : 10;
-    const grandAmtPadRightPx = narrow ? 12 : 10;
+    const grandAmtPadRightPx = narrow ? 24 : 14;
     const colQtyPx = narrow ? 30 : 48;
     const colAmtPx = narrow ? 132 : 164;
     const colNamePx = sheetPx - colQtyPx - colAmtPx;
@@ -379,7 +379,7 @@ export class BillReceiptService {
     .items-head { font-weight: 700; }
     .items-head td { font-weight: 700; }
     tr.section-break td {
-      padding: 10px 0 8px;
+      padding: 12px 0 10px;
       border: none;
       vertical-align: middle;
     }
@@ -387,13 +387,16 @@ export class BillReceiptService {
     .receipt-dash {
       display: block;
       width: 100%;
-      height: 0;
+      height: 3px;
+      background: #000;
       border: none;
-      border-top: 2px solid #000;
       margin: 0;
     }
     .receipt-dash {
-      margin: 10px 0 8px;
+      margin: 12px 0 10px;
+    }
+    tr.grand-row .item-amt {
+      overflow: hidden;
     }
     tr.grand-row .item-name {
       font-size: ${grandFont};
@@ -404,7 +407,8 @@ export class BillReceiptService {
     tr.grand-row .amt-val {
       font-size: ${grandFont};
       font-weight: 700;
-      padding: 4px ${grandAmtPadRightPx}px 4px 0;
+      padding: 4px ${grandAmtPadRightPx}px 4px 6px;
+      max-width: 100%;
     }
     .shop-title {
       font-size: ${headFont};
