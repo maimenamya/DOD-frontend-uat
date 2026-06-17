@@ -242,20 +242,23 @@ export class BillReceiptService {
     const footerBlock = receipt.footerText?.trim()
       ? `<div class="receipt-foot-text">${escapeHtml(receipt.footerText.trim())}</div>`
       : '';
-    const nameMax = narrow ? 13 : 22;
+    const nameMax = narrow ? 12 : 22;
     const amountHeader = narrow ? 'รวม' : 'ราคารวม';
-    const bodyFont = narrow ? '11px' : '12px';
-    const amtFont = narrow ? '10px' : '11px';
+    const bodyFont = narrow ? '15px' : '16px';
+    const amtFont = narrow ? '14px' : '15px';
+    const headFont = narrow ? '20px' : '22px';
+    const grandFont = narrow ? '18px' : '20px';
+    const footFont = narrow ? '14px' : '12px';
 
     const kvRow = (label: string, value: string) =>
-      `<div class="kv-row"><span class="kv-label">${escapeHtml(label)}</span><span class="kv-value">${escapeHtml(value)}</span></div>`;
+      `<tr><td class="kv-label">${escapeHtml(label)}</td><td class="kv-value">${escapeHtml(value)}</td></tr>`;
 
     const itemRows = receipt.lines
       .map((line) => {
         const name = escapeHtml(truncateReceiptName(receiptLineDisplayName(line.name), nameMax));
         const qty = escapeHtml(String(line.quantity));
         const amount = escapeHtml(formatReceiptMoney(line.lineTotal));
-        return `<div class="item-row"><span class="item-name">${name}</span><span class="item-qty">${qty}</span><span class="item-amt">${amount}</span></div>`;
+        return `<tr><td class="item-name">${name}</td><td class="item-qty">${qty}</td><td class="item-amt">${amount}</td></tr>`;
       })
       .join('');
 
@@ -301,69 +304,52 @@ export class BillReceiptService {
       text-align: center;
     }
     .receipt-body { width: 100%; }
-    .kv-block { width: 100%; }
-    .kv-row {
-      display: flex;
-      align-items: baseline;
-      gap: 4px;
-      padding: 1px 0;
-    }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .kv-label {
-      flex: 0 0 auto;
+      width: 42%;
+      vertical-align: top;
+      padding: 1px 2px 1px 0;
       white-space: nowrap;
     }
     .kv-value {
-      flex: 0 1 auto;
-      text-align: left;
+      width: 58%;
+      vertical-align: top;
+      padding: 1px 0;
+      text-align: right;
       word-break: break-word;
     }
-    .kv-totals .kv-row {
-      justify-content: flex-start;
-      gap: 4px;
-    }
-    .kv-totals .kv-value {
-      text-align: left;
-      white-space: nowrap;
-    }
-    .items { width: 100%; }
-    .item-row {
-      display: flex;
-      align-items: baseline;
-      justify-content: flex-start;
-      gap: 4px;
-      padding: 1px 0;
-    }
-    .item-name {
-      flex: 0 1 auto;
-      min-width: 0;
-      max-width: 58%;
+    .items .item-name {
       word-break: break-word;
       overflow-wrap: anywhere;
+      padding: 1px 2px 1px 0;
+      vertical-align: top;
     }
-    .item-qty {
-      flex: 0 0 auto;
-      min-width: 1em;
-      text-align: right;
+    .items .item-qty {
+      width: 12%;
+      text-align: center;
+      padding: 1px 2px;
+      vertical-align: top;
       white-space: nowrap;
     }
-    .item-amt {
-      flex: 0 0 auto;
+    .items .item-amt {
+      width: 36%;
       text-align: right;
+      padding: 1px 0;
+      vertical-align: top;
       white-space: nowrap;
       font-size: ${amtFont};
     }
-    .items-head {
-      font-weight: 700;
-    }
+    .items-head { font-weight: 700; }
     .items-head .item-qty,
     .items-head .item-amt { font-size: ${amtFont}; }
-    .grand .kv-row {
-      font-size: ${narrow ? '14px' : '16px'};
+    .grand td {
+      font-size: ${grandFont};
       font-weight: 700;
       padding: 4px 0;
     }
+    .grand .kv-value { white-space: nowrap; }
     .shop-title {
-      font-size: ${narrow ? '16px' : '17px'};
+      font-size: ${headFont};
       font-weight: 700;
       text-align: center;
       margin: 0 0 2px;
@@ -373,9 +359,10 @@ export class BillReceiptService {
       text-align: center;
       margin: 0 0 2px;
       width: 100%;
+      font-size: ${bodyFont};
     }
     .bill-title {
-      font-size: ${narrow ? '16px' : '17px'};
+      font-size: ${headFont};
       font-weight: 700;
       text-align: center;
       margin: 4px 0 6px;
@@ -385,6 +372,7 @@ export class BillReceiptService {
       text-align: center;
       margin: 6px 0 2px;
       width: 100%;
+      font-size: ${bodyFont};
     }
     .dash {
       border: none;
@@ -394,7 +382,7 @@ export class BillReceiptService {
     .powered {
       text-align: center;
       margin-top: 6px;
-      font-size: 10px;
+      font-size: ${footFont};
       width: 100%;
     }
   </style>
@@ -408,29 +396,34 @@ export class BillReceiptService {
   <div class="bill-title">บิล</div>
   </header>
   <div class="receipt-body">
-  <div class="kv-block kv-info">
+  <table class="kv">
     ${kvRow('ทานที่ร้าน', receipt.dineInLabel)}
     ${kvRow('ชื่อพนักงาน', receipt.staffLabel)}
     ${kvRow('เวลาเข้า', receipt.checkedInLabel)}
     ${kvRow('เวลาที่พิมพ์', receipt.printedAtLabel)}
-  </div>
+  </table>
   <hr class="dash" />
-  <div class="items">
-    <div class="item-row items-head">
-      <span class="item-name">สินค้า</span>
-      <span class="item-qty">Qty</span>
-      <span class="item-amt">${amountHeader}</span>
-    </div>
+  <table class="items">
+    <colgroup>
+      <col style="width:52%" />
+      <col style="width:12%" />
+      <col style="width:36%" />
+    </colgroup>
+    <tr class="items-head">
+      <td class="item-name">สินค้า</td>
+      <td class="item-qty">Qty</td>
+      <td class="item-amt">${amountHeader}</td>
+    </tr>
     ${itemRows}
-  </div>
+  </table>
   <hr class="dash" />
-  <div class="kv-block kv-totals">
+  <table class="kv">
     ${kvRow('ยอดรวม', `${receipt.totalQuantity}  ${formatReceiptMoney(receipt.grandTotal)}`)}
-  </div>
+  </table>
   <hr class="dash" />
-  <div class="kv-block kv-totals grand">
+  <table class="kv grand">
     ${kvRow('ทั้งหมด', `฿ ${formatReceiptMoney(receipt.grandTotal)}`)}
-  </div>
+  </table>
   </div>
   <footer class="receipt-foot">
   ${footerBlock}
