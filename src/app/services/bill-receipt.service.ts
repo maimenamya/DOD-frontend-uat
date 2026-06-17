@@ -253,7 +253,7 @@ export class BillReceiptService {
     const footFont = narrow ? '18px' : '16px';
     const infoFont = narrow ? '17px' : '18px';
     const amtPadRightPx = narrow ? 12 : 10;
-    const grandAmtPadRightPx = narrow ? 24 : 14;
+    const grandAmtPadRightPx = narrow ? 20 : 14;
     const colQtyPx = narrow ? 30 : 48;
     const colAmtPx = narrow ? 132 : 164;
     const colNamePx = sheetPx - colQtyPx - colAmtPx;
@@ -279,7 +279,7 @@ export class BillReceiptService {
     const grandRow = (label: string, amount: string) =>
       itemGridRow(label, '', amount, 'grand-row');
 
-    const sectionBreak = `<tr class="section-break"><td colspan="3"><div class="row-dash"></div></td></tr>`;
+    const sectionBreak = `<tr class="section-break"><td colspan="3"><div class="row-rule"></div></td></tr>`;
 
     const itemRows = receipt.lines
       .map((line) => {
@@ -348,7 +348,7 @@ export class BillReceiptService {
     .items .item-name {
       word-break: break-word;
       overflow-wrap: anywhere;
-      padding: 1px 4px 1px 2px;
+      padding: 1px 4px 1px 4px;
       vertical-align: top;
     }
     .items .item-qty {
@@ -379,24 +379,25 @@ export class BillReceiptService {
     .items-head { font-weight: 700; }
     .items-head td { font-weight: 700; }
     tr.section-break td {
-      padding: 12px 0 10px;
+      padding: 10px 0 8px;
       border: none;
       vertical-align: middle;
     }
-    .row-dash,
-    .receipt-dash {
+    .row-rule,
+    .receipt-rule {
       display: block;
       width: 100%;
-      height: 3px;
-      background: #000;
-      border: none;
+      height: 2px;
+      min-height: 2px;
+      background-color: #000;
       margin: 0;
+      padding: 0;
+      border: 0;
+      line-height: 0;
+      font-size: 0;
     }
-    .receipt-dash {
-      margin: 12px 0 10px;
-    }
-    tr.grand-row .item-amt {
-      overflow: hidden;
+    .receipt-rule {
+      margin: 10px 0 8px;
     }
     tr.grand-row .item-name {
       font-size: ${grandFont};
@@ -407,8 +408,7 @@ export class BillReceiptService {
     tr.grand-row .amt-val {
       font-size: ${grandFont};
       font-weight: 700;
-      padding: 4px ${grandAmtPadRightPx}px 4px 6px;
-      max-width: 100%;
+      padding: 4px ${grandAmtPadRightPx}px 4px 0;
     }
     .shop-title {
       font-size: ${headFont};
@@ -476,7 +476,7 @@ export class BillReceiptService {
     ${sectionBreak}
     ${grandRow('ทั้งหมด', `฿${formatReceiptMoney(receipt.grandTotal)}`)}
   </table>
-  <div class="receipt-dash"></div>
+  <div class="receipt-rule"></div>
   </div>
   <footer class="receipt-foot">
   ${footerBlock}
