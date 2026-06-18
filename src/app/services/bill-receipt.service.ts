@@ -540,7 +540,6 @@ export class BillReceiptService {
 
     const zoneDash = buildReceiptZoneDash(sheetPx);
     const zoneSpacer = '<div class="zone-spacer" aria-hidden="true"></div>';
-    const zoneSpacerLg = '<div class="zone-spacer zone-spacer-lg" aria-hidden="true"></div>';
 
     const itemRows = receipt.lines
       .map((line) => {
@@ -683,7 +682,7 @@ export class BillReceiptService {
       align-items: center;
       gap: 4px;
       width: 100%;
-      margin: 10px 0 20px;
+      margin: 14px 0 16px;
       overflow: hidden;
     }
     .zone-spacer {
@@ -762,6 +761,7 @@ export class BillReceiptService {
     ${metaRow('เวลาเข้า', receipt.checkedInLabel)}
     ${metaRow('เวลาที่พิมพ์', receipt.printedAtLabel)}
   </div>
+  ${zoneDash}
   <table class="items">
     ${itemsColgroup}
     <tr class="items-head">
@@ -776,7 +776,7 @@ export class BillReceiptService {
     ${itemsColgroup}
     ${itemGridRow('ยอดรวม', String(receipt.totalQuantity), formatReceiptMoney(receipt.grandTotal), 'subtotal-row')}
   </table>
-  ${zoneSpacerLg}
+  ${zoneDash}
   <table class="items">
     ${itemsColgroup}
     ${grandRow('ทั้งหมด', `฿ ${formatReceiptMoney(receipt.grandTotal)}`)}
