@@ -512,8 +512,9 @@ export class BillReceiptService {
     const nameMax = narrow ? 13 : 20;
     const amountHeader = 'ราคารวม';
     const bodyFont = narrow ? '21px' : '23px';
-    const headFont = narrow ? '26px' : '29px';
-    const grandFont = narrow ? '24px' : '27px';
+    const itemsHeadFont = narrow ? '23px' : '25px';
+    const headFont = narrow ? '30px' : '32px';
+    const grandFont = narrow ? '28px' : '31px';
     const footFont = narrow ? '16px' : '16px';
     const infoFont = narrow ? '17px' : '18px';
 
@@ -561,7 +562,7 @@ export class BillReceiptService {
   <title>ใบเสร็จ ${title}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400&display=swap" rel="stylesheet" />
   <style>
     @page { margin: 0; size: ${widthMm}mm auto; }
     * { box-sizing: border-box; }
@@ -576,7 +577,7 @@ export class BillReceiptService {
       font-family: 'Sarabun', 'Tahoma', sans-serif;
       font-size: ${bodyFont};
       font-weight: 400;
-      line-height: 1.45;
+      line-height: 1.65;
       padding: 0;
       color: #000;
       -webkit-font-smoothing: antialiased;
@@ -601,12 +602,12 @@ export class BillReceiptService {
     }
     .receipt-body { width: 100%; }
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    table.meta { margin-bottom: 2px; }
+    table.meta { margin-bottom: 4px; }
     .meta td {
       font-size: ${infoFont};
       font-weight: 400;
       color: #000;
-      padding: 2px 0;
+      padding: 5px 0;
       min-width: 0;
       vertical-align: top;
     }
@@ -632,13 +633,13 @@ export class BillReceiptService {
     .items .item-name {
       word-break: break-word;
       overflow-wrap: anywhere;
-      padding: 3px 4px 3px 0;
+      padding: 6px 4px 6px 0;
       text-align: left;
       overflow: hidden;
     }
     .items .item-qty {
       text-align: center;
-      padding: 3px 0;
+      padding: 6px 0;
       overflow: hidden;
     }
     .qty-val {
@@ -659,13 +660,13 @@ export class BillReceiptService {
       width: 100%;
       box-sizing: border-box;
       text-align: right;
-      padding: 3px 0;
+      padding: 6px 0;
       white-space: nowrap;
       overflow: hidden;
       font-variant-numeric: tabular-nums;
     }
-    .items-head { font-weight: 600; }
-    .items-head td { font-weight: 600; }
+    .items-head { font-weight: 400; font-size: ${itemsHeadFont}; }
+    .items-head td { font-weight: 400; font-size: ${itemsHeadFont}; }
     .items-head .item-qty { text-align: center; }
     tr.subtotal-row .qty-val,
     tr.subtotal-row .amt-val {
@@ -677,7 +678,7 @@ export class BillReceiptService {
       align-items: center;
       gap: 4px;
       width: 100%;
-      margin: 12px 0;
+      margin: 18px 0;
       overflow: hidden;
     }
     .zone-dash-seg {
@@ -689,18 +690,18 @@ export class BillReceiptService {
     }
     tr.grand-row .item-name {
       font-size: ${grandFont};
-      font-weight: 600;
-      padding-top: 6px;
-      padding-bottom: 4px;
+      font-weight: 400;
+      padding-top: 8px;
+      padding-bottom: 6px;
     }
     tr.grand-row .amt-val {
       font-size: ${grandFont};
-      font-weight: 600;
-      padding: 6px 0 4px;
+      font-weight: 400;
+      padding: 8px 0 6px;
     }
     .shop-title {
       font-size: ${headFont};
-      font-weight: 600;
+      font-weight: 400;
       text-align: center;
       margin: 0 0 4px;
       width: 100%;
@@ -713,9 +714,9 @@ export class BillReceiptService {
     }
     .bill-title {
       font-size: ${headFont};
-      font-weight: 600;
+      font-weight: 400;
       text-align: center;
-      margin: 2px 0 10px;
+      margin: 2px 0 14px;
       width: 100%;
     }
     .receipt-foot-text {
