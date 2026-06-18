@@ -540,6 +540,7 @@ export class BillReceiptService {
 
     const zoneDash = buildReceiptZoneDash(sheetPx);
     const zoneSpacer = '<div class="zone-spacer" aria-hidden="true"></div>';
+    const zoneSpacerFooter = '<div class="zone-spacer-footer" aria-hidden="true"></div>';
 
     const itemRows = receipt.lines
       .map((line) => {
@@ -596,7 +597,8 @@ export class BillReceiptService {
       text-align: center;
     }
     .receipt-foot {
-      margin-top: 28px;
+      margin-top: 0;
+      padding-top: 0;
     }
     .receipt-body { width: 100%; }
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -685,13 +687,18 @@ export class BillReceiptService {
       align-items: center;
       gap: 4px;
       width: 100%;
-      margin: 20px 0 22px;
+      margin: 28px 0 30px;
       overflow: hidden;
     }
     .zone-spacer {
       width: 100%;
       margin: 38px 0;
       height: 0;
+    }
+    .zone-spacer-footer {
+      width: 100%;
+      margin: 0;
+      height: 48px;
     }
     .zone-dash-seg {
       display: block;
@@ -781,6 +788,7 @@ export class BillReceiptService {
     ${itemsColgroup}
     ${grandRow('ทั้งหมด', `฿ ${formatReceiptMoney(receipt.grandTotal)}`)}
   </table>
+  ${zoneSpacerFooter}
   </div>
   <footer class="receipt-foot">
   ${footerBlock}
