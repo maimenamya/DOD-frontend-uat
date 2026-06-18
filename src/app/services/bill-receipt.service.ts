@@ -516,6 +516,7 @@ export class BillReceiptService {
     const footFont = narrow ? '16px' : '16px';
     const infoFont = narrow ? '17px' : '18px';
     const amtPadRightPx = narrow ? 8 : 10;
+    const footerGapPx = 100;
 
     const metaRow = (label: string, value: string) =>
       `<div class="meta-row"><span class="meta-label">${escapeHtml(label)}:</span><span class="meta-value">${escapeHtml(formatReceiptDateTimeLabel(value))}</span></div>`;
@@ -540,6 +541,7 @@ export class BillReceiptService {
 
     const zoneDash = buildReceiptZoneDash(sheetPx);
     const zoneSpacer = '<div class="zone-spacer" aria-hidden="true"></div>';
+    const footerGap = `<div class="footer-gap" aria-hidden="true">${'&nbsp;'.repeat(2)}</div>`;
 
     const itemRows = receipt.lines
       .map((line) => {
@@ -597,8 +599,22 @@ export class BillReceiptService {
     }
     .receipt-foot {
       margin-top: 0;
-      padding-top: 100px;
+      padding-top: 0;
       padding-bottom: 16px;
+    }
+    .footer-gap {
+      display: block;
+      width: 100%;
+      height: ${footerGapPx}px;
+      min-height: ${footerGapPx}px;
+      margin: 0;
+      padding: 0;
+      background: #fff;
+      color: #fff;
+      font-size: 10px;
+      line-height: ${footerGapPx}px;
+      overflow: hidden;
+      white-space: nowrap;
     }
     .receipt-body { width: 100%; }
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -799,6 +815,7 @@ export class BillReceiptService {
     ${itemsColgroup}
     ${grandRow('ทั้งหมด', `฿ ${formatReceiptMoney(receipt.grandTotal)}`)}
   </table>
+  ${footerGap}
   </div>
   <footer class="receipt-foot">
   ${footerBlock}
