@@ -492,7 +492,7 @@ export class BillReceiptService {
     /** Standard 58mm dot width — bitmap prints edge-to-edge. */
     const rasterPx = narrow ? 384 : 576;
     const padLeftPx = narrow ? 4 : 10;
-    const padRightPx = narrow ? 28 : 16;
+    const padRightPx = narrow ? 22 : 16;
     const padBottomPx = narrow ? 28 : 18;
     const printBottomPadPx = narrow ? 20 : 14;
     const sheetPx = rasterPx - padLeftPx - padRightPx;
@@ -504,18 +504,23 @@ export class BillReceiptService {
     const footerBlock = receipt.footerText?.trim()
       ? `<div class="receipt-foot-text">${escapeHtml(receipt.footerText.trim())}</div>`
       : '';
-    const colNamePx = narrow ? Math.floor(sheetPx * 0.57) : Math.floor(sheetPx * 0.55);
-    const colQtyPx = narrow ? 40 : 48;
+    const metaColLabelPx = narrow ? Math.floor(sheetPx * 0.40) : Math.floor(sheetPx * 0.38);
+    const metaColValuePx = sheetPx - metaColLabelPx;
+    const colNamePx = narrow ? Math.floor(sheetPx * 0.50) : Math.floor(sheetPx * 0.52);
+    const colQtyPx = narrow ? 36 : 44;
     const colAmtPx = sheetPx - colNamePx - colQtyPx;
-    const nameMax = narrow ? 14 : 22;
+    const nameMax = narrow ? 13 : 20;
     const amountHeader = 'ราคารวม';
     const bodyFont = narrow ? '21px' : '23px';
     const headFont = narrow ? '26px' : '29px';
     const grandFont = narrow ? '24px' : '27px';
     const footFont = narrow ? '16px' : '16px';
-    const infoFont = narrow ? '18px' : '18px';
-    const amtPadRightPx = narrow ? 8 : 10;
-    const grandAmtPadRightPx = narrow ? 8 : 14;
+    const infoFont = narrow ? '17px' : '18px';
+
+    const metaColgroup = `<colgroup>
+      <col style="width:${metaColLabelPx}px" />
+      <col style="width:${metaColValuePx}px" />
+    </colgroup>`;
 
     const itemsColgroup = `<colgroup>
       <col style="width:${colNamePx}px" />
@@ -526,12 +531,12 @@ export class BillReceiptService {
     const amtCell = (value: string) =>
       `<td class="item-amt"><span class="amt-val">${value}</span></td>`;
 
-    const infoRow = (label: string, value: string) =>
-      `<tr class="info-row"><td class="item-name info-label">${escapeHtml(label)}:</td><td class="item-qty"></td>${amtCell(escapeHtml(formatReceiptDateTimeLabel(value)))}</tr>`;
+    const metaRow = (label: string, value: string) =>
+      `<tr><td class="meta-label">${escapeHtml(label)}:</td><td class="meta-value">${escapeHtml(formatReceiptDateTimeLabel(value))}</td></tr>`;
 
     const itemGridRow = (label: string, qty: string, amount: string, rowClass = '') => {
       const cls = rowClass ? ` class="${rowClass}"` : '';
-      const qtyCell = `<td class="item-qty">${escapeHtml(qty)}</td>`;
+      const qtyCell = `<td class="item-qty"><span class="qty-val">${escapeHtml(qty)}</span></td>`;
       return `<tr${cls}><td class="item-name">${escapeHtml(label)}</td>${qtyCell}${amtCell(escapeHtml(amount))}</tr>`;
     };
 
@@ -545,7 +550,7 @@ export class BillReceiptService {
         const name = escapeHtml(truncateReceiptName(receiptLineDisplayName(line.name), nameMax));
         const qty = escapeHtml(String(line.quantity));
         const amount = escapeHtml(formatReceiptMoney(line.lineTotal));
-        return `<tr><td class="item-name">${name}</td><td class="item-qty">${qty}</td>${amtCell(amount)}</tr>`;
+        return `<tr><td class="item-name">${name}</td><td class="item-qty"><span class="qty-val">${qty}</span></td>${amtCell(amount)}</tr>`;
       })
       .join('');
 
@@ -596,32 +601,56 @@ export class BillReceiptService {
     }
     .receipt-body { width: 100%; }
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    table.meta { margin-bottom: 2px; }
+    .meta td {
+      font-size: ${infoFont};
+      font-weight: 400;
+      color: #000;
+      padding: 2px 0;
+      min-width: 0;
+      vertical-align: top;
+    }
+    .meta-label {
+      text-align: left;
+      white-space: nowrap;
+      padding-right: 6px;
+      overflow: hidden;
+    }
+    .meta-value {
+      text-align: right;
+      white-space: nowrap;
+      overflow: hidden;
+      font-variant-numeric: tabular-nums;
+    }
     .items td {
       font-size: ${bodyFont};
       font-weight: 400;
       color: #000;
-    }
-    .info-label {
-      white-space: nowrap;
-      font-weight: 400;
+      min-width: 0;
+      vertical-align: top;
     }
     .items .item-name {
       word-break: break-word;
       overflow-wrap: anywhere;
-      padding: 3px 4px 3px 2px;
-      vertical-align: top;
+      padding: 3px 4px 3px 0;
       text-align: left;
+      overflow: hidden;
     }
     .items .item-qty {
       text-align: center;
       padding: 3px 0;
-      vertical-align: top;
+      overflow: hidden;
+    }
+    .qty-val {
+      display: block;
+      width: 100%;
+      text-align: center;
       white-space: nowrap;
       font-variant-numeric: tabular-nums;
     }
     .items .item-amt {
       padding: 0;
-      vertical-align: top;
+      overflow: hidden;
       width: ${colAmtPx}px;
       max-width: ${colAmtPx}px;
     }
@@ -630,16 +659,18 @@ export class BillReceiptService {
       width: 100%;
       box-sizing: border-box;
       text-align: right;
-      padding: 3px ${amtPadRightPx}px 3px 0;
+      padding: 3px 0;
       white-space: nowrap;
+      overflow: hidden;
       font-variant-numeric: tabular-nums;
-    }
-    tr.info-row .amt-val {
-      font-size: ${infoFont};
     }
     .items-head { font-weight: 600; }
     .items-head td { font-weight: 600; }
     .items-head .item-qty { text-align: center; }
+    tr.subtotal-row .qty-val,
+    tr.subtotal-row .amt-val {
+      font-variant-numeric: tabular-nums;
+    }
     .zone-dash {
       display: flex;
       flex-direction: row;
@@ -665,7 +696,7 @@ export class BillReceiptService {
     tr.grand-row .amt-val {
       font-size: ${grandFont};
       font-weight: 600;
-      padding: 6px ${grandAmtPadRightPx}px 4px 0;
+      padding: 6px 0 4px;
     }
     .shop-title {
       font-size: ${headFont};
@@ -710,12 +741,12 @@ export class BillReceiptService {
   <div class="bill-title">บิล</div>
   </header>
   <div class="receipt-body">
-  <table class="items">
-    ${itemsColgroup}
-    ${infoRow('ทานที่ร้าน', receipt.dineInLabel)}
-    ${infoRow('ชื่อพนักงาน', receipt.staffLabel)}
-    ${infoRow('เวลาเข้า', receipt.checkedInLabel)}
-    ${infoRow('เวลาที่พิมพ์', receipt.printedAtLabel)}
+  <table class="meta">
+    ${metaColgroup}
+    ${metaRow('ทานที่ร้าน', receipt.dineInLabel)}
+    ${metaRow('ชื่อพนักงาน', receipt.staffLabel)}
+    ${metaRow('เวลาเข้า', receipt.checkedInLabel)}
+    ${metaRow('เวลาที่พิมพ์', receipt.printedAtLabel)}
   </table>
   ${zoneDash}
   <table class="items">
