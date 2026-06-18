@@ -493,8 +493,8 @@ export class BillReceiptService {
     const rasterPx = narrow ? 384 : 576;
     const padLeftPx = narrow ? 4 : 10;
     const padRightPx = narrow ? 30 : 20;
-    const padBottomPx = narrow ? 28 : 18;
-    const printBottomPadPx = narrow ? 20 : 14;
+    const padBottomPx = narrow ? 48 : 28;
+    const printBottomPadPx = narrow ? 56 : 24;
     const sheetPx = rasterPx - padLeftPx - padRightPx;
     const title = escapeHtml(receipt.billReference);
     const shopTitle = escapeHtml(receipt.shopName.trim() || 'บิล');
@@ -540,14 +540,13 @@ export class BillReceiptService {
 
     const zoneDash = buildReceiptZoneDash(sheetPx);
     const zoneSpacer = '<div class="zone-spacer" aria-hidden="true"></div>';
-    const zoneSpacerFooter = '<div class="zone-spacer-footer" aria-hidden="true"></div>';
 
     const itemRows = receipt.lines
       .map((line) => {
         const name = escapeHtml(truncateReceiptName(receiptLineDisplayName(line.name), nameMax));
         const qty = escapeHtml(String(line.quantity));
         const amount = escapeHtml(formatReceiptMoney(line.lineTotal));
-        return `<tr><td class="item-name">${name}</td><td class="item-qty"><span class="qty-val">${qty}</span></td>${amtCell(amount)}</tr>`;
+        return `<tr class="item-row"><td class="item-name">${name}</td><td class="item-qty"><span class="qty-val">${qty}</span></td>${amtCell(amount)}</tr>`;
       })
       .join('');
 
@@ -598,7 +597,8 @@ export class BillReceiptService {
     }
     .receipt-foot {
       margin-top: 0;
-      padding-top: 0;
+      padding-top: 56px;
+      padding-bottom: 12px;
     }
     .receipt-body { width: 100%; }
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -645,6 +645,12 @@ export class BillReceiptService {
       padding: 6px 4px 6px 0;
       text-align: left;
       overflow: hidden;
+    }
+    .items tr.item-row .item-name,
+    .items tr.item-row .item-qty,
+    .items tr.item-row .amt-val {
+      padding-top: 10px;
+      padding-bottom: 10px;
     }
     .items .item-qty {
       text-align: center;
@@ -693,12 +699,8 @@ export class BillReceiptService {
     .zone-spacer {
       width: 100%;
       margin: 38px 0;
-      height: 0;
-    }
-    .zone-spacer-footer {
-      width: 100%;
-      margin: 0;
-      height: 48px;
+      height: 1px;
+      visibility: hidden;
     }
     .zone-dash-seg {
       display: block;
@@ -788,7 +790,6 @@ export class BillReceiptService {
     ${itemsColgroup}
     ${grandRow('ทั้งหมด', `฿ ${formatReceiptMoney(receipt.grandTotal)}`)}
   </table>
-  ${zoneSpacerFooter}
   </div>
   <footer class="receipt-foot">
   ${footerBlock}
