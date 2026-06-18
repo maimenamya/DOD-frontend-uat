@@ -504,8 +504,6 @@ export class BillReceiptService {
     const footerBlock = receipt.footerText?.trim()
       ? `<div class="receipt-foot-text">${escapeHtml(receipt.footerText.trim())}</div>`
       : '';
-    const metaColLabelPx = narrow ? Math.floor(sheetPx * 0.40) : Math.floor(sheetPx * 0.38);
-    const metaColValuePx = sheetPx - metaColLabelPx;
     const colNamePx = narrow ? Math.floor(sheetPx * 0.50) : Math.floor(sheetPx * 0.52);
     const colQtyPx = narrow ? 36 : 44;
     const colAmtPx = sheetPx - colNamePx - colQtyPx;
@@ -517,12 +515,10 @@ export class BillReceiptService {
     const grandFont = narrow ? '28px' : '31px';
     const footFont = narrow ? '16px' : '16px';
     const infoFont = narrow ? '17px' : '18px';
-    const amtPadRightPx = narrow ? 6 : 8;
+    const amtPadRightPx = narrow ? 8 : 10;
 
-    const metaColgroup = `<colgroup>
-      <col style="width:${metaColLabelPx}px" />
-      <col style="width:${metaColValuePx}px" />
-    </colgroup>`;
+    const metaRow = (label: string, value: string) =>
+      `<div class="meta-row"><span class="meta-label">${escapeHtml(label)}:</span><span class="meta-value">${escapeHtml(formatReceiptDateTimeLabel(value))}</span></div>`;
 
     const itemsColgroup = `<colgroup>
       <col style="width:${colNamePx}px" />
@@ -532,9 +528,6 @@ export class BillReceiptService {
 
     const amtCell = (value: string) =>
       `<td class="item-amt"><span class="amt-val">${value}</span></td>`;
-
-    const metaRow = (label: string, value: string) =>
-      `<tr><td class="meta-label">${escapeHtml(label)}:</td><td class="meta-value">${escapeHtml(formatReceiptDateTimeLabel(value))}</td></tr>`;
 
     const itemGridRow = (label: string, qty: string, amount: string, rowClass = '') => {
       const cls = rowClass ? ` class="${rowClass}"` : '';
@@ -603,22 +596,30 @@ export class BillReceiptService {
     }
     .receipt-body { width: 100%; }
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    table.meta { margin-bottom: 4px; }
-    .meta td {
+    .meta {
+      width: 100%;
+      margin-bottom: 6px;
+    }
+    .meta-row {
+      display: flex;
+      flex-direction: row;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 0;
       font-size: ${infoFont};
       font-weight: 400;
+      line-height: 1.75;
       color: #000;
-      padding: 5px 0;
-      min-width: 0;
-      vertical-align: top;
     }
     .meta-label {
+      flex: 0 0 auto;
       text-align: left;
       white-space: nowrap;
-      padding-right: 6px;
-      overflow: hidden;
     }
     .meta-value {
+      flex: 1 1 auto;
+      min-width: 0;
       text-align: right;
       white-space: nowrap;
       overflow: hidden;
@@ -744,13 +745,12 @@ export class BillReceiptService {
   <div class="bill-title">บิล</div>
   </header>
   <div class="receipt-body">
-  <table class="meta">
-    ${metaColgroup}
+  <div class="meta">
     ${metaRow('ทานที่ร้าน', receipt.dineInLabel)}
     ${metaRow('ชื่อพนักงาน', receipt.staffLabel)}
     ${metaRow('เวลาเข้า', receipt.checkedInLabel)}
     ${metaRow('เวลาที่พิมพ์', receipt.printedAtLabel)}
-  </table>
+  </div>
   ${zoneDash}
   <table class="items">
     ${itemsColgroup}
