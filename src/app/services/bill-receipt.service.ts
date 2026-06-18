@@ -493,8 +493,8 @@ export class BillReceiptService {
     const rasterPx = narrow ? 384 : 576;
     const padLeftPx = narrow ? 4 : 10;
     const padRightPx = narrow ? 30 : 20;
-    const padBottomPx = narrow ? 48 : 28;
-    const printBottomPadPx = narrow ? 56 : 24;
+    const padBottomPx = narrow ? 64 : 32;
+    const printBottomPadPx = narrow ? 80 : 32;
     const sheetPx = rasterPx - padLeftPx - padRightPx;
     const title = escapeHtml(receipt.billReference);
     const shopTitle = escapeHtml(receipt.shopName.trim() || 'บิล');
@@ -597,8 +597,8 @@ export class BillReceiptService {
     }
     .receipt-foot {
       margin-top: 0;
-      padding-top: 56px;
-      padding-bottom: 12px;
+      padding-top: 100px;
+      padding-bottom: 16px;
     }
     .receipt-body { width: 100%; }
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -693,7 +693,7 @@ export class BillReceiptService {
       align-items: center;
       gap: 4px;
       width: 100%;
-      margin: 28px 0 30px;
+      margin: 70px 0;
       overflow: hidden;
     }
     .zone-spacer {
