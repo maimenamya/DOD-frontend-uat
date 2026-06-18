@@ -541,7 +541,6 @@ export class BillReceiptService {
 
     const zoneDash = buildReceiptZoneDash(sheetPx);
     const zoneSpacer = '<div class="zone-spacer" aria-hidden="true"></div>';
-    const footerGap = `<div class="footer-gap" aria-hidden="true">${'&nbsp;'.repeat(2)}</div>`;
 
     const itemRows = receipt.lines
       .map((line) => {
@@ -598,23 +597,19 @@ export class BillReceiptService {
       text-align: center;
     }
     .receipt-foot {
-      margin-top: 0;
-      padding-top: 0;
-      padding-bottom: 16px;
+      display: block;
+      box-sizing: border-box;
+      width: 100%;
+      margin: 0;
+      padding: ${footerGapPx}px 0 16px;
+      background: #fff;
+      overflow: visible;
+      text-align: center;
     }
-    .footer-gap {
+    .receipt-foot-inner {
       display: block;
       width: 100%;
-      height: ${footerGapPx}px;
-      min-height: ${footerGapPx}px;
-      margin: 0;
-      padding: 0;
-      background: #fff;
-      color: #fff;
-      font-size: 10px;
-      line-height: ${footerGapPx}px;
-      overflow: hidden;
-      white-space: nowrap;
+      text-align: center;
     }
     .receipt-body { width: 100%; }
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -815,11 +810,12 @@ export class BillReceiptService {
     ${itemsColgroup}
     ${grandRow('ทั้งหมด', `฿ ${formatReceiptMoney(receipt.grandTotal)}`)}
   </table>
-  ${footerGap}
   </div>
   <footer class="receipt-foot">
+  <div class="receipt-foot-inner">
   ${footerBlock}
   <div class="powered">Powered by DOD</div>
+  </div>
   </footer>
   </div>
   </div>
