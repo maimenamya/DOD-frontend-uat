@@ -595,6 +595,9 @@ export class BillReceiptService {
       width: 100%;
       text-align: center;
     }
+    .receipt-foot {
+      margin-top: 28px;
+    }
     .receipt-body { width: 100%; }
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .meta {
@@ -682,16 +685,13 @@ export class BillReceiptService {
       align-items: center;
       gap: 4px;
       width: 100%;
-      margin: 14px 0 16px;
+      margin: 20px 0 22px;
       overflow: hidden;
     }
     .zone-spacer {
       width: 100%;
-      margin: 26px 0;
+      margin: 38px 0;
       height: 0;
-    }
-    .zone-spacer-lg {
-      margin: 36px 0;
     }
     .zone-dash-seg {
       display: block;
