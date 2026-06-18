@@ -539,6 +539,8 @@ export class BillReceiptService {
       itemGridRow(label, '', amount, 'grand-row');
 
     const zoneDash = buildReceiptZoneDash(sheetPx);
+    const zoneSpacer = '<div class="zone-spacer" aria-hidden="true"></div>';
+    const zoneSpacerLg = '<div class="zone-spacer zone-spacer-lg" aria-hidden="true"></div>';
 
     const itemRows = receipt.lines
       .map((line) => {
@@ -598,7 +600,7 @@ export class BillReceiptService {
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .meta {
       width: 100%;
-      margin-bottom: 6px;
+      margin-bottom: 0;
     }
     .meta-row {
       display: flex;
@@ -606,10 +608,10 @@ export class BillReceiptService {
       align-items: baseline;
       justify-content: space-between;
       gap: 10px;
-      padding: 8px 0;
+      padding: 0;
       font-size: ${infoFont};
       font-weight: 400;
-      line-height: 1.75;
+      line-height: 1.5;
       color: #000;
     }
     .meta-label {
@@ -681,8 +683,16 @@ export class BillReceiptService {
       align-items: center;
       gap: 4px;
       width: 100%;
-      margin: 26px 0;
+      margin: 10px 0 20px;
       overflow: hidden;
+    }
+    .zone-spacer {
+      width: 100%;
+      margin: 26px 0;
+      height: 0;
+    }
+    .zone-spacer-lg {
+      margin: 36px 0;
     }
     .zone-dash-seg {
       display: block;
@@ -719,7 +729,7 @@ export class BillReceiptService {
       font-size: ${headFont};
       font-weight: 400;
       text-align: center;
-      margin: 2px 0 14px;
+      margin: 2px 0 0;
       width: 100%;
     }
     .receipt-foot-text {
@@ -743,6 +753,7 @@ export class BillReceiptService {
   <div class="shop-title">${shopTitle}</div>
   ${headerBlock}
   <div class="bill-title">บิล</div>
+  ${zoneDash}
   </header>
   <div class="receipt-body">
   <div class="meta">
@@ -751,7 +762,6 @@ export class BillReceiptService {
     ${metaRow('เวลาเข้า', receipt.checkedInLabel)}
     ${metaRow('เวลาที่พิมพ์', receipt.printedAtLabel)}
   </div>
-  ${zoneDash}
   <table class="items">
     ${itemsColgroup}
     <tr class="items-head">
@@ -761,17 +771,16 @@ export class BillReceiptService {
     </tr>
     ${itemRows}
   </table>
-  ${zoneDash}
+  ${zoneSpacer}
   <table class="items">
     ${itemsColgroup}
     ${itemGridRow('ยอดรวม', String(receipt.totalQuantity), formatReceiptMoney(receipt.grandTotal), 'subtotal-row')}
   </table>
-  ${zoneDash}
+  ${zoneSpacerLg}
   <table class="items">
     ${itemsColgroup}
     ${grandRow('ทั้งหมด', `฿ ${formatReceiptMoney(receipt.grandTotal)}`)}
   </table>
-  ${zoneDash}
   </div>
   <footer class="receipt-foot">
   ${footerBlock}
