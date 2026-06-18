@@ -493,8 +493,8 @@ export class BillReceiptService {
     const rasterPx = narrow ? 384 : 576;
     const padLeftPx = narrow ? 4 : 10;
     const padRightPx = narrow ? 30 : 20;
-    const padBottomPx = narrow ? 64 : 32;
-    const printBottomPadPx = narrow ? 80 : 32;
+    const padBottomPx = narrow ? 80 : 40;
+    const printBottomPadPx = narrow ? 120 : 40;
     const sheetPx = rasterPx - padLeftPx - padRightPx;
     const title = escapeHtml(receipt.billReference);
     const shopTitle = escapeHtml(receipt.shopName.trim() || 'บิล');
@@ -605,18 +605,20 @@ export class BillReceiptService {
     .meta {
       width: 100%;
       margin-bottom: 0;
+      padding-bottom: 8px;
     }
     .meta-row {
       display: flex;
       flex-direction: row;
-      align-items: baseline;
+      align-items: center;
       justify-content: space-between;
       gap: 10px;
-      padding: 0;
+      padding: 4px 0;
       font-size: ${infoFont};
       font-weight: 400;
-      line-height: 1.5;
+      line-height: 1.75;
       color: #000;
+      overflow: visible;
     }
     .meta-label {
       flex: 0 0 auto;
@@ -628,34 +630,39 @@ export class BillReceiptService {
       min-width: 0;
       text-align: right;
       white-space: nowrap;
-      overflow: hidden;
+      overflow: visible;
       font-variant-numeric: tabular-nums;
       padding-right: ${amtPadRightPx}px;
+      line-height: 1.75;
+    }
+    table.items { width: 100%; table-layout: fixed; }
+    table.items-list {
+      border-collapse: separate;
+      border-spacing: 0 11px;
     }
     .items td {
       font-size: ${bodyFont};
       font-weight: 400;
       color: #000;
       min-width: 0;
-      vertical-align: top;
+      vertical-align: middle;
+      padding: 0;
+    }
+    .items-list .items-head td {
+      vertical-align: bottom;
+      padding-bottom: 2px;
     }
     .items .item-name {
       word-break: break-word;
       overflow-wrap: anywhere;
-      padding: 6px 4px 6px 0;
       text-align: left;
-      overflow: hidden;
-    }
-    .items tr.item-row .item-name,
-    .items tr.item-row .item-qty,
-    .items tr.item-row .amt-val {
-      padding-top: 10px;
-      padding-bottom: 10px;
+      overflow: visible;
+      padding: 0 4px 0 0;
     }
     .items .item-qty {
       text-align: center;
-      padding: 6px 0;
-      overflow: hidden;
+      overflow: visible;
+      padding: 0;
     }
     .qty-val {
       display: block;
@@ -663,10 +670,11 @@ export class BillReceiptService {
       text-align: center;
       white-space: nowrap;
       font-variant-numeric: tabular-nums;
+      line-height: 1.45;
     }
     .items .item-amt {
       padding: 0;
-      overflow: hidden;
+      overflow: visible;
       width: ${colAmtPx}px;
       max-width: ${colAmtPx}px;
     }
@@ -675,10 +683,11 @@ export class BillReceiptService {
       width: 100%;
       box-sizing: border-box;
       text-align: right;
-      padding: 6px ${amtPadRightPx}px 6px 0;
+      padding: 0 ${amtPadRightPx}px 0 0;
       white-space: nowrap;
-      overflow: hidden;
+      overflow: visible;
       font-variant-numeric: tabular-nums;
+      line-height: 1.45;
     }
     .items-head { font-weight: 400; font-size: ${itemsHeadFont}; }
     .items-head td { font-weight: 400; font-size: ${itemsHeadFont}; }
@@ -771,7 +780,7 @@ export class BillReceiptService {
     ${metaRow('เวลาที่พิมพ์', receipt.printedAtLabel)}
   </div>
   ${zoneDash}
-  <table class="items">
+  <table class="items items-list">
     ${itemsColgroup}
     <tr class="items-head">
       <td class="item-name">สินค้า</td>
