@@ -492,7 +492,7 @@ export class BillReceiptService {
     /** Standard 58mm dot width — bitmap prints edge-to-edge. */
     const rasterPx = narrow ? 384 : 576;
     const padLeftPx = narrow ? 4 : 10;
-    const padRightPx = narrow ? 22 : 16;
+    const padRightPx = narrow ? 30 : 20;
     const padBottomPx = narrow ? 28 : 18;
     const printBottomPadPx = narrow ? 20 : 14;
     const sheetPx = rasterPx - padLeftPx - padRightPx;
@@ -517,6 +517,7 @@ export class BillReceiptService {
     const grandFont = narrow ? '28px' : '31px';
     const footFont = narrow ? '16px' : '16px';
     const infoFont = narrow ? '17px' : '18px';
+    const amtPadRightPx = narrow ? 6 : 8;
 
     const metaColgroup = `<colgroup>
       <col style="width:${metaColLabelPx}px" />
@@ -622,6 +623,7 @@ export class BillReceiptService {
       white-space: nowrap;
       overflow: hidden;
       font-variant-numeric: tabular-nums;
+      padding-right: ${amtPadRightPx}px;
     }
     .items td {
       font-size: ${bodyFont};
@@ -660,7 +662,7 @@ export class BillReceiptService {
       width: 100%;
       box-sizing: border-box;
       text-align: right;
-      padding: 6px 0;
+      padding: 6px ${amtPadRightPx}px 6px 0;
       white-space: nowrap;
       overflow: hidden;
       font-variant-numeric: tabular-nums;
@@ -678,7 +680,7 @@ export class BillReceiptService {
       align-items: center;
       gap: 4px;
       width: 100%;
-      margin: 18px 0;
+      margin: 26px 0;
       overflow: hidden;
     }
     .zone-dash-seg {
@@ -697,7 +699,7 @@ export class BillReceiptService {
     tr.grand-row .amt-val {
       font-size: ${grandFont};
       font-weight: 400;
-      padding: 8px 0 6px;
+      padding: 8px ${amtPadRightPx}px 6px 0;
     }
     .shop-title {
       font-size: ${headFont};
