@@ -504,18 +504,18 @@ export class BillReceiptService {
     const footerBlock = receipt.footerText?.trim()
       ? `<div class="receipt-foot-text">${escapeHtml(receipt.footerText.trim())}</div>`
       : '';
-    const nameMax = narrow ? 11 : 22;
-    const amountHeader = narrow ? 'รวม' : 'ราคารวม';
-    const bodyFont = narrow ? '22px' : '23px';
-    const headFont = narrow ? '28px' : '29px';
-    const grandFont = narrow ? '26px' : '27px';
-    const footFont = narrow ? '18px' : '16px';
-    const infoFont = narrow ? '17px' : '18px';
-    const amtPadRightPx = narrow ? 12 : 10;
-    const grandAmtPadRightPx = narrow ? 20 : 14;
-    const colQtyPx = narrow ? 30 : 48;
-    const colAmtPx = narrow ? 132 : 164;
-    const colNamePx = sheetPx - colQtyPx - colAmtPx;
+    const colNamePx = narrow ? Math.floor(sheetPx * 0.57) : Math.floor(sheetPx * 0.55);
+    const colQtyPx = narrow ? 40 : 48;
+    const colAmtPx = sheetPx - colNamePx - colQtyPx;
+    const nameMax = narrow ? 14 : 22;
+    const amountHeader = 'ราคารวม';
+    const bodyFont = narrow ? '21px' : '23px';
+    const headFont = narrow ? '26px' : '29px';
+    const grandFont = narrow ? '24px' : '27px';
+    const footFont = narrow ? '16px' : '16px';
+    const infoFont = narrow ? '18px' : '18px';
+    const amtPadRightPx = narrow ? 8 : 10;
+    const grandAmtPadRightPx = narrow ? 8 : 14;
 
     const itemsColgroup = `<colgroup>
       <col style="width:${colNamePx}px" />
@@ -527,7 +527,7 @@ export class BillReceiptService {
       `<td class="item-amt"><span class="amt-val">${value}</span></td>`;
 
     const infoRow = (label: string, value: string) =>
-      `<tr class="info-row"><td class="item-name info-label">${escapeHtml(label)}</td><td class="item-qty"></td>${amtCell(escapeHtml(formatReceiptDateTimeLabel(value)))}</tr>`;
+      `<tr class="info-row"><td class="item-name info-label">${escapeHtml(label)}:</td><td class="item-qty"></td>${amtCell(escapeHtml(formatReceiptDateTimeLabel(value)))}</tr>`;
 
     const itemGridRow = (label: string, qty: string, amount: string, rowClass = '') => {
       const cls = rowClass ? ` class="${rowClass}"` : '';
@@ -556,7 +556,7 @@ export class BillReceiptService {
   <title>ใบเสร็จ ${title}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600&display=swap" rel="stylesheet" />
   <style>
     @page { margin: 0; size: ${widthMm}mm auto; }
     * { box-sizing: border-box; }
@@ -571,9 +571,10 @@ export class BillReceiptService {
       font-family: 'Sarabun', 'Tahoma', sans-serif;
       font-size: ${bodyFont};
       font-weight: 400;
-      line-height: 1.25;
+      line-height: 1.45;
       padding: 0;
       color: #000;
+      -webkit-font-smoothing: antialiased;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
@@ -607,12 +608,13 @@ export class BillReceiptService {
     .items .item-name {
       word-break: break-word;
       overflow-wrap: anywhere;
-      padding: 1px 4px 1px 4px;
+      padding: 3px 4px 3px 2px;
       vertical-align: top;
+      text-align: left;
     }
     .items .item-qty {
       text-align: center;
-      padding: 1px 2px;
+      padding: 3px 0;
       vertical-align: top;
       white-space: nowrap;
       font-variant-numeric: tabular-nums;
@@ -628,22 +630,23 @@ export class BillReceiptService {
       width: 100%;
       box-sizing: border-box;
       text-align: right;
-      padding: 1px ${amtPadRightPx}px 1px 0;
+      padding: 3px ${amtPadRightPx}px 3px 0;
       white-space: nowrap;
       font-variant-numeric: tabular-nums;
     }
     tr.info-row .amt-val {
       font-size: ${infoFont};
     }
-    .items-head { font-weight: 400; }
-    .items-head td { font-weight: 400; }
+    .items-head { font-weight: 600; }
+    .items-head td { font-weight: 600; }
+    .items-head .item-qty { text-align: center; }
     .zone-dash {
       display: flex;
       flex-direction: row;
       align-items: center;
       gap: 4px;
       width: 100%;
-      margin: 10px 0;
+      margin: 12px 0;
       overflow: hidden;
     }
     .zone-dash-seg {
@@ -655,20 +658,20 @@ export class BillReceiptService {
     }
     tr.grand-row .item-name {
       font-size: ${grandFont};
-      font-weight: 400;
-      padding-top: 4px;
+      font-weight: 600;
+      padding-top: 6px;
       padding-bottom: 4px;
     }
     tr.grand-row .amt-val {
       font-size: ${grandFont};
-      font-weight: 400;
-      padding: 4px ${grandAmtPadRightPx}px 4px 0;
+      font-weight: 600;
+      padding: 6px ${grandAmtPadRightPx}px 4px 0;
     }
     .shop-title {
       font-size: ${headFont};
-      font-weight: 400;
+      font-weight: 600;
       text-align: center;
-      margin: 0 0 2px;
+      margin: 0 0 4px;
       width: 100%;
     }
     .receipt-subhead {
@@ -679,9 +682,9 @@ export class BillReceiptService {
     }
     .bill-title {
       font-size: ${headFont};
-      font-weight: 400;
+      font-weight: 600;
       text-align: center;
-      margin: 4px 0 6px;
+      margin: 2px 0 10px;
       width: 100%;
     }
     .receipt-foot-text {
@@ -732,7 +735,7 @@ export class BillReceiptService {
   ${zoneDash}
   <table class="items">
     ${itemsColgroup}
-    ${grandRow('ทั้งหมด', `฿${formatReceiptMoney(receipt.grandTotal)}`)}
+    ${grandRow('ทั้งหมด', `฿ ${formatReceiptMoney(receipt.grandTotal)}`)}
   </table>
   ${zoneDash}
   </div>
