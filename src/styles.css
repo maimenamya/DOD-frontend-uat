@@ -698,9 +698,13 @@
 
   @media (min-width: 1024px) {
     .app-sidebar-slot {
+      position: sticky;
+      top: 1rem;
+      align-self: flex-start;
       width: var(--sidebar-rail-width);
-      align-self: stretch;
-      padding: 1rem 0;
+      height: calc(100dvh - 2rem);
+      max-height: calc(100dvh - 2rem);
+      padding: 0;
       transition: width 0.28s ease;
     }
 
@@ -709,7 +713,7 @@
     }
 
     .app-sidebar-slot > app-sidebar {
-      @apply flex h-full min-h-full w-full min-w-0 flex-1;
+      @apply flex h-full min-h-0 w-full min-w-0 flex-1;
     }
   }
 
@@ -1144,7 +1148,7 @@
 
   @media (min-width: 1024px) {
     .app-sidebar {
-      @apply relative top-auto left-0 z-auto h-full min-h-full translate-x-0 self-stretch;
+      @apply relative top-auto left-0 z-auto h-full min-h-0 max-h-full translate-x-0 self-stretch;
       width: var(--sidebar-rail-width);
       margin: 0;
       border-radius: 1.25rem;
@@ -1157,15 +1161,7 @@
 
     .app-sidebar:hover {
       width: var(--sidebar-expanded-width);
-      height: auto;
-      min-height: 100%;
-      overflow: visible;
       box-shadow: var(--shadow-sidebar);
-    }
-
-    .app-sidebar:hover .app-sidebar-nav {
-      flex: 0 0 auto;
-      overflow-y: visible;
     }
 
     .app-sidebar--closed {
@@ -1301,7 +1297,9 @@
   }
 
   .app-sidebar-nav {
-    @apply flex-1 space-y-0.5 overflow-x-hidden overflow-y-auto p-2;
+    @apply min-h-0 flex-1 space-y-0.5 overflow-x-hidden overflow-y-auto p-2;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   .app-sidebar-group {

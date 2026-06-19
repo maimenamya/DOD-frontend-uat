@@ -53,14 +53,14 @@ export class MasterOtherChargePageComponent implements OnInit {
   readonly createForm = this.fb.group({
     name: ['', Validators.required],
     price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
-    unitLabelTh: ['ครั้ง', Validators.required],
+    unitLabelTh: ['', Validators.required],
     isActive: [true],
   });
 
   readonly editForm = this.fb.group({
     name: ['', Validators.required],
     price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
-    unitLabelTh: ['ครั้ง', Validators.required],
+    unitLabelTh: ['', Validators.required],
     isActive: [true],
   });
 
@@ -94,7 +94,7 @@ export class MasterOtherChargePageComponent implements OnInit {
     this.createForm.reset({
       name: '',
       price: '',
-      unitLabelTh: 'ครั้ง',
+      unitLabelTh: '',
       isActive: true,
     });
     this.showCreateModal.set(true);
@@ -110,7 +110,7 @@ export class MasterOtherChargePageComponent implements OnInit {
     this.editForm.reset({
       name: item.name,
       price: String(item.price),
-      unitLabelTh: item.unitLabelTh || 'ครั้ง',
+      unitLabelTh: item.unitLabelTh,
       isActive: item.isActive,
     });
     this.editingItem.set(item);
