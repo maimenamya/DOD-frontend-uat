@@ -1,7 +1,6 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import {
   highlightInvalidForm,
-  resetFormValidationFlag,
 } from '../../utils/form-validation.util';
 import { Router } from '@angular/router';
 import {
@@ -12,6 +11,11 @@ import {
 
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
+import {
+  MIN_PASSWORD_LENGTH,
+  passwordMeetsPolicy,
+  passwordPolicyErrorMessage,
+} from '../../utils/password-policy.util';
 
 @Component({
   selector: 'app-my-profile',
@@ -25,6 +29,7 @@ export class MyProfileComponent implements OnInit {
   private readonly router = inject(Router);
 
   readonly user = this.auth.getUser();
+  readonly forcePasswordChange = computed(() => this.auth.needsPasswordChange());
   readonly submitting = signal(false);
   readonly formValidated = signal(false);
 
@@ -32,6 +37,7 @@ export class MyProfileComponent implements OnInit {
     nickname: ['', [Validators.required, Validators.minLength(1)]],
     email: [''],
     password: [''],
+    confirmPassword: [''],
   });
 
   ngOnInit(): void {
@@ -41,7 +47,19 @@ export class MyProfileComponent implements OnInit {
         nickname: user.nickname,
         email: user.email ?? '',
         password: '',
+        confirmPassword: '',
       });
+    }
+
+    if (this.forcePasswordChange()) {
+      this.form.controls.password.setValidators([
+        Validators.required,
+        Validators.minLength(MIN_PASSWORD_LENGTH),
+      ]);
+      this.form.controls.confirmPassword.setValidators([
+        Validators.required,
+        Validators.minLength(MIN_PASSWORD_LENGTH),
+      ]);
     }
   }
 
@@ -49,26 +67,51 @@ export class MyProfileComponent implements OnInit {
     if (highlightInvalidForm(this.form, this.formValidated, this.toast)) return;
 
     const raw = this.form.getRawValue();
-    if (raw.password && raw.password.length < 6) {
+    const password = raw.password.trim();
+    const confirmPassword = raw.confirmPassword.trim();
+
+    if (this.forcePasswordChange()) {
+      if (!password) {
+        this.toast.showError('กรุณาตั้งรหัสผ่านใหม่');
+        return;
+      }
+      if (password !== confirmPassword) {
+        this.formValidated.set(true);
+        this.toast.showError('รหัสผ่านไม่ตรงกัน');
+        return;
+      }
+    } else if (password && !passwordMeetsPolicy(password)) {
       this.formValidated.set(true);
       this.form.controls.password.markAsTouched();
-      this.toast.showError('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
+      this.toast.showError(passwordPolicyErrorMessage());
+      return;
+    } else if (password && password !== confirmPassword) {
+      this.formValidated.set(true);
+      this.toast.showError('รหัสผ่านไม่ตรงกัน');
       return;
     }
 
     this.submitting.set(true);
+    const wasForcedPasswordChange = this.forcePasswordChange();
 
     this.auth
       .updateProfile({
         nickname: raw.nickname,
         email: raw.email || null,
-        password: raw.password || undefined,
+        password: password || undefined,
       })
       .subscribe({
         next: () => {
           this.submitting.set(false);
-          this.toast.showSuccess('บันทึกโปรไฟล์เรียบร้อย');
-          void this.router.navigate(['/dashboard']);
+          this.toast.showSuccess(
+            wasForcedPasswordChange
+              ? 'ตั้งรหัสผ่านเรียบร้อย'
+              : 'บันทึกโปรไฟล์เรียบร้อย',
+          );
+          this.auth.fetchAccessibleBranches().subscribe({
+            next: () => void this.router.navigate(['/dashboard']),
+            error: () => void this.router.navigate(['/dashboard']),
+          });
         },
         error: (err: { error?: { error?: string } }) => {
           this.submitting.set(false);

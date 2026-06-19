@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard, guestGuard } from './guards/auth.guard';
+import { mustChangePasswordChildGuard } from './guards/must-change-password.guard';
 import { permissionGuard } from './guards/permission.guard';
 import { MainShellComponent } from './layouts/main-shell/main-shell.component';
 import { DashboardPageComponent } from './pages/dashboard/dashboard-page.component';
@@ -31,6 +32,11 @@ import { StockPageComponent } from './pages/stock/stock-page.component';
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
   {
+    path: 's/:shopPublicId/login',
+    component: LoginComponent,
+    canActivate: [guestGuard],
+  },
+  {
     path: 'login',
     component: LoginComponent,
     canActivate: [guestGuard],
@@ -39,6 +45,7 @@ export const routes: Routes = [
     path: 'dashboard',
     component: MainShellComponent,
     canActivate: [authGuard],
+    canActivateChild: [mustChangePasswordChildGuard],
     children: [
       { path: '', component: DashboardPageComponent },
       {

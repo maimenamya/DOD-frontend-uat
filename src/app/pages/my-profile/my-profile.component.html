@@ -2,12 +2,18 @@
   <div class="app-page-header">
     <div>
       <h1 class="app-page-title">โปรไฟล์ของฉัน</h1>
-      <p class="app-page-subtitle">
-        บัญชี <span class="app-page-subtitle-accent">{{ user?.employeeId }}</span>
-        · ตำแหน่ง <span class="app-page-subtitle-strong">{{ user?.roleDisplayNameTh }}</span>
-        · {{ user?.shop?.name }}
-      </p>
-      <p class="app-profile-hint">เปลี่ยนสาขาที่แสดงข้อมูลได้จากเมนูโปรไฟล์มุมขวาบน</p>
+      @if (forcePasswordChange()) {
+        <p class="app-page-subtitle app-page-subtitle-accent">
+          กรุณาตั้งรหัสผ่านใหม่ก่อนใช้งานระบบ
+        </p>
+      } @else {
+        <p class="app-page-subtitle">
+          บัญชี <span class="app-page-subtitle-accent">{{ user?.employeeId }}</span>
+          · ตำแหน่ง <span class="app-page-subtitle-strong">{{ user?.roleDisplayNameTh }}</span>
+          · {{ user?.shop?.name }}
+        </p>
+        <p class="app-profile-hint">เปลี่ยนสาขาที่แสดงข้อมูลได้จากเมนูโปรไฟล์มุมขวาบน</p>
+      }
     </div>
   </div>
 
@@ -22,17 +28,40 @@
         <input type="email" formControlName="email" class="app-input" />
       </div>
       <div class="app-form-group">
-        <label class="app-label">รหัสผ่านใหม่ (ไม่บังคับ)</label>
+        <label class="app-label">
+          @if (forcePasswordChange()) {
+            รหัสผ่านใหม่
+          } @else {
+            รหัสผ่านใหม่ (ไม่บังคับ)
+          }
+        </label>
         <input
           type="password"
           formControlName="password"
           class="app-input"
-          placeholder="เว้นว่างหากไม่ต้องการเปลี่ยน"
+          [placeholder]="forcePasswordChange() ? 'ตั้งรหัสผ่านใหม่' : 'เว้นว่างหากไม่ต้องการเปลี่ยน'"
         />
       </div>
+      @if (forcePasswordChange() || form.controls.password.value.trim()) {
+        <div class="app-form-group">
+          <label class="app-label">ยืนยันรหัสผ่าน</label>
+          <input
+            type="password"
+            formControlName="confirmPassword"
+            class="app-input"
+            placeholder="กรอกรหัสผ่านอีกครั้ง"
+          />
+        </div>
+      }
       <div class="app-form-actions app-form-actions-top">
         <button type="submit" class="app-btn-primary" [disabled]="submitting()">
-          {{ submitting() ? 'กำลังบันทึก...' : 'บันทึกโปรไฟล์' }}
+          @if (submitting()) {
+            กำลังบันทึก...
+          } @else if (forcePasswordChange()) {
+            บันทึกรหัสผ่าน
+          } @else {
+            บันทึกโปรไฟล์
+          }
         </button>
       </div>
     </form>

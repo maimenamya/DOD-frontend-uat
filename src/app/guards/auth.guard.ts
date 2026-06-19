@@ -1,7 +1,15 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 
+import { readStoredShopPublicId } from '../core/shop-public-id.storage';
 import { AuthService } from '../services/auth.service';
+
+function loginUrlTree(router: Router) {
+  const lastShop = readStoredShopPublicId();
+  return lastShop
+    ? router.createUrlTree(['/s', lastShop, 'login'])
+    : router.createUrlTree(['/login']);
+}
 
 export const authGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
@@ -11,7 +19,7 @@ export const authGuard: CanActivateFn = () => {
     return true;
   }
 
-  return router.createUrlTree(['/login']);
+  return loginUrlTree(router);
 };
 
 /** @deprecated Use permissionGuard('master_data') or finer feature guards. */

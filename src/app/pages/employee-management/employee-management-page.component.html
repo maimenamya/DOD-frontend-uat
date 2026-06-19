@@ -62,10 +62,9 @@
             class="app-input"
             placeholder="เช่น 1001"
           />
-          @if (previewLoginUsername(createForm.controls.employeeId.value); as loginUser) {
+          @if (createForm.controls.employeeId.value.trim().length >= 2) {
             <p class="mt-1.5 text-sm text-text-secondary">
-              ชื่อผู้ใช้เข้าระบบ:
-              <span class="app-cell-mono text-text-primary">{{ loginUser }}</span>
+              พนักงานใช้ลิงก์เข้าระบบของร้าน + รหัสนี้ (ไม่ต้องใส่ตัวย่อ)
             </p>
           }
         </div>
@@ -74,8 +73,11 @@
           <input type="text" formControlName="nickname" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">รหัสผ่าน</label>
+          <label class="app-label">รหัสผ่านเริ่มต้น</label>
           <input type="password" formControlName="password" class="app-input" />
+          <p class="mt-1.5 text-sm text-text-secondary">
+            อย่างน้อย {{ minPasswordLength }} ตัวอักษร — เจ้าของ/ผู้จัดการตั้งให้ ผู้ใช้ต้องเปลี่ยนเองเมื่อเข้าระบบครั้งแรก (รวมผู้จัดการ)
+          </p>
         </div>
         <div class="app-form-group">
           <label class="app-label">อีเมล (ไม่บังคับ)</label>
@@ -128,6 +130,9 @@
           <div class="app-form-group">
             <label class="app-label">รหัสผ่านใหม่ (ไม่บังคับ)</label>
             <input type="password" formControlName="password" class="app-input" />
+            <p class="mt-1.5 text-sm text-text-secondary">
+              ถ้าตั้งรหัสใหม่ ผู้ใช้ต้องเปลี่ยนอีกครั้งเมื่อเข้าระบบครั้งถัดไป
+            </p>
           </div>
           <div class="app-form-actions app-form-actions-top">
             <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>

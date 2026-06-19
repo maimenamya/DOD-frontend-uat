@@ -24,6 +24,7 @@ import { EmployeeService } from '../../services/employee.service';
 import { RoleService } from '../../services/role.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
+import { MIN_PASSWORD_LENGTH } from '../../utils/password-policy.util';
 import {
   isRoleMutableByViewer,
   roleBadgeClass,
@@ -60,6 +61,7 @@ export class EmployeeManagementPageComponent implements OnInit {
 
   readonly user = this.auth.getUser();
   readonly canManage = computed(() => this.auth.canWriteOnPage('manage_employees'));
+  protected readonly minPasswordLength = MIN_PASSWORD_LENGTH;
 
   readonly roles = signal<MstRole[]>([]);
   readonly allEmployees = signal<MstEmployee[]>([]);
@@ -105,7 +107,7 @@ export class EmployeeManagementPageComponent implements OnInit {
 
   readonly createForm = this.fb.group({
     employeeId: ['', [Validators.required, Validators.minLength(2)]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    password: ['', [Validators.required, Validators.minLength(MIN_PASSWORD_LENGTH)]],
     nickname: ['', [Validators.required, Validators.minLength(1)]],
     email: [''],
     roleId: [0, [Validators.required, Validators.min(1)]],
@@ -170,23 +172,6 @@ export class EmployeeManagementPageComponent implements OnInit {
 
   roleTabLabel(role: MstRole): string {
     return roleDisplayNameTh(role);
-  }
-
-  /** Preview login username (org prefix + local code, e.g. ff1001). */
-  previewLoginUsername(employeeIdInput: string): string | null {
-    const abbrev = this.auth.getUser()?.shop?.abbreviation?.trim().toLowerCase();
-    if (!abbrev) {
-      return null;
-    }
-    const raw = employeeIdInput.trim().toLowerCase().replace(/\s+/g, '');
-    if (!raw || raw.length < 2) {
-      return null;
-    }
-    const local = raw.startsWith(abbrev) ? raw.slice(abbrev.length) : raw;
-    if (!local) {
-      return null;
-    }
-    return `${abbrev}${local}`;
   }
 
   selectRole(roleName: string, updateUrl = true): void {

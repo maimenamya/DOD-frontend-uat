@@ -2,6 +2,7 @@
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter } from 'rxjs';
 
+import { readStoredShopPublicId } from '../../core/shop-public-id.storage';
 import { AuthService } from '../../services/auth.service';
 import { SystemGuideModalComponent } from '../system-guide/system-guide-modal.component';
 import { DodBrandWordmarkComponent } from './dod-brand-wordmark.component';
@@ -164,7 +165,10 @@ export class SidebarComponent implements OnInit {
 
   logout(): void {
     this.auth.logout();
-    void this.router.navigate(['/login']);
+    const shopPublicId = readStoredShopPublicId();
+    void this.router.navigate(
+      shopPublicId ? ['/s', shopPublicId, 'login'] : ['/login'],
+    );
   }
 
   private syncSubmenuToRoute(): void {

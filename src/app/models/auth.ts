@@ -2,9 +2,9 @@
 import type { RoleCategory } from './role';
 
 export interface LoginRequest {
-  username: string;
+  shopPublicId: string;
+  employeeId: string;
   password: string;
-  shopId?: number;
 }
 
 export interface CompleteRoleSetupRequest {
@@ -32,6 +32,7 @@ export interface AuthUser {
   organizationId: number;
   shopId: number;
   pendingRoleSetup: boolean;
+  mustChangePassword: boolean;
   roleId: number | null;
   /** MstRole name from master (e.g. SALE, PR, COYOTY). */
   role: string;
@@ -45,6 +46,7 @@ export interface AuthUser {
     abbreviation: string;
     branchCode: string;
     organizationId: number;
+    publicId?: string;
   };
 }
 
@@ -62,6 +64,7 @@ export interface AuthResponse {
     organizationId: number;
     shopId: number;
     pendingRoleSetup: boolean;
+    mustChangePassword: boolean;
     roleId: number | null;
     role: {
       id: number;

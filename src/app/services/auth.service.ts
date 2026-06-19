@@ -23,6 +23,10 @@ import {
   type AppFeature,
 } from '../utils/permission-group.util';
 import { roleDisplayNameTh } from '../utils/role-display.util';
+import {
+  readStoredShopPublicId,
+  writeStoredShopPublicId,
+} from '../core/shop-public-id.storage';
 
 const STORAGE_KEY = 'dod_auth_session';
 
@@ -72,6 +76,10 @@ export class AuthService {
 
   needsRoleSetup(): boolean {
     return this.getUser()?.pendingRoleSetup === true;
+  }
+
+  needsPasswordChange(): boolean {
+    return this.getUser()?.mustChangePassword === true;
   }
 
   updateProfile(payload: UpdateProfileRequest): Observable<AuthResponse> {
@@ -233,6 +241,10 @@ export class AuthService {
 
   private persistSession(response: AuthResponse): void {
     const session = this.toSession(response);
+    const publicId = session.user.shop?.publicId?.trim();
+    if (publicId) {
+      writeStoredShopPublicId(publicId);
+    }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
     this.sessionSignal.set(session);
   }
@@ -284,6 +296,7 @@ export class AuthService {
       throw new Error('AUTH_RESPONSE_INCOMPLETE');
     }
     const pendingRoleSetup = employee.pendingRoleSetup;
+    const mustChangePassword = employee.mustChangePassword === true;
     const user = pendingRoleSetup
       ? this.normalizeUser({
           id: employee.id,
@@ -295,6 +308,7 @@ export class AuthService {
           organizationId: employee.organizationId,
           shopId: employee.shopId,
           pendingRoleSetup: true,
+          mustChangePassword: false,
           roleId: null,
           role: '',
           roleDisplayNameTh: 'กำลังตั้งค่าตำแหน่ง',
@@ -312,6 +326,7 @@ export class AuthService {
           organizationId: employee.organizationId,
           shopId: employee.shopId,
           pendingRoleSetup: false,
+          mustChangePassword,
           roleId: employee.roleId,
           role: employee.role!.name,
           roleDisplayNameTh: this.resolveRoleDisplayNameTh(
@@ -342,6 +357,7 @@ export class AuthService {
         organizationId,
         shopId: user.shopId,
         pendingRoleSetup: true,
+        mustChangePassword: false,
         roleId: null,
         role: '',
         roleDisplayNameTh: user.roleDisplayNameTh?.trim() || 'กำลังตั้งค่าตำแหน่ง',
@@ -386,6 +402,7 @@ export class AuthService {
       organizationId,
       shopId: user.shopId,
       pendingRoleSetup: false,
+      mustChangePassword: user.mustChangePassword === true,
       roleId: user.roleId,
       role,
       roleDisplayNameTh,
