@@ -130,10 +130,6 @@ export class AuthService {
     return this.getUser()?.organizationId ?? null;
   }
 
-  getShopAbbreviation(): string {
-    return this.getUser()?.shop?.abbreviation?.trim() ?? '';
-  }
-
   getRole(): string | null {
     return this.getUser()?.role ?? null;
   }
@@ -368,7 +364,6 @@ export class AuthService {
           ({
             id: user.shopId,
             name: '',
-            abbreviation: '',
             branchCode: 'main',
             organizationId,
           } satisfies AuthUser['shop']),
@@ -416,14 +411,12 @@ export class AuthService {
               name:
                 (user as AuthUser & { shopName?: string }).shopName?.trim() ||
                 '',
-              abbreviation: '',
               branchCode: 'main',
               organizationId,
             }
           : {
               id: 0,
               name: '',
-              abbreviation: '',
               branchCode: 'main',
               organizationId: 0,
             }),

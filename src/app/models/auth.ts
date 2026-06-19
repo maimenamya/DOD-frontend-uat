@@ -43,7 +43,6 @@ export interface AuthUser {
   shop: {
     id: number;
     name: string;
-    abbreviation: string;
     branchCode: string;
     organizationId: number;
     publicId?: string;
@@ -76,7 +75,6 @@ export interface AuthResponse {
     shop: {
       id: number;
       name: string;
-      abbreviation: string;
       branchCode: string;
       organizationId: number;
     };
