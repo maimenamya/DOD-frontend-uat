@@ -3205,6 +3205,10 @@
   }
 
   /* ── Master list search + pagination ── */
+  app-master-list-toolbar {
+    @apply block;
+  }
+
   .app-master-list-toolbar {
     @apply mb-4;
   }
