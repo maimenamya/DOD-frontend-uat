@@ -3,6 +3,15 @@ module.exports = {
   content: ['./src/**/*.{html,ts}'],
   darkMode: ['class', '[data-theme="dark"]'],
   theme: {
+    screens: {
+      sm: '640px',
+      md: '768px',
+      lg: '1024px',
+      xl: '1280px',
+      '2xl': '1536px',
+      /** App shell + open-table: mobile below 800px, desktop from 800px up. */
+      desktop: '800px',
+    },
     extend: {
       colors: {
         'bg-primary': 'var(--bg-primary)',

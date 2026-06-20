@@ -56,6 +56,7 @@ import { BeverageService } from '../../services/beverage.service';
 import { EmployeeService } from '../../services/employee.service';
 import { OpenTableService } from '../../services/open-table.service';
 import { BillReceiptService } from '../../services/bill-receipt.service';
+import { APP_MOBILE_MEDIA_QUERY } from '../../utils/app-viewport.util';
 import { detectReceiptPrintPlatform } from '../../utils/receipt-print-platform.util';
 import { RoleService } from '../../services/role.service';
 import { ShopMasterService } from '../../services/shop-master.service';
@@ -155,10 +156,10 @@ export class OpenTablePageComponent implements OnInit {
   readonly checkInGuestCountText = signal('1');
   readonly selectedSeatKey = signal<string | null>(null);
   readonly showMobileSheet = signal(false);
-  /** Matches Tailwind `xl` — mobile sheet + body scroll lock only below this width. */
+  /** Mobile sheet + body scroll lock below 800px. */
   private readonly mobileDrawerViewport = signal(
     typeof window !== 'undefined'
-      ? window.matchMedia('(max-width: 1279px)').matches
+      ? window.matchMedia(APP_MOBILE_MEDIA_QUERY).matches
       : false,
   );
   readonly showMobileSheetLayer = computed(
@@ -737,7 +738,7 @@ export class OpenTablePageComponent implements OnInit {
 
   private bindMobileDrawerViewportListener(): void {
     if (typeof window === 'undefined') return;
-    const mq = window.matchMedia('(max-width: 1279px)');
+    const mq = window.matchMedia(APP_MOBILE_MEDIA_QUERY);
     const onChange = (): void => this.mobileDrawerViewport.set(mq.matches);
     mq.addEventListener('change', onChange);
     this.destroyRef.onDestroy(() => mq.removeEventListener('change', onChange));

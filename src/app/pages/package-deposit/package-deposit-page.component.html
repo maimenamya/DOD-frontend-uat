@@ -41,97 +41,73 @@
 
   @if (loading()) {
     <p class="app-loading-text">กำลังโหลด...</p>
-  } @else if (visibleItems().length === 0) {
-    <p class="app-empty-state">{{ emptyText() }}</p>
   } @else {
     <section class="app-card app-card-flush">
-      <div class="app-data-table-shell">
-        <div class="app-split-table package-deposit-table">
-          <div class="app-split-table-header">
-            <table class="app-data-table app-split-table-grid">
-              <colgroup>
-                <col class="app-col-id" />
-                <col class="package-deposit-col-customer" />
-                <col class="package-deposit-col-package" />
-                <col class="package-deposit-col-date" />
-                <col class="package-deposit-col-bottles" />
-                <col class="package-deposit-col-status" />
-                <col class="package-deposit-col-actions" />
-              </colgroup>
-              <thead>
-                <tr>
-                  <th>No.</th>
-                  <th>ลูกค้า</th>
-                  <th>{{ sourceTab() === 'MEMBERSHIP' ? 'ชื่อเมม' : 'ชื่อโปร' }}</th>
-                  <th>วันที่เปิด</th>
-                  <th class="app-cell-right">ขวดคงเหลือ</th>
-                  <th>สถานะ</th>
-                  <th class="app-cell-right">จัดการ</th>
-                </tr>
-              </thead>
-            </table>
-          </div>
-          <div class="app-split-table-body app-scroll-region">
-            <table class="app-data-table app-split-table-grid">
-              <colgroup>
-                <col class="app-col-id" />
-                <col class="package-deposit-col-customer" />
-                <col class="package-deposit-col-package" />
-                <col class="package-deposit-col-date" />
-                <col class="package-deposit-col-bottles" />
-                <col class="package-deposit-col-status" />
-                <col class="package-deposit-col-actions" />
-              </colgroup>
-              <tbody>
-                @for (row of visibleItems(); track row.id; let i = $index) {
-                  <tr>
-                    <td class="app-cell-mono">{{ i + 1 }}</td>
-                    <td class="app-cell-primary">
-                      <div class="package-deposit-customer-name">
-                        {{ customerPrimaryLabel(row) }}
-                      </div>
-                      @if (showCustomerCodeSubline(row)) {
-                        <div class="package-deposit-customer-code">
-                          รหัส {{ row.customerCode }}
-                        </div>
-                      }
-                    </td>
-                    <td>{{ row.packageName }}</td>
-                    <td class="whitespace-nowrap text-text-secondary">{{ row.openedOnLabel }}</td>
-                    <td class="app-cell-right">
-                      <span class="font-mono text-sm text-text-primary">{{ row.bottlesLabel }}</span>
-                      @if (row.remainderNote) {
-                        <div class="mt-0.5 text-xs leading-snug text-text-secondary">{{ row.remainderNote }}</div>
-                      }
-                    </td>
-                    <td>
-                      @if (row.status === 'OPEN') {
-                        <span class="app-badge app-badge-staff">{{ statusLabel(row) }}</span>
-                      } @else {
-                        <span class="app-badge app-badge-default">{{ statusLabel(row) }}</span>
-                      }
-                    </td>
-                    <td class="app-cell-right">
-                      <div class="app-table-actions">
-                        @if (row.canDeposit) {
-                          <button type="button" class="app-btn-secondary-sm" (click)="openDeposit(row)">
-                            ฝาก
-                          </button>
-                        }
-                        @if (row.canClose) {
-                          <button type="button" class="app-btn-danger-sm" (click)="confirmClose(row)">
-                            ปิด
-                          </button>
-                        }
-                      </div>
-                    </td>
-                  </tr>
+      @if (visibleItems().length === 0) {
+        <p class="app-empty-state">{{ emptyText() }}</p>
+      } @else {
+        <div class="package-deposit-card-list">
+          @for (row of visibleItems(); track row.id; let i = $index) {
+            <article class="package-deposit-card">
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="text-xs font-medium text-text-secondary">
+                    <span class="font-mono">{{ i + 1 }}.</span>
+                    {{ row.packageName }}
+                  </p>
+                  <p class="package-deposit-card-customer-name mt-1">
+                    {{ customerPrimaryLabel(row) }}
+                  </p>
+                  @if (showCustomerCodeSubline(row)) {
+                    <p class="package-deposit-card-customer-code mt-0.5">
+                      รหัส {{ row.customerCode }}
+                    </p>
+                  }
+                </div>
+                @if (row.status === 'OPEN') {
+                  <span class="app-badge app-badge-staff shrink-0">{{ statusLabel(row) }}</span>
+                } @else {
+                  <span class="app-badge app-badge-default shrink-0">{{ statusLabel(row) }}</span>
                 }
-              </tbody>
-            </table>
-          </div>
+              </div>
+
+              <dl class="package-deposit-card-meta">
+                <div>
+                  <dt class="package-deposit-card-stat-label">วันที่เปิด</dt>
+                  <dd class="package-deposit-card-stat-value">{{ row.openedOnLabel }}</dd>
+                </div>
+                <div>
+                  <dt class="package-deposit-card-stat-label">ขวดคงเหลือ</dt>
+                  <dd class="package-deposit-card-stat-value package-deposit-card-stat-value--mono">
+                    {{ row.bottlesLabel }}
+                  </dd>
+                </div>
+                <div class="desktop:col-span-2">
+                  <dt class="package-deposit-card-stat-label">หมายเหตุ</dt>
+                  <dd class="package-deposit-card-stat-value text-text-secondary">
+                    {{ row.remainderNote || '—' }}
+                  </dd>
+                </div>
+              </dl>
+
+              @if (row.canDeposit || row.canClose) {
+                <div class="package-deposit-card-actions">
+                  @if (row.canDeposit) {
+                    <button type="button" class="app-btn-secondary-sm" (click)="openDeposit(row)">
+                      ฝาก
+                    </button>
+                  }
+                  @if (row.canClose) {
+                    <button type="button" class="app-btn-danger-sm" (click)="confirmClose(row)">
+                      ปิด
+                    </button>
+                  }
+                </div>
+              }
+            </article>
+          }
         </div>
-      </div>
+      }
     </section>
   }
 </div>

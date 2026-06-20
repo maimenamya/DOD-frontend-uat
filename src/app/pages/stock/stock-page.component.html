@@ -46,17 +46,6 @@
             (input)="sanitizeIntegerInput('create', $event)"
           />
         </div>
-        <div class="app-form-group">
-          <label class="app-label">หมายเหตุ (ไม่บังคับ)</label>
-          <input
-            type="text"
-            class="app-input"
-            formControlName="adjustNote"
-            maxlength="500"
-            placeholder="เช่น รับของจาก supplier, นับสต็อก"
-          />
-          <p class="app-hint">เก็บไว้สำหรับอ้างอิง — ใช้ทำประวัติการปรับสต็อกในอนาคต</p>
-        </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
           <button type="submit" class="app-btn-primary" [disabled]="submitting()">
@@ -90,22 +79,6 @@
           />
           <p class="app-hint">ตั้งยอดตามการนับจริง — ไม่ใช่การบวกเพิ่ม</p>
         </div>
-        @if (item.adjustNote) {
-          <p class="text-sm text-text-secondary">
-            หมายเหตุครั้งก่อน: <span class="text-text-primary">{{ item.adjustNote }}</span>
-          </p>
-        }
-        <div class="app-form-group">
-          <label class="app-label">หมายเหตุการแก้ไข (ไม่บังคับ)</label>
-          <textarea
-            class="app-input min-h-[4.5rem] resize-y"
-            formControlName="adjustNote"
-            maxlength="500"
-            rows="2"
-            placeholder="เช่น นับสต็อกคงเหลือจริง, ของหาย, แก้จากบิลผิด"
-          ></textarea>
-          <p class="app-hint">บันทึกเหตุผลที่แก้ — เตรียมไว้สำหรับ log / ประวัติในอนาคต</p>
-        </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
           <button type="submit" class="app-btn-primary" [disabled]="submitting()">
@@ -137,7 +110,6 @@
                 <col class="app-col-id" />
                 <col />
                 <col class="app-col-narrow" />
-                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -147,7 +119,6 @@
                   <th>No.</th>
                   <th>เครื่องดื่ม</th>
                   <th class="app-cell-right">คงเหลือ</th>
-                  <th>หมายเหตุล่าสุด</th>
                   @if (canManage()) {
                     <th class="app-cell-right">จัดการ</th>
                   }
@@ -161,7 +132,6 @@
                 <col class="app-col-id" />
                 <col />
                 <col class="app-col-narrow" />
-                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -173,9 +143,6 @@
                     <td class="app-cell-primary">{{ row.beverage.name }}</td>
                     <td class="app-cell-right app-cell-highlight-violet">
                       {{ row.quantityOnHand | number: '1.0-0' }} {{ row.beverage.unitLabelTh }}
-                    </td>
-                    <td class="max-w-[12rem] truncate text-sm text-text-secondary">
-                      {{ row.adjustNote || '—' }}
                     </td>
                     @if (canManage()) {
                       <td class="app-cell-right">

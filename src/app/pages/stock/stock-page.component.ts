@@ -45,7 +45,7 @@ export class StockPageComponent implements OnInit {
   readonly items = signal<MstBeverageStock[]>([]);
   readonly listQuery = new MasterListQueryState();
   readonly listView = createMasterListView(this.items, this.listQuery, (row) =>
-    `${row.beverage?.name ?? ''} ${row.beverage?.category?.name ?? ''} ${row.beverage?.unitLabelTh ?? ''} ${row.adjustNote ?? ''}`,
+    `${row.beverage?.name ?? ''} ${row.beverage?.category?.name ?? ''} ${row.beverage?.unitLabelTh ?? ''}`,
   );
   readonly masterListRowNumber = masterListRowNumber;
   readonly beverages = signal<MstBeverage[]>([]);
@@ -78,12 +78,10 @@ export class StockPageComponent implements OnInit {
   readonly createForm = this.fb.group({
     beverageId: [0, [Validators.required, Validators.min(1)]],
     quantityOnHand: ['1', [Validators.required, Validators.pattern(/^[1-9]\d*$/)]],
-    adjustNote: [''],
   });
 
   readonly editForm = this.fb.group({
     quantityOnHand: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
-    adjustNote: ['', [Validators.maxLength(500)]],
   });
 
   ngOnInit(): void {
@@ -110,7 +108,7 @@ export class StockPageComponent implements OnInit {
 
   openCreate(): void {
     resetFormValidationFlag(this.createFormValidated);
-    this.createForm.reset({ beverageId: 0, quantityOnHand: '1', adjustNote: '' });
+    this.createForm.reset({ beverageId: 0, quantityOnHand: '1' });
     this.showCreateModal.set(true);
   }
 
@@ -121,7 +119,7 @@ export class StockPageComponent implements OnInit {
   openEdit(item: MstBeverageStock): void {
     resetFormValidationFlag(this.editFormValidated);
     this.editingItem.set(item);
-    this.editForm.reset({ quantityOnHand: String(item.quantityOnHand), adjustNote: '' });
+    this.editForm.reset({ quantityOnHand: String(item.quantityOnHand) });
   }
 
   closeEdit(): void {
@@ -145,14 +143,12 @@ export class StockPageComponent implements OnInit {
 
     const beverageId = this.createForm.controls.beverageId.value;
     const quantityOnHand = Number(this.createForm.controls.quantityOnHand.value);
-    const adjustNote = this.createForm.controls.adjustNote.value.trim();
 
     this.submitting.set(true);
     this.stockService
       .create({
         beverageId,
         quantityOnHand,
-        adjustNote: adjustNote || null,
       })
       .subscribe({
       next: () => {
@@ -177,12 +173,10 @@ export class StockPageComponent implements OnInit {
     if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
 
     const quantityOnHand = Number(this.editForm.controls.quantityOnHand.value);
-    const adjustNote = this.editForm.controls.adjustNote.value.trim();
     this.submitting.set(true);
     this.stockService
       .updateQuantity(item.beverageId, {
         quantityOnHand,
-        adjustNote: adjustNote || null,
       })
       .subscribe({
       next: () => {

@@ -38,6 +38,10 @@
     --sidebar-icon-box: 2rem;
     --sidebar-rail-width: 4.75rem;
     --sidebar-expanded-width: 15rem;
+
+    /* Mobile shell below 800px — keep in sync with app-viewport.util.ts */
+    --app-desktop-min-width: 800px;
+    --app-mobile-max-width: 799px;
   }
 
   [data-theme='light'] {
@@ -674,15 +678,15 @@
 
   /* ── App layout (dashboard shell) ── */
   .app-layout {
-    @apply page-background soft-grid-bg flex min-h-screen min-h-[100dvh] flex-col items-stretch lg:flex-row lg:items-stretch;
+    @apply page-background soft-grid-bg flex min-h-screen min-h-[100dvh] flex-col items-stretch desktop:flex-row desktop:items-stretch;
   }
 
   .app-sidebar-slot {
-    @apply flex shrink-0 lg:flex lg:flex-col lg:self-stretch;
+    @apply flex shrink-0 desktop:flex desktop:flex-col desktop:self-stretch;
   }
 
   /* Mobile: sidebar is fixed — slot must not reserve a full-viewport row */
-  @media (max-width: 1023px) {
+  @media (max-width: 799px) {
     .app-sidebar-slot {
       @apply pointer-events-none h-0 w-0 min-h-0 min-w-0 overflow-visible;
     }
@@ -696,7 +700,7 @@
     }
   }
 
-  @media (min-width: 1024px) {
+  @media (min-width: 800px) {
     .app-sidebar-slot {
       position: sticky;
       top: 1rem;
@@ -721,19 +725,19 @@
     @apply flex min-h-0 w-full min-w-0 max-w-full flex-1 flex-col;
   }
 
-  @media (min-width: 1024px) {
+  @media (min-width: 800px) {
     .app-layout-main {
       @apply min-h-[100dvh];
     }
   }
 
   .app-main-content {
-    @apply min-w-0 max-w-full flex-1 p-4 sm:p-6 lg:p-8;
+    @apply min-w-0 max-w-full flex-1 p-4 sm:p-6 desktop:p-8;
   }
 
   /* ── Top header (profile + shop) ── */
   .app-top-header {
-    @apply sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-theme-border px-4 py-3 backdrop-blur-glass sm:px-6 lg:px-8;
+    @apply sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-theme-border px-4 py-3 backdrop-blur-glass sm:px-6 desktop:px-8;
     background: var(--card-bg);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
@@ -742,7 +746,7 @@
   }
 
   .app-top-header-menu {
-    @apply shrink-0 lg:hidden;
+    @apply shrink-0 desktop:hidden;
   }
 
   .app-top-header-end {
@@ -812,7 +816,7 @@
     max-width: 10rem;
   }
 
-  @media (min-width: 1024px) {
+  @media (min-width: 800px) {
     .app-profile-text {
       max-width: 12rem;
     }
@@ -994,7 +998,7 @@
   }
 
   .app-mobile-overlay {
-    @apply fixed inset-0 z-30 backdrop-blur-sm lg:hidden;
+    @apply fixed inset-0 z-30 backdrop-blur-sm desktop:hidden;
     background: var(--overlay-scrim);
   }
 
@@ -1043,7 +1047,7 @@
   }
 
   .app-page-header-split {
-    @apply flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between;
+    @apply flex flex-col gap-4 desktop:flex-row desktop:items-start desktop:justify-between;
   }
 
   .app-page-header-dashboard {
@@ -1078,7 +1082,7 @@
     }
   }
 
-  @media (min-width: 1280px) {
+  @media (min-width: 800px) {
     .app-page-header-dashboard {
       @apply gap-6;
     }
@@ -1146,7 +1150,7 @@
     @apply translate-x-0;
   }
 
-  @media (min-width: 1024px) {
+  @media (min-width: 800px) {
     .app-sidebar {
       @apply relative top-auto left-0 z-auto h-full min-h-0 max-h-full translate-x-0 self-stretch;
       width: var(--sidebar-rail-width);
@@ -1206,13 +1210,13 @@
       max-width 0.28s ease;
   }
 
-  @media (min-width: 1024px) {
+  @media (min-width: 800px) {
     .app-sidebar:hover .app-sidebar-label {
       display: inline-block;
     }
   }
 
-  @media (min-width: 1024px) {
+  @media (min-width: 800px) {
     .app-sidebar:not(:hover) .app-sidebar-label {
       display: none;
     }
@@ -1430,7 +1434,7 @@
     border-color: var(--border);
   }
 
-  @media (min-width: 1024px) {
+  @media (min-width: 800px) {
     .app-sidebar-footer {
       @apply mt-auto;
     }
@@ -1962,7 +1966,7 @@
   }
 
   /* ── Tables: mobile ── */
-  @media (max-width: 639px) {
+  @media (max-width: 799px) {
     /** Let split tables scroll inside cards on phones (flush cards default to overflow:hidden). */
     .app-card-flush:has(.app-data-table-shell) {
       overflow-x: auto;
@@ -2505,7 +2509,7 @@
    * iOS Safari zooms the page when an input has font-size < 16px.
    * Keep 16px on touch devices for all form controls.
    */
-  @media (max-width: 768px) {
+  @media (max-width: 799px) {
     input,
     select,
     textarea,
@@ -3418,7 +3422,7 @@
   }
 
   .app-grid-stats-triple {
-    @apply grid gap-4 sm:grid-cols-2 xl:grid-cols-3;
+    @apply grid gap-4 sm:grid-cols-2 desktop:grid-cols-3;
   }
 
   .dashboard-date-filter {
@@ -3691,13 +3695,13 @@
     @apply text-sm text-text-secondary;
   }
 
-  @media (max-width: 1023px) {
+  @media (min-width: 800px) and (max-width: 1279px) {
     .record-drinks-bill-bar {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
-  @media (max-width: 639px) {
+  @media (max-width: 799px) {
     .record-drinks-bill-bar {
       grid-template-columns: minmax(0, 1fr);
     }
@@ -4302,7 +4306,7 @@ input.app-input.app-shop-date-input.flatpickr-input.active {
 }
 
 /* iOS Safari: inputs < 16px trigger page zoom on focus */
-@media (max-width: 639px) {
+@media (max-width: 799px) {
   input.app-shop-date-input,
   input.app-shop-datetime-input {
     font-size: 16px !important;
@@ -4311,7 +4315,7 @@ input.app-input.app-shop-date-input.flatpickr-input.active {
 }
 
 /* Phone: calendar as scrollable bottom sheet (stop/checkout modals) */
-@media (max-width: 639px) {
+@media (max-width: 799px) {
   .app-flatpickr-calendar.flatpickr-calendar.app-flatpickr-calendar--mobile {
     position: fixed !important;
     left: 50% !important;

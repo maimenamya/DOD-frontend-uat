@@ -2,7 +2,9 @@ import type flatpickr from 'flatpickr';
 
 type FlatpickrInput = HTMLInputElement & { _flatpickr?: flatpickr.Instance };
 
-const SHOP_FLATPICKR_MOBILE_MQ = '(max-width: 639px)';
+import { APP_MOBILE_MEDIA_QUERY } from './app-viewport.util';
+
+const SHOP_FLATPICKR_MOBILE_MQ = APP_MOBILE_MEDIA_QUERY;
 
 export function isShopFlatpickrMobileViewport(): boolean {
   return globalThis.matchMedia(SHOP_FLATPICKR_MOBILE_MQ).matches;
