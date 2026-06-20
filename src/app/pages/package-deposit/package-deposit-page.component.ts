@@ -173,6 +173,18 @@ export class PackageDepositPageComponent implements OnInit {
     return row.status === 'OPEN' ? 'เปิดอยู่' : 'ปิดแล้ว';
   }
 
+  customerPrimaryLabel(row: PackageDepositRecord): string {
+    const nickname = this.rowNickname(row);
+    if (nickname) return nickname;
+    const code = row.customerCode?.trim();
+    if (code) return code;
+    return row.customerName?.trim() || '—';
+  }
+
+  showCustomerCodeSubline(row: PackageDepositRecord): boolean {
+    return !!this.rowNickname(row) && !!row.customerCode?.trim();
+  }
+
   rowHeadline(row: PackageDepositRecord): string {
     return row.displayLabel || row.customerCode || row.customerName;
   }

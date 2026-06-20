@@ -500,7 +500,10 @@
   width: 0.5rem;
 }
 
-.open-table-staff-choice .app-segmented-control {
+.open-table-bill-subline {
+  margin-top: 0.125rem;
+}
+
   width: 100%;
 }
 

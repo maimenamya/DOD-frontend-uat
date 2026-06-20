@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { ApiConfig } from '../core/api-config';
 import type {
   MstBeverageStock,
+  MstBeverageStockUpdatePayload,
   MstBeverageStockWritePayload,
 } from '../models/beverage-stock';
 
@@ -23,11 +24,11 @@ export class BeverageStockService {
 
   updateQuantity(
     beverageId: number,
-    quantityOnHand: number,
+    payload: MstBeverageStockUpdatePayload,
   ): Observable<MstBeverageStock> {
     return this.http.put<MstBeverageStock>(
       this.api.resource(`stock/${beverageId}`),
-      { quantityOnHand },
+      payload,
     );
   }
 

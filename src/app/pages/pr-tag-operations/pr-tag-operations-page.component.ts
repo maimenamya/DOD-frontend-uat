@@ -25,7 +25,6 @@ import { roleOptionLabel } from '../../utils/role-display.util';
   selector: 'app-pr-tag-operations-page',
   imports: [ReactiveFormsModule, AppModalComponent, CustomDropdownComponent],
   templateUrl: './pr-tag-operations-page.component.html',
-  styleUrl: './pr-tag-operations-page.component.css',
 })
 export class PrTagOperationsPageComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);

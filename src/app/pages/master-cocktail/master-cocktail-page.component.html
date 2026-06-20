@@ -92,7 +92,7 @@
     } @else {
     <section class="app-card app-card-flush">
       <div class="app-data-table-shell">
-        <div class="app-split-table app-split-table--mobile-stack">
+        <div class="app-split-table app-split-table--wide">
           <div class="app-split-table-header">
             <table class="app-data-table app-split-table-grid">
               <colgroup>
@@ -133,10 +133,10 @@
                   <tr>
                     <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
                     <td class="app-cell-primary">{{ item.name }}</td>
-                    <td class="app-cell-center text-text-secondary" data-label="หน่วย">
+                    <td class="app-cell-center text-text-secondary">
                       {{ item.unitLabelTh }}
                     </td>
-                    <td class="app-cell-right app-cell-highlight-violet" data-label="จำนวนดื่ม">
+                    <td class="app-cell-right app-cell-highlight-violet">
                       {{ item.drinkValue }}
                     </td>
                     @if (canManage()) {

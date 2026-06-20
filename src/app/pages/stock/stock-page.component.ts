@@ -45,7 +45,7 @@ export class StockPageComponent implements OnInit {
   readonly items = signal<MstBeverageStock[]>([]);
   readonly listQuery = new MasterListQueryState();
   readonly listView = createMasterListView(this.items, this.listQuery, (row) =>
-    `${row.beverage?.name ?? ''} ${row.beverage?.category?.name ?? ''} ${row.beverage?.unitLabelTh ?? ''}`,
+    `${row.beverage?.name ?? ''} ${row.beverage?.category?.name ?? ''} ${row.beverage?.unitLabelTh ?? ''} ${row.adjustNote ?? ''}`,
   );
   readonly masterListRowNumber = masterListRowNumber;
   readonly beverages = signal<MstBeverage[]>([]);
@@ -57,19 +57,33 @@ export class StockPageComponent implements OnInit {
   readonly editingItem = signal<MstBeverageStock | null>(null);
 
   readonly beverageOptions = computed(() => {
-    const tracked = new Set(this.items().map((row) => row.beverageId));
-    return this.beverages()
-      .filter((b) => !tracked.has(b.id))
-      .map((b) => ({ value: b.id, label: b.name }));
+    const stockByBeverage = new Map(this.items().map((row) => [row.beverageId, row]));
+    return this.beverages().map((b) => {
+      const stock = stockByBeverage.get(b.id);
+      return {
+        value: b.id,
+        label: stock
+          ? `${b.name} — คงเหลือ ${stock.quantityOnHand} ${b.unitLabelTh}`
+          : b.name,
+      };
+    });
+  });
+
+  readonly selectedCreateBeverageStock = computed(() => {
+    const id = this.createForm.controls.beverageId.value;
+    if (!id || id <= 0) return null;
+    return this.items().find((row) => row.beverageId === id) ?? null;
   });
 
   readonly createForm = this.fb.group({
     beverageId: [0, [Validators.required, Validators.min(1)]],
-    quantityOnHand: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    quantityOnHand: ['1', [Validators.required, Validators.pattern(/^[1-9]\d*$/)]],
+    adjustNote: [''],
   });
 
   readonly editForm = this.fb.group({
     quantityOnHand: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    adjustNote: ['', [Validators.maxLength(500)]],
   });
 
   ngOnInit(): void {
@@ -96,7 +110,7 @@ export class StockPageComponent implements OnInit {
 
   openCreate(): void {
     resetFormValidationFlag(this.createFormValidated);
-    this.createForm.reset({ beverageId: 0, quantityOnHand: '0' });
+    this.createForm.reset({ beverageId: 0, quantityOnHand: '1', adjustNote: '' });
     this.showCreateModal.set(true);
   }
 
@@ -107,7 +121,7 @@ export class StockPageComponent implements OnInit {
   openEdit(item: MstBeverageStock): void {
     resetFormValidationFlag(this.editFormValidated);
     this.editingItem.set(item);
-    this.editForm.reset({ quantityOnHand: String(item.quantityOnHand) });
+    this.editForm.reset({ quantityOnHand: String(item.quantityOnHand), adjustNote: '' });
   }
 
   closeEdit(): void {
@@ -131,11 +145,21 @@ export class StockPageComponent implements OnInit {
 
     const beverageId = this.createForm.controls.beverageId.value;
     const quantityOnHand = Number(this.createForm.controls.quantityOnHand.value);
+    const adjustNote = this.createForm.controls.adjustNote.value.trim();
 
     this.submitting.set(true);
-    this.stockService.create({ beverageId, quantityOnHand }).subscribe({
+    this.stockService
+      .create({
+        beverageId,
+        quantityOnHand,
+        adjustNote: adjustNote || null,
+      })
+      .subscribe({
       next: () => {
-        this.toast.showSuccess('เพิ่มสต็อกแล้ว');
+        const existing = this.selectedCreateBeverageStock();
+        this.toast.showSuccess(
+          existing ? 'เพิ่มจำนวนสต็อกแล้ว' : 'เพิ่มรายการสต็อกแล้ว',
+        );
         this.closeCreate();
         this.reload();
         this.submitting.set(false);
@@ -153,8 +177,14 @@ export class StockPageComponent implements OnInit {
     if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
 
     const quantityOnHand = Number(this.editForm.controls.quantityOnHand.value);
+    const adjustNote = this.editForm.controls.adjustNote.value.trim();
     this.submitting.set(true);
-    this.stockService.updateQuantity(item.beverageId, quantityOnHand).subscribe({
+    this.stockService
+      .updateQuantity(item.beverageId, {
+        quantityOnHand,
+        adjustNote: adjustNote || null,
+      })
+      .subscribe({
       next: () => {
         this.toast.showSuccess('บันทึกจำนวนสต็อกแล้ว');
         this.closeEdit();

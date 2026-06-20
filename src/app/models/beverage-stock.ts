@@ -5,6 +5,7 @@ export interface MstBeverageStock {
   shopId: number;
   beverageId: number;
   quantityOnHand: number;
+  adjustNote: string | null;
   beverage: {
     id: number;
     name: string;
@@ -16,4 +17,10 @@ export interface MstBeverageStock {
 export interface MstBeverageStockWritePayload {
   beverageId: number;
   quantityOnHand: number;
+  adjustNote?: string | null;
+}
+
+export interface MstBeverageStockUpdatePayload {
+  quantityOnHand: number;
+  adjustNote?: string | null;
 }

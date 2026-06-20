@@ -1,9 +1,15 @@
 import { Component, computed, input, output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
+import {
+  CustomDropdownComponent,
+  type DropdownOption,
+} from '../custom-dropdown/custom-dropdown.component';
 import { MASTER_PAGE_SIZE_OPTIONS } from '../../utils/master-list.util';
 
 @Component({
   selector: 'app-list-paginator',
+  imports: [FormsModule, CustomDropdownComponent],
   templateUrl: './list-paginator.component.html',
 })
 export class ListPaginatorComponent {
@@ -17,7 +23,10 @@ export class ListPaginatorComponent {
   readonly pageChange = output<number>();
   readonly limitChange = output<number>();
 
-  readonly pageSizeOptions = MASTER_PAGE_SIZE_OPTIONS;
+  readonly pageSizeDropdownOptions: DropdownOption[] = MASTER_PAGE_SIZE_OPTIONS.map((size) => ({
+    value: size,
+    label: String(size),
+  }));
 
   readonly canGoPrev = computed(() => this.page() > 1);
   readonly canGoNext = computed(() => this.page() < this.totalPages());
@@ -30,8 +39,8 @@ export class ListPaginatorComponent {
     if (this.canGoNext()) this.pageChange.emit(this.page() + 1);
   }
 
-  onLimitSelect(event: Event): void {
-    const value = Number((event.target as HTMLSelectElement).value);
-    if (Number.isFinite(value) && value > 0) this.limitChange.emit(value);
+  onLimitChange(value: number | string | null): void {
+    const n = Number(value);
+    if (Number.isFinite(n) && n > 0) this.limitChange.emit(n);
   }
 }

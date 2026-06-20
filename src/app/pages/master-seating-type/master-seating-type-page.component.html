@@ -2,7 +2,6 @@
   <div class="app-page-header">
     <div>
       <h1 class="app-page-title">ประเภทที่นั่ง</h1>
-      <p class="app-page-subtitle">จัดกลุ่มโซน (VIP ห้อง / โต๊ะโถง) — คิดค่าบริการตั้งที่แต่ละโต๊ะในเมนู «โซนที่นั่ง»</p>
     </div>
     @if (canManage() && !loading()) {
       <button type="button" (click)="openCreate()" class="app-btn-primary">เพิ่มประเภท</button>
@@ -81,7 +80,7 @@
     } @else {
     <section class="app-card app-card-flush">
       <div class="app-data-table-shell">
-        <div class="app-split-table app-split-table--mobile-stack">
+        <div class="app-split-table">
           <div class="app-split-table-header">
             <table class="app-data-table app-split-table-grid">
               <colgroup>
@@ -119,7 +118,7 @@
                   <tr>
                     <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
                     <td class="app-cell-primary">{{ item.name }}</td>
-                    <td class="text-text-secondary" data-label="รหัส">{{ item.code }}</td>
+                    <td class="text-text-secondary">{{ item.code }}</td>
                     @if (canManage()) {
                       <td class="app-cell-right">
                         <div class="app-table-actions">

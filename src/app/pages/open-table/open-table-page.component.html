@@ -553,16 +553,6 @@
                         เบิก
                       </button>
                     }
-                    @if (ledgerCanMutate() && item.canDepositPackageBottle) {
-                      <button
-                        type="button"
-                        class="app-btn-inline shrink-0"
-                        [disabled]="actionBusy()"
-                        (click)="openPackageBottleModal('DEPOSIT', item)"
-                      >
-                        ฝาก
-                      </button>
-                    }
                     @if (ledgerCanMutate() && item.canVoid) {
                       <button
                         type="button"
@@ -587,6 +577,13 @@
                       {{ itemLineTotal(item) | number: '1.0-0' }} บาท
                     </span>
                   </p>
+                  @for (move of packageBottleWithdrawMoves(item); track move.id) {
+                    <p class="open-table-bill-subline pl-3 text-xs leading-snug text-text-secondary">
+                      <span class="text-theme-accent">↳ เบิก</span>
+                      {{ move.displayName }}
+                      <span class="font-mono">× {{ move.quantity }}</span>
+                    </p>
+                  }
                 </div>
               } @empty {
                 <p class="text-text-secondary">ยังไม่มีรายการ</p>
@@ -935,7 +932,7 @@
                 [options]="packageDepositDropdownOptions()"
                 [ngModel]="selectedPackageDepositId()"
                 (ngModelChange)="onPackageDepositChange($event)"
-                placeholder="รหัส — ชื่อโปร"
+                placeholder="ชื่อลูกค้า — ชื่อโปร"
               />
             </div>
           } @else {
@@ -964,13 +961,13 @@
                 <p class="app-hint">รหัสเดิม + โปรเดิม → รวมเข้าฝากเดิมอัตโนมัติ</p>
               </div>
               <div class="app-form-group">
-                <label class="app-label">ชื่อเล่น (ไม่บังคับ)</label>
+                <label class="app-label">ชื่อลูกค้า (ไม่บังคับ)</label>
                 <input
                   type="text"
                   class="app-input"
                   [ngModel]="packageCustomerName()"
                   (ngModelChange)="onPackageCustomerNameChange($event)"
-                  placeholder="ช่วยจำลูกค้า — ชื่อซ้ำได้"
+                  placeholder="ชื่อที่จำง่าย เช่น ต้น, พี่เอ"
                 />
               </div>
             }
@@ -985,7 +982,7 @@
                 [options]="packageDepositDropdownOptions()"
                 [ngModel]="selectedPackageDepositId()"
                 (ngModelChange)="onPackageDepositChange($event)"
-                placeholder="รหัส — ชื่อเมม"
+                placeholder="ชื่อลูกค้า — ชื่อเมม"
               />
             </div>
           } @else {
@@ -1014,13 +1011,13 @@
                 <p class="app-hint">รหัสเดิม + เมมเดิม → รวมเข้าฝากเดิมอัตโนมัติ</p>
               </div>
               <div class="app-form-group">
-                <label class="app-label">ชื่อเล่น (ไม่บังคับ)</label>
+                <label class="app-label">ชื่อลูกค้า (ไม่บังคับ)</label>
                 <input
                   type="text"
                   class="app-input"
                   [ngModel]="packageCustomerName()"
                   (ngModelChange)="onPackageCustomerNameChange($event)"
-                  placeholder="ช่วยจำลูกค้า — ชื่อซ้ำได้"
+                  placeholder="ชื่อที่จำง่าย เช่น ต้น, พี่เอ"
                 />
               </div>
             }

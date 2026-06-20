@@ -27,6 +27,7 @@ import type {
   FloorPlanKpi,
   StopStaffDrinkPreview,
   OpenTableSessionDetail,
+  PackageBottleMoveLine,
   SeatStatus,
   SessionOrderItem,
   SessionRoomCharge,
@@ -1383,7 +1384,12 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   private packageDepositOptionLabel(row: PackageDepositRecord): string {
-    return row.displayLabel || row.customerCode || row.customerName;
+    const code = row.customerCode?.trim();
+    const name = row.customerName?.trim();
+    const nickname = name && name !== code ? name : null;
+    if (nickname && code) return `${nickname} (${code})`;
+    if (nickname) return nickname;
+    return code || name || '—';
   }
 
   private normalizePackageCustomerCode(value: string): string | null {
@@ -2423,6 +2429,10 @@ export class OpenTablePageComponent implements OnInit {
       return null;
     }
     return `${item.packageBottlesRemaining}/${item.packageBottlesTotal}`;
+  }
+
+  packageBottleWithdrawMoves(item: SessionOrderItem): PackageBottleMoveLine[] {
+    return (item.packageBottleMoves ?? []).filter((move) => move.action === 'WITHDRAW');
   }
 
   billItemKey(item: SessionOrderItem): string {
