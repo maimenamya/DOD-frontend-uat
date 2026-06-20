@@ -6,7 +6,9 @@ export interface PackageDepositRecord {
   sourceType: PackageDepositSourceType;
   sourceId: number;
   packageName: string;
+  customerCode: string | null;
   customerName: string;
+  displayLabel: string;
   openedOnLabel: string;
   bottlesTotal: number;
   bottlesRemaining: number;

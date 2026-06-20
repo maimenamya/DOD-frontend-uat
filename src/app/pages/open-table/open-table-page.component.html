@@ -935,7 +935,7 @@
                 [options]="packageDepositDropdownOptions()"
                 [ngModel]="selectedPackageDepositId()"
                 (ngModelChange)="onPackageDepositChange($event)"
-                placeholder="ชื่อลูกค้า — ชื่อโปร"
+                placeholder="รหัส — ชื่อโปร"
               />
             </div>
           } @else {
@@ -948,16 +948,32 @@
                 placeholder="เลือกโปร"
               />
             </div>
-            <div class="app-form-group">
-              <label class="app-label">ชื่อลูกค้า</label>
-              <input
-                type="text"
-                class="app-input"
-                [ngModel]="packageCustomerName()"
-                (ngModelChange)="onPackageCustomerNameChange($event)"
-                placeholder="ชื่อลูกค้าที่ฝาก"
-              />
-            </div>
+            @if (selectedPackageAllowsDeposit()) {
+              <div class="app-form-group">
+                <label class="app-label">รหัสลูกค้า (3 หลัก)</label>
+                <input
+                  type="text"
+                  class="app-input font-mono tracking-widest"
+                  maxlength="3"
+                  inputmode="numeric"
+                  pattern="[0-9]{3}"
+                  [ngModel]="packageCustomerCode()"
+                  (ngModelChange)="onPackageCustomerCodeChange($event)"
+                  placeholder="เช่น 042"
+                />
+                <p class="app-hint">รหัสเดิม + โปรเดิม → รวมเข้าฝากเดิมอัตโนมัติ</p>
+              </div>
+              <div class="app-form-group">
+                <label class="app-label">ชื่อเล่น (ไม่บังคับ)</label>
+                <input
+                  type="text"
+                  class="app-input"
+                  [ngModel]="packageCustomerName()"
+                  (ngModelChange)="onPackageCustomerNameChange($event)"
+                  placeholder="ช่วยจำลูกค้า — ชื่อซ้ำได้"
+                />
+              </div>
+            }
           }
         }
 
@@ -969,7 +985,7 @@
                 [options]="packageDepositDropdownOptions()"
                 [ngModel]="selectedPackageDepositId()"
                 (ngModelChange)="onPackageDepositChange($event)"
-                placeholder="ชื่อลูกค้า — ชื่อเมม"
+                placeholder="รหัส — ชื่อเมม"
               />
             </div>
           } @else {
@@ -982,16 +998,32 @@
                 placeholder="เลือกเมมเบอร์"
               />
             </div>
-            <div class="app-form-group">
-              <label class="app-label">ชื่อลูกค้า</label>
-              <input
-                type="text"
-                class="app-input"
-                [ngModel]="packageCustomerName()"
-                (ngModelChange)="onPackageCustomerNameChange($event)"
-                placeholder="ชื่อลูกค้าที่ฝาก"
-              />
-            </div>
+            @if (selectedPackageAllowsDeposit()) {
+              <div class="app-form-group">
+                <label class="app-label">รหัสลูกค้า (3 หลัก)</label>
+                <input
+                  type="text"
+                  class="app-input font-mono tracking-widest"
+                  maxlength="3"
+                  inputmode="numeric"
+                  pattern="[0-9]{3}"
+                  [ngModel]="packageCustomerCode()"
+                  (ngModelChange)="onPackageCustomerCodeChange($event)"
+                  placeholder="เช่น 042"
+                />
+                <p class="app-hint">รหัสเดิม + เมมเดิม → รวมเข้าฝากเดิมอัตโนมัติ</p>
+              </div>
+              <div class="app-form-group">
+                <label class="app-label">ชื่อเล่น (ไม่บังคับ)</label>
+                <input
+                  type="text"
+                  class="app-input"
+                  [ngModel]="packageCustomerName()"
+                  (ngModelChange)="onPackageCustomerNameChange($event)"
+                  placeholder="ช่วยจำลูกค้า — ชื่อซ้ำได้"
+                />
+              </div>
+            }
           }
         }
 

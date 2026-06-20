@@ -1,4 +1,3 @@
-import { NgTemplateOutlet } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import {
   FormsModule,
@@ -8,7 +7,8 @@ import {
 } from '@angular/forms';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
-import type { PackageDepositRecord } from '../../models/package-deposit';
+import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
+import type { PackageDepositRecord, PackageDepositSourceType } from '../../models/package-deposit';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { PackageDepositService } from '../../services/package-deposit.service';
 import { ToastService } from '../../services/toast.service';
@@ -17,10 +17,18 @@ import {
   resetFormValidationFlag,
 } from '../../utils/form-validation.util';
 
+type DepositSourceTab = PackageDepositSourceType;
+
 @Component({
   selector: 'app-package-deposit-page',
-  imports: [NgTemplateOutlet, FormsModule, ReactiveFormsModule, AppModalComponent],
+  imports: [
+    FormsModule,
+    ReactiveFormsModule,
+    AppModalComponent,
+    MasterListToolbarComponent,
+  ],
   templateUrl: './package-deposit-page.component.html',
+  styleUrl: './package-deposit-page.component.css',
 })
 export class PackageDepositPageComponent implements OnInit {
   private readonly packageDeposits = inject(PackageDepositService);
@@ -33,18 +41,39 @@ export class PackageDepositPageComponent implements OnInit {
   readonly submitting = signal(false);
   readonly depositFormValidated = signal(false);
   readonly depositTarget = signal<PackageDepositRecord | null>(null);
+  readonly sourceTab = signal<DepositSourceTab>('MEMBERSHIP');
+  readonly searchQuery = signal('');
 
   readonly depositForm = this.fb.group({
     quantity: ['1', [Validators.required, Validators.pattern(/^[1-9]\d*$/)]],
     remainderNote: [''],
   });
 
-  readonly membershipItems = computed(() =>
-    this.items().filter((row) => row.sourceType === 'MEMBERSHIP'),
-  );
+  readonly visibleItems = computed(() => {
+    const tab = this.sourceTab();
+    const q = this.searchQuery().trim().toLowerCase();
+    return this.items()
+      .filter((row) => row.sourceType === tab)
+      .filter((row) => {
+        if (!q) return true;
+        const haystack = [
+          row.customerCode,
+          row.customerName,
+          row.displayLabel,
+          row.packageName,
+          row.openedOnLabel,
+          row.bottlesLabel,
+          row.remainderNote,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+        return haystack.includes(q);
+      });
+  });
 
-  readonly promotionItems = computed(() =>
-    this.items().filter((row) => row.sourceType === 'PROMOTION'),
+  readonly emptyText = computed(() =>
+    this.sourceTab() === 'MEMBERSHIP' ? 'ยังไม่มีรายการฝากเมม' : 'ยังไม่มีรายการฝากโปร',
   );
 
   ngOnInit(): void {
@@ -63,6 +92,14 @@ export class PackageDepositPageComponent implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  selectSourceTab(tab: DepositSourceTab): void {
+    this.sourceTab.set(tab);
+  }
+
+  onSearchChange(value: string): void {
+    this.searchQuery.set(value);
   }
 
   openDeposit(row: PackageDepositRecord): void {
@@ -116,7 +153,7 @@ export class PackageDepositPageComponent implements OnInit {
     if (!row.canClose) return;
     const ok = await this.confirmDialog.confirm({
       title: 'ปิดรายการฝาก',
-      message: `ยืนยันปิดรายการฝากของ ${row.customerName} (${row.packageName}) — กินหมดแล้วไม่มีเหล้าเหลือ`,
+      message: `ยืนยันปิดรายการฝาก ${this.rowHeadline(row)} — กินหมดแล้วไม่มีเหล้าเหลือ`,
       confirmLabel: 'ปิดรายการ',
     });
     if (!ok) return;
@@ -134,5 +171,16 @@ export class PackageDepositPageComponent implements OnInit {
 
   statusLabel(row: PackageDepositRecord): string {
     return row.status === 'OPEN' ? 'เปิดอยู่' : 'ปิดแล้ว';
+  }
+
+  rowHeadline(row: PackageDepositRecord): string {
+    return row.displayLabel || row.customerCode || row.customerName;
+  }
+
+  rowNickname(row: PackageDepositRecord): string | null {
+    const code = row.customerCode?.trim();
+    const name = row.customerName?.trim();
+    if (!name || name === code) return null;
+    return name;
   }
 }
