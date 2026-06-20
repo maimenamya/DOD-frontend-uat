@@ -53,6 +53,7 @@ export class PackageDepositPageComponent implements OnInit {
     const tab = this.sourceTab();
     const q = this.searchQuery().trim().toLowerCase();
     return this.items()
+      .filter((row) => row.status === 'OPEN')
       .filter((row) => row.sourceType === tab)
       .filter((row) => {
         if (!q) return true;
@@ -171,6 +172,19 @@ export class PackageDepositPageComponent implements OnInit {
 
   statusLabel(row: PackageDepositRecord): string {
     return row.status === 'OPEN' ? 'เปิดอยู่' : 'ปิดแล้ว';
+  }
+
+  customerNameDisplay(row: PackageDepositRecord): string {
+    const nickname = this.rowNickname(row);
+    if (nickname) return nickname;
+    const name = row.customerName?.trim();
+    const code = row.customerCode?.trim();
+    if (name && name !== code) return name;
+    return '—';
+  }
+
+  customerCodeDisplay(row: PackageDepositRecord): string {
+    return row.customerCode?.trim() || '—';
   }
 
   customerPrimaryLabel(row: PackageDepositRecord): string {
