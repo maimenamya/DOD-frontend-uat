@@ -275,12 +275,10 @@ export class BillReceiptService {
       receipt.receiptFormat === 'png_raster' && receipt.receiptPngBase64.trim().length > 0;
 
     try {
-      frameDoc.open();
       if (useServerPng) {
-        frameDoc.write(this.buildReceiptPngPrintHtml(receipt));
-        frameDoc.close();
-        this.triggerPngPrintWhenReady(targetWindow, () => this.removePrintFrame(iframe));
+        this.runPngDesktopPrint(targetWindow, frameDoc, receipt, iframe);
       } else {
+        frameDoc.open();
         const built = this.buildReceiptPrintDocument(receipt);
         frameDoc.write(built.html);
         frameDoc.close();
@@ -301,9 +299,12 @@ export class BillReceiptService {
   }
 
   /** Same PNG as Tablet + RawBT (backend receipt-image.util.ts). */
-  private buildReceiptPngPrintHtml(receipt: BillReceiptResponse['receipt']): string {
+  private buildReceiptPngPrintHtml(
+    receipt: BillReceiptResponse['receipt'],
+    imageSrc: string,
+  ): string {
     const widthMm = receipt.paperWidthMm >= 80 ? 80 : 58;
-    const base64 = receipt.receiptPngBase64.replace(/\s/g, '');
+    const rasterPx = widthMm >= 80 ? 576 : 384;
     return `<!DOCTYPE html>
 <html lang="th">
 <head>
@@ -314,24 +315,85 @@ export class BillReceiptService {
     html, body {
       margin: 0;
       padding: 0;
-      width: ${widthMm}mm;
+      width: ${rasterPx}px;
       background: #fff;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
     img {
       display: block;
-      width: ${widthMm}mm;
-      max-width: ${widthMm}mm;
+      width: ${rasterPx}px;
+      max-width: ${rasterPx}px;
       height: auto;
       margin: 0;
+      image-rendering: crisp-edges;
+      image-rendering: pixelated;
     }
   </style>
 </head>
 <body>
-  <img id="receipt-img" src="data:image/png;base64,${base64}" alt="ใบเสร็จ" />
+  <img id="receipt-img" src="${imageSrc}" alt="ใบเสร็จ" />
 </body>
 </html>`;
+  }
+
+  /** B&W threshold so USB thermal drivers do not halftone grey anti-alias into blotches. */
+  private thresholdReceiptPngDataUrl(base64: string, threshold = 170): Promise<string> {
+    const clean = base64.replace(/\s/g, '');
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('canvas'));
+          return;
+        }
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const d = imageData.data;
+        for (let i = 0; i < d.length; i += 4) {
+          const gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+          const v = gray < threshold ? 0 : 255;
+          d[i] = v;
+          d[i + 1] = v;
+          d[i + 2] = v;
+          d[i + 3] = 255;
+        }
+        ctx.putImageData(imageData, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = () => reject(new Error('png load'));
+      img.src = `data:image/png;base64,${clean}`;
+    });
+  }
+
+  private runPngDesktopPrint(
+    targetWindow: Window,
+    frameDoc: Document,
+    receipt: BillReceiptResponse['receipt'],
+    iframe: HTMLIFrameElement,
+  ): void {
+    const cleanup = () => this.removePrintFrame(iframe);
+    const finish = (imageSrc: string) => {
+      try {
+        frameDoc.open();
+        frameDoc.write(this.buildReceiptPngPrintHtml(receipt, imageSrc));
+        frameDoc.close();
+        this.triggerPngPrintWhenReady(targetWindow, cleanup);
+      } catch {
+        cleanup();
+      }
+    };
+
+    void this.thresholdReceiptPngDataUrl(receipt.receiptPngBase64)
+      .then(finish)
+      .catch(() => {
+        const fallback = `data:image/png;base64,${receipt.receiptPngBase64.replace(/\s/g, '')}`;
+        finish(fallback);
+      });
   }
 
   private triggerPngPrintWhenReady(targetWindow: Window, cleanup?: () => void): void {
