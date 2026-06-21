@@ -18,8 +18,8 @@ export type PrintReceiptOptions = {
   printFrame?: HTMLIFrameElement | null;
 };
 
-/** PC USB browser print — slightly narrower than nominal paper (driver variance). */
-const PC_USB_PRINT_WIDTH_SCALE = 1;
+/** PC USB browser print — 5% narrower than nominal paper (driver variance). */
+const PC_USB_PRINT_WIDTH_SCALE = 0.95;
 const RAWBT_PACKAGE = 'ru.a402d.rawbtprinter';
 /** iOS Safari truncates very long custom-scheme URLs — keep Thermer payload under this. */
 const THERMER_MAX_URL_LEN = 180_000;
@@ -300,7 +300,7 @@ export class BillReceiptService {
     return true;
   }
 
-  /** PC USB print — same source PNG as RawBT; B&W threshold only on canvas. */
+  /** PC USB print — same source PNG as RawBT; B&W threshold + width scale on canvas. */
   private buildReceiptPngPrintHtml(
     receipt: BillReceiptResponse['receipt'],
     imageSrc: string,
@@ -357,7 +357,8 @@ export class BillReceiptService {
           reject(new Error('png size'));
           return;
         }
-        const outH = Math.max(1, Math.round((srcH * rasterPx) / srcW));
+        const drawW = Math.max(1, Math.round(rasterPx * PC_USB_PRINT_WIDTH_SCALE));
+        const outH = Math.max(1, Math.round((srcH * drawW) / srcW));
         const canvas = document.createElement('canvas');
         canvas.width = rasterPx;
         canvas.height = outH;
@@ -366,8 +367,10 @@ export class BillReceiptService {
           reject(new Error('canvas'));
           return;
         }
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(img, 0, 0, rasterPx, outH);
+        ctx.drawImage(img, 0, 0, drawW, outH);
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const d = imageData.data;
         for (let i = 0; i < d.length; i += 4) {
