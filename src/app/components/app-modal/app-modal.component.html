@@ -1,6 +1,6 @@
 <div
   class="app-modal-overlay"
-  [class.app-modal-overlay--sheet]="layout() === 'sheet'"
+  [class.app-modal-overlay--sheet]="resolvedLayout() === 'sheet'"
   role="dialog"
   aria-modal="true"
   (pointerdown)="onBackdropPointerDown($event)"

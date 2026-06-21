@@ -701,6 +701,11 @@
   }
 
   @media (min-width: 1000px) {
+    /* overflow-hidden on .page-background breaks sidebar position: sticky */
+    .app-layout {
+      overflow: visible;
+    }
+
     .app-sidebar-slot {
       position: sticky;
       top: 1rem;
@@ -709,6 +714,7 @@
       height: calc(100dvh - 2rem);
       max-height: calc(100dvh - 2rem);
       padding: 0;
+      z-index: 30;
       transition: width 0.28s ease;
     }
 

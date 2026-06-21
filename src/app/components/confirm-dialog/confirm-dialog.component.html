@@ -1,5 +1,5 @@
 @if (open()) {
-  <app-modal layout="center" (dismiss)="cancel.emit()">
+  <app-modal layout="center" [pinCenterOnMobile]="true" (dismiss)="cancel.emit()">
     <div class="app-modal-header">
       <h2 class="app-modal-title">{{ title() }}</h2>
       <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="cancel.emit()">✕</button>

@@ -63,16 +63,15 @@
   }
 
   @if (editingEmployee(); as emp) {
-    <div class="app-modal-overlay" role="dialog">
-      <div class="app-modal">
-        <div class="app-modal-header">
-          <h2 class="app-modal-title">Edit member</h2>
-          <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
-        </div>
-        <p class="app-page-subtitle app-page-subtitle-spaced">
-          ID: <span class="app-cell-mono">{{ emp.employeeId }}</span>
-        </p>
-        <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
+    <app-modal (dismiss)="closeEdit()">
+      <div class="app-modal-header">
+        <h2 class="app-modal-title">Edit member</h2>
+        <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
+      </div>
+      <p class="app-page-subtitle app-page-subtitle-spaced">
+        ID: <span class="app-cell-mono">{{ emp.employeeId }}</span>
+      </p>
+      <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
           <div class="app-form-group">
             <label class="app-label">ชื่อเล่น</label>
             <input type="text" formControlName="nickname" class="app-input" />
@@ -110,8 +109,7 @@
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </app-modal>
   }
 
   @if (loading()) {

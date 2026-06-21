@@ -17,6 +17,7 @@ import {
 import type { MstEmployee } from '../../models/employee';
 import type { EmployeeTeam } from '../../models/employee';
 import type { MstRole } from '../../models/role';
+import { AppModalComponent } from '../../components/app-modal/app-modal.component';
 import { AuthService } from '../../services/auth.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { roleBadgeClass, roleDisplayNameTh, roleOptionLabel } from '../../utils/role-display.util';
@@ -32,7 +33,7 @@ export interface TeamPageConfig {
 
 @Component({
   selector: 'app-employee-team-page',
-  imports: [ReactiveFormsModule, CustomDropdownComponent],
+  imports: [ReactiveFormsModule, CustomDropdownComponent, AppModalComponent],
   templateUrl: './employee-team-page.component.html',
 })
 export class EmployeeTeamPageComponent implements OnInit {
