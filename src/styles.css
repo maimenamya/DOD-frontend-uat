@@ -3789,7 +3789,7 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  @media (max-width: 900px) {
+  @media (max-width: 999px) {
     .record-drinks-lines-scroll--multi {
       --record-drinks-row-slot: 10.5rem;
       --record-drinks-row-gap: 0.75rem;
