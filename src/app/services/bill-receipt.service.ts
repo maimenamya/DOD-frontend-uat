@@ -18,7 +18,8 @@ export type PrintReceiptOptions = {
   printFrame?: HTMLIFrameElement | null;
 };
 
-const RAWBT_PACKAGE = 'ru.a402d.rawbtprinter';
+/** PC USB browser print — slightly narrower than nominal paper (driver variance). */
+const PC_USB_PRINT_WIDTH_SCALE = 0.95;
 /** iOS Safari truncates very long custom-scheme URLs — keep Thermer payload under this. */
 const THERMER_MAX_URL_LEN = 180_000;
 
@@ -304,6 +305,7 @@ export class BillReceiptService {
     imageSrc: string,
   ): string {
     const widthMm = receipt.paperWidthMm >= 80 ? 80 : 58;
+    const printWidthMm = Math.round(widthMm * PC_USB_PRINT_WIDTH_SCALE * 10) / 10;
     const rasterPx = widthMm >= 80 ? 576 : 384;
     return `<!DOCTYPE html>
 <html lang="th">
@@ -311,20 +313,20 @@ export class BillReceiptService {
   <meta charset="utf-8" />
   <title>ใบเสร็จ</title>
   <style>
-    @page { margin: 0; size: ${widthMm}mm auto; }
+    @page { margin: 0; size: ${printWidthMm}mm auto; }
     html, body {
       margin: 0;
       padding: 0;
-      width: ${widthMm}mm;
-      max-width: ${widthMm}mm;
+      width: ${printWidthMm}mm;
+      max-width: ${printWidthMm}mm;
       background: #fff;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
     img {
       display: block;
-      width: ${widthMm}mm;
-      max-width: ${widthMm}mm;
+      width: ${printWidthMm}mm;
+      max-width: ${printWidthMm}mm;
       height: auto;
       margin: 0;
       image-rendering: crisp-edges;
