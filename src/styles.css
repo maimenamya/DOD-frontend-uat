@@ -3827,7 +3827,7 @@
     overflow: visible;
   }
 
-  @media (max-width: 900px) {
+  @media (max-width: 999px) {
     .record-drinks-row {
       grid-template-columns: 1fr 1fr;
     }
