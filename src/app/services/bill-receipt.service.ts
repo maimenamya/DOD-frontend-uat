@@ -259,7 +259,6 @@ export class BillReceiptService {
   }
 
   private printDesktopBrowserReceipt(receipt: BillReceiptResponse['receipt']): boolean {
-    const built = this.buildReceiptPrintDocument(receipt);
     const iframe = this.createPrintFrame();
     if (!iframe) {
       return false;
@@ -272,23 +271,90 @@ export class BillReceiptService {
       return false;
     }
 
+    const useServerPng =
+      receipt.receiptFormat === 'png_raster' && receipt.receiptPngBase64.trim().length > 0;
+
     try {
       frameDoc.open();
-      frameDoc.write(built.html);
-      frameDoc.close();
+      if (useServerPng) {
+        frameDoc.write(this.buildReceiptPngPrintHtml(receipt));
+        frameDoc.close();
+        this.triggerPngPrintWhenReady(targetWindow, () => this.removePrintFrame(iframe));
+      } else {
+        const built = this.buildReceiptPrintDocument(receipt);
+        frameDoc.write(built.html);
+        frameDoc.close();
+        this.triggerPrintWhenReady(
+          targetWindow,
+          built.widthMm,
+          built.rasterPx,
+          built.printBottomPadPx,
+          () => this.removePrintFrame(iframe),
+        );
+      }
     } catch {
       this.removePrintFrame(iframe);
       return false;
     }
 
-    this.triggerPrintWhenReady(
-      targetWindow,
-      built.widthMm,
-      built.rasterPx,
-      built.printBottomPadPx,
-      () => this.removePrintFrame(iframe),
-    );
     return true;
+  }
+
+  /** Same PNG as Tablet + RawBT (backend receipt-image.util.ts). */
+  private buildReceiptPngPrintHtml(receipt: BillReceiptResponse['receipt']): string {
+    const widthMm = receipt.paperWidthMm >= 80 ? 80 : 58;
+    const base64 = receipt.receiptPngBase64.replace(/\s/g, '');
+    return `<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <title>ใบเสร็จ</title>
+  <style>
+    @page { margin: 0; size: ${widthMm}mm auto; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: ${widthMm}mm;
+      background: #fff;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    img {
+      display: block;
+      width: ${widthMm}mm;
+      max-width: ${widthMm}mm;
+      height: auto;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <img id="receipt-img" src="data:image/png;base64,${base64}" alt="ใบเสร็จ" />
+</body>
+</html>`;
+  }
+
+  private triggerPngPrintWhenReady(targetWindow: Window, cleanup?: () => void): void {
+    const frameDoc = targetWindow.document;
+    let printed = false;
+
+    const triggerPrint = () => {
+      if (printed) return;
+      printed = true;
+      targetWindow.focus();
+      targetWindow.print();
+      setTimeout(() => cleanup?.(), 1000);
+    };
+
+    const img = frameDoc.getElementById('receipt-img') as HTMLImageElement | null;
+    if (img?.complete && img.naturalWidth > 0) {
+      triggerPrint();
+      return;
+    }
+    img?.addEventListener('load', () => triggerPrint(), { once: true });
+    img?.addEventListener('error', () => triggerPrint(), { once: true });
+    targetWindow.addEventListener('load', () => triggerPrint(), { once: true });
+    setTimeout(triggerPrint, 3000);
   }
 
   /** iOS/Android — preview + print on second tap (keeps user gesture for window.print). */
