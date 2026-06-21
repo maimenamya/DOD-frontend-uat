@@ -20,6 +20,11 @@ export type PrintReceiptOptions = {
 
 /** PC USB browser print — slightly narrower than nominal paper (driver variance). */
 const PC_USB_PRINT_WIDTH_SCALE = 1;
+/** PC USB only — Tablet + RawBT use backend PNG/ESC as-is. */
+const PC_USB_TOP_PAD_PX = 20;
+const PC_USB_RIGHT_MARGIN_MM = 10;
+const PC_USB_SHEET_WIDTH_RATIO = 0.81;
+const PC_USB_FONT_SCALE = 19 / 23;
 const RAWBT_PACKAGE = 'ru.a402d.rawbtprinter';
 /** iOS Safari truncates very long custom-scheme URLs — keep Thermer payload under this. */
 const THERMER_MAX_URL_LEN = 180_000;
@@ -300,7 +305,7 @@ export class BillReceiptService {
     return true;
   }
 
-  /** Same PNG as Tablet + RawBT (backend receipt-image.util.ts). */
+  /** PC USB print — source PNG matches RawBT; layout tweaks applied on canvas first. */
   private buildReceiptPngPrintHtml(
     receipt: BillReceiptResponse['receipt'],
     imageSrc: string,
@@ -341,10 +346,11 @@ export class BillReceiptService {
 </html>`;
   }
 
-  /** B&W threshold; lock width to thermal dot count (384/576) like RawBT raster. */
+  /** PC USB — B&W threshold + margin/font layout (RawBT skips this path). */
   private thresholdReceiptPngDataUrl(
     base64: string,
     rasterPx: number,
+    paperWidthMm: number,
     threshold = 170,
   ): Promise<string> {
     const clean = base64.replace(/\s/g, '');
@@ -357,17 +363,29 @@ export class BillReceiptService {
           reject(new Error('png size'));
           return;
         }
-        const outH = Math.max(1, Math.round((srcH * rasterPx) / srcW));
+        const rightMarginPx = Math.round(
+          (rasterPx / paperWidthMm) * PC_USB_RIGHT_MARGIN_MM,
+        );
+        const maxContentW = Math.floor(
+          (rasterPx - rightMarginPx) * PC_USB_SHEET_WIDTH_RATIO,
+        );
+        const scaledW = Math.max(
+          1,
+          Math.min(maxContentW, Math.round(srcW * PC_USB_FONT_SCALE)),
+        );
+        const scaledH = Math.max(1, Math.round((srcH * scaledW) / srcW));
         const canvas = document.createElement('canvas');
         canvas.width = rasterPx;
-        canvas.height = outH;
+        canvas.height = PC_USB_TOP_PAD_PX + scaledH;
         const ctx = canvas.getContext('2d');
         if (!ctx) {
           reject(new Error('canvas'));
           return;
         }
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(img, 0, 0, rasterPx, outH);
+        ctx.drawImage(img, 0, PC_USB_TOP_PAD_PX, scaledW, scaledH);
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const d = imageData.data;
         for (let i = 0; i < d.length; i += 4) {
@@ -405,7 +423,11 @@ export class BillReceiptService {
     };
 
     const rasterPx = receipt.paperWidthMm >= 80 ? 576 : 384;
-    void this.thresholdReceiptPngDataUrl(receipt.receiptPngBase64, rasterPx)
+    void this.thresholdReceiptPngDataUrl(
+      receipt.receiptPngBase64,
+      rasterPx,
+      receipt.paperWidthMm,
+    )
       .then(finish)
       .catch(() => {
         const fallback = `data:image/png;base64,${receipt.receiptPngBase64.replace(/\s/g, '')}`;
