@@ -18,8 +18,14 @@ import {
   splitShopDatetimeLocal,
 } from '../../pages/open-table/open-table-ledger.util';
 import {
+  bindShopFlatpickrTimeInputsWithConfirm,
+  blurShopFlatpickrTypingFocus,
   closeShopFlatpickrMobileChrome,
+  isShopFlatpickrMobileViewport,
+  setupShopFlatpickrMobileKeyboardGuard,
   syncShopFlatpickrOnOpen,
+  unwatchShopFlatpickrKeyboardOverlap,
+  watchShopFlatpickrKeyboardOverlap,
 } from '../../utils/flatpickr-shop.util';
 
 /** Date + time field — opens a popup calendar on click (appendTo body for modals). */
@@ -63,6 +69,8 @@ export class ShopDatetimeInputComponent
   private onChange: (value: string) => void = () => {};
   private onTouched: () => void = () => {};
   private clickTarget: HTMLElement | null = null;
+  private timeInputTeardown: (() => void) | null = null;
+  private keyboardGuardTeardown: (() => void) | null = null;
   private readonly onClickTarget = (event: MouseEvent): void => {
     event.stopPropagation();
     if (this.disabled || !this.fp) return;
@@ -105,6 +113,8 @@ export class ShopDatetimeInputComponent
         this.clickTarget.classList.add('cursor-pointer');
         this.clickTarget.addEventListener('click', this.onClickTarget);
         this.syncPickerFromPending(instance);
+        this.keyboardGuardTeardown?.();
+        this.keyboardGuardTeardown = setupShopFlatpickrMobileKeyboardGuard(instance);
         if (needsConfirm) {
           const confirmEl = instance.calendarContainer.querySelector('.flatpickr-confirm');
           confirmEl?.addEventListener(
@@ -114,6 +124,10 @@ export class ShopDatetimeInputComponent
             },
             { capture: true },
           );
+          this.timeInputTeardown?.();
+          this.timeInputTeardown = bindShopFlatpickrTimeInputsWithConfirm(instance, {
+            onTimeApplied: () => this.syncPendingFromFlatpickr(instance),
+          });
         }
       },
       onOpen: (_dates, _str, instance) => {
@@ -122,8 +136,13 @@ export class ShopDatetimeInputComponent
           this.closeConfirmed = false;
         }
         syncShopFlatpickrOnOpen(instance);
+        watchShopFlatpickrKeyboardOverlap(instance);
+        if (isShopFlatpickrMobileViewport()) {
+          requestAnimationFrame(() => blurShopFlatpickrTypingFocus(instance));
+        }
       },
       onClose: () => {
+        unwatchShopFlatpickrKeyboardOverlap();
         closeShopFlatpickrMobileChrome();
         if (needsConfirm && this.fp) {
           if (this.closeConfirmed && isValidShopDatetimeLocal(this.pendingValue)) {
@@ -141,17 +160,19 @@ export class ShopDatetimeInputComponent
         if (!needsConfirm || e.key !== 'Enter') return;
         const target = e.target;
         if (!(target instanceof HTMLElement)) return;
-        const inTime = instance.timeContainer?.contains(target) ?? false;
-        const onConfirm = target.classList.contains('flatpickr-confirm');
-        if (!inTime && !onConfirm) return;
+        if (!target.classList.contains('flatpickr-confirm')) return;
         this.syncPendingFromFlatpickr(instance);
         this.closeConfirmed = true;
       },
-      onChange: (_dates, dateStr) => {
+      onChange: (_dates, dateStr, instance) => {
         const shop = this.flatpickrDisplayToShop(dateStr);
         this.pendingValue = shop;
         if (!needsConfirm) {
           this.onChange(shop);
+        }
+        if (isShopFlatpickrMobileViewport()) {
+          requestAnimationFrame(() => blurShopFlatpickrTypingFocus(instance));
+          globalThis.setTimeout(() => blurShopFlatpickrTypingFocus(instance), 50);
         }
       },
     });
@@ -162,6 +183,11 @@ export class ShopDatetimeInputComponent
 
   ngOnDestroy(): void {
     this.clickTarget?.removeEventListener('click', this.onClickTarget);
+    this.timeInputTeardown?.();
+    this.timeInputTeardown = null;
+    this.keyboardGuardTeardown?.();
+    this.keyboardGuardTeardown = null;
+    unwatchShopFlatpickrKeyboardOverlap();
     closeShopFlatpickrMobileChrome();
     this.fp?.destroy();
     this.fp = null;

@@ -123,11 +123,7 @@ export class BillReceiptService {
       return this.browserPrintOutcome(receipt, options?.printFrame);
     }
 
-    // auto on mobile — Android: RawBT; iPhone/iPad: Thermer (thermer://).
-    if (platform === 'android') {
-      this.removePrintFrame(options?.printFrame);
-      return this.printViaBridgingApp(receipt, 'android');
-    }
+    // auto on mobile — same server PNG → Thermer (Android + iPhone); RawBT only if shop picks แอปตัวกลาง.
     this.removePrintFrame(options?.printFrame);
     const thermer = this.printViaThermer(receipt);
     if (thermer.ok) return thermer;
@@ -169,14 +165,33 @@ export class BillReceiptService {
     };
   }
 
-  /** Same html2canvas receipt as PC → JPEG → thermer://?data= (not backend text lines). */
+  /** Server PNG (same as RawBT) → JPEG → thermer:// — avoids mobile html2canvas stretch. */
   private async dispatchThermerPrint(receipt: BillReceiptResponse['receipt']): Promise<void> {
+    const rasterPx = receipt.paperWidthMm >= 80 ? 576 : 384;
+    const thermerImageEntry = (base64: string): Record<string, ThermerPrintEntry> => ({
+      '0': { type: 1, align: 0, base64Image: base64, size: rasterPx },
+    });
+
+    if (this.hasServerReceiptPng(receipt)) {
+      for (const quality of [0.85, 0.75, 0.65, 0.55]) {
+        const jpeg = await this.serverReceiptJpegBase64(receipt, quality);
+        if (!jpeg) continue;
+        const url = thermerUrlFromEntries(thermerImageEntry(jpeg));
+        if (url && url.length <= THERMER_MAX_URL_LEN && this.navigatePrintUrl(url)) {
+          return;
+        }
+      }
+      const png = receipt.receiptPngBase64.replace(/\s/g, '');
+      const pngUrl = thermerUrlFromEntries(thermerImageEntry(png));
+      if (pngUrl && pngUrl.length <= THERMER_MAX_URL_LEN && this.navigatePrintUrl(pngUrl)) {
+        return;
+      }
+    }
+
     for (const quality of [0.88, 0.78, 0.68, 0.58]) {
       const base64 = await this.renderReceiptJpegBase64(receipt, quality);
       if (!base64) break;
-      const url = thermerUrlFromEntries({
-        '0': { type: 1, align: 0, base64Image: base64 },
-      });
+      const url = thermerUrlFromEntries(thermerImageEntry(base64));
       if (url && url.length <= THERMER_MAX_URL_LEN && this.navigatePrintUrl(url)) {
         return;
       }
@@ -259,6 +274,11 @@ export class BillReceiptService {
   }
 
   private printDesktopBrowserReceipt(receipt: BillReceiptResponse['receipt']): boolean {
+    const pngUrl = this.serverReceiptPngDataUrl(receipt);
+    if (pngUrl) {
+      return this.printImageDataUrlInFrame(receipt, pngUrl);
+    }
+
     const built = this.buildReceiptPrintDocument(receipt);
     const iframe = this.createPrintFrame();
     if (!iframe) {
@@ -322,7 +342,7 @@ export class BillReceiptService {
       img.alt = 'ใบเสร็จ';
       img.style.cssText = `display:block;width:${widthMm}mm;max-width:100%;height:auto`;
       img.style.minHeight = '120px';
-      void this.renderReceiptDataUrlForMobile(receipt, { format: 'jpeg', jpegQuality: 0.88 }).then(
+      void this.resolveReceiptPreviewDataUrl(receipt, { format: 'jpeg', jpegQuality: 0.88 }).then(
         (url) => {
           if (url) img.src = url;
         },
@@ -361,7 +381,7 @@ export class BillReceiptService {
           printBtn.disabled = true;
           printBtn.textContent = 'กำลังพิมพ์...';
           try {
-            const url = await this.renderReceiptDataUrlForMobile(receipt, {
+            const url = await this.resolveReceiptPreviewDataUrl(receipt, {
               format: 'jpeg',
               jpegQuality: 0.88,
             });
@@ -423,6 +443,83 @@ export class BillReceiptService {
     const remove = () => iframe.remove();
     win.addEventListener('afterprint', remove, { once: true });
     setTimeout(remove, 15000);
+  }
+
+  private async resolveReceiptPreviewDataUrl(
+    receipt: BillReceiptResponse['receipt'],
+    opts?: { format?: 'png' | 'jpeg'; jpegQuality?: number },
+  ): Promise<string | null> {
+    if (this.hasServerReceiptPng(receipt)) {
+      if (opts?.format === 'jpeg') {
+        return this.serverReceiptJpegDataUrl(receipt, opts.jpegQuality ?? 0.88);
+      }
+      return this.serverReceiptPngDataUrl(receipt);
+    }
+    return this.renderReceiptDataUrlForMobile(receipt, opts);
+  }
+
+  private hasServerReceiptPng(receipt: BillReceiptResponse['receipt']): boolean {
+    return receipt.receiptFormat === 'png_raster' && Boolean(receipt.receiptPngBase64?.trim());
+  }
+
+  private serverReceiptPngDataUrl(receipt: BillReceiptResponse['receipt']): string | null {
+    if (!this.hasServerReceiptPng(receipt)) return null;
+    return `data:image/png;base64,${receipt.receiptPngBase64.replace(/\s/g, '')}`;
+  }
+
+  private async serverReceiptJpegDataUrl(
+    receipt: BillReceiptResponse['receipt'],
+    quality: number,
+  ): Promise<string | null> {
+    const pngUrl = this.serverReceiptPngDataUrl(receipt);
+    if (!pngUrl) return null;
+    return imageDataUrlToJpegDataUrl(pngUrl, quality);
+  }
+
+  private async serverReceiptJpegBase64(
+    receipt: BillReceiptResponse['receipt'],
+    quality: number,
+  ): Promise<string | null> {
+    const dataUrl = await this.serverReceiptJpegDataUrl(receipt, quality);
+    if (!dataUrl) return null;
+    const match = dataUrl.match(/^data:image\/jpeg;base64,(.+)$/);
+    return match?.[1] ?? null;
+  }
+
+  /** Print pre-rendered receipt bitmap (server PNG) — same pixels for PC USB, Thermer, RawBT. */
+  private printImageDataUrlInFrame(
+    receipt: BillReceiptResponse['receipt'],
+    dataUrl: string,
+    printFrame?: HTMLIFrameElement | null,
+  ): boolean {
+    const widthMm = receipt.paperWidthMm >= 80 ? 80 : 58;
+    const iframe = printFrame ?? this.createPrintFrame();
+    if (!iframe) return false;
+
+    const targetWindow = iframe.contentWindow;
+    const frameDoc = iframe.contentDocument ?? targetWindow?.document;
+    if (!targetWindow || !frameDoc) {
+      this.removePrintFrame(iframe);
+      return false;
+    }
+
+    try {
+      frameDoc.open();
+      frameDoc.write(buildReceiptImagePrintHtml(dataUrl, widthMm, false));
+      frameDoc.close();
+    } catch {
+      this.removePrintFrame(iframe);
+      return false;
+    }
+
+    const cleanup = () => this.removePrintFrame(iframe);
+    targetWindow.addEventListener('afterprint', cleanup, { once: true });
+    setTimeout(() => {
+      targetWindow.focus();
+      targetWindow.print();
+      setTimeout(cleanup, 1000);
+    }, 150);
+    return true;
   }
 
   private async renderReceiptDataUrlForMobile(
@@ -922,6 +1019,28 @@ export class BillReceiptService {
     anchor.click();
     URL.revokeObjectURL(url);
   }
+}
+
+function imageDataUrlToJpegDataUrl(sourceDataUrl: string, quality: number): Promise<string | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(null);
+        return;
+      }
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => resolve(null);
+    img.src = sourceDataUrl;
+  });
 }
 
 /** Thermer: thermer://?data= + object {"0":{type,...}} — image type 1 keeps receipt layout. */
