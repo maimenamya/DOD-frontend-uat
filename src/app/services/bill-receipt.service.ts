@@ -19,7 +19,7 @@ export type PrintReceiptOptions = {
 };
 
 /** PC USB browser print — slightly narrower than nominal paper (driver variance). */
-const PC_USB_PRINT_WIDTH_SCALE = 0.855;
+const PC_USB_PRINT_WIDTH_SCALE = 1;
 const RAWBT_PACKAGE = 'ru.a402d.rawbtprinter';
 /** iOS Safari truncates very long custom-scheme URLs — keep Thermer payload under this. */
 const THERMER_MAX_URL_LEN = 180_000;
