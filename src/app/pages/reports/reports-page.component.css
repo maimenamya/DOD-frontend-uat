@@ -15,7 +15,7 @@
   width: 100%;
 }
 
-@media (max-width: 799px) {
+@media (max-width: 899px) {
   .reports-layout {
     grid-template-columns: 1fr;
   }
@@ -98,7 +98,7 @@
   white-space: nowrap;
 }
 
-@media (max-width: 799px) {
+@media (max-width: 899px) {
   .reports-panel,
   .reports-preview {
     padding: 1rem;
