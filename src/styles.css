@@ -725,6 +725,60 @@
     @apply flex min-h-0 w-full min-w-0 max-w-full flex-1 flex-col;
   }
 
+  /* Mobile: keep top bar fixed; scroll page content underneath */
+  @media (max-width: 999px) {
+    .app-layout {
+      height: 100dvh;
+      max-height: 100dvh;
+      min-height: 100dvh;
+      overflow: hidden;
+    }
+
+    .app-layout-main {
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: 100%;
+      overflow: hidden;
+    }
+
+    .app-top-header {
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      z-index: 25;
+    }
+
+    .app-main-content {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .app-page-header {
+      position: sticky;
+      top: 0;
+      z-index: 14;
+      margin-inline: -1rem;
+      padding-inline: 1rem;
+      padding-bottom: 0.75rem;
+      background: linear-gradient(
+        to bottom,
+        var(--bg-primary) 78%,
+        color-mix(in srgb, var(--bg-primary) 88%, transparent)
+      );
+    }
+
+    @media (min-width: 640px) {
+      .app-page-header {
+        margin-inline: -1.5rem;
+        padding-inline: 1.5rem;
+      }
+    }
+  }
+
   @media (min-width: 1000px) {
     .app-layout-main {
       @apply min-h-[100dvh];
@@ -2168,7 +2222,9 @@
     }
 
     .app-split-table-header {
-      position: static;
+      position: sticky;
+      top: 0;
+      z-index: 12;
       box-shadow: none;
     }
 
