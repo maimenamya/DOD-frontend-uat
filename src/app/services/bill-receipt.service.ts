@@ -18,8 +18,9 @@ export type PrintReceiptOptions = {
   printFrame?: HTMLIFrameElement | null;
 };
 
-/** PC USB browser print — 5% narrower than nominal paper (driver variance). */
-const PC_USB_PRINT_WIDTH_SCALE = 0.95;
+/** PC USB browser print — full paper width; tiny right margin on canvas only. */
+const PC_USB_PRINT_WIDTH_SCALE = 1;
+const PC_USB_RIGHT_MARGIN_PX = 1;
 const RAWBT_PACKAGE = 'ru.a402d.rawbtprinter';
 /** iOS Safari truncates very long custom-scheme URLs — keep Thermer payload under this. */
 const THERMER_MAX_URL_LEN = 180_000;
@@ -330,6 +331,7 @@ export class BillReceiptService {
       max-width: ${printWidthMm}mm;
       height: auto;
       margin: 0;
+      padding: 0;
       image-rendering: crisp-edges;
       image-rendering: pixelated;
     }
@@ -357,7 +359,7 @@ export class BillReceiptService {
           reject(new Error('png size'));
           return;
         }
-        const drawW = Math.max(1, Math.round(rasterPx * PC_USB_PRINT_WIDTH_SCALE));
+        const drawW = Math.max(1, rasterPx - PC_USB_RIGHT_MARGIN_PX);
         const outH = Math.max(1, Math.round((srcH * drawW) / srcW));
         const canvas = document.createElement('canvas');
         canvas.width = rasterPx;
