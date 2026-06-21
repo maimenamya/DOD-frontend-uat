@@ -173,11 +173,18 @@ export class BillReceiptService {
     };
   }
 
-  /** Server PNG at exact thermal width → Thermer (no html2canvas on mobile). */
+  /** Thermer: text lines first (no image stretch); image fallback if URL too long. */
   private async dispatchThermerPrint(receipt: BillReceiptResponse['receipt']): Promise<void> {
+    const textLines = receipt.textLines?.filter((line) => line != null) ?? [];
+    if (textLines.length > 0) {
+      const textUrl = thermerUrlFromEntries(thermerTextEntriesFromLines(textLines));
+      if (textUrl && textUrl.length <= THERMER_MAX_URL_LEN && this.navigatePrintUrl(textUrl)) {
+        return;
+      }
+    }
+
     const targetWidthPx = thermalReceiptRasterPx(receipt.paperWidthMm);
     const thermerImageEntry = (base64: string): Record<string, ThermerPrintEntry> => ({
-      // type 1 = image; align 0 = left. Do NOT set `size` — Thermer treats it like QR mm and stretches.
       '0': { type: 1, align: 0, base64Image: base64 },
     });
 
@@ -1097,6 +1104,22 @@ function normalizeReceiptImageDataUrl(
     img.onerror = () => resolve(null);
     img.src = sourceDataUrl;
   });
+}
+
+function thermerTextEntriesFromLines(lines: string[]): Record<string, ThermerPrintEntry> {
+  const entries: Record<string, ThermerPrintEntry> = {};
+  lines.forEach((line, index) => {
+    const trimmed = line.trimEnd();
+    const isGrand = trimmed.startsWith('ทั้งหมด');
+    entries[String(index)] = {
+      type: 0,
+      content: trimmed.length > 0 ? trimmed : ' ',
+      bold: isGrand ? 1 : 0,
+      align: 0,
+      format: isGrand ? 1 : 0,
+    };
+  });
+  return entries;
 }
 
 /** Thermer: thermer://?data= + object {"0":{type,...}} — image type 1 keeps receipt layout. */
