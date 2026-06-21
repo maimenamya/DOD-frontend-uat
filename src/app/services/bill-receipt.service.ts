@@ -315,15 +315,16 @@ export class BillReceiptService {
     html, body {
       margin: 0;
       padding: 0;
-      width: ${rasterPx}px;
+      width: ${widthMm}mm;
+      max-width: ${widthMm}mm;
       background: #fff;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
     img {
       display: block;
-      width: ${rasterPx}px;
-      max-width: ${rasterPx}px;
+      width: ${widthMm}mm;
+      max-width: ${widthMm}mm;
       height: auto;
       margin: 0;
       image-rendering: crisp-edges;
@@ -332,26 +333,38 @@ export class BillReceiptService {
   </style>
 </head>
 <body>
-  <img id="receipt-img" src="${imageSrc}" alt="ใบเสร็จ" />
+  <img id="receipt-img" width="${rasterPx}" src="${imageSrc}" alt="ใบเสร็จ" />
 </body>
 </html>`;
   }
 
-  /** B&W threshold so USB thermal drivers do not halftone grey anti-alias into blotches. */
-  private thresholdReceiptPngDataUrl(base64: string, threshold = 170): Promise<string> {
+  /** B&W threshold; lock width to thermal dot count (384/576) like RawBT raster. */
+  private thresholdReceiptPngDataUrl(
+    base64: string,
+    rasterPx: number,
+    threshold = 170,
+  ): Promise<string> {
     const clean = base64.replace(/\s/g, '');
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
+        const srcW = img.naturalWidth;
+        const srcH = img.naturalHeight;
+        if (srcW <= 0 || srcH <= 0) {
+          reject(new Error('png size'));
+          return;
+        }
+        const outH = Math.max(1, Math.round((srcH * rasterPx) / srcW));
         const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
+        canvas.width = rasterPx;
+        canvas.height = outH;
         const ctx = canvas.getContext('2d');
         if (!ctx) {
           reject(new Error('canvas'));
           return;
         }
-        ctx.drawImage(img, 0, 0);
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, 0, 0, rasterPx, outH);
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const d = imageData.data;
         for (let i = 0; i < d.length; i += 4) {
@@ -388,7 +401,8 @@ export class BillReceiptService {
       }
     };
 
-    void this.thresholdReceiptPngDataUrl(receipt.receiptPngBase64)
+    const rasterPx = receipt.paperWidthMm >= 80 ? 576 : 384;
+    void this.thresholdReceiptPngDataUrl(receipt.receiptPngBase64, rasterPx)
       .then(finish)
       .catch(() => {
         const fallback = `data:image/png;base64,${receipt.receiptPngBase64.replace(/\s/g, '')}`;
