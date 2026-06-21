@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { catchError, finalize, forkJoin, of } from 'rxjs';
 
-import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { AppModalComponent, type AppModalLayout } from '../../components/app-modal/app-modal.component';
 import { PortalToBodyDirective } from '../../directives/portal-to-body.directive';
 import {
   APP_MODAL_BODY_LOCK_CLASS,
@@ -168,6 +168,10 @@ export class OpenTablePageComponent implements OnInit {
       this.showMobileSheet() &&
       this.selectedSeat() != null &&
       !this.anyModalOpen(),
+  );
+  /** Stop / checkout dialogs slide up from bottom on phone. */
+  readonly actionModalLayout = computed((): AppModalLayout =>
+    this.mobileDrawerViewport() ? 'sheet' : 'center',
   );
   readonly sessionDetail = signal<OpenTableSessionDetail | null>(null);
   readonly sessionDetailLoading = signal(false);

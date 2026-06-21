@@ -17,7 +17,10 @@ import {
   isValidShopDatetimeLocal,
   splitShopDatetimeLocal,
 } from '../../pages/open-table/open-table-ledger.util';
-import { syncShopFlatpickrOnOpen } from '../../utils/flatpickr-shop.util';
+import {
+  closeShopFlatpickrMobileChrome,
+  syncShopFlatpickrOnOpen,
+} from '../../utils/flatpickr-shop.util';
 
 /** Date + time field — opens a popup calendar on click (appendTo body for modals). */
 @Component({
@@ -121,6 +124,7 @@ export class ShopDatetimeInputComponent
         syncShopFlatpickrOnOpen(instance);
       },
       onClose: () => {
+        closeShopFlatpickrMobileChrome();
         if (needsConfirm && this.fp) {
           if (this.closeConfirmed && isValidShopDatetimeLocal(this.pendingValue)) {
             this.onChange(this.pendingValue);
@@ -132,6 +136,16 @@ export class ShopDatetimeInputComponent
           }
         }
         this.onTouched();
+      },
+      onKeyDown: (_dates, _str, instance, e) => {
+        if (!needsConfirm || e.key !== 'Enter') return;
+        const target = e.target;
+        if (!(target instanceof HTMLElement)) return;
+        const inTime = instance.timeContainer?.contains(target) ?? false;
+        const onConfirm = target.classList.contains('flatpickr-confirm');
+        if (!inTime && !onConfirm) return;
+        this.syncPendingFromFlatpickr(instance);
+        this.closeConfirmed = true;
       },
       onChange: (_dates, dateStr) => {
         const shop = this.flatpickrDisplayToShop(dateStr);
@@ -148,6 +162,7 @@ export class ShopDatetimeInputComponent
 
   ngOnDestroy(): void {
     this.clickTarget?.removeEventListener('click', this.onClickTarget);
+    closeShopFlatpickrMobileChrome();
     this.fp?.destroy();
     this.fp = null;
   }
@@ -198,5 +213,16 @@ export class ShopDatetimeInputComponent
     const match = /^(\d{4}-\d{2}-\d{2})\s+(\d{2}):(\d{2})/.exec(trimmed);
     if (!match) return '';
     return `${match[1]}T${match[2]}:${match[3]}`;
+  }
+
+  /** After flatpickr updates time inputs (Enter / arrows), read selected date into pending. */
+  private syncPendingFromFlatpickr(instance: flatpickr.Instance): void {
+    const selected = instance.selectedDates[0];
+    if (!selected) return;
+    const display = instance.formatDate(selected, instance.config.dateFormat);
+    const shop = this.flatpickrDisplayToShop(display);
+    if (isValidShopDatetimeLocal(shop)) {
+      this.pendingValue = shop;
+    }
   }
 }

@@ -40,13 +40,19 @@ export class PackageDepositPageComponent implements OnInit {
   readonly loading = signal(true);
   readonly submitting = signal(false);
   readonly depositFormValidated = signal(false);
+  readonly deleteFormValidated = signal(false);
   readonly depositTarget = signal<PackageDepositRecord | null>(null);
+  readonly deleteTarget = signal<PackageDepositRecord | null>(null);
   readonly sourceTab = signal<DepositSourceTab>('MEMBERSHIP');
   readonly searchQuery = signal('');
 
   readonly depositForm = this.fb.group({
     quantity: ['1', [Validators.required, Validators.pattern(/^[1-9]\d*$/)]],
     remainderNote: [''],
+  });
+
+  readonly deleteForm = this.fb.group({
+    note: ['', [Validators.required, Validators.maxLength(500)]],
   });
 
   readonly visibleItems = computed(() => {
@@ -118,6 +124,40 @@ export class PackageDepositPageComponent implements OnInit {
     resetFormValidationFlag(this.depositFormValidated);
   }
 
+  openDelete(row: PackageDepositRecord): void {
+    if (!row.canDelete) return;
+    this.deleteTarget.set(row);
+    this.deleteForm.reset({ note: '' });
+    resetFormValidationFlag(this.deleteFormValidated);
+  }
+
+  closeDeleteModal(): void {
+    this.deleteTarget.set(null);
+    resetFormValidationFlag(this.deleteFormValidated);
+  }
+
+  submitDelete(): void {
+    const target = this.deleteTarget();
+    if (!target) return;
+
+    if (highlightInvalidForm(this.deleteForm, this.deleteFormValidated, this.toast)) return;
+
+    const note = this.deleteForm.controls.note.value.trim();
+    this.submitting.set(true);
+    this.packageDeposits.cancel(target.id, { note }).subscribe({
+      next: (updated) => {
+        this.items.update((rows) => rows.map((row) => (row.id === updated.id ? updated : row)));
+        this.toast.showSuccess('ลบรายการฝากแล้ว');
+        this.closeDeleteModal();
+        this.submitting.set(false);
+      },
+      error: (err: { error?: { error?: string } }) => {
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถลบรายการฝากได้');
+        this.submitting.set(false);
+      },
+    });
+  }
+
   submitDeposit(): void {
     const target = this.depositTarget();
     if (!target) return;
@@ -154,7 +194,7 @@ export class PackageDepositPageComponent implements OnInit {
     if (!row.canClose) return;
     const ok = await this.confirmDialog.confirm({
       title: 'ปิดรายการฝาก',
-      message: `ยืนยันปิดรายการฝาก ${this.rowHeadline(row)} — กินหมดแล้วไม่มีเหล้าเหลือ`,
+      message: `ยืนยันปิดรายการฝาก ${this.rowHeadline(row)} — กินหมดแล้ว ไม่มีขวดเหลือ`,
       confirmLabel: 'ปิดรายการ',
     });
     if (!ok) return;

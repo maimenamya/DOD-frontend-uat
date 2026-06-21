@@ -16,7 +16,12 @@ export interface PackageDepositRecord {
   status: PackageDepositStatus;
   canDeposit: boolean;
   canClose: boolean;
+  canDelete: boolean;
   bottlesLabel: string;
+}
+
+export interface PackageDepositCancelPayload {
+  note: string;
 }
 
 export type PackageOpenMode = 'NEW' | 'DEPOSIT';

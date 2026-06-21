@@ -1226,7 +1226,7 @@
 }
 
 @if (showStopDrinkModal()) {
-  <app-modal layout="center" (dismiss)="closeStopDrinkModal()">
+  <app-modal [layout]="actionModalLayout()" (dismiss)="closeStopDrinkModal()">
     <div class="app-modal-header">
       <h2 class="app-modal-title">
         สต็อปดื่ม — {{ stopDrinkTarget()?.employeeName }}
@@ -1305,7 +1305,7 @@
 }
 
 @if (showStopRoomModal()) {
-  <app-modal layout="center" (dismiss)="closeStopRoomModal()">
+  <app-modal [layout]="actionModalLayout()" (dismiss)="closeStopRoomModal()">
     <div class="app-modal-header">
       <h2 class="app-modal-title">สต็อปห้อง — {{ stopRoomTarget()?.roomCode }}</h2>
       <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeStopRoomModal()">✕</button>
@@ -1481,7 +1481,7 @@
 }
 
 @if (showCheckoutModal()) {
-  <app-modal layout="center" (dismiss)="closeCheckoutModal()">
+  <app-modal [layout]="actionModalLayout()" (dismiss)="closeCheckoutModal()">
     <div class="checkout-modal-panel">
       <div class="app-modal-header">
         <h2 class="app-modal-title">เช็กบิล</h2>

@@ -3364,7 +3364,7 @@
   }
 
   .app-modal-overlay--sheet {
-    @apply items-end p-0 sm:items-center sm:p-4;
+    @apply items-end p-0 desktop:items-center desktop:p-4;
   }
 
   .app-modal {
@@ -3377,7 +3377,7 @@
   }
 
   .app-modal-overlay--sheet .app-modal {
-    @apply max-w-none rounded-b-none border-b-0 sm:max-w-lg sm:rounded-card sm:border-b;
+    @apply max-w-none rounded-b-none border-b-0 desktop:max-w-lg desktop:rounded-card desktop:border-b;
     border-top-left-radius: 1.25rem;
     border-top-right-radius: 1.25rem;
   }
@@ -4316,18 +4316,92 @@ input.app-input.app-shop-date-input.flatpickr-input.active {
 
 /* Phone: calendar as scrollable bottom sheet (stop/checkout modals) */
 @media (max-width: 799px) {
+  .app-flatpickr-mobile-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 10040;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    cursor: pointer;
+    background: var(--overlay-scrim);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    animation: app-flatpickr-scrim-in 180ms ease-out;
+  }
+
+  @keyframes app-flatpickr-scrim-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   .app-flatpickr-calendar.flatpickr-calendar.app-flatpickr-calendar--mobile {
     position: fixed !important;
-    left: 50% !important;
-    right: auto !important;
+    left: 0 !important;
+    right: 0 !important;
     top: auto !important;
-    bottom: max(0.75rem, env(safe-area-inset-bottom, 0px)) !important;
-    transform: translateX(-50%) !important;
-    width: min(19.5rem, calc(100vw - 1.5rem));
-    max-height: min(85dvh, calc(100dvh - 1.5rem));
+    bottom: 0 !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: min(92dvh, calc(100dvh - env(safe-area-inset-top, 0px)));
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     margin: 0 !important;
+    border-radius: 1.25rem 1.25rem 0 0;
+    border-bottom: 0;
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+    animation: app-flatpickr-sheet-in 220ms ease-out;
+  }
+
+  @keyframes app-flatpickr-sheet-in {
+    from {
+      transform: translateY(100%) !important;
+    }
+    to {
+      transform: translateY(0) !important;
+    }
+  }
+
+  .app-flatpickr-calendar--mobile::before {
+    content: '';
+    display: block;
+    width: 2.5rem;
+    height: 0.25rem;
+    margin: 0.5rem auto 0.35rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--text-secondary) 45%, transparent);
+  }
+
+  .app-flatpickr-calendar--mobile .flatpickr-time {
+    padding: 0.5rem 1rem 0.25rem;
+  }
+
+  .app-flatpickr-calendar--mobile .flatpickr-time .numInputWrapper {
+    min-width: 3.25rem;
+  }
+
+  .app-flatpickr-calendar--mobile .flatpickr-time input {
+    font-size: 1.25rem;
+    min-height: 2.75rem;
+    padding: 0.35rem 0.5rem;
+  }
+
+  .app-flatpickr-calendar--mobile .flatpickr-confirm {
+    min-height: 3rem;
+    margin: 0.5rem 1rem 0.25rem;
+    font-size: 1rem;
+    border-radius: 12px;
+  }
+
+  .app-flatpickr-calendar--mobile .flatpickr-day {
+    max-width: 2.5rem;
+    height: 2.5rem;
+    line-height: 2.5rem;
   }
 }

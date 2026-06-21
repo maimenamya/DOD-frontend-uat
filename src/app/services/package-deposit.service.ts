@@ -3,7 +3,11 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ApiConfig } from '../core/api-config';
-import type { PackageDepositPayload, PackageDepositRecord } from '../models/package-deposit';
+import type {
+  PackageDepositCancelPayload,
+  PackageDepositPayload,
+  PackageDepositRecord,
+} from '../models/package-deposit';
 
 @Injectable({ providedIn: 'root' })
 export class PackageDepositService {
@@ -25,6 +29,13 @@ export class PackageDepositService {
     return this.http.post<PackageDepositRecord>(
       this.api.resource('package-deposits', String(id), 'close'),
       {},
+    );
+  }
+
+  cancel(id: number, payload: PackageDepositCancelPayload): Observable<PackageDepositRecord> {
+    return this.http.post<PackageDepositRecord>(
+      this.api.resource('package-deposits', String(id), 'cancel'),
+      payload,
     );
   }
 }
