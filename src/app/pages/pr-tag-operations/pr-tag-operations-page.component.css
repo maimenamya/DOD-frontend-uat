@@ -1,5 +1,5 @@
-/* Card list below 900px — table on desktop */
-@media (max-width: 899px) {
+/* Card list below 1000px — table on desktop */
+@media (max-width: 999px) {
   .pr-tag-ops-mobile-list {
     display: flex;
     flex-direction: column;

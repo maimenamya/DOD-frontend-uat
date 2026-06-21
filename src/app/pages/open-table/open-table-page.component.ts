@@ -156,7 +156,7 @@ export class OpenTablePageComponent implements OnInit {
   readonly checkInGuestCountText = signal('1');
   readonly selectedSeatKey = signal<string | null>(null);
   readonly showMobileSheet = signal(false);
-  /** Mobile sheet + body scroll lock below 900px. */
+  /** Mobile sheet + body scroll lock below 1000px. */
   private readonly mobileDrawerViewport = signal(
     typeof window !== 'undefined'
       ? window.matchMedia(APP_MOBILE_MEDIA_QUERY).matches

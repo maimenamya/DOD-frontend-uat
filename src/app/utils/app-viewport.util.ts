@@ -1,7 +1,7 @@
-/** Viewports below 900px use mobile shell (sidebar overlay, open-table sheet, etc.). */
-export const APP_MOBILE_MAX_WIDTH_PX = 899;
+/** Viewports below 1000px use mobile shell (sidebar overlay, open-table sheet, etc.). */
+export const APP_MOBILE_MAX_WIDTH_PX = 999;
 
-export const APP_DESKTOP_MIN_WIDTH_PX = 900;
+export const APP_DESKTOP_MIN_WIDTH_PX = 1000;
 
 export const APP_MOBILE_MEDIA_QUERY = `(max-width: ${APP_MOBILE_MAX_WIDTH_PX}px)` as const;
 

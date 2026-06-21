@@ -9,8 +9,8 @@ module.exports = {
       lg: '1024px',
       xl: '1280px',
       '2xl': '1536px',
-      /** App shell + open-table: mobile below 900px, desktop from 900px up. */
-      desktop: '900px',
+      /** App shell + open-table: mobile below 1000px, desktop from 1000px up. */
+      desktop: '1000px',
     },
     extend: {
       colors: {
