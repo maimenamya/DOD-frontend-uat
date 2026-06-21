@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { ApiConfig } from '../core/api-config';
@@ -18,8 +18,8 @@ export type PrintReceiptOptions = {
   printFrame?: HTMLIFrameElement | null;
 };
 
-/** PC USB browser print — 6% narrower than nominal paper (driver variance). */
-const PC_USB_PRINT_WIDTH_SCALE = 0.94;
+/** PC USB browser print — 10% narrower than nominal paper (driver variance). */
+const PC_USB_PRINT_WIDTH_SCALE = 0.9;
 const RAWBT_PACKAGE = 'ru.a402d.rawbtprinter';
 /** iOS Safari truncates very long custom-scheme URLs — keep Thermer payload under this. */
 const THERMER_MAX_URL_LEN = 180_000;
@@ -30,8 +30,13 @@ export class BillReceiptService {
   private readonly api = inject(ApiConfig);
 
   getBillReceipt(billId: number): Observable<BillReceiptResponse> {
+    let params = new HttpParams();
+    if (this.shouldPreparePrintFrame()) {
+      params = params.set('browserPng', '1');
+    }
     return this.http.get<BillReceiptResponse>(
       this.api.resource('open-table', 'bills', String(billId), 'receipt'),
+      { params },
     );
   }
 

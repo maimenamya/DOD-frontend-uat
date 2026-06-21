@@ -282,6 +282,8 @@ export type CheckoutPreviewPayload = {
 export type CheckoutPayload = SessionMutationBase & {
   checkedOutAt: string;
   releaseSeat?: boolean;
+  /** PC USB — request browser PNG layout (top pad + subtotal spacing); RawBT ESC unchanged. */
+  browserPng?: boolean;
 };
 
 export type CheckoutPreviewLine = {

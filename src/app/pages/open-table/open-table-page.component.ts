@@ -2778,6 +2778,7 @@ export class OpenTablePageComponent implements OnInit {
         expectedRevision,
         checkedOutAt,
         releaseSeat: false,
+        browserPng: this.billReceiptService.shouldPreparePrintFrame(),
       }),
       'เช็กบิลสำเร็จ',
       (result) => {
