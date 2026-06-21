@@ -123,16 +123,12 @@ export class BillReceiptService {
       return this.browserPrintOutcome(receipt, options?.printFrame);
     }
 
-    // auto on mobile — Android: server ESC/POS (same bitmap as PC); iPhone: Thermer image.
-    this.removePrintFrame(options?.printFrame);
-    if (
-      platform === 'android' &&
-      receipt.receiptFormat === 'png_raster' &&
-      receipt.escPosBase64?.trim()
-    ) {
-      const rawbt = this.printViaBridgingApp(receipt, 'android');
-      if (rawbt.ok) return rawbt;
+    // auto on mobile — Android: RawBT; iPhone/iPad: Thermer (html2canvas receipt, not server PNG).
+    if (platform === 'android') {
+      this.removePrintFrame(options?.printFrame);
+      return this.printViaBridgingApp(receipt, 'android');
     }
+    this.removePrintFrame(options?.printFrame);
     const thermer = this.printViaThermer(receipt);
     if (thermer.ok) return thermer;
     return this.browserPrintOutcome(receipt, options?.printFrame);
@@ -173,40 +169,16 @@ export class BillReceiptService {
     };
   }
 
-  /** Server PNG at exact thermal width → Thermer (no html2canvas on mobile). */
+  /** Same html2canvas receipt as PC → JPEG → thermer:// (not backend PNG — avoids stretch). */
   private async dispatchThermerPrint(receipt: BillReceiptResponse['receipt']): Promise<void> {
-    const targetWidthPx = thermalReceiptRasterPx(receipt.paperWidthMm);
-    const thermerImageEntry = (base64: string): Record<string, ThermerPrintEntry> => ({
-      // type 1 = image; align 0 = left. Do NOT set `size` — Thermer treats it like QR mm and stretches.
-      '0': { type: 1, align: 0, base64Image: base64 },
-    });
-
-    if (this.hasServerReceiptPng(receipt)) {
-      for (const quality of [0.82, 0.72, 0.62, 0.52]) {
-        const jpeg = await this.serverReceiptJpegBase64(receipt, quality, targetWidthPx);
-        if (!jpeg) continue;
-        const url = thermerUrlFromEntries(thermerImageEntry(jpeg));
-        if (url && url.length <= THERMER_MAX_URL_LEN && this.navigatePrintUrl(url)) {
-          return;
-        }
-      }
-      const png = await this.serverReceiptPngBase64Normalized(receipt, targetWidthPx);
-      if (png) {
-        const url = thermerUrlFromEntries(thermerImageEntry(png));
-        if (url && url.length <= THERMER_MAX_URL_LEN && this.navigatePrintUrl(url)) {
-          return;
-        }
-      }
-    }
-
-    if (receipt.receiptFormat === 'text_escpos') {
-      for (const quality of [0.88, 0.78, 0.68, 0.58]) {
-        const base64 = await this.renderReceiptJpegBase64(receipt, quality);
-        if (!base64) break;
-        const url = thermerUrlFromEntries(thermerImageEntry(base64));
-        if (url && url.length <= THERMER_MAX_URL_LEN && this.navigatePrintUrl(url)) {
-          return;
-        }
+    for (const quality of [0.88, 0.78, 0.68, 0.58]) {
+      const base64 = await this.renderReceiptJpegBase64(receipt, quality);
+      if (!base64) break;
+      const url = thermerUrlFromEntries({
+        '0': { type: 1, align: 0, base64Image: base64 },
+      });
+      if (url && url.length <= THERMER_MAX_URL_LEN && this.navigatePrintUrl(url)) {
+        return;
       }
     }
     this.showMobileReceiptPrintSheet(receipt);
@@ -287,11 +259,6 @@ export class BillReceiptService {
   }
 
   private printDesktopBrowserReceipt(receipt: BillReceiptResponse['receipt']): boolean {
-    const pngUrl = this.serverReceiptPngDataUrl(receipt);
-    if (pngUrl) {
-      return this.printImageDataUrlInFrame(receipt, pngUrl);
-    }
-
     const built = this.buildReceiptPrintDocument(receipt);
     const iframe = this.createPrintFrame();
     if (!iframe) {
@@ -355,7 +322,7 @@ export class BillReceiptService {
       img.alt = 'ใบเสร็จ';
       img.style.cssText = `display:block;width:${widthMm}mm;max-width:100%;height:auto`;
       img.style.minHeight = '120px';
-      void this.resolveReceiptPreviewDataUrl(receipt, { format: 'jpeg', jpegQuality: 0.88 }).then(
+      void this.renderReceiptDataUrlForMobile(receipt, { format: 'jpeg', jpegQuality: 0.88 }).then(
         (url) => {
           if (url) img.src = url;
         },
@@ -394,7 +361,7 @@ export class BillReceiptService {
           printBtn.disabled = true;
           printBtn.textContent = 'กำลังพิมพ์...';
           try {
-            const url = await this.resolveReceiptPreviewDataUrl(receipt, {
+            const url = await this.renderReceiptDataUrlForMobile(receipt, {
               format: 'jpeg',
               jpegQuality: 0.88,
             });
@@ -456,105 +423,6 @@ export class BillReceiptService {
     const remove = () => iframe.remove();
     win.addEventListener('afterprint', remove, { once: true });
     setTimeout(remove, 15000);
-  }
-
-  private async resolveReceiptPreviewDataUrl(
-    receipt: BillReceiptResponse['receipt'],
-    opts?: { format?: 'png' | 'jpeg'; jpegQuality?: number },
-  ): Promise<string | null> {
-    if (this.hasServerReceiptPng(receipt)) {
-      const targetWidthPx = thermalReceiptRasterPx(receipt.paperWidthMm);
-      const pngUrl = this.serverReceiptPngDataUrl(receipt)!;
-      if (opts?.format === 'jpeg') {
-        return normalizeReceiptImageDataUrl(pngUrl, targetWidthPx, {
-          format: 'jpeg',
-          jpegQuality: opts.jpegQuality ?? 0.88,
-        });
-      }
-      return normalizeReceiptImageDataUrl(pngUrl, targetWidthPx, { format: 'png' });
-    }
-    return this.renderReceiptDataUrlForMobile(receipt, opts);
-  }
-
-  private hasServerReceiptPng(receipt: BillReceiptResponse['receipt']): boolean {
-    return receipt.receiptFormat === 'png_raster' && Boolean(receipt.receiptPngBase64?.trim());
-  }
-
-  private serverReceiptPngDataUrl(receipt: BillReceiptResponse['receipt']): string | null {
-    if (!this.hasServerReceiptPng(receipt)) return null;
-    return `data:image/png;base64,${receipt.receiptPngBase64.replace(/\s/g, '')}`;
-  }
-
-  private async serverReceiptJpegDataUrl(
-    receipt: BillReceiptResponse['receipt'],
-    quality: number,
-    targetWidthPx?: number,
-  ): Promise<string | null> {
-    const pngUrl = this.serverReceiptPngDataUrl(receipt);
-    if (!pngUrl) return null;
-    return normalizeReceiptImageDataUrl(pngUrl, targetWidthPx ?? thermalReceiptRasterPx(receipt.paperWidthMm), {
-      format: 'jpeg',
-      jpegQuality: quality,
-    });
-  }
-
-  private async serverReceiptJpegBase64(
-    receipt: BillReceiptResponse['receipt'],
-    quality: number,
-    targetWidthPx?: number,
-  ): Promise<string | null> {
-    const dataUrl = await this.serverReceiptJpegDataUrl(receipt, quality, targetWidthPx);
-    if (!dataUrl) return null;
-    const match = dataUrl.match(/^data:image\/jpeg;base64,(.+)$/);
-    return match?.[1] ?? null;
-  }
-
-  private async serverReceiptPngBase64Normalized(
-    receipt: BillReceiptResponse['receipt'],
-    targetWidthPx: number,
-  ): Promise<string | null> {
-    const pngUrl = this.serverReceiptPngDataUrl(receipt);
-    if (!pngUrl) return null;
-    const dataUrl = await normalizeReceiptImageDataUrl(pngUrl, targetWidthPx, { format: 'png' });
-    if (!dataUrl) return null;
-    const match = dataUrl.match(/^data:image\/png;base64,(.+)$/);
-    return match?.[1] ?? null;
-  }
-
-  /** Print pre-rendered receipt bitmap (server PNG) — same pixels for PC USB, Thermer, RawBT. */
-  private printImageDataUrlInFrame(
-    receipt: BillReceiptResponse['receipt'],
-    dataUrl: string,
-    printFrame?: HTMLIFrameElement | null,
-  ): boolean {
-    const widthMm = receipt.paperWidthMm >= 80 ? 80 : 58;
-    const iframe = printFrame ?? this.createPrintFrame();
-    if (!iframe) return false;
-
-    const targetWindow = iframe.contentWindow;
-    const frameDoc = iframe.contentDocument ?? targetWindow?.document;
-    if (!targetWindow || !frameDoc) {
-      this.removePrintFrame(iframe);
-      return false;
-    }
-
-    try {
-      frameDoc.open();
-      frameDoc.write(buildReceiptImagePrintHtml(dataUrl, widthMm, false));
-      frameDoc.close();
-    } catch {
-      this.removePrintFrame(iframe);
-      return false;
-    }
-
-    const cleanup = () => this.removePrintFrame(iframe);
-    targetWindow.addEventListener('afterprint', cleanup, { once: true });
-    setTimeout(() => {
-      targetWindow.focus();
-      targetWindow.print();
-      setTimeout(cleanup, 1000);
-    }, 150);
-    return true;
   }
 
   private async renderReceiptDataUrlForMobile(
@@ -1054,49 +922,6 @@ export class BillReceiptService {
     anchor.click();
     URL.revokeObjectURL(url);
   }
-}
-
-function thermalReceiptRasterPx(paperWidthMm: number): number {
-  return paperWidthMm >= 80 ? 576 : 384;
-}
-
-function normalizeReceiptImageDataUrl(
-  sourceDataUrl: string,
-  targetWidthPx: number,
-  opts: { format: 'jpeg'; jpegQuality: number } | { format: 'png' },
-): Promise<string | null> {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      const srcW = img.naturalWidth || img.width;
-      const srcH = img.naturalHeight || img.height;
-      if (!srcW || !srcH) {
-        resolve(null);
-        return;
-      }
-      const outW = targetWidthPx;
-      const outH = Math.max(1, Math.round((srcH * outW) / srcW));
-      const canvas = document.createElement('canvas');
-      canvas.width = outW;
-      canvas.height = outH;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        resolve(null);
-        return;
-      }
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, outW, outH);
-      ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(img, 0, 0, outW, outH);
-      if (opts.format === 'jpeg') {
-        resolve(canvas.toDataURL('image/jpeg', opts.jpegQuality));
-        return;
-      }
-      resolve(canvas.toDataURL('image/png'));
-    };
-    img.onerror = () => resolve(null);
-    img.src = sourceDataUrl;
-  });
 }
 
 /** Thermer: thermer://?data= + object {"0":{type,...}} — image type 1 keeps receipt layout. */
