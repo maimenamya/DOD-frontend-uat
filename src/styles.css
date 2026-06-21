@@ -845,8 +845,14 @@
   }
 
   .app-profile-text {
-    @apply hidden min-w-0 flex-col items-end gap-0.5 text-right sm:flex;
-    max-width: 10rem;
+    @apply flex min-w-0 items-center text-right;
+    max-width: 7rem;
+  }
+
+  @media (min-width: 640px) {
+    .app-profile-text {
+      max-width: 10rem;
+    }
   }
 
   @media (min-width: 1000px) {
@@ -856,17 +862,8 @@
   }
 
   .app-profile-name {
-    @apply truncate text-base font-semibold text-text-primary sm:text-lg;
+    @apply truncate text-sm font-semibold text-text-primary sm:text-base desktop:text-lg;
     line-height: var(--leading-snug);
-  }
-
-  .app-profile-role {
-    @apply truncate text-xs text-text-secondary sm:text-sm;
-  }
-
-  .app-profile-branch {
-    @apply truncate text-xs font-medium;
-    color: var(--text-accent);
   }
 
   .app-profile-chevron {

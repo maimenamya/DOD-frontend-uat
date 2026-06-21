@@ -33,7 +33,6 @@ export class AppHeaderComponent implements OnInit {
 
   readonly user = computed(() => this.auth.getUser());
   readonly displayNickname = computed(() => this.auth.getDisplayNickname());
-  readonly shopDisplayName = computed(() => this.auth.getShopDisplayName());
   readonly currentShopId = computed(() => this.user()?.shopId ?? null);
   readonly showBranchPicker = computed(() => this.branches().length > 1);
 
@@ -45,12 +44,6 @@ export class AppHeaderComponent implements OnInit {
   readonly avatarInitial = computed(() => {
     const nick = this.displayNickname();
     return nick !== '—' ? nick.charAt(0).toUpperCase() : '?';
-  });
-
-  readonly roleDisplayLabel = computed(() => {
-    const user = this.user();
-    if (!user) return '—';
-    return user.roleDisplayNameTh?.trim() || '—';
   });
 
   readonly themeToggleAriaLabel = computed(() =>
