@@ -1252,7 +1252,6 @@
         inputId="stop-seat-time"
         class="block w-full"
         [class.app-field-invalid]="stopSeatTimeValidated() && stopSeatTimeMissing()"
-        [requireConfirm]="true"
         [ngModel]="stopSeatTime()"
         (ngModelChange)="onStopSeatTimeChange($event)"
       />
@@ -1324,7 +1323,6 @@
         inputId="stop-room-time"
         class="block w-full"
         [class.app-field-invalid]="stopSeatTimeValidated() && stopSeatTimeMissing()"
-        [requireConfirm]="true"
         [ngModel]="stopSeatTime()"
         (ngModelChange)="stopSeatTime.set($event)"
       />
@@ -1491,7 +1489,6 @@
         <label class="app-label" for="checkout-at">เวลาเช็กบิล</label>
         <app-shop-datetime-input
           inputId="checkout-at"
-          [requireConfirm]="true"
           [ngModel]="checkoutAt()"
           (ngModelChange)="onCheckoutAtChange($event)"
         />

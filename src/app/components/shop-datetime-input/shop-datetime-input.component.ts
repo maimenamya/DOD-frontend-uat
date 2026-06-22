@@ -10,7 +10,6 @@ import {
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import flatpickr from 'flatpickr';
 import { Thai } from 'flatpickr/dist/l10n/th.js';
-import confirmDatePlugin from 'flatpickr/dist/plugins/confirmDate/confirmDate';
 
 import {
   currentDatetimeLocalValue,
@@ -18,11 +17,13 @@ import {
   splitShopDatetimeLocal,
 } from '../../pages/open-table/open-table-ledger.util';
 import {
+  bindShopFlatpickrConfirmButton,
   bindShopFlatpickrTimeInputsWithConfirm,
   blurShopFlatpickrTypingFocus,
   closeShopFlatpickrMobileChrome,
   isShopFlatpickrMobileViewport,
   setupShopFlatpickrMobileKeyboardGuard,
+  shopFlatpickrConfirmDatePlugins,
   syncShopFlatpickrOnOpen,
   unwatchShopFlatpickrKeyboardOverlap,
   watchShopFlatpickrKeyboardOverlap,
@@ -56,8 +57,6 @@ export class ShopDatetimeInputComponent
   implements ControlValueAccessor, AfterViewInit, OnDestroy
 {
   readonly inputId = input<string | undefined>(undefined);
-  /** Emit ngModel only after user taps ยืนยัน in the picker (avoids API calls per arrow/day). */
-  readonly requireConfirm = input(false);
 
   @ViewChild('input', { static: true }) private readonly inputRef!: ElementRef<HTMLInputElement>;
 
@@ -71,6 +70,7 @@ export class ShopDatetimeInputComponent
   private clickTarget: HTMLElement | null = null;
   private timeInputTeardown: (() => void) | null = null;
   private keyboardGuardTeardown: (() => void) | null = null;
+  private confirmButtonTeardown: (() => void) | null = null;
   private readonly onClickTarget = (event: MouseEvent): void => {
     event.stopPropagation();
     if (this.disabled || !this.fp) return;
@@ -82,7 +82,6 @@ export class ShopDatetimeInputComponent
   };
 
   ngAfterViewInit(): void {
-    const needsConfirm = this.requireConfirm();
     this.fp = flatpickr(this.inputRef.nativeElement, {
       locale: Thai,
       enableTime: true,
@@ -97,16 +96,7 @@ export class ShopDatetimeInputComponent
       appendTo: document.body,
       clickOpens: false,
       position: 'auto',
-      plugins: needsConfirm
-        ? [
-            confirmDatePlugin({
-              showAlways: true,
-              confirmText: 'ยืนยัน',
-              confirmIcon: '',
-              theme: 'darkTheme',
-            }),
-          ]
-        : [],
+      plugins: shopFlatpickrConfirmDatePlugins(),
       onReady: (_dates, _str, instance) => {
         instance.calendarContainer.classList.add('app-flatpickr-calendar');
         this.clickTarget = instance.altInput ?? instance.input;
@@ -115,26 +105,18 @@ export class ShopDatetimeInputComponent
         this.syncPickerFromPending(instance);
         this.keyboardGuardTeardown?.();
         this.keyboardGuardTeardown = setupShopFlatpickrMobileKeyboardGuard(instance);
-        if (needsConfirm) {
-          const confirmEl = instance.calendarContainer.querySelector('.flatpickr-confirm');
-          confirmEl?.addEventListener(
-            'click',
-            () => {
-              this.closeConfirmed = true;
-            },
-            { capture: true },
-          );
-          this.timeInputTeardown?.();
-          this.timeInputTeardown = bindShopFlatpickrTimeInputsWithConfirm(instance, {
-            onTimeApplied: () => this.syncPendingFromFlatpickr(instance),
-          });
-        }
+        this.confirmButtonTeardown?.();
+        this.confirmButtonTeardown = bindShopFlatpickrConfirmButton(instance, () => {
+          this.closeConfirmed = true;
+        });
+        this.timeInputTeardown?.();
+        this.timeInputTeardown = bindShopFlatpickrTimeInputsWithConfirm(instance, {
+          onTimeApplied: () => this.syncPendingFromFlatpickr(instance),
+        });
       },
       onOpen: (_dates, _str, instance) => {
-        if (needsConfirm) {
-          this.committedShopValue = this.pendingValue;
-          this.closeConfirmed = false;
-        }
+        this.committedShopValue = this.pendingValue;
+        this.closeConfirmed = false;
         syncShopFlatpickrOnOpen(instance);
         watchShopFlatpickrKeyboardOverlap(instance);
         if (isShopFlatpickrMobileViewport()) {
@@ -143,7 +125,7 @@ export class ShopDatetimeInputComponent
       },
       onClose: () => {
         unwatchShopFlatpickrKeyboardOverlap();
-        if (needsConfirm && this.fp) {
+        if (this.fp) {
           if (this.closeConfirmed && isValidShopDatetimeLocal(this.pendingValue)) {
             this.onChange(this.pendingValue);
           } else {
@@ -156,7 +138,7 @@ export class ShopDatetimeInputComponent
         this.onTouched();
       },
       onKeyDown: (_dates, _str, instance, e) => {
-        if (!needsConfirm || e.key !== 'Enter') return;
+        if (e.key !== 'Enter') return;
         const target = e.target;
         if (!(target instanceof HTMLElement)) return;
         if (!target.classList.contains('flatpickr-confirm')) return;
@@ -166,9 +148,6 @@ export class ShopDatetimeInputComponent
       onChange: (_dates, dateStr, instance) => {
         const shop = this.flatpickrDisplayToShop(dateStr);
         this.pendingValue = shop;
-        if (!needsConfirm) {
-          this.onChange(shop);
-        }
         if (isShopFlatpickrMobileViewport()) {
           requestAnimationFrame(() => blurShopFlatpickrTypingFocus(instance));
           globalThis.setTimeout(() => blurShopFlatpickrTypingFocus(instance), 50);
@@ -182,6 +161,8 @@ export class ShopDatetimeInputComponent
 
   ngOnDestroy(): void {
     this.clickTarget?.removeEventListener('click', this.onClickTarget);
+    this.confirmButtonTeardown?.();
+    this.confirmButtonTeardown = null;
     this.timeInputTeardown?.();
     this.timeInputTeardown = null;
     this.keyboardGuardTeardown?.();

@@ -1,8 +1,34 @@
 import type flatpickr from 'flatpickr';
+import type { Hook } from 'flatpickr/dist/types/options';
+import confirmDatePlugin from 'flatpickr/dist/plugins/confirmDate/confirmDate';
 
 type FlatpickrInput = HTMLInputElement & { _flatpickr?: flatpickr.Instance };
 
 import { APP_MOBILE_MEDIA_QUERY } from './app-viewport.util';
+
+/** confirmDate plugin — day/time pick does not close until user taps ยืนยัน. */
+export function shopFlatpickrConfirmDatePlugins(): ReturnType<typeof confirmDatePlugin>[] {
+  return [
+    confirmDatePlugin({
+      showAlways: true,
+      confirmText: 'ยืนยัน',
+      confirmIcon: '',
+      theme: 'darkTheme',
+    }),
+  ];
+}
+
+/** Mark confirm before flatpickr plugin calls close(). */
+export function bindShopFlatpickrConfirmButton(
+  instance: flatpickr.Instance,
+  onConfirm: () => void,
+): () => void {
+  const confirmEl = instance.calendarContainer.querySelector('.flatpickr-confirm');
+  if (!confirmEl) return () => {};
+  const handler = (): void => onConfirm();
+  confirmEl.addEventListener('click', handler, { capture: true });
+  return () => confirmEl.removeEventListener('click', handler, { capture: true });
+}
 
 const SHOP_FLATPICKR_MOBILE_MQ = APP_MOBILE_MEDIA_QUERY;
 const SHOP_FLATPICKR_MOBILE_SCRIM_CLASS = 'app-flatpickr-mobile-scrim';
@@ -70,7 +96,7 @@ type ShopFlatpickrTimeConfirmHooks = {
 };
 
 /**
- * With requireConfirm: Enter in time fields applies typed value but keeps picker open.
+ * Enter in time fields applies typed value but keeps picker open until ยืนยัน.
  * Hour → minute; minute → dismiss keyboard and show ยืนยัน (flatpickr default Enter closes).
  */
 export function bindShopFlatpickrTimeInputsWithConfirm(
@@ -266,16 +292,30 @@ export function syncShopFlatpickrOnClose(instance: flatpickr.Instance): void {
 
 type ShopFlatpickrCloseHooked = flatpickr.Instance & { __shopCloseHook?: boolean };
 
+function callShopFlatpickrHooks(
+  hooks: Hook | Hook[] | undefined,
+  selectedDates: Date[],
+  dateStr: string,
+  fp: flatpickr.Instance,
+): void {
+  if (!hooks) return;
+  const list = Array.isArray(hooks) ? hooks : [hooks];
+  for (const hook of list) {
+    hook(selectedDates, dateStr, fp);
+  }
+}
+
 /** Chain util cleanup before component onClose so scrim never sticks on phone. */
 function ensureShopFlatpickrCloseCleanupHook(instance: flatpickr.Instance): void {
   const tagged = instance as ShopFlatpickrCloseHooked;
   if (tagged.__shopCloseHook) return;
   tagged.__shopCloseHook = true;
   const userOnClose = instance.config.onClose;
-  instance.set('onClose', (selectedDates, dateStr, fp) => {
+  const wrapped: Hook = (selectedDates, dateStr, fp) => {
     syncShopFlatpickrOnClose(fp);
-    userOnClose?.(selectedDates, dateStr, fp);
-  });
+    callShopFlatpickrHooks(userOnClose, selectedDates, dateStr, fp);
+  };
+  instance.set('onClose', wrapped);
 }
 
 /** Bottom-sheet layout on phone; floating position on desktop. */

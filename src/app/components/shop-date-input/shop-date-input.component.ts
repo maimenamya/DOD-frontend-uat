@@ -17,7 +17,9 @@ import {
   shopDateInputToLocalDate,
 } from '../../pages/open-table/open-table-ledger.util';
 import {
+  bindShopFlatpickrConfirmButton,
   closeShopFlatpickrMobileChrome,
+  shopFlatpickrConfirmDatePlugins,
   syncShopFlatpickrOnOpen,
 } from '../../utils/flatpickr-shop.util';
 
@@ -53,7 +55,10 @@ export class ShopDateInputComponent implements ControlValueAccessor, AfterViewIn
 
   private fp: flatpickr.Instance | null = null;
   private pendingValue = '';
+  private committedValue = '';
+  private closeConfirmed = false;
   private disabled = false;
+  private confirmButtonTeardown: (() => void) | null = null;
   private onChange: (value: string) => void = () => {};
   private onTouched: () => void = () => {};
 
@@ -69,27 +74,48 @@ export class ShopDateInputComponent implements ControlValueAccessor, AfterViewIn
       disableMobile: true,
       clickOpens: true,
       appendTo: document.body,
+      plugins: shopFlatpickrConfirmDatePlugins(),
       onReady: (_dates, _str, instance) => {
         instance.calendarContainer.classList.add('app-flatpickr-calendar');
         this.styleAltInput(instance);
         this.syncPickerFromPending();
+        this.confirmButtonTeardown?.();
+        this.confirmButtonTeardown = bindShopFlatpickrConfirmButton(instance, () => {
+          this.closeConfirmed = true;
+        });
       },
       onOpen: (_dates, _str, instance) => {
+        this.committedValue = this.pendingValue;
+        this.closeConfirmed = false;
         syncShopFlatpickrOnOpen(instance);
       },
       onChange: (_dates, dateStr) => {
         this.pendingValue = dateStr.trim();
         this.updateAltDisplay();
-        this.onChange(this.pendingValue);
       },
       onClose: () => {
+        if (this.closeConfirmed && isValidShopDateInput(this.pendingValue)) {
+          this.onChange(this.pendingValue);
+        } else {
+          this.pendingValue = this.committedValue;
+          this.syncPickerFromPending();
+        }
         this.onTouched();
+      },
+      onKeyDown: (_dates, _str, _instance, e) => {
+        if (e.key !== 'Enter') return;
+        const target = e.target;
+        if (!(target instanceof HTMLElement)) return;
+        if (!target.classList.contains('flatpickr-confirm')) return;
+        this.closeConfirmed = true;
       },
     });
     this.applyDisabledState();
   }
 
   ngOnDestroy(): void {
+    this.confirmButtonTeardown?.();
+    this.confirmButtonTeardown = null;
     if (this.fp?.isOpen) {
       this.fp.close();
     }
