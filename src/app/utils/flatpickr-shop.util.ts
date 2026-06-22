@@ -5,6 +5,10 @@ import confirmDatePlugin from 'flatpickr/dist/plugins/confirmDate/confirmDate';
 type FlatpickrInput = HTMLInputElement & { _flatpickr?: flatpickr.Instance };
 
 import { APP_MOBILE_MEDIA_QUERY } from './app-viewport.util';
+import {
+  currentDatetimeLocalValue,
+  splitShopDatetimeLocal,
+} from '../pages/open-table/open-table-ledger.util';
 
 /** confirmDate plugin — day/time pick does not close until user taps ยืนยัน. */
 export function shopFlatpickrConfirmDatePlugins(): ReturnType<typeof confirmDatePlugin>[] {
@@ -387,6 +391,23 @@ function shopFlatpickrCreateTimeWheel(
   return root;
 }
 
+function shopFlatpickrWheelInitialTime(
+  instance: flatpickr.Instance,
+  hooks: ShopFlatpickrTimeWheelHooks,
+): { hour: number; minute: number } {
+  const selected = instance.selectedDates[0];
+  if (selected) {
+    return { hour: selected.getHours(), minute: selected.getMinutes() };
+  }
+
+  const { datePart, hour, minute } = splitShopDatetimeLocal(currentDatetimeLocalValue());
+  const hours = parseInt(hour, 10);
+  const minutes = parseInt(minute, 10);
+  instance.setDate(`${datePart} ${hour}:${minute}`, false);
+  hooks.onTimeApplied();
+  return { hour: hours, minute: minutes };
+}
+
 /** Mobile: scroll wheels for hour/minute — no keyboard, tap row or scroll then ยืนยัน. */
 export function mountShopFlatpickrMobileTimeWheels(
   instance: flatpickr.Instance,
@@ -398,9 +419,7 @@ export function mountShopFlatpickrMobileTimeWheels(
   const timeContainer = instance.timeContainer;
   if (!timeContainer) return () => {};
 
-  const selected = instance.selectedDates[0] ?? new Date();
-  const hour = selected.getHours();
-  const minute = selected.getMinutes();
+  const { hour, minute } = shopFlatpickrWheelInitialTime(instance, hooks);
 
   timeContainer.classList.add('app-flatpickr-time--wheel');
 

@@ -546,7 +546,7 @@
                     @if (ledgerCanMutate() && item.canWithdrawPackageBottle) {
                       <button
                         type="button"
-                        class="app-btn-inline shrink-0"
+                        class="open-table-bill-item-action"
                         [disabled]="actionBusy()"
                         (click)="openPackageBottleModal('WITHDRAW', item)"
                       >
@@ -556,7 +556,7 @@
                     @if (ledgerCanMutate() && item.canVoid) {
                       <button
                         type="button"
-                        class="app-btn-inline shrink-0"
+                        class="open-table-bill-item-action"
                         [disabled]="actionBusy()"
                         (click)="openVoidItemModal(item)"
                       >
@@ -566,7 +566,7 @@
                     @if (item.canReturn) {
                       <button
                         type="button"
-                        class="app-btn-inline shrink-0"
+                        class="open-table-bill-item-action"
                         [disabled]="actionBusy()"
                         (click)="openReturnBeverageModal(item)"
                       >
@@ -1337,7 +1337,7 @@
 }
 
 @if (showVoidItemModal()) {
-  <app-modal layout="center" (dismiss)="closeVoidItemModal()">
+  <app-modal layout="center" [pinCenterOnMobile]="true" (dismiss)="closeVoidItemModal()">
     <div class="app-modal-header">
       <h2 class="app-modal-title">ลบรายการ — {{ voidItemTarget()?.label }}</h2>
       <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeVoidItemModal()">✕</button>
@@ -1369,7 +1369,7 @@
 }
 
 @if (showPackageBottleModal()) {
-  <app-modal layout="center" (dismiss)="closePackageBottleModal()">
+  <app-modal layout="center" [pinCenterOnMobile]="true" (dismiss)="closePackageBottleModal()">
     <div class="app-modal-header">
       <h2 class="app-modal-title">
         {{ packageBottleAction() === 'WITHDRAW' ? 'เบิกขวด' : 'ฝากขวด' }}
@@ -1438,7 +1438,7 @@
 }
 
 @if (showReturnBeverageModal()) {
-  <app-modal layout="center" (dismiss)="closeReturnBeverageModal()">
+  <app-modal layout="center" [pinCenterOnMobile]="true" (dismiss)="closeReturnBeverageModal()">
     <div class="app-modal-header">
       <h2 class="app-modal-title">
         คืน{{ returnBeverageTarget()?.unitLabel }} — {{ returnBeverageTarget()?.label }}

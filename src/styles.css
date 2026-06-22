@@ -3076,6 +3076,20 @@
     color: var(--text-primary);
   }
 
+  .open-table-bill-item-action {
+    @apply inline-flex shrink-0 items-center justify-center rounded border border-theme-border text-[0.6875rem] font-medium leading-none text-text-secondary transition-colors active:scale-[0.98] disabled:opacity-50;
+    min-width: 3.25rem;
+    height: 1.375rem;
+    padding: 0 0.35rem;
+    background: var(--surface);
+    vertical-align: baseline;
+  }
+
+  .open-table-bill-item-action:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+    color: var(--text-primary);
+  }
+
   .app-btn-ghost {
     @apply text-sm text-text-secondary transition-colors;
   }
@@ -3357,6 +3371,10 @@
     background: var(--overlay-scrim);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+  }
+
+  .app-modal-host--elevated .app-modal-overlay {
+    z-index: 80;
   }
 
   /* Open-table mobile sheet — portaled to body (above app header) */

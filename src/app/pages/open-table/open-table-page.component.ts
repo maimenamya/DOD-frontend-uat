@@ -46,9 +46,11 @@ import {
   ORDER_LEDGER_CATEGORY_LABELS,
   ORDER_LEDGER_CATEGORY_VALUES,
   currentDatetimeLocalValue,
+  formatShopDateLabelBe,
   isEntertainmentStaffRole,
   isValidShopDatetimeLocal,
   isFixedDrinkStaffRole,
+  splitShopDatetimeLocal,
   type OrderLedgerCategory,
 } from './open-table-ledger.util';
 import { AuthService } from '../../services/auth.service';
@@ -2108,6 +2110,10 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   submitAddItems(): void {
+    void this.submitAddItemsAsync();
+  }
+
+  private async submitAddItemsAsync(): Promise<void> {
     if (!this.ledgerCanMutate()) {
       this.toast.showError(
         'โต๊ะนี้ถูกเช็กบิลแล้ว ไม่สามารถเพิ่มรายการได้ — ถ้าลูกค้าออกจากโต๊ะแล้วให้กดลูกค้ากลับ',
@@ -2146,6 +2152,13 @@ export class OpenTablePageComponent implements OnInit {
         }
         unitPrice = parsed;
       }
+      const roomOk = await this.confirmDialog.confirm({
+        title: 'บันทึกค่าห้อง',
+        message: this.buildRoomChargeConfirmMessage(seatingId, rateType, unitPrice, seatStartedAt),
+        confirmLabel: 'บันทึก',
+      });
+      if (!roomOk) return;
+
       this.submitAddModalBillMutation(
         this.openTableService.addRoomCharge({
           shopId: this.shopId,
@@ -2180,6 +2193,16 @@ export class OpenTablePageComponent implements OnInit {
       this.addModalMode() === 'ORDER_LEDGER'
         ? 'เพิ่มรายการลงโต๊ะสำเร็จ'
         : 'บันทึกรันดื่มพนักงานสำเร็จ';
+
+    const ok = await this.confirmDialog.confirm({
+      title: this.addModalMode() === 'ORDER_LEDGER' ? 'บันทึกรายการ' : 'บันทึกรันดื่ม',
+      message:
+        this.addModalMode() === 'ORDER_LEDGER'
+          ? 'เพิ่มรายการลงโต๊ะนี้ ใช่หรือไม่?'
+          : this.buildStaffLedgerConfirmMessage(),
+      confirmLabel: 'บันทึก',
+    });
+    if (!ok) return;
 
     this.submitAddModalBillMutation(
       this.openTableService.addOrderItems({
@@ -2230,6 +2253,10 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   submitTransfer(): void {
+    void this.submitTransferAsync();
+  }
+
+  private async submitTransferAsync(): Promise<void> {
     const seat = this.selectedSeat();
     const destKey = this.transferDestinationKey();
     const destination = destKey ? this.seats().find((s) => s.key === destKey) : null;
@@ -2238,6 +2265,14 @@ export class OpenTablePageComponent implements OnInit {
       this.toast.showError('กรุณาเลือกปลายทาง');
       return;
     }
+
+    const ok = await this.confirmDialog.confirm({
+      title: 'ย้ายที่นั่ง',
+      message: `ย้ายจาก ${seat.code} ไป ${destination.code} ใช่หรือไม่?`,
+      confirmLabel: 'ย้าย',
+    });
+    if (!ok) return;
+
     this.runAction(
       this.openTableService.transferSeat({
         shopId: this.shopId,
@@ -2755,6 +2790,10 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   confirmCheckout(): void {
+    void this.confirmCheckoutAsync();
+  }
+
+  private async confirmCheckoutAsync(): Promise<void> {
     const sessionId = this.selectedSeat()?.sessionId;
     const expectedRevision = this.requireExpectedRevision();
     if (!sessionId || expectedRevision == null) {
@@ -2766,6 +2805,19 @@ export class OpenTablePageComponent implements OnInit {
       this.toast.showError('กรุณาระบุเวลาเช็กบิล');
       return;
     }
+
+    const preview = this.checkoutPreview();
+    if (!preview) {
+      this.toast.showError('กรุณารอสรุปยอดก่อนเช็กบิล');
+      return;
+    }
+
+    const ok = await this.confirmDialog.confirm({
+      title: 'ยืนยันเช็กบิล',
+      message: `เช็กบิลเวลา ${this.formatShopDatetimeLabel(checkedOutAt)} · ยอดรวม ${preview.billAmount.toLocaleString('th-TH')} บาท ใช่หรือไม่?`,
+      confirmLabel: 'เช็กบิล',
+    });
+    if (!ok) return;
 
     const printFrame = this.billReceiptService.shouldPreparePrintFrame()
       ? this.billReceiptService.createPrintFrame()
@@ -2937,6 +2989,39 @@ export class OpenTablePageComponent implements OnInit {
         this.reloadStaffEmployees();
       },
     );
+  }
+
+  private formatShopDatetimeLabel(shopDatetime: string): string {
+    const { datePart, hour, minute } = splitShopDatetimeLocal(shopDatetime);
+    return `${formatShopDateLabelBe(datePart)} ${hour}:${minute} น.`;
+  }
+
+  private buildRoomChargeConfirmMessage(
+    seatingId: number,
+    rateType: RoomChargeRateMode,
+    unitPrice: number,
+    seatStartedAt: string,
+  ): string {
+    const seatCode = this.seats().find((s) => s.seatId === seatingId)?.code ?? '—';
+    const rateLabel =
+      ROOM_CHARGE_MODE_OPTIONS.find((option) => option.value === rateType)?.label ?? rateType;
+    const pricePart =
+      rateType === 'HOURLY' || rateType === 'FLAT_RATE'
+        ? ` · ${unitPrice.toLocaleString('th-TH')} บาท`
+        : '';
+    return `เพิ่มค่าห้องที่นั่ง ${seatCode} · ${rateLabel}${pricePart} · เริ่ม ${this.formatShopDatetimeLabel(seatStartedAt)} ใช่หรือไม่?`;
+  }
+
+  private buildStaffLedgerConfirmMessage(): string {
+    const employee = this.selectedStaffLedgerEmployee();
+    const name = employee?.nickname ?? '—';
+    const role = this.selectedStaffLedgerRole();
+    if (role && isEntertainmentStaffRole(role)) {
+      const seatLocal = this.staffSeatStartedAt().trim();
+      return `บันทึกรันดื่ม ${name} · เริ่มนั่ง ${this.formatShopDatetimeLabel(seatLocal)} ใช่หรือไม่?`;
+    }
+    const qty = parsePositiveIntFromText(this.staffLedgerQtyText()) ?? 0;
+    return `บันทึกรันดื่ม ${name} · ${qty.toLocaleString('th-TH')} ดื่ม ใช่หรือไม่?`;
   }
 
   private runAction<T>(

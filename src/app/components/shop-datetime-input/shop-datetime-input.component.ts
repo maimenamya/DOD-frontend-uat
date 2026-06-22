@@ -125,10 +125,12 @@ export class ShopDatetimeInputComponent
         syncShopFlatpickrOnOpen(instance);
         this.timeWheelTeardown?.();
         if (isShopFlatpickrMobileViewport()) {
-          this.timeWheelTeardown = mountShopFlatpickrMobileTimeWheels(instance, {
-            onTimeApplied: () => this.syncPendingFromFlatpickr(instance),
+          requestAnimationFrame(() => {
+            this.timeWheelTeardown = mountShopFlatpickrMobileTimeWheels(instance, {
+              onTimeApplied: () => this.syncPendingFromFlatpickr(instance),
+            });
+            blurShopFlatpickrTypingFocus(instance);
           });
-          requestAnimationFrame(() => blurShopFlatpickrTypingFocus(instance));
         }
         watchShopFlatpickrKeyboardOverlap(instance);
       },

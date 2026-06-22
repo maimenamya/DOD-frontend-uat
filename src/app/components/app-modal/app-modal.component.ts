@@ -22,6 +22,7 @@ export type AppModalLayout = 'center' | 'sheet';
   host: {
     '[class.app-modal-host--sheet]': 'resolvedLayout() === "sheet"',
     '[class.app-modal-host--center]': 'resolvedLayout() === "center"',
+    '[class.app-modal-host--elevated]': 'pinCenterOnMobile()',
   },
 })
 export class AppModalComponent {
