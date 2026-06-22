@@ -276,6 +276,168 @@ export function unwatchShopFlatpickrKeyboardOverlap(): void {
   keyboardOverlapCleanup = null;
 }
 
+const SHOP_FLATPICKR_TIME_WHEEL_ITEM_PX = 44;
+
+type ShopFlatpickrTimeWheelHooks = {
+  onTimeApplied: () => void;
+};
+
+let timeWheelsCleanup: (() => void) | null = null;
+
+function shopFlatpickrPad2(n: number): string {
+  return String(n).padStart(2, '0');
+}
+
+function shopFlatpickrReadWheelValue(scrollEl: HTMLElement, max: number): number {
+  const index = Math.round(scrollEl.scrollTop / SHOP_FLATPICKR_TIME_WHEEL_ITEM_PX);
+  return Math.max(0, Math.min(max - 1, index));
+}
+
+function shopFlatpickrScrollWheelTo(scrollEl: HTMLElement, value: number): void {
+  scrollEl.scrollTop = value * SHOP_FLATPICKR_TIME_WHEEL_ITEM_PX;
+}
+
+function shopFlatpickrUpdateWheelSelection(scrollEl: HTMLElement, selected: number): void {
+  const items = scrollEl.querySelectorAll<HTMLButtonElement>('.app-time-wheel-item');
+  items.forEach((item, index) => {
+    item.classList.toggle('app-time-wheel-item--selected', index === selected);
+    item.setAttribute('aria-selected', index === selected ? 'true' : 'false');
+  });
+}
+
+function shopFlatpickrApplyTimeFromWheels(
+  instance: flatpickr.Instance,
+  hourScroll: HTMLElement,
+  minuteScroll: HTMLElement,
+  hooks: ShopFlatpickrTimeWheelHooks,
+): void {
+  const hours = shopFlatpickrReadWheelValue(hourScroll, 24);
+  const minutes = shopFlatpickrReadWheelValue(minuteScroll, 60);
+  shopFlatpickrUpdateWheelSelection(hourScroll, hours);
+  shopFlatpickrUpdateWheelSelection(minuteScroll, minutes);
+
+  const base = instance.selectedDates[0] ?? new Date();
+  const next = new Date(base.getTime());
+  next.setHours(hours, minutes, 0, 0);
+  instance.setDate(next, true);
+  hooks.onTimeApplied();
+}
+
+function shopFlatpickrCreateTimeWheel(
+  part: 'hour' | 'minute',
+  max: number,
+  selected: number,
+  instance: flatpickr.Instance,
+  hooks: ShopFlatpickrTimeWheelHooks,
+  peerScroll: () => HTMLElement,
+): HTMLElement {
+  const root = document.createElement('div');
+  root.className = 'app-time-wheel';
+  root.setAttribute('role', 'group');
+  root.setAttribute('aria-label', part === 'hour' ? 'ชั่วโมง' : 'นาที');
+
+  const highlight = document.createElement('div');
+  highlight.className = 'app-time-wheel-highlight';
+  highlight.setAttribute('aria-hidden', 'true');
+
+  const scroll = document.createElement('div');
+  scroll.className = 'app-time-wheel-scroll';
+  scroll.setAttribute('role', 'listbox');
+  scroll.tabIndex = 0;
+
+  const topSpacer = document.createElement('div');
+  topSpacer.className = 'app-time-wheel-spacer';
+  topSpacer.setAttribute('aria-hidden', 'true');
+  scroll.appendChild(topSpacer);
+
+  for (let value = 0; value < max; value += 1) {
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'app-time-wheel-item';
+    item.setAttribute('role', 'option');
+    item.dataset['value'] = String(value);
+    item.textContent = shopFlatpickrPad2(value);
+    item.addEventListener('click', () => {
+      shopFlatpickrScrollWheelTo(scroll, value);
+      shopFlatpickrApplyTimeFromWheels(instance, part === 'hour' ? scroll : peerScroll(), part === 'minute' ? scroll : peerScroll(), hooks);
+    });
+    scroll.appendChild(item);
+  }
+
+  const bottomSpacer = document.createElement('div');
+  bottomSpacer.className = 'app-time-wheel-spacer';
+  bottomSpacer.setAttribute('aria-hidden', 'true');
+  scroll.appendChild(bottomSpacer);
+
+  root.appendChild(highlight);
+  root.appendChild(scroll);
+  shopFlatpickrScrollWheelTo(scroll, selected);
+  shopFlatpickrUpdateWheelSelection(scroll, selected);
+
+  let scrollTimer: ReturnType<typeof globalThis.setTimeout> | undefined;
+  const onScroll = (): void => {
+    if (scrollTimer) globalThis.clearTimeout(scrollTimer);
+    scrollTimer = globalThis.setTimeout(() => {
+      shopFlatpickrApplyTimeFromWheels(instance, part === 'hour' ? scroll : peerScroll(), part === 'minute' ? scroll : peerScroll(), hooks);
+    }, 80);
+  };
+  scroll.addEventListener('scroll', onScroll, { passive: true });
+
+  root.dataset['wheelPart'] = part;
+  return root;
+}
+
+/** Mobile: scroll wheels for hour/minute — no keyboard, tap row or scroll then ยืนยัน. */
+export function mountShopFlatpickrMobileTimeWheels(
+  instance: flatpickr.Instance,
+  hooks: ShopFlatpickrTimeWheelHooks,
+): () => void {
+  unmountShopFlatpickrMobileTimeWheels();
+  if (!isShopFlatpickrMobileViewport() || !instance.config.enableTime) return () => {};
+
+  const timeContainer = instance.timeContainer;
+  if (!timeContainer) return () => {};
+
+  const selected = instance.selectedDates[0] ?? new Date();
+  const hour = selected.getHours();
+  const minute = selected.getMinutes();
+
+  timeContainer.classList.add('app-flatpickr-time--wheel');
+
+  const wheelsRoot = document.createElement('div');
+  wheelsRoot.className = 'app-flatpickr-time-wheels';
+
+  let hourScroll!: HTMLElement;
+  let minuteScroll!: HTMLElement;
+
+  const hourWheel = shopFlatpickrCreateTimeWheel('hour', 24, hour, instance, hooks, () => minuteScroll);
+  hourScroll = hourWheel.querySelector('.app-time-wheel-scroll') as HTMLElement;
+
+  const sep = document.createElement('span');
+  sep.className = 'app-flatpickr-time-wheels-sep';
+  sep.setAttribute('aria-hidden', 'true');
+  sep.textContent = ':';
+
+  const minuteWheel = shopFlatpickrCreateTimeWheel('minute', 60, minute, instance, hooks, () => hourScroll);
+  minuteScroll = minuteWheel.querySelector('.app-time-wheel-scroll') as HTMLElement;
+
+  wheelsRoot.append(hourWheel, sep, minuteWheel);
+  timeContainer.appendChild(wheelsRoot);
+
+  timeWheelsCleanup = () => {
+    wheelsRoot.remove();
+    timeContainer.classList.remove('app-flatpickr-time--wheel');
+    timeWheelsCleanup = null;
+  };
+
+  return timeWheelsCleanup;
+}
+
+export function unmountShopFlatpickrMobileTimeWheels(): void {
+  timeWheelsCleanup?.();
+  timeWheelsCleanup = null;
+}
+
 function clearShopFlatpickrMobileSheetLayout(instance: flatpickr.Instance): void {
   const cal = instance.calendarContainer;
   for (const prop of ['position', 'left', 'right', 'bottom', 'top', 'width', 'max-width', 'margin', 'transform']) {
@@ -285,6 +447,7 @@ function clearShopFlatpickrMobileSheetLayout(instance: flatpickr.Instance): void
 
 /** Remove mobile scrim/sheet chrome when picker closes or component destroys. */
 export function syncShopFlatpickrOnClose(instance: flatpickr.Instance): void {
+  unmountShopFlatpickrMobileTimeWheels();
   closeShopFlatpickrMobileChrome();
   clearShopFlatpickrMobileSheetLayout(instance);
   instance.calendarContainer.classList.remove('app-flatpickr-calendar--mobile');

@@ -4476,6 +4476,109 @@ input.app-input.app-shop-date-input.flatpickr-input.active {
     padding: 0.5rem 1rem 0.25rem;
   }
 
+  .app-flatpickr-time--wheel .numInputWrapper,
+  .app-flatpickr-time--wheel .flatpickr-time-separator {
+    display: none !important;
+  }
+
+  .app-flatpickr-time-wheels {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.15rem 0.5rem 0.35rem;
+    box-sizing: border-box;
+  }
+
+  .app-flatpickr-time-wheels-sep {
+    flex-shrink: 0;
+    padding-bottom: 0.15rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text-accent);
+  }
+
+  .app-time-wheel {
+    position: relative;
+    flex: 1 1 0;
+    max-width: 5.75rem;
+    height: 11rem;
+    overflow: hidden;
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      #000 18%,
+      #000 82%,
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      #000 18%,
+      #000 82%,
+      transparent 100%
+    );
+  }
+
+  .app-time-wheel-highlight {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: 2.75rem;
+    border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+    border-radius: var(--radius-input);
+    background: color-mix(in srgb, var(--primary) 10%, transparent);
+    pointer-events: none;
+    transform: translateY(-50%);
+  }
+
+  .app-time-wheel-scroll {
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+  }
+
+  .app-time-wheel-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .app-time-wheel-spacer {
+    height: calc(50% - 1.375rem);
+    flex-shrink: 0;
+  }
+
+  .app-time-wheel-item {
+    display: flex;
+    width: 100%;
+    height: 2.75rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+    color: color-mix(in srgb, var(--text-secondary) 72%, transparent);
+    cursor: pointer;
+    font-size: 1.125rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    scroll-snap-align: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-time-wheel-item--selected {
+    color: var(--text-primary);
+    font-size: 1.3125rem;
+    font-weight: 700;
+  }
+
   .app-flatpickr-calendar--mobile .flatpickr-time .numInputWrapper {
     min-width: 3.25rem;
   }

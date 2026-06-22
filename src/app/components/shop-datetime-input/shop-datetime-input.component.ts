@@ -22,9 +22,11 @@ import {
   blurShopFlatpickrTypingFocus,
   closeShopFlatpickrMobileChrome,
   isShopFlatpickrMobileViewport,
+  mountShopFlatpickrMobileTimeWheels,
   setupShopFlatpickrMobileKeyboardGuard,
   shopFlatpickrConfirmDatePlugins,
   syncShopFlatpickrOnOpen,
+  unmountShopFlatpickrMobileTimeWheels,
   unwatchShopFlatpickrKeyboardOverlap,
   watchShopFlatpickrKeyboardOverlap,
 } from '../../utils/flatpickr-shop.util';
@@ -69,6 +71,7 @@ export class ShopDatetimeInputComponent
   private onTouched: () => void = () => {};
   private clickTarget: HTMLElement | null = null;
   private timeInputTeardown: (() => void) | null = null;
+  private timeWheelTeardown: (() => void) | null = null;
   private keyboardGuardTeardown: (() => void) | null = null;
   private confirmButtonTeardown: (() => void) | null = null;
   private readonly onClickTarget = (event: MouseEvent): void => {
@@ -110,18 +113,24 @@ export class ShopDatetimeInputComponent
           this.closeConfirmed = true;
         });
         this.timeInputTeardown?.();
-        this.timeInputTeardown = bindShopFlatpickrTimeInputsWithConfirm(instance, {
-          onTimeApplied: () => this.syncPendingFromFlatpickr(instance),
-        });
+        if (!isShopFlatpickrMobileViewport()) {
+          this.timeInputTeardown = bindShopFlatpickrTimeInputsWithConfirm(instance, {
+            onTimeApplied: () => this.syncPendingFromFlatpickr(instance),
+          });
+        }
       },
       onOpen: (_dates, _str, instance) => {
         this.committedShopValue = this.pendingValue;
         this.closeConfirmed = false;
         syncShopFlatpickrOnOpen(instance);
-        watchShopFlatpickrKeyboardOverlap(instance);
+        this.timeWheelTeardown?.();
         if (isShopFlatpickrMobileViewport()) {
+          this.timeWheelTeardown = mountShopFlatpickrMobileTimeWheels(instance, {
+            onTimeApplied: () => this.syncPendingFromFlatpickr(instance),
+          });
           requestAnimationFrame(() => blurShopFlatpickrTypingFocus(instance));
         }
+        watchShopFlatpickrKeyboardOverlap(instance);
       },
       onClose: () => {
         unwatchShopFlatpickrKeyboardOverlap();
@@ -165,6 +174,9 @@ export class ShopDatetimeInputComponent
     this.confirmButtonTeardown = null;
     this.timeInputTeardown?.();
     this.timeInputTeardown = null;
+    this.timeWheelTeardown?.();
+    this.timeWheelTeardown = null;
+    unmountShopFlatpickrMobileTimeWheels();
     this.keyboardGuardTeardown?.();
     this.keyboardGuardTeardown = null;
     unwatchShopFlatpickrKeyboardOverlap();
