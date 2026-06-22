@@ -257,8 +257,30 @@ function clearShopFlatpickrMobileSheetLayout(instance: flatpickr.Instance): void
   }
 }
 
+/** Remove mobile scrim/sheet chrome when picker closes or component destroys. */
+export function syncShopFlatpickrOnClose(instance: flatpickr.Instance): void {
+  closeShopFlatpickrMobileChrome();
+  clearShopFlatpickrMobileSheetLayout(instance);
+  instance.calendarContainer.classList.remove('app-flatpickr-calendar--mobile');
+}
+
+type ShopFlatpickrCloseHooked = flatpickr.Instance & { __shopCloseHook?: boolean };
+
+/** Chain util cleanup before component onClose so scrim never sticks on phone. */
+function ensureShopFlatpickrCloseCleanupHook(instance: flatpickr.Instance): void {
+  const tagged = instance as ShopFlatpickrCloseHooked;
+  if (tagged.__shopCloseHook) return;
+  tagged.__shopCloseHook = true;
+  const userOnClose = instance.config.onClose;
+  instance.set('onClose', (selectedDates, dateStr, fp) => {
+    syncShopFlatpickrOnClose(fp);
+    userOnClose?.(selectedDates, dateStr, fp);
+  });
+}
+
 /** Bottom-sheet layout on phone; floating position on desktop. */
 export function syncShopFlatpickrOnOpen(instance: flatpickr.Instance): void {
+  ensureShopFlatpickrCloseCleanupHook(instance);
   const cal = instance.calendarContainer;
   const mobile = isShopFlatpickrMobileViewport();
   cal.classList.toggle('app-flatpickr-calendar--mobile', mobile);

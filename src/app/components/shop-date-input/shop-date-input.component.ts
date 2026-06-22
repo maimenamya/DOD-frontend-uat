@@ -16,7 +16,10 @@ import {
   isValidShopDateInput,
   shopDateInputToLocalDate,
 } from '../../pages/open-table/open-table-ledger.util';
-import { syncShopFlatpickrOnOpen } from '../../utils/flatpickr-shop.util';
+import {
+  closeShopFlatpickrMobileChrome,
+  syncShopFlatpickrOnOpen,
+} from '../../utils/flatpickr-shop.util';
 
 /** Date-only field — flatpickr popup (not native iOS date UI). Value: `YYYY-MM-DD` shop calendar. */
 @Component({
@@ -87,6 +90,10 @@ export class ShopDateInputComponent implements ControlValueAccessor, AfterViewIn
   }
 
   ngOnDestroy(): void {
+    if (this.fp?.isOpen) {
+      this.fp.close();
+    }
+    closeShopFlatpickrMobileChrome();
     this.fp?.destroy();
     this.fp = null;
   }

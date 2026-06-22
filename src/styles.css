@@ -3387,7 +3387,7 @@
     right: 0;
     bottom: 0;
     z-index: 56;
-    max-height: min(85dvh, 85vh);
+    max-height: min(72dvh, 72vh);
     overflow-y: auto;
     border: 1px solid var(--border);
     border-bottom: 0;
@@ -3397,6 +3397,12 @@
     background: var(--surface-strong);
     box-shadow: var(--shadow-card);
     transition: transform 300ms ease-in-out;
+  }
+
+  @media (max-width: 999px) and (orientation: landscape) {
+    .open-table-mobile-sheet {
+      max-height: min(58dvh, 58vh);
+    }
   }
 
   .app-modal-overlay--sheet {
@@ -3419,7 +3425,13 @@
   }
 
   .app-modal-overlay--sheet .app-modal-scroll {
-    max-height: min(88vh, 52rem);
+    max-height: min(72dvh, 52rem);
+  }
+
+  @media (max-width: 999px) and (orientation: landscape) {
+    .app-modal-overlay--sheet .app-modal-scroll {
+      max-height: min(58dvh, 52rem);
+    }
   }
 
   .app-modal-scroll {
@@ -4385,7 +4397,7 @@ input.app-input.app-shop-date-input.flatpickr-input.active {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
-    max-height: min(92dvh, calc(100dvh - env(safe-area-inset-top, 0px)));
+    max-height: min(72dvh, calc(100dvh - env(safe-area-inset-top, 0px)));
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -4396,6 +4408,12 @@ input.app-input.app-shop-date-input.flatpickr-input.active {
     border-right: 0;
     padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
     animation: app-flatpickr-sheet-in 220ms ease-out;
+  }
+
+  @media (orientation: landscape) {
+    .app-flatpickr-calendar.flatpickr-calendar.app-flatpickr-calendar--mobile {
+      max-height: min(58dvh, calc(100dvh - env(safe-area-inset-top, 0px)));
+    }
   }
 
   /* Flatpickr pins inner grid to ~308px — stretch to full phone width */

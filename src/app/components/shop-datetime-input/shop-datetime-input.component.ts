@@ -143,7 +143,6 @@ export class ShopDatetimeInputComponent
       },
       onClose: () => {
         unwatchShopFlatpickrKeyboardOverlap();
-        closeShopFlatpickrMobileChrome();
         if (needsConfirm && this.fp) {
           if (this.closeConfirmed && isValidShopDatetimeLocal(this.pendingValue)) {
             this.onChange(this.pendingValue);
