@@ -104,7 +104,12 @@ export function currentDatetimeLocalValue(date = new Date()): string {
     hour12: false,
   }).formatToParts(date);
   const pick = (type: string) => parts.find((p) => p.type === type)?.value ?? '00';
-  return `${pick('year')}-${pick('month')}-${pick('day')}T${pick('hour')}:${pick('minute')}`;
+  const hourRaw =
+    parts.find((p) => p.type === 'hour' || String(p.type) === 'hour23')?.value ?? '00';
+  const hourNum = Math.min(23, Math.max(0, parseInt(hourRaw, 10) || 0));
+  const hour = String(hourNum).padStart(2, '0');
+  const minute = pick('minute').padStart(2, '0').slice(-2);
+  return `${pick('year')}-${pick('month')}-${pick('day')}T${hour}:${minute}`;
 }
 
 /** Send wall-clock string to API; backend stores shop time (do not use toISOString). */

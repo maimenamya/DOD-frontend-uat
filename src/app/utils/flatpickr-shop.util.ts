@@ -281,11 +281,11 @@ export function unwatchShopFlatpickrKeyboardOverlap(): void {
   keyboardOverlapCleanup = null;
 }
 
-const SHOP_FLATPICKR_TIME_WHEEL_ITEM_PX = 44;
+const SHOP_FLATPICKR_TIME_WHEEL_ITEM_PX_FALLBACK = 44;
 
 type ShopFlatpickrTimeWheelHooks = {
   onTimeApplied: () => void;
-  /** Wall-clock `YYYY-MM-DDTHH:mm` — used for calendar day; time defaults to shop now. */
+  /** Wall-clock `YYYY-MM-DDTHH:mm` — calendar day + default time when opening wheels. */
   shopDatetime?: string;
 };
 
@@ -295,13 +295,20 @@ function shopFlatpickrPad2(n: number): string {
   return String(n).padStart(2, '0');
 }
 
+function shopFlatpickrWheelItemPx(scrollEl: HTMLElement): number {
+  const item = scrollEl.querySelector<HTMLElement>('.app-time-wheel-item');
+  const height = item?.getBoundingClientRect().height ?? 0;
+  return height > 0 ? height : SHOP_FLATPICKR_TIME_WHEEL_ITEM_PX_FALLBACK;
+}
+
 function shopFlatpickrReadWheelValue(scrollEl: HTMLElement, max: number): number {
-  const index = Math.round(scrollEl.scrollTop / SHOP_FLATPICKR_TIME_WHEEL_ITEM_PX);
+  const itemPx = shopFlatpickrWheelItemPx(scrollEl);
+  const index = Math.round(scrollEl.scrollTop / itemPx);
   return Math.max(0, Math.min(max - 1, index));
 }
 
 function shopFlatpickrScrollWheelTo(scrollEl: HTMLElement, value: number): void {
-  scrollEl.scrollTop = value * SHOP_FLATPICKR_TIME_WHEEL_ITEM_PX;
+  scrollEl.scrollTop = value * shopFlatpickrWheelItemPx(scrollEl);
 }
 
 function shopFlatpickrUpdateWheelSelection(scrollEl: HTMLElement, selected: number): void {
@@ -374,7 +381,6 @@ function shopFlatpickrCreateTimeWheel(
 
   root.appendChild(highlight);
   root.appendChild(scroll);
-  shopFlatpickrScrollWheelTo(scroll, selected);
   shopFlatpickrUpdateWheelSelection(scroll, selected);
 
   let scrollTimer: ReturnType<typeof globalThis.setTimeout> | undefined;
@@ -419,15 +425,53 @@ function shopFlatpickrApplyWallClockTime(
   hooks.onTimeApplied();
 }
 
+function shopFlatpickrWheelInitialShopDatetime(
+  instance: flatpickr.Instance,
+  hooks: ShopFlatpickrTimeWheelHooks,
+): string {
+  const fromHook = hooks.shopDatetime?.trim() ?? '';
+  if (isValidShopDatetimeLocal(fromHook)) {
+    return fromHook;
+  }
+  const selected = instance.selectedDates[0];
+  if (selected) {
+    const display = instance.formatDate(selected, 'Y-m-d H:i');
+    const match = /^(\d{4}-\d{2}-\d{2})\s+(\d{2}):(\d{2})/.exec(display);
+    if (match) {
+      return `${match[1]}T${match[2]}:${match[3]}`;
+    }
+  }
+  return currentDatetimeLocalValue();
+}
+
 function shopFlatpickrWheelInitialTime(
   instance: flatpickr.Instance,
   hooks: ShopFlatpickrTimeWheelHooks,
 ): { hour: number; minute: number } {
-  const now = splitShopDatetimeLocal(currentDatetimeLocalValue());
-  const hours = parseInt(now.hour, 10);
-  const minutes = parseInt(now.minute, 10);
+  const parts = splitShopDatetimeLocal(shopFlatpickrWheelInitialShopDatetime(instance, hooks));
+  const hours = Math.min(23, Math.max(0, parseInt(parts.hour, 10) || 0));
+  const minutes = Math.min(59, Math.max(0, parseInt(parts.minute, 10) || 0));
   shopFlatpickrApplyWallClockTime(instance, hours, minutes, hooks, false);
   return { hour: hours, minute: minutes };
+}
+
+function shopFlatpickrPositionTimeWheels(
+  hourScroll: HTMLElement,
+  hour: number,
+  minuteScroll: HTMLElement,
+  minute: number,
+): void {
+  const apply = (): void => {
+    shopFlatpickrScrollWheelTo(hourScroll, hour);
+    shopFlatpickrScrollWheelTo(minuteScroll, minute);
+    shopFlatpickrUpdateWheelSelection(hourScroll, hour);
+    shopFlatpickrUpdateWheelSelection(minuteScroll, minute);
+  };
+  apply();
+  requestAnimationFrame(() => {
+    apply();
+    requestAnimationFrame(apply);
+  });
 }
 
 /** Mobile: scroll wheels for hour/minute — no keyboard, tap row or scroll then ยืนยัน. */
@@ -464,6 +508,7 @@ export function mountShopFlatpickrMobileTimeWheels(
 
   wheelsRoot.append(hourWheel, sep, minuteWheel);
   timeContainer.appendChild(wheelsRoot);
+  shopFlatpickrPositionTimeWheels(hourScroll, hour, minuteScroll, minute);
 
   timeWheelsCleanup = () => {
     wheelsRoot.remove();
