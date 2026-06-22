@@ -7,6 +7,7 @@ type FlatpickrInput = HTMLInputElement & { _flatpickr?: flatpickr.Instance };
 import { APP_MOBILE_MEDIA_QUERY } from './app-viewport.util';
 import {
   currentDatetimeLocalValue,
+  isValidShopDatetimeLocal,
   splitShopDatetimeLocal,
 } from '../pages/open-table/open-table-ledger.util';
 
@@ -284,6 +285,8 @@ const SHOP_FLATPICKR_TIME_WHEEL_ITEM_PX = 44;
 
 type ShopFlatpickrTimeWheelHooks = {
   onTimeApplied: () => void;
+  /** Wall-clock `YYYY-MM-DDTHH:mm` — used for calendar day; time defaults to shop now. */
+  shopDatetime?: string;
 };
 
 let timeWheelsCleanup: (() => void) | null = null;
@@ -320,11 +323,7 @@ function shopFlatpickrApplyTimeFromWheels(
   shopFlatpickrUpdateWheelSelection(hourScroll, hours);
   shopFlatpickrUpdateWheelSelection(minuteScroll, minutes);
 
-  const base = instance.selectedDates[0] ?? new Date();
-  const next = new Date(base.getTime());
-  next.setHours(hours, minutes, 0, 0);
-  instance.setDate(next, true);
-  hooks.onTimeApplied();
+  shopFlatpickrApplyWallClockTime(instance, hours, minutes, hooks, true);
 }
 
 function shopFlatpickrCreateTimeWheel(
@@ -391,20 +390,43 @@ function shopFlatpickrCreateTimeWheel(
   return root;
 }
 
+function shopFlatpickrResolveWheelDatePart(
+  instance: flatpickr.Instance,
+  shopDatetime?: string,
+): string {
+  if (shopDatetime?.trim() && isValidShopDatetimeLocal(shopDatetime)) {
+    return splitShopDatetimeLocal(shopDatetime).datePart;
+  }
+  const selected = instance.selectedDates[0];
+  if (selected) {
+    const display = instance.formatDate(selected, 'Y-m-d');
+    if (/^\d{4}-\d{2}-\d{2}$/.test(display)) {
+      return display;
+    }
+  }
+  return splitShopDatetimeLocal(currentDatetimeLocalValue()).datePart;
+}
+
+function shopFlatpickrApplyWallClockTime(
+  instance: flatpickr.Instance,
+  hours: number,
+  minutes: number,
+  hooks: ShopFlatpickrTimeWheelHooks,
+  triggerChange: boolean,
+): void {
+  const datePart = shopFlatpickrResolveWheelDatePart(instance, hooks.shopDatetime);
+  instance.setDate(`${datePart} ${pad2(hours)}:${pad2(minutes)}`, triggerChange);
+  hooks.onTimeApplied();
+}
+
 function shopFlatpickrWheelInitialTime(
   instance: flatpickr.Instance,
   hooks: ShopFlatpickrTimeWheelHooks,
 ): { hour: number; minute: number } {
-  const selected = instance.selectedDates[0];
-  if (selected) {
-    return { hour: selected.getHours(), minute: selected.getMinutes() };
-  }
-
-  const { datePart, hour, minute } = splitShopDatetimeLocal(currentDatetimeLocalValue());
-  const hours = parseInt(hour, 10);
-  const minutes = parseInt(minute, 10);
-  instance.setDate(`${datePart} ${hour}:${minute}`, false);
-  hooks.onTimeApplied();
+  const now = splitShopDatetimeLocal(currentDatetimeLocalValue());
+  const hours = parseInt(now.hour, 10);
+  const minutes = parseInt(now.minute, 10);
+  shopFlatpickrApplyWallClockTime(instance, hours, minutes, hooks, false);
   return { hour: hours, minute: minutes };
 }
 

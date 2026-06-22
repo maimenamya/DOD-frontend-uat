@@ -123,11 +123,13 @@ export class ShopDatetimeInputComponent
         this.committedShopValue = this.pendingValue;
         this.closeConfirmed = false;
         syncShopFlatpickrOnOpen(instance);
+        this.syncPickerFromPending(instance);
         this.timeWheelTeardown?.();
         if (isShopFlatpickrMobileViewport()) {
           requestAnimationFrame(() => {
             this.timeWheelTeardown = mountShopFlatpickrMobileTimeWheels(instance, {
               onTimeApplied: () => this.syncPendingFromFlatpickr(instance),
+              shopDatetime: this.pendingValue,
             });
             blurShopFlatpickrTypingFocus(instance);
           });
