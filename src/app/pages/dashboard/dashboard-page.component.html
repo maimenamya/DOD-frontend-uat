@@ -32,12 +32,14 @@
         <div class="dashboard-date-custom">
           <app-shop-date-input
             extraInputClass="dashboard-date-input"
+            [requireConfirm]="false"
             [ngModel]="customFrom()"
             (ngModelChange)="customFrom.set($event)"
           />
           <span class="dashboard-date-separator">–</span>
           <app-shop-date-input
             extraInputClass="dashboard-date-input"
+            [requireConfirm]="false"
             [ngModel]="customTo()"
             (ngModelChange)="customTo.set($event)"
           />
@@ -103,7 +105,14 @@
               [class.dashboard-bill-bar-amount--pending]="billLoading()"
               aria-live="polite"
             >
-              <span class="dashboard-bill-bar-amount-value">{{ billAmountDisplay() }}</span>
+              <span class="dashboard-bill-bar-amount-value">
+                @if (billAmountIsBaht()) {
+                  <span class="dashboard-bill-bar-amount-symbol" aria-hidden="true">฿</span>
+                  <span>{{ billAmountBahtValue() }}</span>
+                } @else {
+                  {{ billAmountDisplay() }}
+                }
+              </span>
             </div>
           }
         </div>
@@ -115,7 +124,14 @@
             [class.dashboard-bill-bar-amount--pending]="billLoading()"
             aria-live="polite"
           >
-            <span class="dashboard-bill-bar-amount-value">{{ billAmountDisplay() }}</span>
+            <span class="dashboard-bill-bar-amount-value">
+              @if (billAmountIsBaht()) {
+                <span class="dashboard-bill-bar-amount-symbol" aria-hidden="true">฿</span>
+                <span>{{ billAmountBahtValue() }}</span>
+              } @else {
+                {{ billAmountDisplay() }}
+              }
+            </span>
           </div>
         </div>
       }

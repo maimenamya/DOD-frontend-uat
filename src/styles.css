@@ -3401,7 +3401,7 @@
 
   @media (max-width: 999px) and (orientation: landscape) {
     .open-table-mobile-sheet {
-      max-height: min(58dvh, 58vh);
+      max-height: min(65dvh, 65vh);
     }
   }
 
@@ -3430,7 +3430,7 @@
 
   @media (max-width: 999px) and (orientation: landscape) {
     .app-modal-overlay--sheet .app-modal-scroll {
-      max-height: min(58dvh, 52rem);
+      max-height: min(65dvh, 52rem);
     }
   }
 
@@ -3726,13 +3726,24 @@
 
   .dashboard-bill-bar-amount {
     @apply flex shrink-0 items-center;
+    min-width: 0;
   }
 
   .dashboard-bill-bar-amount-value {
-    @apply text-2xl font-bold tracking-tight text-theme-accent-strong sm:text-3xl;
-    line-height: 1.1;
+    @apply text-2xl font-bold text-theme-accent-strong sm:text-3xl;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.2em;
+    line-height: 1.2;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
     transition: opacity 0.2s ease;
+  }
+
+  .dashboard-bill-bar-amount-symbol {
+    flex-shrink: 0;
+    font-size: 0.92em;
+    line-height: 1;
   }
 
   .dashboard-bill-bar-amount--pending .dashboard-bill-bar-amount-value {
@@ -3754,32 +3765,32 @@
       grid-template-columns: minmax(0, 1fr);
     }
 
-    /* Title on its own line; dropdown + amount share the next line */
+    /* Title on its own line; dropdown + amount on one row without overlap */
     .dashboard-bill-bar-row--manager {
-      display: grid;
-      grid-template-columns: minmax(7rem, 9.5rem) minmax(0, 1fr);
-      column-gap: 0.75rem;
-      row-gap: 0.5rem;
+      display: flex;
+      flex-wrap: wrap;
       align-items: center;
+      gap: 0.75rem;
     }
 
     .dashboard-bill-bar-row--manager .dashboard-bill-bar-title {
-      grid-column: 1 / -1;
+      flex: 1 1 100%;
       width: auto;
     }
 
     .dashboard-bill-bar-row--manager .dashboard-bill-bar-picker {
-      grid-column: 1;
-      max-width: 9.5rem;
+      flex: 1 1 auto;
+      min-width: 0;
+      max-width: calc(100% - 7.5rem);
     }
 
     .dashboard-bill-bar-row--manager .dashboard-bill-bar-amount {
-      grid-column: 2;
-      justify-self: start;
+      flex: 0 0 auto;
+      margin-left: auto;
     }
 
     .dashboard-bill-bar-row--manager .dashboard-bill-bar-empty {
-      grid-column: 1 / -1;
+      flex: 1 1 100%;
     }
 
     .dashboard-bill-bar-amount-value {
@@ -4412,7 +4423,7 @@ input.app-input.app-shop-date-input.flatpickr-input.active {
 
   @media (orientation: landscape) {
     .app-flatpickr-calendar.flatpickr-calendar.app-flatpickr-calendar--mobile {
-      max-height: min(58dvh, calc(100dvh - env(safe-area-inset-top, 0px)));
+      max-height: min(65dvh, calc(100dvh - env(safe-area-inset-top, 0px)));
     }
   }
 

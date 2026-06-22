@@ -29,6 +29,7 @@
           <app-shop-date-input
             class="reports-date-input"
             extraInputClass="dashboard-date-input"
+            [requireConfirm]="false"
             [ngModel]="rangeFrom()"
             (ngModelChange)="rangeFrom.set($event)"
           />
@@ -42,6 +43,7 @@
           <app-shop-date-input
             class="reports-date-input"
             extraInputClass="dashboard-date-input"
+            [requireConfirm]="false"
             [ngModel]="rangeTo()"
             (ngModelChange)="rangeTo.set($event)"
           />

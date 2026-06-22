@@ -165,6 +165,14 @@ export class DashboardPageComponent implements OnInit {
     return '฿0';
   }
 
+  billAmountIsBaht(): boolean {
+    return this.billAmountDisplay().startsWith('฿');
+  }
+
+  billAmountBahtValue(): string {
+    return this.billAmountDisplay().slice(1);
+  }
+
   loadSummary(): void {
     const shopId = this.auth.getShopId();
     if (shopId == null) {

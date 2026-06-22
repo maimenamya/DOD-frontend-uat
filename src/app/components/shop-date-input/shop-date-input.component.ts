@@ -50,6 +50,8 @@ import {
 export class ShopDateInputComponent implements ControlValueAccessor, AfterViewInit, OnDestroy {
   readonly inputId = input<string | undefined>(undefined);
   readonly extraInputClass = input('');
+  /** false = เลือกวันแล้วปิดทันที (แดชบอร์ด/รายงาน); true = ต้องกด ยืนยัน */
+  readonly requireConfirm = input(true);
 
   @ViewChild('input', { static: true }) private readonly inputRef!: ElementRef<HTMLInputElement>;
 
@@ -63,6 +65,7 @@ export class ShopDateInputComponent implements ControlValueAccessor, AfterViewIn
   private onTouched: () => void = () => {};
 
   ngAfterViewInit(): void {
+    const needsConfirm = this.requireConfirm();
     this.fp = flatpickr(this.inputRef.nativeElement as Node, {
       locale: Thai,
       enableTime: false,
@@ -74,41 +77,54 @@ export class ShopDateInputComponent implements ControlValueAccessor, AfterViewIn
       disableMobile: true,
       clickOpens: true,
       appendTo: document.body,
-      plugins: shopFlatpickrConfirmDatePlugins(),
+      plugins: needsConfirm ? shopFlatpickrConfirmDatePlugins() : [],
       onReady: (_dates, _str, instance) => {
         instance.calendarContainer.classList.add('app-flatpickr-calendar');
         this.styleAltInput(instance);
         this.syncPickerFromPending();
-        this.confirmButtonTeardown?.();
-        this.confirmButtonTeardown = bindShopFlatpickrConfirmButton(instance, () => {
-          this.closeConfirmed = true;
-        });
+        if (needsConfirm) {
+          this.confirmButtonTeardown?.();
+          this.confirmButtonTeardown = bindShopFlatpickrConfirmButton(instance, () => {
+            this.closeConfirmed = true;
+          });
+        }
       },
       onOpen: (_dates, _str, instance) => {
-        this.committedValue = this.pendingValue;
-        this.closeConfirmed = false;
+        if (needsConfirm) {
+          this.committedValue = this.pendingValue;
+          this.closeConfirmed = false;
+        }
         syncShopFlatpickrOnOpen(instance);
       },
       onChange: (_dates, dateStr) => {
         this.pendingValue = dateStr.trim();
         this.updateAltDisplay();
+        if (!needsConfirm) {
+          this.onChange(this.pendingValue);
+        }
       },
       onClose: () => {
-        if (this.closeConfirmed && isValidShopDateInput(this.pendingValue)) {
-          this.onChange(this.pendingValue);
-        } else {
-          this.pendingValue = this.committedValue;
-          this.syncPickerFromPending();
+        if (needsConfirm) {
+          if (this.closeConfirmed && isValidShopDateInput(this.pendingValue)) {
+            this.onChange(this.pendingValue);
+          } else {
+            this.pendingValue = this.committedValue;
+            this.syncPickerFromPending();
+          }
         }
         this.onTouched();
       },
-      onKeyDown: (_dates, _str, _instance, e) => {
-        if (e.key !== 'Enter') return;
-        const target = e.target;
-        if (!(target instanceof HTMLElement)) return;
-        if (!target.classList.contains('flatpickr-confirm')) return;
-        this.closeConfirmed = true;
-      },
+      ...(needsConfirm
+        ? {
+            onKeyDown: (_dates: Date[], _str: string, _instance: flatpickr.Instance, e: KeyboardEvent) => {
+              if (e.key !== 'Enter') return;
+              const target = e.target;
+              if (!(target instanceof HTMLElement)) return;
+              if (!target.classList.contains('flatpickr-confirm')) return;
+              this.closeConfirmed = true;
+            },
+          }
+        : {}),
     });
     this.applyDisabledState();
   }
