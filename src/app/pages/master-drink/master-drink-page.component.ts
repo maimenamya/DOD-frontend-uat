@@ -13,11 +13,14 @@ import {
 import { forkJoin } from 'rxjs';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { CustomDropdownComponent } from '../../components/custom-dropdown/custom-dropdown.component';
 import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
 import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
 import type { MstBeverage, MstBeverageCategory } from '../../models/beverage';
+import type { MstStockItem } from '../../models/beverage-stock';
 import { AuthService } from '../../services/auth.service';
 import { BeverageService } from '../../services/beverage.service';
+import { BeverageStockService } from '../../services/beverage-stock.service';
 import { ShopMasterService } from '../../services/shop-master.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
@@ -30,12 +33,13 @@ import {
 
 @Component({
   selector: 'app-master-drink-page',
-  imports: [DecimalPipe, ReactiveFormsModule, AppModalComponent, RouterLink, MasterListToolbarComponent, ListPaginatorComponent],
+  imports: [DecimalPipe, ReactiveFormsModule, AppModalComponent, CustomDropdownComponent, RouterLink, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './master-drink-page.component.html',
 })
 export class MasterDrinkPageComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly beverageService = inject(BeverageService);
+  private readonly stockService = inject(BeverageStockService);
   private readonly shopMaster = inject(ShopMasterService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
@@ -43,6 +47,7 @@ export class MasterDrinkPageComponent implements OnInit {
 
   readonly canManage = computed(() => this.auth.canWriteOnPage('master_data'));
   readonly beverages = signal<MstBeverage[]>([]);
+  readonly stockItems = signal<MstStockItem[]>([]);
   readonly categories = signal<MstBeverageCategory[]>([]);
   readonly selectedCategoryId = signal<number | null>(null);
   readonly loading = signal(true);
@@ -75,11 +80,20 @@ export class MasterDrinkPageComponent implements OnInit {
     return kind != null && isMixerCategoryKind(kind);
   });
 
+  readonly stockItemOptions = computed(() => [
+    { value: 0, label: '— ไม่ผูกสต็อก —' },
+    ...this.stockItems().map((item) => ({
+      value: item.id,
+      label: `${item.name} (คงเหลือ ${item.quantityOnHand} ${item.unitLabelTh})`,
+    })),
+  ]);
+
   readonly createForm = this.fb.group({
     name: ['', Validators.required],
     price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     unitLabelTh: ['', Validators.required],
     canReturn: [false],
+    stockItemId: [0],
   });
 
   readonly editForm = this.fb.group({
@@ -87,6 +101,7 @@ export class MasterDrinkPageComponent implements OnInit {
     price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     unitLabelTh: ['', Validators.required],
     canReturn: [false],
+    stockItemId: [0],
   });
 
   ngOnInit(): void {
@@ -103,10 +118,12 @@ export class MasterDrinkPageComponent implements OnInit {
     forkJoin({
       beverages: this.beverageService.getBeverages(),
       categories: this.shopMaster.getBeverageCategories(),
+      stockItems: this.stockService.getAll(),
     }).subscribe({
-      next: ({ beverages, categories }) => {
+      next: ({ beverages, categories, stockItems }) => {
         this.beverages.set(beverages);
         this.categories.set(categories);
+        this.stockItems.set(stockItems);
         this.syncSelectedCategory(categories);
         this.loading.set(false);
       },
@@ -138,7 +155,7 @@ export class MasterDrinkPageComponent implements OnInit {
     
     resetFormValidationFlag(this.createFormValidated);
     if (this.loading() || !this.selectedCategory()) return;
-    this.createForm.reset({ name: '', price: '', unitLabelTh: '', canReturn: false });
+    this.createForm.reset({ name: '', price: '', unitLabelTh: '', canReturn: false, stockItemId: 0 });
     this.showCreateModal.set(true);
   }
 
@@ -154,6 +171,7 @@ export class MasterDrinkPageComponent implements OnInit {
       price: String(item.price),
       unitLabelTh: item.unitLabelTh || '',
       canReturn: Boolean(item.canReturn),
+      stockItemId: item.stockItemId ?? item.stockItem?.id ?? 0,
     });
     this.editingBeverage.set(item);
   }
@@ -162,12 +180,20 @@ export class MasterDrinkPageComponent implements OnInit {
     this.editingBeverage.set(null);
   }
 
+  stockItemLabel(item: MstBeverage): string {
+    return item.stockItem?.name ?? '—';
+  }
+
+  private resolveStockItemId(value: number): number | null {
+    return value > 0 ? value : null;
+  }
+
   submitCreate(): void {
     const categoryId = this.selectedCategoryId();
     if (categoryId == null || this.submitting()) return;
     if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
     this.submitting.set(true);
-    const { name, price, unitLabelTh, canReturn } = this.createForm.getRawValue();
+    const { name, price, unitLabelTh, canReturn, stockItemId } = this.createForm.getRawValue();
     this.beverageService
       .createBeverage({
         name,
@@ -175,6 +201,7 @@ export class MasterDrinkPageComponent implements OnInit {
         categoryId,
         unitLabelTh: unitLabelTh.trim(),
         canReturn,
+        stockItemId: this.resolveStockItemId(stockItemId),
       })
       .subscribe({
         next: () => {
@@ -195,13 +222,14 @@ export class MasterDrinkPageComponent implements OnInit {
     if (!item || this.submitting()) return;
     if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
-    const { name, price, unitLabelTh, canReturn } = this.editForm.getRawValue();
+    const { name, price, unitLabelTh, canReturn, stockItemId } = this.editForm.getRawValue();
     this.beverageService
       .updateBeverage(item.id, {
         name,
         price: Number.parseInt(price, 10),
         unitLabelTh: unitLabelTh.trim(),
         canReturn,
+        stockItemId: this.resolveStockItemId(stockItemId),
       })
       .subscribe({
         next: () => {

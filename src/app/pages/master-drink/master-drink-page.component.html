@@ -66,6 +66,21 @@
             }}</span>
           </label>
         </div>
+        <div class="app-form-group">
+          <label class="app-label">สินค้าสต็อก</label>
+          <app-custom-dropdown
+            formControlName="stockItemId"
+            [options]="stockItemOptions()"
+            placeholder="เลือกสินค้าสต็อก"
+          />
+          @if (isMixerCategoryTab()) {
+            <p class="app-hint">
+              มิกเซอร์หลายราคาให้ผูกสต็อกเดียวกัน (เช่น Soda(1) ในโซนนอก → โซดา) เพื่อตัดสต็อกรวม
+            </p>
+          } @else {
+            <p class="app-hint">ไม่บังคับ — ใช้เมื่อต้องการติดตามสต็อกสินค้านี้</p>
+          }
+        </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
           <button type="submit" class="app-btn-primary" [disabled]="submitting()">
@@ -124,6 +139,17 @@
             }}</span>
           </label>
         </div>
+        <div class="app-form-group">
+          <label class="app-label">สินค้าสต็อก</label>
+          <app-custom-dropdown
+            formControlName="stockItemId"
+            [options]="stockItemOptions()"
+            placeholder="เลือกสินค้าสต็อก"
+          />
+          @if (isMixerCategoryTab()) {
+            <p class="app-hint">ผูกสต็อกกลาง — ขายจากมิกเซอร์อื่นราคาต่างกันก็ตัดยอดเดียวกัน</p>
+          }
+        </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
           <button type="submit" class="app-btn-primary" [disabled]="submitting()">
@@ -175,6 +201,7 @@
                   <col class="app-col-narrow" />
                   <col class="app-col-narrow" />
                   <col />
+                  <col />
                   @if (canManage()) {
                     <col class="app-col-actions" />
                   }
@@ -185,6 +212,7 @@
                     <th>ชื่อ</th>
                     <th class="app-cell-center">หน่วย</th>
                     <th class="app-cell-center">คืนได้</th>
+                    <th>สต็อก</th>
                     <th class="app-cell-right">ราคา</th>
                     @if (canManage()) {
                       <th class="app-cell-right">จัดการ</th>
@@ -201,6 +229,7 @@
                   <col class="app-col-narrow" />
                   <col class="app-col-narrow" />
                   <col />
+                  <col />
                   @if (canManage()) {
                     <col class="app-col-actions" />
                   }
@@ -214,6 +243,7 @@
                       <td class="app-cell-center text-text-secondary">
                         {{ item.canReturn ? 'ใช่' : 'ไม่ใช่' }}
                       </td>
+                      <td class="text-text-secondary text-sm">{{ stockItemLabel(item) }}</td>
                       <td class="app-cell-right app-cell-highlight-violet">
                         {{ item.price | number: '1.0-0' }}
                       </td>

@@ -60,7 +60,7 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
   },
   {
     id: 'marketing',
-    label: 'Pro/Mem',
+    label: 'โปร/เมม',
     icon: 'marketing',
     children: [
       { path: '/dashboard/master-promotions', label: 'โปรโมชั่น' },
@@ -75,7 +75,7 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
   },
   {
     id: 'other-charges',
-    label: 'อื่นๆ',
+    label: 'เบ็ดเตล็ด',
     icon: 'more',
     children: [{ path: '/dashboard/master-other-charges', label: 'รายการอื่นๆ' }],
   },

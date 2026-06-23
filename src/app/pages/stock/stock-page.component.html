@@ -2,6 +2,9 @@
   <div class="app-page-header">
     <div>
       <h1 class="app-page-title">คลังสินค้า</h1>
+      <p class="app-page-subtitle text-text-secondary">
+        ตั้งสินค้ากลาง (เช่น โซดา) แล้วไปผูกที่หน้าเครื่องดื่ม — ขายจากมิกเซอร์หลายราคาก็ตัดสต็อกรายการเดียวกัน
+      </p>
     </div>
     @if (canManage() && !loading()) {
       <button type="button" (click)="openCreate()" class="app-btn-primary">เพิ่มรายการสต็อก</button>
@@ -11,7 +14,7 @@
   @if (showCreateModal() && canManage()) {
     <app-modal (dismiss)="closeCreate()">
       <div class="app-modal-header">
-        <h2 class="app-modal-title">เพิ่มสต็อกเครื่องดื่ม</h2>
+        <h2 class="app-modal-title">เพิ่มสินค้าสต็อก</h2>
         <button type="button" class="app-btn-ghost" (click)="closeCreate()">✕</button>
       </div>
       <form
@@ -21,20 +24,20 @@
         (ngSubmit)="submitCreate()"
       >
         <div class="app-form-group">
-          <label class="app-label">เครื่องดื่ม</label>
-          <app-custom-dropdown
-            formControlName="beverageId"
-            [options]="beverageOptions()"
-            placeholder="เลือกเครื่องดื่ม"
-          />
-          @if (selectedCreateBeverageStock(); as stock) {
+          <label class="app-label">ชื่อสินค้า</label>
+          <input type="text" formControlName="name" class="app-input" placeholder="เช่น โซดา, น้ำ, เอส" />
+          @if (selectedCreateStockItem(); as stock) {
             <p class="app-hint">
-              มีในรายการแล้ว — จะบวกจำนวนที่ใส่เข้ายอดเดิม (ปัจจุบัน {{ stock.quantityOnHand }}
-              {{ stock.beverage.unitLabelTh }})
+              มีชื่อนี้แล้ว — จะบวกจำนวนที่ใส่เข้ายอดเดิม (ปัจจุบัน {{ stock.quantityOnHand }}
+              {{ stock.unitLabelTh }})
             </p>
           } @else {
-            <p class="app-hint">เครื่องดื่มที่ยังไม่มีในรายการจะถูกเพิ่มใหม่</p>
+            <p class="app-hint">ตั้งชื่อสินค้ากลางที่ใช้ตัดสต็อก — ไม่จำเป็นต้องตรงชื่อเมนู</p>
           }
+        </div>
+        <div class="app-form-group">
+          <label class="app-label">หน่วยนับ</label>
+          <input type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" />
         </div>
         <div class="app-form-group">
           <label class="app-label">จำนวนที่เพิ่ม</label>
@@ -59,7 +62,7 @@
   @if (editingItem(); as item) {
     <app-modal (dismiss)="closeEdit()">
       <div class="app-modal-header">
-        <h2 class="app-modal-title">แก้ไขสต็อก — {{ item.beverage.name }}</h2>
+        <h2 class="app-modal-title">แก้ไขสต็อก — {{ item.name }}</h2>
         <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
       </div>
       <form
@@ -69,7 +72,7 @@
         (ngSubmit)="submitEdit()"
       >
         <div class="app-form-group">
-          <label class="app-label">จำนวนคงเหลือ ({{ item.beverage.unitLabelTh }})</label>
+          <label class="app-label">จำนวนคงเหลือ ({{ item.unitLabelTh }})</label>
           <input
             type="text"
             inputmode="numeric"
@@ -92,7 +95,7 @@
   @if (loading()) {
     <p class="app-loading-text">กำลังโหลด...</p>
   } @else if (items().length === 0) {
-    <p class="app-empty-state">ยังไม่มีรายการสต็อก — กด «เพิ่มรายการสต็อก» แล้วเลือกเครื่องดื่มจากเมนู</p>
+    <p class="app-empty-state">ยังไม่มีรายการสต็อก — กด «เพิ่มรายการสต็อก» เช่น โซดา, น้ำ, เอส</p>
   } @else {
     <app-master-list-toolbar
       [search]="listQuery.search()"
@@ -109,6 +112,7 @@
               <colgroup>
                 <col class="app-col-id" />
                 <col />
+                <col />
                 <col class="app-col-narrow" />
                 @if (canManage()) {
                   <col class="app-col-actions" />
@@ -117,7 +121,8 @@
               <thead>
                 <tr>
                   <th>No.</th>
-                  <th>เครื่องดื่ม</th>
+                  <th>สินค้าสต็อก</th>
+                  <th>เมนูที่ผูก</th>
                   <th class="app-cell-right">คงเหลือ</th>
                   @if (canManage()) {
                     <th class="app-cell-right">จัดการ</th>
@@ -131,6 +136,7 @@
               <colgroup>
                 <col class="app-col-id" />
                 <col />
+                <col />
                 <col class="app-col-narrow" />
                 @if (canManage()) {
                   <col class="app-col-actions" />
@@ -140,9 +146,10 @@
                 @for (row of listView().items; track row.id; let i = $index) {
                   <tr>
                     <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
-                    <td class="app-cell-primary">{{ row.beverage.name }}</td>
+                    <td class="app-cell-primary">{{ row.name }}</td>
+                    <td class="text-text-secondary text-sm">{{ linkedMenuLabel(row) }}</td>
                     <td class="app-cell-right app-cell-highlight-violet">
-                      {{ row.quantityOnHand | number: '1.0-0' }} {{ row.beverage.unitLabelTh }}
+                      {{ row.quantityOnHand | number: '1.0-0' }} {{ row.unitLabelTh }}
                     </td>
                     @if (canManage()) {
                       <td class="app-cell-right">

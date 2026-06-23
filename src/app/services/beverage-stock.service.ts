@@ -1,9 +1,18 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { ApiConfig } from '../core/api-config';
 import type {
+  MstStockItem,
+  MstStockItemUpdatePayload,
+  MstStockItemWritePayload,
+} from '../models/beverage-stock';
+
+export type {
+  MstStockItem,
+  MstStockItemUpdatePayload,
+  MstStockItemWritePayload,
   MstBeverageStock,
   MstBeverageStockUpdatePayload,
   MstBeverageStockWritePayload,
@@ -14,25 +23,19 @@ export class BeverageStockService {
   private readonly http = inject(HttpClient);
   private readonly api = inject(ApiConfig);
 
-  getAll(): Observable<MstBeverageStock[]> {
-    return this.http.get<MstBeverageStock[]>(this.api.resource('stock'));
+  getAll(): Observable<MstStockItem[]> {
+    return this.http.get<MstStockItem[]>(this.api.resource('stock'));
   }
 
-  create(payload: MstBeverageStockWritePayload): Observable<MstBeverageStock> {
-    return this.http.post<MstBeverageStock>(this.api.resource('stock'), payload);
+  create(payload: MstStockItemWritePayload): Observable<MstStockItem> {
+    return this.http.post<MstStockItem>(this.api.resource('stock'), payload);
   }
 
-  updateQuantity(
-    beverageId: number,
-    payload: MstBeverageStockUpdatePayload,
-  ): Observable<MstBeverageStock> {
-    return this.http.put<MstBeverageStock>(
-      this.api.resource(`stock/${beverageId}`),
-      payload,
-    );
+  updateQuantity(stockItemId: number, payload: MstStockItemUpdatePayload): Observable<MstStockItem> {
+    return this.http.put<MstStockItem>(this.api.resource('stock', String(stockItemId)), payload);
   }
 
-  remove(beverageId: number): Observable<void> {
-    return this.http.delete<void>(this.api.resource(`stock/${beverageId}`));
+  remove(stockItemId: number): Observable<void> {
+    return this.http.delete<void>(this.api.resource('stock', String(stockItemId)));
   }
 }

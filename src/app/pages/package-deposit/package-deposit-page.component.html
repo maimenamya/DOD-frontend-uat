@@ -42,77 +42,89 @@
   @if (loading()) {
     <p class="app-loading-text">กำลังโหลด...</p>
   } @else {
-    <section class="app-card app-card-flush">
+    <section class="app-card app-card-flush package-deposit-section">
       @if (visibleItems().length === 0) {
         <p class="app-empty-state">{{ emptyText() }}</p>
       } @else {
-        <div class="package-deposit-card-list">
-          @for (row of visibleItems(); track row.id; let i = $index) {
-            <article class="package-deposit-card">
-              <div class="package-deposit-card-head">
-                <p class="package-deposit-card-package">
-                  <span class="font-mono">{{ i + 1 }}.</span>
-                  {{ row.packageName }}
-                </p>
+        <p class="package-deposit-grid-hint">แตะรายการเพื่อดูรายละเอียดและจัดการ</p>
+
+        <div class="package-deposit-grid" role="list">
+          @for (row of visibleItems(); track row.id) {
+            <button
+              type="button"
+              role="listitem"
+              class="package-deposit-tile"
+              [class.package-deposit-tile--selected]="expandedId() === row.id"
+              [attr.aria-expanded]="expandedId() === row.id"
+              [attr.aria-label]="tileAriaLabel(row)"
+              (click)="toggleExpanded(row)"
+            >
+              <span class="package-deposit-tile__name">{{ customerNameDisplay(row) }}</span>
+              <span class="package-deposit-tile__code">{{ customerCodeDisplay(row) }}</span>
+              <span class="package-deposit-tile__package">{{ row.packageName }}</span>
+              <span class="package-deposit-tile__foot">
+                <span class="package-deposit-tile__bottles">{{ row.bottlesLabel }}</span>
                 @if (row.status === 'OPEN') {
-                  <span class="app-badge app-badge-staff shrink-0">{{ statusLabel(row) }}</span>
-                } @else {
-                  <span class="app-badge app-badge-default shrink-0">{{ statusLabel(row) }}</span>
+                  <span class="package-deposit-tile__status package-deposit-tile__status--open">เปิด</span>
                 }
-              </div>
-
-              <div class="package-deposit-card-customer-row">
-                <div class="package-deposit-card-customer-field">
-                  <span class="package-deposit-card-customer-label">ชื่อ</span>
-                  <span class="package-deposit-card-customer-name">{{ customerNameDisplay(row) }}</span>
-                </div>
-                <div class="package-deposit-card-customer-field package-deposit-card-customer-field--code">
-                  <span class="package-deposit-card-customer-label">รหัส</span>
-                  <span class="package-deposit-card-customer-code">{{ customerCodeDisplay(row) }}</span>
-                </div>
-              </div>
-
-              <dl class="package-deposit-card-meta">
-                <div>
-                  <dt class="package-deposit-card-stat-label">วันที่เปิด</dt>
-                  <dd class="package-deposit-card-stat-value">{{ row.openedOnLabel }}</dd>
-                </div>
-                <div>
-                  <dt class="package-deposit-card-stat-label">ขวดคงเหลือ</dt>
-                  <dd class="package-deposit-card-stat-value package-deposit-card-stat-value--mono">
-                    {{ row.bottlesLabel }}
-                  </dd>
-                </div>
-                <div class="package-deposit-card-meta-note">
-                  <dt class="package-deposit-card-stat-label">หมายเหตุ</dt>
-                  <dd class="package-deposit-card-stat-value text-text-secondary">
-                    {{ row.remainderNote || '—' }}
-                  </dd>
-                </div>
-              </dl>
-
-              @if (row.canDeposit || row.canClose || row.canDelete) {
-                <div class="package-deposit-card-actions">
-                  @if (row.canDeposit) {
-                    <button type="button" class="app-btn-secondary-sm" (click)="openDeposit(row)">
-                      ฝาก
-                    </button>
-                  }
-                  @if (row.canDelete) {
-                    <button type="button" class="app-btn-danger-sm" (click)="openDelete(row)">
-                      ลบ
-                    </button>
-                  }
-                  @if (row.canClose) {
-                    <button type="button" class="app-btn-secondary-sm" (click)="confirmClose(row)">
-                      ปิด
-                    </button>
-                  }
-                </div>
-              }
-            </article>
+              </span>
+            </button>
           }
         </div>
+
+        @if (expandedRow(); as row) {
+          <article class="package-deposit-detail" aria-live="polite">
+            <div class="package-deposit-detail__head">
+              <div class="package-deposit-detail__title-block">
+                <p class="package-deposit-detail__package">{{ row.packageName }}</p>
+                <p class="package-deposit-detail__customer">
+                  {{ customerNameDisplay(row) }}
+                  <span class="package-deposit-detail__customer-code">{{ customerCodeDisplay(row) }}</span>
+                </p>
+              </div>
+              @if (row.status === 'OPEN') {
+                <span class="app-badge app-badge-staff shrink-0">{{ statusLabel(row) }}</span>
+              } @else {
+                <span class="app-badge app-badge-default shrink-0">{{ statusLabel(row) }}</span>
+              }
+            </div>
+
+            <dl class="package-deposit-detail__meta">
+              <div>
+                <dt>วันที่เปิด</dt>
+                <dd>{{ row.openedOnLabel }}</dd>
+              </div>
+              <div>
+                <dt>ขวดคงเหลือ</dt>
+                <dd class="font-mono">{{ row.bottlesLabel }}</dd>
+              </div>
+              <div class="package-deposit-detail__meta-note">
+                <dt>หมายเหตุ</dt>
+                <dd>{{ row.remainderNote || '—' }}</dd>
+              </div>
+            </dl>
+
+            @if (row.canDeposit || row.canClose || row.canDelete) {
+              <div class="package-deposit-detail__actions">
+                @if (row.canDeposit) {
+                  <button type="button" class="app-btn-secondary-sm" (click)="openDeposit(row)">
+                    ฝาก
+                  </button>
+                }
+                @if (row.canDelete) {
+                  <button type="button" class="app-btn-danger-sm" (click)="openDelete(row)">
+                    ลบ
+                  </button>
+                }
+                @if (row.canClose) {
+                  <button type="button" class="app-btn-secondary-sm" (click)="confirmClose(row)">
+                    ปิด
+                  </button>
+                }
+              </div>
+            }
+          </article>
+        }
       }
     </section>
   }

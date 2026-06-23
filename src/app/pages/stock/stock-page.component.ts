@@ -9,16 +9,12 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { forkJoin } from 'rxjs';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
 import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
 import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
-import { CustomDropdownComponent } from '../../components/custom-dropdown/custom-dropdown.component';
-import type { MstBeverage } from '../../models/beverage';
-import type { MstBeverageStock } from '../../models/beverage-stock';
+import type { MstStockItem } from '../../models/beverage-stock';
 import { AuthService } from '../../services/auth.service';
-import { BeverageService } from '../../services/beverage.service';
 import { BeverageStockService } from '../../services/beverage-stock.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
@@ -30,53 +26,39 @@ import {
 
 @Component({
   selector: 'app-stock-page',
-  imports: [ReactiveFormsModule, AppModalComponent, CustomDropdownComponent, DecimalPipe, MasterListToolbarComponent, ListPaginatorComponent],
+  imports: [ReactiveFormsModule, AppModalComponent, DecimalPipe, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './stock-page.component.html',
 })
 export class StockPageComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly stockService = inject(BeverageStockService);
-  private readonly beverageService = inject(BeverageService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
 
   readonly canManage = computed(() => this.auth.canWriteOnPage('master_data'));
-  readonly items = signal<MstBeverageStock[]>([]);
+  readonly items = signal<MstStockItem[]>([]);
   readonly listQuery = new MasterListQueryState();
   readonly listView = createMasterListView(this.items, this.listQuery, (row) =>
-    `${row.beverage?.name ?? ''} ${row.beverage?.category?.name ?? ''} ${row.beverage?.unitLabelTh ?? ''}`,
+    `${row.name} ${row.unitLabelTh} ${row.beverages?.map((b) => b.name).join(' ') ?? ''}`,
   );
   readonly masterListRowNumber = masterListRowNumber;
-  readonly beverages = signal<MstBeverage[]>([]);
   readonly loading = signal(true);
   readonly submitting = signal(false);
   readonly createFormValidated = signal(false);
   readonly editFormValidated = signal(false);
   readonly showCreateModal = signal(false);
-  readonly editingItem = signal<MstBeverageStock | null>(null);
+  readonly editingItem = signal<MstStockItem | null>(null);
 
-  readonly beverageOptions = computed(() => {
-    const stockByBeverage = new Map(this.items().map((row) => [row.beverageId, row]));
-    return this.beverages().map((b) => {
-      const stock = stockByBeverage.get(b.id);
-      return {
-        value: b.id,
-        label: stock
-          ? `${b.name} — คงเหลือ ${stock.quantityOnHand} ${b.unitLabelTh}`
-          : b.name,
-      };
-    });
-  });
-
-  readonly selectedCreateBeverageStock = computed(() => {
-    const id = this.createForm.controls.beverageId.value;
-    if (!id || id <= 0) return null;
-    return this.items().find((row) => row.beverageId === id) ?? null;
+  readonly selectedCreateStockItem = computed(() => {
+    const name = this.createForm.controls.name.value.trim().toLowerCase();
+    if (!name) return null;
+    return this.items().find((row) => row.name.trim().toLowerCase() === name) ?? null;
   });
 
   readonly createForm = this.fb.group({
-    beverageId: [0, [Validators.required, Validators.min(1)]],
+    name: ['', Validators.required],
+    unitLabelTh: ['ขวด', Validators.required],
     quantityOnHand: ['1', [Validators.required, Validators.pattern(/^[1-9]\d*$/)]],
   });
 
@@ -90,13 +72,9 @@ export class StockPageComponent implements OnInit {
 
   reload(): void {
     this.loading.set(true);
-    forkJoin({
-      stock: this.stockService.getAll(),
-      beverages: this.beverageService.getBeverages(),
-    }).subscribe({
-      next: ({ stock, beverages }) => {
+    this.stockService.getAll().subscribe({
+      next: (stock) => {
         this.items.set(stock);
-        this.beverages.set(beverages);
         this.loading.set(false);
       },
       error: () => {
@@ -106,9 +84,16 @@ export class StockPageComponent implements OnInit {
     });
   }
 
+  linkedMenuLabel(item: MstStockItem): string {
+    const names = item.beverages?.map((b) => b.name) ?? [];
+    if (names.length === 0) return '—';
+    if (names.length <= 2) return names.join(', ');
+    return `${names.slice(0, 2).join(', ')} +${names.length - 2}`;
+  }
+
   openCreate(): void {
     resetFormValidationFlag(this.createFormValidated);
-    this.createForm.reset({ beverageId: 0, quantityOnHand: '1' });
+    this.createForm.reset({ name: '', unitLabelTh: 'ขวด', quantityOnHand: '1' });
     this.showCreateModal.set(true);
   }
 
@@ -116,7 +101,7 @@ export class StockPageComponent implements OnInit {
     this.showCreateModal.set(false);
   }
 
-  openEdit(item: MstBeverageStock): void {
+  openEdit(item: MstStockItem): void {
     resetFormValidationFlag(this.editFormValidated);
     this.editingItem.set(item);
     this.editForm.reset({ quantityOnHand: String(item.quantityOnHand) });
@@ -141,30 +126,30 @@ export class StockPageComponent implements OnInit {
     if (!this.canManage()) return;
     if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
 
-    const beverageId = this.createForm.controls.beverageId.value;
+    const name = this.createForm.controls.name.value.trim();
+    const unitLabelTh = this.createForm.controls.unitLabelTh.value.trim();
     const quantityOnHand = Number(this.createForm.controls.quantityOnHand.value);
 
     this.submitting.set(true);
     this.stockService
       .create({
-        beverageId,
+        name,
+        unitLabelTh,
         quantityOnHand,
       })
       .subscribe({
-      next: () => {
-        const existing = this.selectedCreateBeverageStock();
-        this.toast.showSuccess(
-          existing ? 'เพิ่มจำนวนสต็อกแล้ว' : 'เพิ่มรายการสต็อกแล้ว',
-        );
-        this.closeCreate();
-        this.reload();
-        this.submitting.set(false);
-      },
-      error: (err) => {
-        this.toast.showError(err?.error?.error ?? 'เพิ่มสต็อกไม่สำเร็จ');
-        this.submitting.set(false);
-      },
-    });
+        next: () => {
+          const existing = this.selectedCreateStockItem();
+          this.toast.showSuccess(existing ? 'เพิ่มจำนวนสต็อกแล้ว' : 'เพิ่มรายการสต็อกแล้ว');
+          this.closeCreate();
+          this.reload();
+          this.submitting.set(false);
+        },
+        error: (err) => {
+          this.toast.showError(err?.error?.error ?? 'เพิ่มสต็อกไม่สำเร็จ');
+          this.submitting.set(false);
+        },
+      });
   }
 
   submitEdit(): void {
@@ -175,35 +160,40 @@ export class StockPageComponent implements OnInit {
     const quantityOnHand = Number(this.editForm.controls.quantityOnHand.value);
     this.submitting.set(true);
     this.stockService
-      .updateQuantity(item.beverageId, {
+      .updateQuantity(item.id, {
         quantityOnHand,
       })
       .subscribe({
-      next: () => {
-        this.toast.showSuccess('บันทึกจำนวนสต็อกแล้ว');
-        this.closeEdit();
-        this.reload();
-        this.submitting.set(false);
-      },
-      error: (err) => {
-        this.toast.showError(err?.error?.error ?? 'บันทึกไม่สำเร็จ');
-        this.submitting.set(false);
-      },
-    });
+        next: () => {
+          this.toast.showSuccess('บันทึกจำนวนสต็อกแล้ว');
+          this.closeEdit();
+          this.reload();
+          this.submitting.set(false);
+        },
+        error: (err) => {
+          this.toast.showError(err?.error?.error ?? 'บันทึกไม่สำเร็จ');
+          this.submitting.set(false);
+        },
+      });
   }
 
-  async confirmRemove(item: MstBeverageStock): Promise<void> {
+  async confirmRemove(item: MstStockItem): Promise<void> {
     if (!this.canManage()) return;
+    const linked = item.beverages?.length ?? 0;
+    const linkedHint =
+      linked > 0
+        ? ` เมนู ${linked} รายการที่ผูกอยู่จะเลิกผูกสต็อก (ไม่ลบเมนู).`
+        : '';
     const ok = await this.confirmDialog.confirm({
-      title: 'ลบออกจากสต็อก',
-      message: `หยุดติดตามสต็อก "${item.beverage.name}"? (ไม่ลบเครื่องดื่มจากเมนู)`,
+      title: 'ลบรายการสต็อก',
+      message: `ลบ "${item.name}" ออกจากสต็อก?${linkedHint}`,
       confirmLabel: 'ลบ',
     });
     if (!ok) return;
 
-    this.stockService.remove(item.beverageId).subscribe({
+    this.stockService.remove(item.id).subscribe({
       next: () => {
-        this.toast.showSuccess('ลบออกจากสต็อกแล้ว');
+        this.toast.showSuccess('ลบรายการสต็อกแล้ว');
         this.reload();
       },
       error: (err) => {

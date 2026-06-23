@@ -45,6 +45,7 @@ export class PackageDepositPageComponent implements OnInit {
   readonly deleteTarget = signal<PackageDepositRecord | null>(null);
   readonly sourceTab = signal<DepositSourceTab>('MEMBERSHIP');
   readonly searchQuery = signal('');
+  readonly expandedId = signal<number | null>(null);
 
   readonly depositForm = this.fb.group({
     quantity: ['1', [Validators.required, Validators.pattern(/^[1-9]\d*$/)]],
@@ -83,6 +84,12 @@ export class PackageDepositPageComponent implements OnInit {
     this.sourceTab() === 'MEMBERSHIP' ? 'ยังไม่มีรายการฝากเมม' : 'ยังไม่มีรายการฝากโปร',
   );
 
+  readonly expandedRow = computed(() => {
+    const id = this.expandedId();
+    if (id == null) return null;
+    return this.visibleItems().find((row) => row.id === id) ?? null;
+  });
+
   ngOnInit(): void {
     this.loadItems();
   }
@@ -103,10 +110,20 @@ export class PackageDepositPageComponent implements OnInit {
 
   selectSourceTab(tab: DepositSourceTab): void {
     this.sourceTab.set(tab);
+    this.expandedId.set(null);
   }
 
   onSearchChange(value: string): void {
     this.searchQuery.set(value);
+    this.expandedId.set(null);
+  }
+
+  toggleExpanded(row: PackageDepositRecord): void {
+    this.expandedId.update((current) => (current === row.id ? null : row.id));
+  }
+
+  tileAriaLabel(row: PackageDepositRecord): string {
+    return `${this.customerNameDisplay(row)} รหัส ${this.customerCodeDisplay(row)} — ${row.packageName} เหลือ ${row.bottlesLabel}`;
   }
 
   openDeposit(row: PackageDepositRecord): void {
@@ -148,6 +165,7 @@ export class PackageDepositPageComponent implements OnInit {
       next: (updated) => {
         this.items.update((rows) => rows.map((row) => (row.id === updated.id ? updated : row)));
         this.toast.showSuccess('ลบรายการฝากแล้ว');
+        this.expandedId.set(null);
         this.closeDeleteModal();
         this.submitting.set(false);
       },
@@ -203,6 +221,7 @@ export class PackageDepositPageComponent implements OnInit {
       next: (updated) => {
         this.items.update((rows) => rows.map((r) => (r.id === updated.id ? updated : r)));
         this.toast.showSuccess('ปิดรายการฝากแล้ว');
+        this.expandedId.set(null);
       },
       error: (err: { error?: { error?: string } }) => {
         this.toast.showError(err.error?.error ?? 'ไม่สามารถปิดรายการฝากได้');

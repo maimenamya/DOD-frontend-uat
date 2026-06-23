@@ -1,26 +1,34 @@
-import type { MstBeverageCategory } from './beverage';
-
-export interface MstBeverageStock {
+export interface MstStockItem {
   id: number;
   shopId: number;
-  beverageId: number;
+  name: string;
+  unitLabelTh: string;
   quantityOnHand: number;
   adjustNote: string | null;
-  beverage: {
+  beverages?: Array<{
     id: number;
     name: string;
-    unitLabelTh: string;
-    category: Pick<MstBeverageCategory, 'id' | 'name' | 'kind'>;
-  };
+    category?: { id: number; name: string };
+  }>;
 }
 
-export interface MstBeverageStockWritePayload {
-  beverageId: number;
+export interface MstStockItemWritePayload {
+  name: string;
+  unitLabelTh?: string;
   quantityOnHand: number;
   adjustNote?: string | null;
 }
 
-export interface MstBeverageStockUpdatePayload {
+export interface MstStockItemUpdatePayload {
   quantityOnHand: number;
   adjustNote?: string | null;
 }
+
+/** @deprecated Use MstStockItem */
+export type MstBeverageStock = MstStockItem;
+
+/** @deprecated Use MstStockItemWritePayload */
+export type MstBeverageStockWritePayload = MstStockItemWritePayload;
+
+/** @deprecated Use MstStockItemUpdatePayload */
+export type MstBeverageStockUpdatePayload = MstStockItemUpdatePayload;
