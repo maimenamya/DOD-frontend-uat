@@ -1,4 +1,5 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import {
   FormsModule,
   NonNullableFormBuilder,
@@ -12,6 +13,7 @@ import type { PackageDepositRecord, PackageDepositSourceType } from '../../model
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { PackageDepositService } from '../../services/package-deposit.service';
 import { ToastService } from '../../services/toast.service';
+import { APP_MOBILE_MEDIA_QUERY, isAppMobileViewport } from '../../utils/app-viewport.util';
 import {
   highlightInvalidForm,
   resetFormValidationFlag,
@@ -22,6 +24,7 @@ type DepositSourceTab = PackageDepositSourceType;
 @Component({
   selector: 'app-package-deposit-page',
   imports: [
+    NgTemplateOutlet,
     FormsModule,
     ReactiveFormsModule,
     AppModalComponent,
@@ -35,6 +38,7 @@ export class PackageDepositPageComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly fb = inject(NonNullableFormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly items = signal<PackageDepositRecord[]>([]);
   readonly loading = signal(true);
@@ -46,6 +50,7 @@ export class PackageDepositPageComponent implements OnInit {
   readonly sourceTab = signal<DepositSourceTab>('MEMBERSHIP');
   readonly searchQuery = signal('');
   readonly expandedId = signal<number | null>(null);
+  readonly mobileViewport = signal(isAppMobileViewport());
 
   readonly depositForm = this.fb.group({
     quantity: ['1', [Validators.required, Validators.pattern(/^[1-9]\d*$/)]],
@@ -90,6 +95,15 @@ export class PackageDepositPageComponent implements OnInit {
     return this.visibleItems().find((row) => row.id === id) ?? null;
   });
 
+  constructor() {
+    if (typeof window !== 'undefined') {
+      const mq = window.matchMedia(APP_MOBILE_MEDIA_QUERY);
+      const onChange = (): void => this.mobileViewport.set(mq.matches);
+      mq.addEventListener('change', onChange);
+      this.destroyRef.onDestroy(() => mq.removeEventListener('change', onChange));
+    }
+  }
+
   ngOnInit(): void {
     this.loadItems();
   }
@@ -120,6 +134,10 @@ export class PackageDepositPageComponent implements OnInit {
 
   toggleExpanded(row: PackageDepositRecord): void {
     this.expandedId.update((current) => (current === row.id ? null : row.id));
+  }
+
+  closeExpanded(): void {
+    this.expandedId.set(null);
   }
 
   tileAriaLabel(row: PackageDepositRecord): string {

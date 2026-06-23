@@ -210,3 +210,17 @@
   padding-top: 0.75rem;
   border-top: 1px solid var(--border);
 }
+
+.package-deposit-detail-sheet {
+  padding-top: 0;
+}
+
+.package-deposit-detail-sheet .package-deposit-detail__actions {
+  padding-bottom: 0.25rem;
+}
+
+.package-deposit-detail-sheet .package-deposit-detail__actions .app-btn-secondary-sm,
+.package-deposit-detail-sheet .package-deposit-detail__actions .app-btn-danger-sm {
+  flex: 1 1 auto;
+  min-height: 2.75rem;
+}
