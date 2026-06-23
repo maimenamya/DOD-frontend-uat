@@ -159,7 +159,20 @@ export type SessionStaffDrink = {
   seatStartedLabel?: string;
   seatStoppedLabel?: string;
   canStopDrinks?: boolean;
+  canDeleteStaffDrink?: boolean;
+  canEditStaffDrink?: boolean;
+  /** DB drinks_count — editable when {@link canEditStaffDrink}. */
+  storedDrinksCount?: number;
   note?: string;
+};
+
+export type DeleteStaffDrinkPayload = SessionMutationBase & {
+  staffDrinkId: number;
+};
+
+export type AdjustStaffDrinkPayload = SessionMutationBase & {
+  staffDrinkId: number;
+  drinksCount: number;
 };
 
 export type StopStaffDrinkPayload = SessionMutationBase & {

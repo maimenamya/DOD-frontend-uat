@@ -14,6 +14,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 import { DROPDOWN_MENU_MAX_HEIGHT_PX } from '../custom-dropdown/custom-dropdown.component';
 import { getDropdownOverlayRoot } from '../custom-dropdown/dropdown-overlay.util';
+import { scheduleAppFieldReveal } from '../../utils/app-keyboard-viewport.util';
 
 export interface ComboboxOption {
   value: number | string;
@@ -212,7 +213,11 @@ export class SearchableComboboxComponent implements ControlValueAccessor, OnChan
     this.rebuildList();
     this.applyMenuPosition(menu, trigger);
     this.addScrollListener();
-    requestAnimationFrame(() => search.focus());
+    scheduleAppFieldReveal(trigger);
+    requestAnimationFrame(() => {
+      scheduleAppFieldReveal(trigger);
+      search.focus();
+    });
   }
 
   private rebuildList(): void {

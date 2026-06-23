@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
+import { AppKeyboardViewportService } from './services/app-keyboard-viewport.service';
 import { ThemeService } from './services/theme.service';
 
 @Component({
@@ -12,5 +13,6 @@ import { ThemeService } from './services/theme.service';
 export class AppComponent {
   constructor() {
     inject(ThemeService);
+    inject(AppKeyboardViewportService);
   }
 }

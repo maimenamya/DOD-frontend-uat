@@ -189,6 +189,8 @@ export class OpenTablePageComponent implements OnInit {
   readonly showStopRoomModal = signal(false);
   readonly showReturnBeverageModal = signal(false);
   readonly showVoidItemModal = signal(false);
+  readonly showDeleteStaffDrinkModal = signal(false);
+  readonly showEditStaffDrinkModal = signal(false);
   readonly showPackageBottleModal = signal(false);
   readonly showCheckoutModal = signal(false);
   readonly checkoutAt = signal(currentDatetimeLocalValue());
@@ -205,6 +207,9 @@ export class OpenTablePageComponent implements OnInit {
   readonly returnBeverageQtyText = signal('1');
   readonly voidItemTarget = signal<SessionOrderItem | null>(null);
   readonly voidItemQtyText = signal('1');
+  readonly deleteStaffDrinkTarget = signal<SessionStaffDrink | null>(null);
+  readonly editStaffDrinkTarget = signal<SessionStaffDrink | null>(null);
+  readonly editStaffDrinkQtyText = signal('1');
   readonly packageBottleAction = signal<'WITHDRAW' | 'DEPOSIT'>('WITHDRAW');
   readonly packageBottleBillItemKey = signal<string | null>(null);
   readonly packageBottleDisplayNameText = signal('');
@@ -405,6 +410,8 @@ export class OpenTablePageComponent implements OnInit {
       this.showStopRoomModal() ||
       this.showReturnBeverageModal() ||
       this.showVoidItemModal() ||
+      this.showDeleteStaffDrinkModal() ||
+      this.showEditStaffDrinkModal() ||
       this.showPackageBottleModal() ||
       this.showCheckoutModal(),
   );
@@ -2692,6 +2699,105 @@ export class OpenTablePageComponent implements OnInit {
       'ลบรายการสำเร็จ — เพิ่มโปรหรือรายการใหม่ได้จากปุ่มเพิ่มรายการ',
       sessionId,
       () => this.closeVoidItemModal(),
+    );
+  }
+
+  openDeleteStaffDrinkModal(row: SessionStaffDrink): void {
+    this.deleteStaffDrinkTarget.set(row);
+    this.showDeleteStaffDrinkModal.set(true);
+    this.showMobileSheet.set(false);
+  }
+
+  closeDeleteStaffDrinkModal(): void {
+    this.showDeleteStaffDrinkModal.set(false);
+    this.deleteStaffDrinkTarget.set(null);
+    this.schedulePortaledModalPurge();
+    if (this.selectedSeatKey()) {
+      this.showMobileSheet.set(true);
+    }
+  }
+
+  confirmDeleteStaffDrink(): void {
+    if (!this.ledgerCanMutate()) {
+      this.toast.showError('โต๊ะนี้ถูกเช็กบิลแล้ว ไม่สามารถแก้รายการได้');
+      this.closeDeleteStaffDrinkModal();
+      return;
+    }
+    const sessionId = this.selectedSeat()?.sessionId;
+    const expectedRevision = this.requireExpectedRevision();
+    const row = this.deleteStaffDrinkTarget();
+    if (!sessionId || !row || expectedRevision == null) {
+      this.toast.showError('ไม่พบรายการรันดื่ม');
+      return;
+    }
+    this.submitBillPanelMutation(
+      this.openTableService.deleteStaffDrink({
+        shopId: this.shopId,
+        sessionId,
+        expectedRevision,
+        staffDrinkId: row.staffDrinkId,
+      }),
+      'ลบรายการรันดื่มสำเร็จ',
+      sessionId,
+      () => this.closeDeleteStaffDrinkModal(),
+    );
+  }
+
+  openEditStaffDrinkModal(row: SessionStaffDrink): void {
+    this.editStaffDrinkTarget.set(row);
+    const stored = row.storedDrinksCount ?? row.drinks;
+    this.editStaffDrinkQtyText.set(String(Math.max(0, stored)));
+    this.showEditStaffDrinkModal.set(true);
+    this.showMobileSheet.set(false);
+  }
+
+  closeEditStaffDrinkModal(): void {
+    this.showEditStaffDrinkModal.set(false);
+    this.editStaffDrinkTarget.set(null);
+    this.schedulePortaledModalPurge();
+    if (this.selectedSeatKey()) {
+      this.showMobileSheet.set(true);
+    }
+  }
+
+  onEditStaffDrinkQtyChange(value: string): void {
+    this.editStaffDrinkQtyText.set(sanitizeDigitsOnly(value));
+  }
+
+  confirmEditStaffDrink(): void {
+    if (!this.ledgerCanMutate()) {
+      this.toast.showError('โต๊ะนี้ถูกเช็กบิลแล้ว ไม่สามารถแก้รายการได้');
+      this.closeEditStaffDrinkModal();
+      return;
+    }
+    const sessionId = this.selectedSeat()?.sessionId;
+    const expectedRevision = this.requireExpectedRevision();
+    const row = this.editStaffDrinkTarget();
+    if (!sessionId || !row || expectedRevision == null) {
+      this.toast.showError('ไม่พบรายการรันดื่ม');
+      return;
+    }
+    const digits = sanitizeDigitsOnly(this.editStaffDrinkQtyText());
+    if (digits === '') {
+      this.toast.showError('กรุณาระบุจำนวนดื่ม (0 = ลบรายการ)');
+      return;
+    }
+    const drinksCount = Number.parseInt(digits, 10);
+    if (!Number.isFinite(drinksCount) || drinksCount < 0) {
+      this.toast.showError('จำนวนดื่มไม่ถูกต้อง');
+      return;
+    }
+    this.submitBillPanelMutation(
+      this.openTableService.adjustStaffDrink({
+        shopId: this.shopId,
+        sessionId,
+        expectedRevision,
+        staffDrinkId: row.staffDrinkId,
+        drinksCount,
+      }),
+      drinksCount === 0 ? 'ลบรายการรันดื่มสำเร็จ' : 'แก้ไขจำนวนดื่มสำเร็จ',
+      sessionId,
+      () => this.closeEditStaffDrinkModal(),
     );
   }
 

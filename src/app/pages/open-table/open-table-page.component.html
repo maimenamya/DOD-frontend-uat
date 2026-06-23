@@ -659,6 +659,26 @@
                       สต็อปแล้ว · {{ row.seatStoppedLabel }}
                     </span>
                   }
+                  @if (ledgerCanMutate() && row.canEditStaffDrink) {
+                    <button
+                      type="button"
+                      class="open-table-bill-item-action shrink-0"
+                      [disabled]="actionBusy()"
+                      (click)="openEditStaffDrinkModal(row)"
+                    >
+                      แก้ไข
+                    </button>
+                  }
+                  @if (ledgerCanMutate() && row.canDeleteStaffDrink) {
+                    <button
+                      type="button"
+                      class="open-table-bill-item-action shrink-0"
+                      [disabled]="actionBusy()"
+                      (click)="openDeleteStaffDrinkModal(row)"
+                    >
+                      ลบ
+                    </button>
+                  }
                   @if (row.note) {
                     <span class="text-text-secondary">{{ row.note }}</span>
                   }
@@ -1363,6 +1383,75 @@
       <button type="button" class="app-btn-secondary" (click)="closeVoidItemModal()">ยกเลิก</button>
       <button type="button" class="app-btn-danger" [disabled]="actionBusy()" (click)="confirmVoidItem()">
         {{ actionBusy() ? 'กำลังบันทึก...' : 'ยืนยันลบ' }}
+      </button>
+    </div>
+  </app-modal>
+}
+
+@if (showDeleteStaffDrinkModal()) {
+  <app-modal layout="center" [pinCenterOnMobile]="true" (dismiss)="closeDeleteStaffDrinkModal()">
+    <div class="app-modal-header">
+      <h2 class="app-modal-title">
+        ลบรายการรันดื่ม — {{ deleteStaffDrinkTarget()?.employeeName }}
+      </h2>
+      <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeDeleteStaffDrinkModal()">
+        ✕
+      </button>
+    </div>
+    <p class="app-field-hint mb-3">
+      {{ deleteStaffDrinkTarget()?.employeeName }}
+      ({{ deleteStaffDrinkTarget()?.roleDisplayNameTh }}) ·
+      {{ deleteStaffDrinkTarget()?.drinks }} ดื่ม
+      @if (deleteStaffDrinkTarget()?.canStopDrinks) {
+        — จะลบการนั่งโต๊ะและรายการรันดื่มนี้
+      } @else {
+        — ลบแล้วลงใหม่ได้จาก «เพิ่มรายการ»
+      }
+    </p>
+    <div class="app-form-actions app-form-actions-top">
+      <button type="button" class="app-btn-secondary" (click)="closeDeleteStaffDrinkModal()">ยกเลิก</button>
+      <button
+        type="button"
+        class="app-btn-danger"
+        [disabled]="actionBusy()"
+        (click)="confirmDeleteStaffDrink()"
+      >
+        {{ actionBusy() ? 'กำลังบันทึก...' : 'ยืนยันลบ' }}
+      </button>
+    </div>
+  </app-modal>
+}
+
+@if (showEditStaffDrinkModal()) {
+  <app-modal layout="center" [pinCenterOnMobile]="true" (dismiss)="closeEditStaffDrinkModal()">
+    <div class="app-modal-header">
+      <h2 class="app-modal-title">
+        แก้ไขรายการรันดื่ม — {{ editStaffDrinkTarget()?.employeeName }}
+      </h2>
+      <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeEditStaffDrinkModal()">✕</button>
+    </div>
+    <p class="app-field-hint mb-3">
+      ปัจจุบัน {{ editStaffDrinkTarget()?.drinks }} ดื่ม
+      ({{ editStaffDrinkTarget()?.roleDisplayNameTh }})
+    </p>
+    <div class="app-form-group">
+      <label class="app-label" for="edit-staff-drink-qty">จำนวนดื่มใหม่</label>
+      <input
+        id="edit-staff-drink-qty"
+        type="text"
+        inputmode="numeric"
+        autocomplete="off"
+        class="app-input"
+        [ngModel]="editStaffDrinkQtyText()"
+        (ngModelChange)="onEditStaffDrinkQtyChange($event)"
+        (keydown)="blockNonNumericKey($event)"
+      />
+      <p class="app-field-hint mt-1">ใส่ 0 เพื่อลบรายการ</p>
+    </div>
+    <div class="app-form-actions app-form-actions-top">
+      <button type="button" class="app-btn-secondary" (click)="closeEditStaffDrinkModal()">ยกเลิก</button>
+      <button type="button" class="app-btn-primary" [disabled]="actionBusy()" (click)="confirmEditStaffDrink()">
+        {{ actionBusy() ? 'กำลังบันทึก...' : 'บันทึก' }}
       </button>
     </div>
   </app-modal>

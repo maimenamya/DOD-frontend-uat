@@ -42,6 +42,11 @@
     /* Mobile shell below 1000px — keep in sync with app-viewport.util.ts */
     --app-desktop-min-width: 1000px;
     --app-mobile-max-width: 999px;
+
+    /* Set at runtime on mobile when visualViewport changes (keyboard open/close). */
+    --app-keyboard-overlap: 0px;
+    --app-visual-viewport-height: 100dvh;
+    --app-visual-viewport-offset-top: 0px;
   }
 
   [data-theme='light'] {
@@ -487,6 +492,15 @@
   /* ── Login page ── */
   .login-page {
     @apply page-background soft-grid-bg flex items-center justify-center px-4 py-10 sm:px-6;
+    min-height: 100dvh;
+    min-height: var(--app-visual-viewport-height, 100dvh);
+  }
+
+  @media (max-width: 999px) {
+    html.app-keyboard-open .login-page {
+      align-items: flex-start;
+      padding-bottom: max(2.5rem, var(--app-keyboard-overlap, 0px));
+    }
   }
 
   .login-ambient {
@@ -734,9 +748,9 @@
   /* Mobile: menu + profile bar stays put; only page body scrolls */
   @media (max-width: 999px) {
     .app-layout {
-      height: 100dvh;
-      max-height: 100dvh;
-      min-height: 100dvh;
+      height: var(--app-visual-viewport-height, 100dvh);
+      max-height: var(--app-visual-viewport-height, 100dvh);
+      min-height: var(--app-visual-viewport-height, 100dvh);
       overflow: hidden;
     }
 
@@ -2555,6 +2569,25 @@
       font-size: 16px;
       line-height: 1.5;
     }
+
+    input,
+    select,
+    textarea,
+    .glass-input,
+    .app-input,
+    .app-combobox-search {
+      scroll-margin-top: 1rem;
+      scroll-margin-bottom: max(8rem, var(--app-keyboard-overlap, 0px));
+    }
+
+    .app-main-content,
+    .app-modal-scroll,
+    .open-table-mobile-sheet,
+    .login-page,
+    .open-table-drawer__scroll {
+      scroll-padding-top: 1rem;
+      scroll-padding-bottom: max(8rem, var(--app-keyboard-overlap, 0px));
+    }
   }
 
   .app-dropdown {
@@ -3405,7 +3438,7 @@
     right: 0;
     bottom: 0;
     z-index: 56;
-    max-height: min(72dvh, 72vh);
+    max-height: min(72dvh, calc(var(--app-visual-viewport-height, 100dvh) * 0.72));
     overflow-y: auto;
     border: 1px solid var(--border);
     border-bottom: 0;
@@ -3419,8 +3452,16 @@
 
   @media (max-width: 999px) and (orientation: landscape) {
     .open-table-mobile-sheet {
-      max-height: min(75dvh, 75vh);
+      max-height: min(75dvh, calc(var(--app-visual-viewport-height, 100dvh) * 0.75));
     }
+  }
+
+  html.app-keyboard-open .open-table-mobile-sheet {
+    bottom: var(--app-keyboard-overlap, 0px);
+    max-height: min(
+      calc(var(--app-visual-viewport-height, 72dvh) - 0.75rem),
+      calc(var(--app-visual-viewport-height, 100dvh) * 0.72)
+    );
   }
 
   .app-modal-overlay--sheet {
@@ -3443,13 +3484,22 @@
   }
 
   .app-modal-overlay--sheet .app-modal-scroll {
-    max-height: min(72dvh, 52rem);
+    max-height: min(72dvh, calc(var(--app-visual-viewport-height, 100dvh) * 0.72), 52rem);
   }
 
   @media (max-width: 999px) and (orientation: landscape) {
     .app-modal-overlay--sheet .app-modal-scroll {
-      max-height: min(75dvh, 52rem);
+      max-height: min(75dvh, calc(var(--app-visual-viewport-height, 100dvh) * 0.75), 52rem);
     }
+  }
+
+  html.app-keyboard-open .app-modal-overlay--sheet {
+    align-items: flex-end;
+    padding-bottom: var(--app-keyboard-overlap, 0px);
+  }
+
+  html.app-keyboard-open .app-modal-overlay--sheet .app-modal-scroll {
+    max-height: min(calc(var(--app-visual-viewport-height, 72dvh) - 1rem), 52rem);
   }
 
   .app-modal-scroll {
@@ -4516,6 +4566,46 @@ input.app-input.app-shop-date-input.flatpickr-input.active {
     font-weight: 700;
     line-height: 1;
     color: var(--text-accent);
+  }
+
+  .app-flatpickr-time-nudge {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    align-self: center;
+    gap: 0.35rem;
+  }
+
+  .app-flatpickr-time-nudge--minus {
+    margin-right: 0.15rem;
+  }
+
+  .app-flatpickr-time-nudge--plus {
+    margin-left: 0.15rem;
+  }
+
+  .app-flatpickr-time-nudge-btn {
+    min-width: 2.75rem;
+    min-height: 2.25rem;
+    padding: 0.2rem 0.45rem;
+    border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border));
+    border-radius: var(--radius-input);
+    background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    line-height: 1.2;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background var(--transition-smooth),
+      border-color var(--transition-smooth);
+  }
+
+  .app-flatpickr-time-nudge-btn:active {
+    background: color-mix(in srgb, var(--primary) 22%, var(--surface));
+    border-color: color-mix(in srgb, var(--primary) 55%, var(--border));
   }
 
   .app-time-wheel {

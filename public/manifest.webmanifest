@@ -1,0 +1,20 @@
+{
+  "name": "DOD",
+  "short_name": "DOD",
+  "description": "ระบบ POS ร้านบาร์",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#10141d",
+  "theme_color": "#10141d",
+  "orientation": "any",
+  "lang": "th",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon",
+      "purpose": "any"
+    }
+  ]
+}

@@ -282,6 +282,7 @@ export function unwatchShopFlatpickrKeyboardOverlap(): void {
 }
 
 const SHOP_FLATPICKR_TIME_WHEEL_ITEM_PX_FALLBACK = 44;
+const SHOP_FLATPICKR_TIME_NUDGE_MINUTES = [5, 15] as const;
 
 type ShopFlatpickrTimeWheelHooks = {
   onTimeApplied: () => void;
@@ -474,6 +475,53 @@ function shopFlatpickrPositionTimeWheels(
   });
 }
 
+function shopFlatpickrNudgeTimeByMinutes(
+  instance: flatpickr.Instance,
+  hourScroll: HTMLElement,
+  minuteScroll: HTMLElement,
+  hooks: ShopFlatpickrTimeWheelHooks,
+  deltaMinutes: number,
+): void {
+  const hours = shopFlatpickrReadWheelValue(hourScroll, 24);
+  const minutes = shopFlatpickrReadWheelValue(minuteScroll, 60);
+  const maxTotal = 23 * 60 + 59;
+  const total = Math.max(0, Math.min(maxTotal, hours * 60 + minutes + deltaMinutes));
+  const newHour = Math.floor(total / 60);
+  const newMinute = total % 60;
+  shopFlatpickrPositionTimeWheels(hourScroll, newHour, minuteScroll, newMinute);
+  shopFlatpickrApplyTimeFromWheels(instance, hourScroll, minuteScroll, hooks);
+}
+
+function shopFlatpickrCreateTimeNudgeButtons(
+  instance: flatpickr.Instance,
+  hourScroll: HTMLElement,
+  minuteScroll: HTMLElement,
+  hooks: ShopFlatpickrTimeWheelHooks,
+  side: 'minus' | 'plus',
+): HTMLElement {
+  const root = document.createElement('div');
+  root.className = `app-flatpickr-time-nudge app-flatpickr-time-nudge--${side}`;
+
+  for (const amount of SHOP_FLATPICKR_TIME_NUDGE_MINUTES) {
+    const delta = side === 'plus' ? amount : -amount;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'app-flatpickr-time-nudge-btn';
+    btn.textContent = side === 'plus' ? `+${amount}` : `-${amount}`;
+    btn.setAttribute(
+      'aria-label',
+      side === 'plus' ? `เพิ่ม ${amount} นาที` : `ลด ${amount} นาที`,
+    );
+    btn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      shopFlatpickrNudgeTimeByMinutes(instance, hourScroll, minuteScroll, hooks, delta);
+    });
+    root.appendChild(btn);
+  }
+
+  return root;
+}
+
 /** Mobile: scroll wheels for hour/minute — no keyboard, tap row or scroll then ยืนยัน. */
 export function mountShopFlatpickrMobileTimeWheels(
   instance: flatpickr.Instance,
@@ -506,7 +554,22 @@ export function mountShopFlatpickrMobileTimeWheels(
   const minuteWheel = shopFlatpickrCreateTimeWheel('minute', 60, minute, instance, hooks, () => hourScroll);
   minuteScroll = minuteWheel.querySelector('.app-time-wheel-scroll') as HTMLElement;
 
-  wheelsRoot.append(hourWheel, sep, minuteWheel);
+  const nudgeMinus = shopFlatpickrCreateTimeNudgeButtons(
+    instance,
+    hourScroll,
+    minuteScroll,
+    hooks,
+    'minus',
+  );
+  const nudgePlus = shopFlatpickrCreateTimeNudgeButtons(
+    instance,
+    hourScroll,
+    minuteScroll,
+    hooks,
+    'plus',
+  );
+
+  wheelsRoot.append(nudgeMinus, hourWheel, sep, minuteWheel, nudgePlus);
   timeContainer.appendChild(wheelsRoot);
   shopFlatpickrPositionTimeWheels(hourScroll, hour, minuteScroll, minute);
 
