@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="DOD">
+  <rect width="180" height="180" rx="40" fill="#10141d"/>
+  <defs>
+    <linearGradient id="dod-brand" x1="24" y1="24" x2="156" y2="156" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#7be4ff"/>
+      <stop offset="48%" stop-color="#b8a8ff"/>
+      <stop offset="100%" stop-color="#f0abfc"/>
+    </linearGradient>
+  </defs>
+  <path
+    fill="url(#dod-brand)"
+    d="M44 38h40.5c32.6 0 55.5 19.1 55.5 50.5S117.1 139 84.5 139H44V38zm23.6 24.8V114h15.8c19.1 0 31.5-11.8 31.5-31.5S102.5 51 83.4 51H67.6z"
+  />
+</svg>

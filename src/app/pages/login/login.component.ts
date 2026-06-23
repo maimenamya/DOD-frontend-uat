@@ -12,7 +12,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 
-import { readStoredShopPublicId } from '../../core/shop-public-id.storage';
+import { readStoredShopPublicId, writeStoredShopPublicId } from '../../core/shop-public-id.storage';
 import { AuthService } from '../../services/auth.service';
 import {
   ShopPublicService,
@@ -62,6 +62,8 @@ export class LoginComponent implements OnInit {
       this.missingShopLink.set(true);
       return;
     }
+
+    writeStoredShopPublicId(publicId);
 
     this.loading.set(true);
     this.shopPublic.getByPublicId(publicId).subscribe({

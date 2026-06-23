@@ -15,7 +15,10 @@
     </header>
 
     @if (missingShopLink()) {
-      <p class="login-footer">ติดต่อทีมงานหรือเจ้าของร้านสำหรับลิงก์เข้าระบบ</p>
+      <p class="login-footer">
+        ติดต่อเจ้าของร้านสำหรับลิงก์เข้าระบบ<br />
+        ถ้าติดตั้งแอปบนหน้าจอแล้ว ให้เปิดลิงก์ร้านครั้งหนึ่งก่อน แล้วค่อย Add to Home Screen ใหม่
+      </p>
     } @else if (shopLoadError()) {
       <p class="login-error" role="alert">{{ shopLoadError() }}</p>
       <p class="login-footer">ติดต่อทีมงานหรือเจ้าของร้านสำหรับลิงก์ที่ถูกต้อง</p>
