@@ -40,7 +40,7 @@ export class StockPageComponent implements OnInit {
   readonly items = signal<MstStockItem[]>([]);
   readonly listQuery = new MasterListQueryState();
   readonly listView = createMasterListView(this.items, this.listQuery, (row) =>
-    `${row.name} ${row.unitLabelTh} ${row.beverages?.map((b) => b.name).join(' ') ?? ''}`,
+    `${row.name} ${row.unitLabelTh}`,
   );
   readonly masterListRowNumber = masterListRowNumber;
   readonly loading = signal(true);
@@ -82,13 +82,6 @@ export class StockPageComponent implements OnInit {
         this.loading.set(false);
       },
     });
-  }
-
-  linkedMenuLabel(item: MstStockItem): string {
-    const names = item.beverages?.map((b) => b.name) ?? [];
-    if (names.length === 0) return '—';
-    if (names.length <= 2) return names.join(', ');
-    return `${names.slice(0, 2).join(', ')} +${names.length - 2}`;
   }
 
   openCreate(): void {

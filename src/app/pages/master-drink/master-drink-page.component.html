@@ -73,13 +73,6 @@
             [options]="stockItemOptions()"
             placeholder="เลือกสินค้าสต็อก"
           />
-          @if (isMixerCategoryTab()) {
-            <p class="app-hint">
-              มิกเซอร์หลายราคาให้ผูกสต็อกเดียวกัน (เช่น Soda(1) ในโซนนอก → โซดา) เพื่อตัดสต็อกรวม
-            </p>
-          } @else {
-            <p class="app-hint">ไม่บังคับ — ใช้เมื่อต้องการติดตามสต็อกสินค้านี้</p>
-          }
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>

@@ -31,8 +31,6 @@
               มีชื่อนี้แล้ว — จะบวกจำนวนที่ใส่เข้ายอดเดิม (ปัจจุบัน {{ stock.quantityOnHand }}
               {{ stock.unitLabelTh }})
             </p>
-          } @else {
-            <p class="app-hint">ตั้งชื่อสินค้ากลางที่ใช้ตัดสต็อก — ไม่จำเป็นต้องตรงชื่อเมนู</p>
           }
         </div>
         <div class="app-form-group">
@@ -112,7 +110,6 @@
               <colgroup>
                 <col class="app-col-id" />
                 <col />
-                <col />
                 <col class="app-col-narrow" />
                 @if (canManage()) {
                   <col class="app-col-actions" />
@@ -122,7 +119,6 @@
                 <tr>
                   <th>No.</th>
                   <th>สินค้าสต็อก</th>
-                  <th>เมนูที่ผูก</th>
                   <th class="app-cell-right">คงเหลือ</th>
                   @if (canManage()) {
                     <th class="app-cell-right">จัดการ</th>
@@ -136,7 +132,6 @@
               <colgroup>
                 <col class="app-col-id" />
                 <col />
-                <col />
                 <col class="app-col-narrow" />
                 @if (canManage()) {
                   <col class="app-col-actions" />
@@ -147,7 +142,6 @@
                   <tr>
                     <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
                     <td class="app-cell-primary">{{ row.name }}</td>
-                    <td class="text-text-secondary text-sm">{{ linkedMenuLabel(row) }}</td>
                     <td class="app-cell-right app-cell-highlight-violet">
                       {{ row.quantityOnHand | number: '1.0-0' }} {{ row.unitLabelTh }}
                     </td>
