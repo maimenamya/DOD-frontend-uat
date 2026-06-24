@@ -5,7 +5,10 @@ import {
   CustomDropdownComponent,
   type DropdownOption,
 } from '../custom-dropdown/custom-dropdown.component';
-import { MASTER_PAGE_SIZE_OPTIONS } from '../../utils/master-list.util';
+import {
+  DEFAULT_MASTER_PAGE_SIZE,
+  MASTER_PAGE_SIZE_OPTIONS,
+} from '../../utils/master-list.util';
 
 @Component({
   selector: 'app-list-paginator',
@@ -16,7 +19,7 @@ export class ListPaginatorComponent {
   readonly page = input(1);
   readonly totalPages = input(1);
   readonly total = input(0);
-  readonly limit = input(25);
+  readonly limit = input(DEFAULT_MASTER_PAGE_SIZE);
   readonly rangeStart = input(0);
   readonly rangeEnd = input(0);
 

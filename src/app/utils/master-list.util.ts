@@ -1,6 +1,6 @@
 import { type Signal, computed, signal } from '@angular/core';
 
-export const DEFAULT_MASTER_PAGE_SIZE = 25;
+export const DEFAULT_MASTER_PAGE_SIZE = 10;
 export const MASTER_PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 
 export type MasterListSlice<T> = {
