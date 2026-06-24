@@ -1,5 +1,12 @@
-/** API may return legacy kinds (BEER/LIQUOR/OTHER) — treat as sale unless MIXER. */
-export type BeverageCategoryKind = 'MIXER' | 'SALE' | 'BEER' | 'LIQUOR' | 'OTHER';
+/** API may return legacy kinds (SALE/OTHER/COCKTAIL) — UI selects LIQUOR/BEER/WINE/MIXER. */
+export type BeverageCategoryKind =
+  | 'MIXER'
+  | 'SALE'
+  | 'BEER'
+  | 'LIQUOR'
+  | 'WINE'
+  | 'COCKTAIL'
+  | 'OTHER';
 
 export interface MstBeverageCategory {
   id: number;
@@ -47,10 +54,14 @@ export interface MstBeverageUpdatePayload {
 
 export interface MstBeverageCategoryCreatePayload {
   name: string;
-  isMixer: boolean;
+  kind: BeverageCategoryKind;
+  /** @deprecated use kind */
+  isMixer?: boolean;
 }
 
 export interface MstBeverageCategoryUpdatePayload {
   name?: string;
+  kind?: BeverageCategoryKind;
+  /** @deprecated use kind */
   isMixer?: boolean;
 }

@@ -12,12 +12,22 @@ import {
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
 import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
 import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
-import type { MstBeverageCategory } from '../../models/beverage';
+import {
+  CustomDropdownComponent,
+  type DropdownOption,
+} from '../../components/custom-dropdown/custom-dropdown.component';
+import type { BeverageCategoryKind, MstBeverageCategory } from '../../models/beverage';
 import { AuthService } from '../../services/auth.service';
 import { ShopMasterService } from '../../services/shop-master.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
-import { isMixerCategoryKind } from '../../utils/beverage-category-kind.util';
+import {
+  BEVERAGE_CATEGORY_KIND_OPTIONS,
+  beverageCategoryKindLabel,
+  defaultBeverageCategoryKind,
+  isMixerCategoryKind,
+  normalizeBeverageCategoryKind,
+} from '../../utils/beverage-category-kind.util';
 import {
   MasterListQueryState,
   createMasterListView,
@@ -26,7 +36,13 @@ import {
 
 @Component({
   selector: 'app-master-beverage-category-page',
-  imports: [ReactiveFormsModule, AppModalComponent, MasterListToolbarComponent, ListPaginatorComponent],
+  imports: [
+    ReactiveFormsModule,
+    AppModalComponent,
+    MasterListToolbarComponent,
+    ListPaginatorComponent,
+    CustomDropdownComponent,
+  ],
   templateUrl: './master-beverage-category-page.component.html',
 })
 export class MasterBeverageCategoryPageComponent implements OnInit {
@@ -37,10 +53,15 @@ export class MasterBeverageCategoryPageComponent implements OnInit {
   private readonly confirmDialog = inject(ConfirmDialogService);
 
   readonly canManage = computed(() => this.auth.canWriteOnPage('master_data'));
+  readonly kindDropdownOptions: DropdownOption[] = BEVERAGE_CATEGORY_KIND_OPTIONS.map((row) => ({
+    value: row.value,
+    label: row.label,
+  }));
+  readonly beverageCategoryKindLabel = beverageCategoryKindLabel;
   readonly categories = signal<MstBeverageCategory[]>([]);
   readonly listQuery = new MasterListQueryState();
   readonly listView = createMasterListView(this.categories, this.listQuery, (item) =>
-    `${item.name} ${isMixerCategoryKind(item.kind) ? 'ฟรีมิกซ์โต๊ะ' : ''}`,
+    `${item.name} ${beverageCategoryKindLabel(item.kind)}`,
   );
   readonly masterListRowNumber = masterListRowNumber;
   readonly loading = signal(true);
@@ -52,12 +73,12 @@ export class MasterBeverageCategoryPageComponent implements OnInit {
 
   readonly createForm = this.fb.group({
     name: ['', Validators.required],
-    isMixer: [false],
+    kind: [defaultBeverageCategoryKind() as BeverageCategoryKind, Validators.required],
   });
 
   readonly editForm = this.fb.group({
     name: ['', Validators.required],
-    isMixer: [false],
+    kind: [defaultBeverageCategoryKind() as BeverageCategoryKind, Validators.required],
   });
 
   ngOnInit(): void {
@@ -84,10 +105,9 @@ export class MasterBeverageCategoryPageComponent implements OnInit {
   }
 
   openCreate(): void {
-    
     resetFormValidationFlag(this.createFormValidated);
     if (this.loading()) return;
-    this.createForm.reset({ name: '', isMixer: false });
+    this.createForm.reset({ name: '', kind: defaultBeverageCategoryKind() });
     this.showCreateModal.set(true);
   }
 
@@ -96,11 +116,10 @@ export class MasterBeverageCategoryPageComponent implements OnInit {
   }
 
   openEdit(item: MstBeverageCategory): void {
-    
     resetFormValidationFlag(this.editFormValidated);
     this.editForm.reset({
       name: item.name,
-      isMixer: isMixerCategoryKind(item.kind),
+      kind: normalizeBeverageCategoryKind(item.kind),
     });
     this.editingItem.set(item);
   }
@@ -113,8 +132,8 @@ export class MasterBeverageCategoryPageComponent implements OnInit {
     if (this.submitting()) return;
     if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
     this.submitting.set(true);
-    const { name, isMixer } = this.createForm.getRawValue();
-    this.shopMaster.createBeverageCategory({ name: name.trim(), isMixer }).subscribe({
+    const { name, kind } = this.createForm.getRawValue();
+    this.shopMaster.createBeverageCategory({ name: name.trim(), kind }).subscribe({
       next: () => {
         this.submitting.set(false);
         this.closeCreate();
@@ -133,9 +152,9 @@ export class MasterBeverageCategoryPageComponent implements OnInit {
     if (!item || this.submitting()) return;
     if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
-    const { name, isMixer } = this.editForm.getRawValue();
+    const { name, kind } = this.editForm.getRawValue();
     this.shopMaster
-      .updateBeverageCategory(item.id, { name: name.trim(), isMixer })
+      .updateBeverageCategory(item.id, { name: name.trim(), kind })
       .subscribe({
         next: () => {
           this.submitting.set(false);

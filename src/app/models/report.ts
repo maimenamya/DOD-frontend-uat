@@ -48,7 +48,7 @@ export interface ReportSaleSummaryRow {
   saleEmployeeId: string;
   nickname: string;
   billCount: number;
-  categoryQuantities: Record<string, number>;
+  stockQuantities: Record<string, number>;
   promotionCount: number;
   membershipCount: number;
   entertainerDrinkTotal: number;
@@ -66,10 +66,8 @@ export interface ReportSaleEntertainerRow {
 export interface ReportSaleProductRow {
   saleEmployeeId: string;
   saleNickname: string;
-  categoryLabel: string;
-  itemName: string;
+  stockItemLabel: string;
   quantity: number;
-  unitLabel: string;
 }
 
 export interface ReportPreview {
@@ -105,7 +103,7 @@ export interface ReportPreview {
     rows: ReportExpenseRow[];
   } | null;
   saleBreakdown: {
-    categoryColumns: string[];
+    stockColumns: string[];
     summaries: ReportSaleSummaryRow[];
     entertainerRows: ReportSaleEntertainerRow[];
     productRows: ReportSaleProductRow[];

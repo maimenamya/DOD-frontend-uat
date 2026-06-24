@@ -9,6 +9,7 @@ export function teamForRole(role: Pick<MstRole, 'name' | 'category'>): EmployeeT
   if (normalized === 'SALE') return 'sale';
   if (normalized === 'PR') return 'pr';
   if (normalized === 'ADMIN' || normalized === 'MANAGER') return 'managers';
+  if (normalized === 'CASHIER' || normalized === 'SERVICE') return 'sale';
   if (role.category === 'ENTERTAINER') return 'pr';
   return 'sale';
 }
@@ -30,6 +31,9 @@ export function isRoleMutableByViewer(
     if (!name) return false;
     if (name.toUpperCase() === 'OWNER') {
       return viewerPermissionGroup === 'OWNER';
+    }
+    if (name.toUpperCase() === 'MANAGER' || name.toUpperCase() === 'ADMIN') {
+      return viewerPermissionGroup === 'OWNER' || viewerPermissionGroup === 'MANAGER';
     }
     return canMutateEmployeeWithRoleGroup(viewerPermissionGroup, 'EMPLOYEE');
   }

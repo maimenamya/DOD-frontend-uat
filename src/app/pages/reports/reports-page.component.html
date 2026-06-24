@@ -279,11 +279,25 @@
 
 
 
+          @if (p.saleBreakdown && p.saleBreakdown.summaries.length === 0) {
+
+            <div class="reports-block">
+
+              <h3 class="reports-block-title">ยอดขายตามเซลล์ — แยกตามสต๊อก</h3>
+
+              <p class="app-empty-state">ไม่มียอดในช่วงวันที่นี้ (ต้องมีบิลเช็กเอาต์แล้ว และไม่ใช่บิลเครดิตร้าน)</p>
+
+            </div>
+
+          }
+
+
+
           @if (p.saleBreakdown && p.saleBreakdown.summaries.length > 0) {
 
             <div class="reports-block">
 
-              <h3 class="reports-block-title">ยอดขายตามเซลล์ (จากบิลที่เช็กเอาต์แล้ว)</h3>
+              <h3 class="reports-block-title">ยอดขายตามเซลล์ — แยกตามสต๊อก (จากบิลที่เช็กเอาต์แล้ว)</h3>
 
               <table class="reports-table">
 
@@ -293,15 +307,15 @@
 
                     <th>เซลล์</th>
 
-                    @for (col of p.saleBreakdown.categoryColumns; track col) {
+                    @for (col of p.saleBreakdown.stockColumns; track col) {
 
                       <th class="reports-num">{{ col }}</th>
 
                     }
 
-                    <th class="reports-num">โปร</th>
+                    <th class="reports-num">โปร (ชุด)</th>
 
-                    <th class="reports-num">เมม</th>
+                    <th class="reports-num">เมม (ชุด)</th>
 
                     <th class="reports-num">ดื่มเด็ก</th>
 
@@ -317,9 +331,9 @@
 
                       <td>{{ row.nickname }}</td>
 
-                      @for (col of p.saleBreakdown.categoryColumns; track col) {
+                      @for (col of p.saleBreakdown.stockColumns; track col) {
 
-                        <td class="reports-num">{{ row.categoryQuantities[col] || 0 }}</td>
+                        <td class="reports-num">{{ row.stockQuantities[col] || 0 }}</td>
 
                       }
 

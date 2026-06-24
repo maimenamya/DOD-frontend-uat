@@ -27,6 +27,7 @@ import { ToastService } from '../../services/toast.service';
 import { MIN_PASSWORD_LENGTH } from '../../utils/password-policy.util';
 import {
   isRoleMutableByViewer,
+  compareRolesByThaiLabel,
   roleBadgeClass,
   roleDisplayNameTh,
   roleOptionLabel,
@@ -76,10 +77,15 @@ export class EmployeeManagementPageComponent implements OnInit {
   readonly tabRoles = computed(() => {
     const list = this.roles();
     const viewerGroup = this.auth.getPermissionGroup();
-    if (viewerGroup === 'OWNER') {
-      return list;
-    }
-    return list.filter((r) => r.permissionGroup !== 'OWNER');
+    const filtered =
+      viewerGroup === 'OWNER' ? list : list.filter((r) => r.permissionGroup !== 'OWNER');
+    return [...filtered].sort(compareRolesByThaiLabel);
+  });
+
+  readonly canManageSelectedRoleTab = computed(() => {
+    const role = this.selectedRole();
+    if (!role) return false;
+    return isRoleMutableByViewer(role, this.auth.getPermissionGroup());
   });
 
   readonly employeesByRole = computed(() => {
@@ -151,7 +157,7 @@ export class EmployeeManagementPageComponent implements OnInit {
   ngOnInit(): void {
     this.roleService.getRoles().subscribe({
       next: (roles) => {
-        this.roles.set(roles);
+        this.roles.set([...roles].sort(compareRolesByThaiLabel));
         const fromQuery = this.route.snapshot.queryParamMap.get('role');
         const viewerGroup = this.auth.getPermissionGroup();
         const tabs =

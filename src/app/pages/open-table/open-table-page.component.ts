@@ -18,6 +18,7 @@ import {
 } from '../../components/custom-dropdown/custom-dropdown.component';
 import type { MstEmployee } from '../../models/employee';
 import type { MstFood, MstFoodCategory, MstMembership, MstPromotion } from '../../models/master-data';
+import { drinkPackageItemsSummary } from '../../utils/drink-package.util';
 import type { PackageDepositRecord, PackageOpenMode } from '../../models/package-deposit';
 import type { MstRole } from '../../models/role';
 import type {
@@ -2538,7 +2539,7 @@ export class OpenTablePageComponent implements OnInit {
     const list =
       item.itemType === 'PROMOTION' ? this.promotionsRaw() : this.membershipsRaw();
     const row = list.find((entry) => entry.id === item.itemId);
-    return row?.drink?.name?.trim() ?? '';
+    return drinkPackageItemsSummary(row?.items);
   }
 
   openPackageBottleModal(action: 'WITHDRAW' | 'DEPOSIT', item?: SessionOrderItem): void {

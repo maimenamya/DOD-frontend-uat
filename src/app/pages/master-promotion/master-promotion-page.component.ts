@@ -5,6 +5,7 @@ import {
 } from '../../utils/form-validation.util';
 import { DecimalPipe } from '@angular/common';
 import {
+  FormArray,
   NonNullableFormBuilder,
   FormsModule,
   ReactiveFormsModule,
@@ -13,12 +14,9 @@ import {
 import { forkJoin } from 'rxjs';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { DrinkPackageLinesEditorComponent } from '../../components/drink-package-lines-editor/drink-package-lines-editor.component';
 import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
 import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
-import {
-  CustomDropdownComponent,
-  type DropdownOption,
-} from '../../components/custom-dropdown/custom-dropdown.component';
 import type { MstBeverage, MstBeverageCategory } from '../../models/beverage';
 import type { MstPromotion } from '../../models/master-data';
 import { AuthService } from '../../services/auth.service';
@@ -27,6 +25,16 @@ import { ShopMasterService } from '../../services/shop-master.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
 import {
+  createDrinkPackageLineForm,
+  drinkPackageItemsFromForm,
+  seedDrinkPackageLineForms,
+  type DrinkPackageLineForm,
+} from '../../utils/drink-package-form.util';
+import {
+  drinkPackageItemsSearchText,
+  drinkPackageItemsSummary,
+} from '../../utils/drink-package.util';
+import {
   MasterListQueryState,
   createMasterListView,
   masterListRowNumber,
@@ -34,7 +42,15 @@ import {
 
 @Component({
   selector: 'app-master-promotion-page',
-  imports: [DecimalPipe, FormsModule, ReactiveFormsModule, AppModalComponent, CustomDropdownComponent, MasterListToolbarComponent, ListPaginatorComponent],
+  imports: [
+    DecimalPipe,
+    FormsModule,
+    ReactiveFormsModule,
+    AppModalComponent,
+    DrinkPackageLinesEditorComponent,
+    MasterListToolbarComponent,
+    ListPaginatorComponent,
+  ],
   templateUrl: './master-promotion-page.component.html',
 })
 export class MasterPromotionPageComponent implements OnInit {
@@ -49,13 +65,11 @@ export class MasterPromotionPageComponent implements OnInit {
   readonly promotions = signal<MstPromotion[]>([]);
   readonly listQuery = new MasterListQueryState();
   readonly listView = createMasterListView(this.promotions, this.listQuery, (item) =>
-    `${item.name} ${item.drink?.name ?? ''}`,
+    `${item.name} ${drinkPackageItemsSearchText(item.items)}`,
   );
   readonly masterListRowNumber = masterListRowNumber;
   readonly beverages = signal<MstBeverage[]>([]);
   readonly beverageCategories = signal<MstBeverageCategory[]>([]);
-  readonly createDrinkCategoryId = signal<number | null>(null);
-  readonly editDrinkCategoryId = signal<number | null>(null);
   readonly loading = signal(true);
   readonly submitting = signal(false);
   readonly createFormValidated = signal(false);
@@ -63,23 +77,10 @@ export class MasterPromotionPageComponent implements OnInit {
   readonly editingItem = signal<MstPromotion | null>(null);
   readonly showCreateModal = signal(false);
 
-  readonly beverageCategoryOptions = computed<DropdownOption[]>(() =>
-    this.beverageCategories().map((c) => ({ value: c.id, label: c.name })),
-  );
-
-  readonly createDrinkOptions = computed<DropdownOption[]>(() =>
-    this.drinkOptionsForCategory(this.createDrinkCategoryId()),
-  );
-
-  readonly editDrinkOptions = computed<DropdownOption[]>(() =>
-    this.drinkOptionsForCategory(this.editDrinkCategoryId()),
-  );
-
   readonly createForm = this.fb.group({
     name: ['', Validators.required],
     packagePrice: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
-    drinkId: [0, [Validators.required, Validators.min(1)]],
-    quantity: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    items: this.fb.array<DrinkPackageLineForm>([]),
     isFreeMixer: [false],
     allowDeposit: [false],
     freeDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
@@ -88,12 +89,19 @@ export class MasterPromotionPageComponent implements OnInit {
   readonly editForm = this.fb.group({
     name: ['', Validators.required],
     packagePrice: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
-    drinkId: [0, [Validators.required, Validators.min(1)]],
-    quantity: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    items: this.fb.array<DrinkPackageLineForm>([]),
     isFreeMixer: [false],
     allowDeposit: [false],
     freeDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
   });
+
+  get createItems(): FormArray<DrinkPackageLineForm> {
+    return this.createForm.controls.items;
+  }
+
+  get editItems(): FormArray<DrinkPackageLineForm> {
+    return this.editForm.controls.items;
+  }
 
   ngOnInit(): void {
     this.loadItems();
@@ -120,8 +128,8 @@ export class MasterPromotionPageComponent implements OnInit {
     });
   }
 
-  drinkName(item: MstPromotion): string {
-    return item.drink?.name ?? '—';
+  itemsSummary(item: MstPromotion): string {
+    return drinkPackageItemsSummary(item.items);
   }
 
   freeMixerLabel(value: boolean): string {
@@ -132,36 +140,25 @@ export class MasterPromotionPageComponent implements OnInit {
     return value ? 'ได้' : 'ไม่ได้';
   }
 
-  onCreateDrinkCategoryChange(value: number | string | null): void {
-    const id = value == null || value === '' ? null : Number(value);
-    if (id == null || !Number.isFinite(id)) return;
-    this.createDrinkCategoryId.set(id);
-    this.syncCreateDrinkId();
-  }
-
-  onEditDrinkCategoryChange(value: number | string | null): void {
-    const id = value == null || value === '' ? null : Number(value);
-    if (id == null || !Number.isFinite(id)) return;
-    this.editDrinkCategoryId.set(id);
-    this.syncEditDrinkId();
-  }
-
   openCreate(): void {
-    
     resetFormValidationFlag(this.createFormValidated);
     if (this.loading()) return;
-    const firstCategoryId = this.beverageCategories()[0]?.id ?? null;
-    this.createDrinkCategoryId.set(firstCategoryId);
+    this.resetItemLines(
+      this.createItems,
+      seedDrinkPackageLineForms(
+        this.fb,
+        this.beverages(),
+        this.beverageCategories(),
+        [],
+      ),
+    );
     this.createForm.reset({
       name: '',
       packagePrice: '',
-      drinkId: 0,
-      quantity: '',
       isFreeMixer: false,
       allowDeposit: false,
       freeDrinks: '',
     });
-    this.syncCreateDrinkId();
     this.showCreateModal.set(true);
   }
 
@@ -170,15 +167,14 @@ export class MasterPromotionPageComponent implements OnInit {
   }
 
   openEdit(item: MstPromotion): void {
-    
     resetFormValidationFlag(this.editFormValidated);
-const beverage = this.beverages().find((b) => b.id === item.drinkId);
-    this.editDrinkCategoryId.set(beverage?.categoryId ?? this.beverageCategories()[0]?.id ?? null);
+    this.resetItemLines(
+      this.editItems,
+      seedDrinkPackageLineForms(this.fb, this.beverages(), this.beverageCategories(), item.items),
+    );
     this.editForm.reset({
       name: item.name,
       packagePrice: String(item.packagePrice),
-      drinkId: item.drinkId,
-      quantity: String(item.quantity),
       isFreeMixer: item.isFreeMixer,
       allowDeposit: item.allowDeposit ?? false,
       freeDrinks: String(item.freeDrinks ?? 0),
@@ -190,15 +186,29 @@ const beverage = this.beverages().find((b) => b.id === item.drinkId);
     this.editingItem.set(null);
   }
 
+  addCreateLine(): void {
+    this.createItems.push(
+      createDrinkPackageLineForm(this.fb, this.beverages(), this.beverageCategories()),
+    );
+  }
+
+  addEditLine(): void {
+    this.editItems.push(
+      createDrinkPackageLineForm(this.fb, this.beverages(), this.beverageCategories()),
+    );
+  }
+
   submitCreate(): void {
     if (this.submitting()) return;
     if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
     this.submitting.set(true);
     const raw = this.createForm.getRawValue();
     const payload = {
-      ...raw,
+      name: raw.name,
       packagePrice: Number.parseInt(raw.packagePrice, 10),
-      quantity: Number.parseInt(raw.quantity, 10),
+      items: drinkPackageItemsFromForm(this.createItems.controls),
+      isFreeMixer: raw.isFreeMixer,
+      allowDeposit: raw.allowDeposit,
       freeDrinks: Number.parseInt(raw.freeDrinks, 10),
     };
     this.shopMaster.createPromotion(payload).subscribe({
@@ -222,9 +232,11 @@ const beverage = this.beverages().find((b) => b.id === item.drinkId);
     this.submitting.set(true);
     const raw = this.editForm.getRawValue();
     const payload = {
-      ...raw,
+      name: raw.name,
       packagePrice: Number.parseInt(raw.packagePrice, 10),
-      quantity: Number.parseInt(raw.quantity, 10),
+      items: drinkPackageItemsFromForm(this.editItems.controls),
+      isFreeMixer: raw.isFreeMixer,
+      allowDeposit: raw.allowDeposit,
       freeDrinks: Number.parseInt(raw.freeDrinks, 10),
     };
     this.shopMaster.updatePromotion(item.id, payload).subscribe({
@@ -257,7 +269,7 @@ const beverage = this.beverages().find((b) => b.id === item.drinkId);
 
   sanitizeIntegerInput(
     form: 'create' | 'edit',
-    controlName: 'packagePrice' | 'quantity' | 'freeDrinks',
+    controlName: 'packagePrice' | 'freeDrinks',
     event: Event,
   ): void {
     const input = event.target as HTMLInputElement;
@@ -266,26 +278,13 @@ const beverage = this.beverages().find((b) => b.id === item.drinkId);
     targetForm.controls[controlName].setValue(sanitized, { emitEvent: false });
   }
 
-  private drinkOptionsForCategory(categoryId: number | null): DropdownOption[] {
-    if (categoryId == null) return [];
-    return this.beverages()
-      .filter((b) => b.categoryId === categoryId)
-      .map((b) => ({ value: b.id, label: b.name }));
-  }
-
-  private syncCreateDrinkId(): void {
-    const options = this.createDrinkOptions();
-    const current = this.createForm.controls.drinkId.value;
-    if (current > 0 && options.some((o) => o.value === current)) return;
-    const first = options[0]?.value;
-    this.createForm.controls.drinkId.setValue(typeof first === 'number' ? first : 0);
-  }
-
-  private syncEditDrinkId(): void {
-    const options = this.editDrinkOptions();
-    const current = this.editForm.controls.drinkId.value;
-    if (current > 0 && options.some((o) => o.value === current)) return;
-    const first = options[0]?.value;
-    this.editForm.controls.drinkId.setValue(typeof first === 'number' ? first : 0);
+  private resetItemLines(
+    target: FormArray<DrinkPackageLineForm>,
+    lines: DrinkPackageLineForm[],
+  ): void {
+    target.clear();
+    for (const line of lines) {
+      target.push(line);
+    }
   }
 }

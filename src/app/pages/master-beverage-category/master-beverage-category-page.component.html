@@ -25,16 +25,13 @@
           />
         </div>
         <div class="app-form-group">
-          <label class="app-label">มิกซ์เซอร์</label>
-          <label class="app-toggle" aria-label="ประเภทมิกซ์เซอร์">
-            <input type="checkbox" class="app-toggle-input" formControlName="isMixer" />
-            <span class="app-toggle-track"></span>
-            <span class="app-toggle-text">{{
-              createForm.controls.isMixer.value
-                ? 'ใช่ — ฟรีเมื่อโต๊ะมีฟรีมิกซ์'
-                : 'ไม่ใช่ — ขายตามราคา'
-            }}</span>
-          </label>
+          <label class="app-label">ประเภท</label>
+          <app-custom-dropdown
+            formControlName="kind"
+            [options]="kindDropdownOptions"
+            placeholder="เลือกประเภท"
+          />
+          <p class="app-field-hint">เหล้า · เบียร์ · ไวน์ · มิกซ์เซอร์ — มิกซ์เซอร์เลือกฟรีได้ตอนเปิดโต๊ะ</p>
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
@@ -58,16 +55,12 @@
           <input type="text" formControlName="name" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">มิกซ์เซอร์</label>
-          <label class="app-toggle" aria-label="ประเภทมิกซ์เซอร์">
-            <input type="checkbox" class="app-toggle-input" formControlName="isMixer" />
-            <span class="app-toggle-track"></span>
-            <span class="app-toggle-text">{{
-              editForm.controls.isMixer.value
-                ? 'ใช่ — ฟรีเมื่อโต๊ะมีฟรีมิกซ์'
-                : 'ไม่ใช่ — ขายตามราคา'
-            }}</span>
-          </label>
+          <label class="app-label">ประเภท</label>
+          <app-custom-dropdown
+            formControlName="kind"
+            [options]="kindDropdownOptions"
+            placeholder="เลือกประเภท"
+          />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
@@ -99,6 +92,7 @@
               <colgroup>
                 <col class="app-col-id" />
                 <col />
+                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -107,6 +101,7 @@
                 <tr>
                   <th>No.</th>
                   <th>ชื่อประเภท</th>
+                  <th>กลุ่ม</th>
                   @if (canManage()) {
                     <th class="app-cell-right">จัดการ</th>
                   }
@@ -119,6 +114,7 @@
               <colgroup>
                 <col class="app-col-id" />
                 <col />
+                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -129,10 +125,8 @@
                     <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
                     <td class="app-cell-primary">
                       {{ item.name }}
-                      @if (isMixerCategory(item)) {
-                        <span class="ml-2 text-xs text-text-secondary">(ฟรีมิกซ์โต๊ะ)</span>
-                      }
                     </td>
+                    <td>{{ beverageCategoryKindLabel(item.kind) }}</td>
                     @if (canManage()) {
                       <td class="app-cell-right">
                         <div class="app-table-actions">

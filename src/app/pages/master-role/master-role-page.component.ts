@@ -25,7 +25,8 @@ import { AuthService } from '../../services/auth.service';
 import { RoleService } from '../../services/role.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
-import { roleDisplayNameTh } from '../../utils/role-display.util';
+import { roleDisplayNameTh, compareRolesByThaiLabel } from '../../utils/role-display.util';
+import { canMutateRoleRecord } from '../../utils/permission-group.util';
 import {
   MasterListQueryState,
   createMasterListView,
@@ -62,6 +63,9 @@ export class MasterRolePageComponent implements OnInit {
     if (this.auth.isOwner()) {
       return options;
     }
+    if (this.auth.getPermissionGroup() === 'CASHIER') {
+      return options.filter((o) => o.value === 'CASHIER' || o.value === 'EMPLOYEE');
+    }
     return options.filter((o) => o.value !== 'OWNER');
   });
 
@@ -95,7 +99,7 @@ export class MasterRolePageComponent implements OnInit {
     this.showCreateModal.set(false);
     this.roleService.getRoles().subscribe({
       next: (roles) => {
-        this.roles.set(roles);
+        this.roles.set([...roles].sort(compareRolesByThaiLabel));
         this.loading.set(false);
       },
       error: (err: { error?: { error?: string } }) => {
@@ -125,6 +129,7 @@ export class MasterRolePageComponent implements OnInit {
   }
 
   openEdit(role: MstRole): void {
+    if (!this.canEditRole(role)) return;
     resetFormValidationFlag(this.editFormValidated);
     const lockPermissionGroup = role.permissionGroup === 'OWNER';
     this.editForm.reset({
@@ -149,7 +154,15 @@ export class MasterRolePageComponent implements OnInit {
   }
 
   canDeleteRole(role: MstRole): boolean {
-    return role.permissionGroup !== 'OWNER';
+    if (role.permissionGroup === 'OWNER') return false;
+    return this.canEditRole(role);
+  }
+
+  canEditRole(role: MstRole): boolean {
+    if (!this.canManage()) return false;
+    const viewer = this.auth.getPermissionGroup();
+    if (!viewer) return false;
+    return canMutateRoleRecord(viewer, role.permissionGroup);
   }
 
   closeEdit(): void {

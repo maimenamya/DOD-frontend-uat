@@ -2,9 +2,6 @@
   <div class="app-page-header">
     <div>
       <h1 class="app-page-title">คลังสินค้า</h1>
-      <p class="app-page-subtitle text-text-secondary">
-        ตั้งสินค้ากลาง (เช่น โซดา) แล้วไปผูกที่หน้าเครื่องดื่ม — ขายจากมิกเซอร์หลายราคาก็ตัดสต็อกรายการเดียวกัน
-      </p>
     </div>
     @if (canManage() && !loading()) {
       <button type="button" (click)="openCreate()" class="app-btn-primary">เพิ่มรายการสต็อก</button>

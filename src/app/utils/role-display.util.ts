@@ -7,6 +7,19 @@ const SYSTEM_ROLE_LABEL_TH: Record<string, string> = {
   MANAGER: 'ผู้จัดการ',
   SALE: 'เซลล์',
   PR: 'พีอาร์',
+  CASHIER: 'แคชเชียร์',
+  SERVICE: 'เซิร์ฟ',
+};
+
+/** Sale → PR → Cashier → Service → Manager → Owner */
+const ROLE_DISPLAY_ORDER: Record<string, number> = {
+  SALE: 1,
+  PR: 2,
+  CASHIER: 3,
+  SERVICE: 4,
+  MANAGER: 5,
+  ADMIN: 5,
+  OWNER: 6,
 };
 
 export type RoleLike = {
@@ -47,5 +60,8 @@ export function roleLabelThai(roleName: string): string {
 }
 
 export function compareRolesByThaiLabel(a: RoleLike, b: RoleLike): number {
+  const rankA = ROLE_DISPLAY_ORDER[a.name.toUpperCase()] ?? 50;
+  const rankB = ROLE_DISPLAY_ORDER[b.name.toUpperCase()] ?? 50;
+  if (rankA !== rankB) return rankA - rankB;
   return roleDisplayNameTh(a).localeCompare(roleDisplayNameTh(b), 'th');
 }

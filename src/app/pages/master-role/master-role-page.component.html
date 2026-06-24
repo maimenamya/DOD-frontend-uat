@@ -255,9 +255,11 @@
                     @if (canManage()) {
                       <td class="app-cell-right">
                         <div class="app-table-actions">
-                          <button type="button" class="app-btn-secondary-sm" (click)="openEdit(role)">
-                            แก้ไข
-                          </button>
+                          @if (canEditRole(role)) {
+                            <button type="button" class="app-btn-secondary-sm" (click)="openEdit(role)">
+                              แก้ไข
+                            </button>
+                          }
                           @if (canDeleteRole(role)) {
                             <button type="button" class="app-btn-danger-sm" (click)="confirmDelete(role)">
                               ลบ

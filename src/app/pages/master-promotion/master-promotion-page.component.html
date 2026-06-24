@@ -19,35 +19,15 @@
           <label class="app-label">ชื่อโปรโมชั่น</label>
           <input type="text" formControlName="name" class="app-input" />
         </div>
-        <div class="app-form-group">
-          <label class="app-label">ประเภทเครื่องดื่ม</label>
-          <app-custom-dropdown
-            [options]="beverageCategoryOptions()"
-            [ngModel]="createDrinkCategoryId()"
-            (ngModelChange)="onCreateDrinkCategoryChange($event)"
-            [ngModelOptions]="{ standalone: true }"
-            placeholder="เลือกประเภท"
-          />
-        </div>
-        <div class="app-form-group">
-          <label class="app-label">เครื่องดื่ม</label>
-          <app-custom-dropdown
-            formControlName="drinkId"
-            [options]="createDrinkOptions()"
-            placeholder="เลือกเครื่องดื่ม"
-          />
-        </div>
-        <div class="app-form-group">
-          <label class="app-label">จำนวน</label>
-          <input
-            type="text"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            formControlName="quantity"
-            class="app-input"
-            (input)="sanitizeIntegerInput('create', 'quantity', $event)"
-          />
-        </div>
+        <app-drink-package-lines-editor
+          [beverages]="beverages()"
+          [categories]="beverageCategories()"
+          [lines]="createItems"
+        >
+          <button type="button" addLineButton class="app-btn-secondary-sm" (click)="addCreateLine()">
+            + เพิ่มรายการ
+          </button>
+        </app-drink-package-lines-editor>
         <div class="app-form-group">
           <label class="app-label">ราคาแพ็กเกจ</label>
           <input
@@ -111,35 +91,15 @@
           <label class="app-label">ชื่อโปรโมชั่น</label>
           <input type="text" formControlName="name" class="app-input" />
         </div>
-        <div class="app-form-group">
-          <label class="app-label">ประเภทเครื่องดื่ม</label>
-          <app-custom-dropdown
-            [options]="beverageCategoryOptions()"
-            [ngModel]="editDrinkCategoryId()"
-            (ngModelChange)="onEditDrinkCategoryChange($event)"
-            [ngModelOptions]="{ standalone: true }"
-            placeholder="เลือกประเภท"
-          />
-        </div>
-        <div class="app-form-group">
-          <label class="app-label">เครื่องดื่ม</label>
-          <app-custom-dropdown
-            formControlName="drinkId"
-            [options]="editDrinkOptions()"
-            placeholder="เลือกเครื่องดื่ม"
-          />
-        </div>
-        <div class="app-form-group">
-          <label class="app-label">จำนวน</label>
-          <input
-            type="text"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            formControlName="quantity"
-            class="app-input"
-            (input)="sanitizeIntegerInput('edit', 'quantity', $event)"
-          />
-        </div>
+        <app-drink-package-lines-editor
+          [beverages]="beverages()"
+          [categories]="beverageCategories()"
+          [lines]="editItems"
+        >
+          <button type="button" addLineButton class="app-btn-secondary-sm" (click)="addEditLine()">
+            + เพิ่มรายการ
+          </button>
+        </app-drink-package-lines-editor>
         <div class="app-form-group">
           <label class="app-label">ราคาแพ็กเกจ</label>
           <input
@@ -226,8 +186,7 @@
                 <tr>
                   <th>No.</th>
                   <th>ชื่อ</th>
-                  <th>เครื่องดื่ม</th>
-                  <th class="app-cell-right">จำนวน</th>
+                  <th>รายการในแพ็ก</th>
                   <th class="app-cell-right">ราคาแพ็กเกจ</th>
                   <th>ฟรีมิกซ์เซอร์</th>
                   <th>ฝากได้</th>
@@ -259,8 +218,7 @@
                   <tr>
                     <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
                     <td class="app-cell-primary">{{ item.name }}</td>
-                    <td>{{ drinkName(item) }}</td>
-                    <td class="app-cell-right">{{ item.quantity }}</td>
+                    <td>{{ itemsSummary(item) }}</td>
                     <td class="app-cell-right app-cell-highlight-violet">
                       {{ item.packagePrice | number: '1.0-0' }}
                     </td>

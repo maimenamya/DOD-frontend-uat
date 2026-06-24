@@ -42,18 +42,23 @@ export interface Room {
   createdAt: string;
 }
 
+export interface DrinkPackageLine {
+  id?: number;
+  drinkId: number;
+  quantity: number;
+  drink?: { id: number; name: string; price: number };
+}
+
 export interface DrinkPackageRow {
   id: number;
   name: string;
   packagePrice: number;
-  drinkId: number;
-  quantity: number;
+  items: DrinkPackageLine[];
   isFreeMixer: boolean;
   allowDeposit: boolean;
   freeDrinks?: number;
   shopId: number;
   createdAt: string;
-  drink?: { id: number; name: string; price: number };
 }
 
 export type MstPromotion = DrinkPackageRow;
@@ -62,8 +67,7 @@ export type MstMembership = DrinkPackageRow;
 export interface DrinkPackagePayload {
   name: string;
   packagePrice: number;
-  drinkId: number;
-  quantity: number;
+  items: { drinkId: number; quantity: number }[];
   isFreeMixer: boolean;
   allowDeposit: boolean;
   freeDrinks?: number;
