@@ -1868,9 +1868,9 @@
   }
 
   /**
-   * Split-table column widths via <colgroup> (same idea as dashboard rank tables).
-   * Add/remove <col> in the template when columns change — no cols-N CSS classes.
-   * Unmarked <col> share remaining width equally (table-fixed).
+   * Split-table column widths via <colgroup>.
+   * Declare only fixed columns (No., จัดการ, narrow fields); all other <th>/<td> columns
+   * share the remaining width equally — no per-column <col /> when adding fields.
    */
   .app-split-table-grid col.app-col-id {
     width: 8%;
