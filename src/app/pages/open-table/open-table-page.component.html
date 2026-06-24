@@ -1114,30 +1114,27 @@
           }
         </div>
 
-        @if (showStaffPackageFreeToggle()) {
-          <div class="app-form-group open-table-staff-choice">
-            <span class="app-label">โควต้าฟรี PR</span>
-            <label class="app-toggle open-table-staff-start-toggle">
-              <input
-                type="checkbox"
-                class="app-toggle-input"
-                [ngModel]="staffUsePackageFreeDrinks()"
-                (ngModelChange)="staffUsePackageFreeDrinks.set($event)"
-              />
-              <span class="app-toggle-track" aria-hidden="true"></span>
-              <span class="app-toggle-text open-table-staff-start-toggle-label">
-                {{
-                  staffUsePackageFreeDrinks()
+        <div class="app-form-group open-table-staff-choice">
+          <span class="app-label">โควต้าฟรี PR</span>
+          <label class="app-toggle open-table-staff-start-toggle">
+            <input
+              type="checkbox"
+              class="app-toggle-input"
+              [ngModel]="staffUsePackageFreeDrinks()"
+              (ngModelChange)="staffUsePackageFreeDrinks.set($event)"
+            />
+            <span class="app-toggle-track" aria-hidden="true"></span>
+            <span class="app-toggle-text open-table-staff-start-toggle-label">
+              {{
+                staffUsePackageFreeDrinks()
+                  ? packageFreeDrinksQuota() > 0
                     ? 'ใช้โควต้าฟรี (เหลือ ' + packageFreeDrinksRemaining() + '/' + packageFreeDrinksQuota() + ' ดื่ม)'
-                    : 'คิดเงินตามราคารันดื่ม'
-                }}
-              </span>
-            </label>
-            <p class="app-field-hint">
-              โควต้ามาจากเมม/โปรบนบิลนี้ — ใช้ได้สูงสุดตามที่กำหนดในแพ็กเกจ
-            </p>
-          </div>
-        }
+                    : 'ใช้โควต้าฟรี PR'
+                  : 'คิดเงินตามราคารันดื่ม'
+              }}
+            </span>
+          </label>
+        </div>
 
         @if (showStaffBillAsTagToggle()) {
           <div class="app-form-group open-table-staff-choice">

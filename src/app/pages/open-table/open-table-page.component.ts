@@ -268,7 +268,7 @@ export class OpenTablePageComponent implements OnInit {
   readonly staffReopenMode = signal<'CONTINUE' | 'NEW_START'>('CONTINUE');
   /** PR with active tag: bill drinks toward tag quota (default on). */
   readonly staffBillAsTag = signal(true);
-  /** Use mem/promo free PR drink quota for this add (default off — operator opts in). */
+  /** Use mem/promo free PR drink quota for this add (default on — cashier toggles). */
   readonly staffUsePackageFreeDrinks = signal(true);
 
   readonly packageFreeDrinksQuota = computed(
@@ -277,10 +277,6 @@ export class OpenTablePageComponent implements OnInit {
 
   readonly packageFreeDrinksRemaining = computed(
     () => this.sessionDetail()?.packageFreeDrinksRemaining ?? 0,
-  );
-
-  readonly showStaffPackageFreeToggle = computed(
-    () => this.packageFreeDrinksQuota() > 0,
   );
 
   readonly roomChargeSeatingTypeId = signal<number | null>(null);
@@ -1254,7 +1250,7 @@ export class OpenTablePageComponent implements OnInit {
     this.staffApplyStartDrinks.set(true);
     this.staffReopenMode.set('CONTINUE');
     this.staffBillAsTag.set(true);
-    this.staffUsePackageFreeDrinks.set((this.sessionDetail()?.packageFreeDrinksQuota ?? 0) > 0);
+    this.staffUsePackageFreeDrinks.set(true);
     this.stampStaffSeatStartTime();
   }
 
@@ -1504,7 +1500,7 @@ export class OpenTablePageComponent implements OnInit {
     this.staffApplyStartDrinks.set(true);
     const emp = this.staffLedgerEmployees().find((e) => e.id === id);
     this.staffBillAsTag.set(emp?.hasActivePrTag === true);
-    this.staffUsePackageFreeDrinks.set((this.sessionDetail()?.packageFreeDrinksQuota ?? 0) > 0);
+    this.staffUsePackageFreeDrinks.set(true);
   }
 
   onStaffLedgerQtyTextChange(value: string): void {
@@ -1727,9 +1723,7 @@ export class OpenTablePageComponent implements OnInit {
         }
       }
       const billAsTag = this.showStaffBillAsTagToggle() ? this.staffBillAsTag() : undefined;
-      const usePackageFreeDrinks = this.showStaffPackageFreeToggle()
-        ? this.staffUsePackageFreeDrinks()
-        : undefined;
+      const usePackageFreeDrinks = this.staffUsePackageFreeDrinks();
       return [
         {
           employeeId,
@@ -1746,9 +1740,7 @@ export class OpenTablePageComponent implements OnInit {
     const emp = this.selectedStaffLedgerEmployee();
     const billAsTag =
       emp?.hasActivePrTag === true ? this.staffBillAsTag() : undefined;
-    const usePackageFreeDrinks = this.showStaffPackageFreeToggle()
-      ? this.staffUsePackageFreeDrinks()
-      : undefined;
+    const usePackageFreeDrinks = this.staffUsePackageFreeDrinks();
     return [{ employeeId, quantity, billAsTag, usePackageFreeDrinks }];
   }
 
