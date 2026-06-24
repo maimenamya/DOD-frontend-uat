@@ -7,44 +7,46 @@
   <div class="drink-package-lines">
     @for (row of lines().controls; track $index; let i = $index) {
       <div class="drink-package-line" [formGroup]="row">
-        <div class="drink-package-line-field">
-          <span class="app-label-sm">ประเภท</span>
-          <app-custom-dropdown
-            [options]="categoryOptions()"
-            [ngModel]="row.controls.categoryId.value"
-            (ngModelChange)="onCategoryChange(row, $event)"
-            [ngModelOptions]="{ standalone: true }"
-            placeholder="เลือกประเภท"
-          />
-        </div>
-        <div class="drink-package-line-field">
-          <span class="app-label-sm">เครื่องดื่ม</span>
-          <app-custom-dropdown
-            formControlName="drinkId"
-            [options]="drinkOptionsForRow(row)"
-            placeholder="เลือกเครื่องดื่ม"
-          />
-        </div>
-        <div class="drink-package-line-field drink-package-line-field--qty">
-          <span class="app-label-sm">จำนวน</span>
-          <input
-            type="text"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            formControlName="quantity"
-            class="app-input"
-            (input)="sanitizeQuantity(row, $event)"
-          />
-        </div>
         <button
           type="button"
-          class="app-btn-ghost drink-package-line-remove"
+          class="drink-package-line-remove"
           [disabled]="lines().length <= 1"
           (click)="removeLine(i)"
-          aria-label="ลบแถว"
+          aria-label="ลบรายการ"
         >
           ✕
         </button>
+        <div class="drink-package-line-body">
+          <div class="drink-package-line-field">
+            <span class="app-label-sm">ประเภท</span>
+            <app-custom-dropdown
+              [options]="categoryOptions()"
+              [ngModel]="row.controls.categoryId.value"
+              (ngModelChange)="onCategoryChange(row, $event)"
+              [ngModelOptions]="{ standalone: true }"
+              placeholder="เลือกประเภท"
+            />
+          </div>
+          <div class="drink-package-line-field">
+            <span class="app-label-sm">เครื่องดื่ม</span>
+            <app-custom-dropdown
+              formControlName="drinkId"
+              [options]="drinkOptionsForRow(row)"
+              placeholder="เลือกเครื่องดื่ม"
+            />
+          </div>
+          <div class="drink-package-line-field drink-package-line-field--qty">
+            <span class="app-label-sm">จำนวน</span>
+            <input
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              formControlName="quantity"
+              class="app-input"
+              (input)="sanitizeQuantity(row, $event)"
+            />
+          </div>
+        </div>
       </div>
     }
   </div>

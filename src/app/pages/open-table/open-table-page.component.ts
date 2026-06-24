@@ -269,7 +269,7 @@ export class OpenTablePageComponent implements OnInit {
   /** PR with active tag: bill drinks toward tag quota (default on). */
   readonly staffBillAsTag = signal(true);
   /** Use mem/promo free PR drink quota for this add (default off — operator opts in). */
-  readonly staffUsePackageFreeDrinks = signal(false);
+  readonly staffUsePackageFreeDrinks = signal(true);
 
   readonly packageFreeDrinksQuota = computed(
     () => this.sessionDetail()?.packageFreeDrinksQuota ?? 0,
@@ -1254,7 +1254,7 @@ export class OpenTablePageComponent implements OnInit {
     this.staffApplyStartDrinks.set(true);
     this.staffReopenMode.set('CONTINUE');
     this.staffBillAsTag.set(true);
-    this.staffUsePackageFreeDrinks.set(false);
+    this.staffUsePackageFreeDrinks.set((this.sessionDetail()?.packageFreeDrinksQuota ?? 0) > 0);
     this.stampStaffSeatStartTime();
   }
 
@@ -1504,6 +1504,7 @@ export class OpenTablePageComponent implements OnInit {
     this.staffApplyStartDrinks.set(true);
     const emp = this.staffLedgerEmployees().find((e) => e.id === id);
     this.staffBillAsTag.set(emp?.hasActivePrTag === true);
+    this.staffUsePackageFreeDrinks.set((this.sessionDetail()?.packageFreeDrinksQuota ?? 0) > 0);
   }
 
   onStaffLedgerQtyTextChange(value: string): void {
