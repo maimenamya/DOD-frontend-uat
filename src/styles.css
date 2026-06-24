@@ -1766,6 +1766,11 @@
     scrollbar-gutter: auto;
   }
 
+  /** Split-table shells use themed scrollbars (horizontal on mobile, body vertical on desktop). */
+  .app-data-table-shell:has(.app-split-table) {
+    @apply app-scroll-region;
+  }
+
   /** Split tables inside cards: clip on desktop; below 1000px shell scrolls (see mobile table block). */
   @media (min-width: 1000px) {
     .app-card-flush .app-data-table-shell:has(.app-split-table) {
@@ -2052,11 +2057,9 @@
 
   /* ── Tables: mobile ── */
   @media (max-width: 999px) {
-    /** Let split tables scroll inside cards on phones (flush cards default to overflow:hidden). */
+    /** Clip card; horizontal scroll stays on the themed shell inside. */
     .app-card-flush:has(.app-data-table-shell) {
-      overflow-x: auto;
-      overflow-y: visible;
-      -webkit-overflow-scrolling: touch;
+      overflow: hidden;
     }
 
     /**
@@ -2289,11 +2292,6 @@
     .app-split-table-body {
       max-height: none;
       overflow: visible;
-    }
-
-    .app-split-table-body.app-scroll-region {
-      scrollbar-gutter: auto;
-      scrollbar-width: auto;
     }
 
     .app-split-table-header th,
@@ -3374,6 +3372,24 @@
 
   .app-list-paginator {
     @apply flex flex-col gap-3 border-t border-theme-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  /** Paginator below master table card — same footer band as table head */
+  .app-card-flush:has(.app-data-table-shell) + app-list-paginator {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .app-card-flush:has(.app-data-table-shell) + app-list-paginator .app-list-paginator {
+    border: 1px solid var(--border-glass, var(--border));
+    border-top: 1px solid var(--table-head-border);
+    border-radius: 0 0 var(--radius-card) var(--radius-card);
+    background: var(--card-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    box-shadow: var(--shadow-card);
   }
 
   .app-list-paginator-summary {
