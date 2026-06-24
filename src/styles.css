@@ -1871,8 +1871,16 @@
       min-width: 0;
     }
 
-    .app-split-table--wide .app-split-table-header .app-split-table-grid,
-    .app-split-table--wide .app-split-table-body .app-split-table-grid {
+    .app-split-table:not(.app-split-table--mobile-stack) .app-split-table-header .app-split-table-grid,
+    .app-split-table:not(.app-split-table--mobile-stack) .app-split-table-body .app-split-table-grid,
+    .app-split-table:has(.app-col-actions):not(.app-split-table--mobile-stack)
+      .app-split-table-header
+      .app-split-table-grid,
+    .app-split-table:has(.app-col-actions):not(.app-split-table--mobile-stack)
+      .app-split-table-body
+      .app-split-table-grid,
+    .app-split-table--wide:not(.app-split-table--mobile-stack) .app-split-table-header .app-split-table-grid,
+    .app-split-table--wide:not(.app-split-table--mobile-stack) .app-split-table-body .app-split-table-grid {
       width: 100%;
       min-width: 0;
       max-width: 100%;
@@ -2071,26 +2079,50 @@
     .app-split-table-header .app-split-table-grid,
     .app-split-table-body .app-split-table-grid {
       table-layout: fixed;
-      width: 32rem;
-      min-width: 32rem;
     }
 
-    .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack)
-      .app-split-table-header
-      .app-split-table-grid,
-    .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack)
-      .app-split-table-body
-      .app-split-table-grid {
-      width: 36rem;
-      min-width: 36rem;
+    /** Phones: fixed rem width + horizontal scroll in the shell */
+    @media (max-width: 639px) {
+      .app-split-table-header .app-split-table-grid,
+      .app-split-table-body .app-split-table-grid {
+        width: 32rem;
+        min-width: 32rem;
+      }
+
+      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack)
+        .app-split-table-header
+        .app-split-table-grid,
+      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack)
+        .app-split-table-body
+        .app-split-table-grid {
+        width: 36rem;
+        min-width: 36rem;
+      }
+
+      .app-data-table-scroll-10.app-data-table-wrap--wide .app-data-table,
+      .app-data-table-wrap.app-data-table-scroll-10--wide .app-data-table,
+      .app-split-table--wide .app-split-table-header .app-split-table-grid,
+      .app-split-table--wide .app-split-table-body .app-split-table-grid {
+        width: 52rem;
+        min-width: 52rem;
+      }
     }
 
-    /** Tablet 640–999: fill card width (phones below 640 keep fixed rem + horizontal scroll). */
+    /** Tablet in mobile shell (640–999): stretch tables to card width */
     @media (min-width: 640px) {
       .app-split-table:not(.app-split-table--mobile-stack) .app-split-table-header .app-split-table-grid,
-      .app-split-table:not(.app-split-table--mobile-stack) .app-split-table-body .app-split-table-grid {
+      .app-split-table:not(.app-split-table--mobile-stack) .app-split-table-body .app-split-table-grid,
+      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack)
+        .app-split-table-header
+        .app-split-table-grid,
+      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack)
+        .app-split-table-body
+        .app-split-table-grid,
+      .app-split-table--wide .app-split-table-header .app-split-table-grid,
+      .app-split-table--wide .app-split-table-body .app-split-table-grid {
         width: 100%;
         min-width: 0;
+        max-width: 100%;
       }
 
       .app-split-table-grid col.app-col-actions {
@@ -2102,17 +2134,6 @@
     .app-split-table--mobile-stack .app-split-table-body .app-split-table-grid {
       width: 100%;
       min-width: 0;
-    }
-
-    /** Wide master tables: min width + horizontal scroll on phones only (tablet+ fills card). */
-    @media (max-width: 639px) {
-      .app-data-table-scroll-10.app-data-table-wrap--wide .app-data-table,
-      .app-data-table-wrap.app-data-table-scroll-10--wide .app-data-table,
-      .app-split-table--wide .app-split-table-header .app-split-table-grid,
-      .app-split-table--wide .app-split-table-body .app-split-table-grid {
-        width: 52rem;
-        min-width: 52rem;
-      }
     }
 
     /** Short master lists → card per row on phones (table stays on sm+) */
