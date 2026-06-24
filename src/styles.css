@@ -1766,15 +1766,37 @@
     scrollbar-gutter: auto;
   }
 
-  /** Split-table shells use themed scrollbars (horizontal on mobile, body vertical on desktop). */
-  .app-data-table-shell:has(.app-split-table) {
-    @apply app-scroll-region;
+  /** Split-table body: themed vertical scrollbar (master + dashboard ranking). */
+  .app-split-table-body.app-scroll-region {
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--text-secondary) 35%, transparent) var(--table-body-bg);
+  }
+
+  .app-split-table-body.app-scroll-region::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .app-split-table-body.app-scroll-region::-webkit-scrollbar-track {
+    background: var(--table-body-bg);
+  }
+
+  .app-split-table-body.app-scroll-region::-webkit-scrollbar-corner {
+    background: var(--table-body-bg);
+  }
+
+  .app-split-table-body.app-scroll-region::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--text-secondary) 30%, transparent);
+    border-radius: 3px;
   }
 
   /** Split tables inside cards: clip on desktop; below 1000px shell scrolls (see mobile table block). */
   @media (min-width: 1000px) {
     .app-card-flush .app-data-table-shell:has(.app-split-table) {
       overflow-x: hidden;
+      overflow-y: hidden;
+      scrollbar-gutter: auto;
     }
   }
 
@@ -2067,8 +2089,9 @@
      * Fixed rem width on both tables (do not squeeze to viewport); shell scrolls horizontally.
      */
     .app-data-table-shell:has(.app-split-table) {
+      @apply app-scroll-region;
       overflow-x: auto;
-      overflow-y: visible;
+      overflow-y: hidden;
       scrollbar-gutter: auto;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior-x: contain;
