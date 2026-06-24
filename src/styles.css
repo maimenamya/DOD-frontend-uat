@@ -2077,12 +2077,15 @@
       min-width: 0;
     }
 
-    .app-data-table-scroll-10.app-data-table-wrap--wide .app-data-table,
-    .app-data-table-wrap.app-data-table-scroll-10--wide .app-data-table,
-    .app-split-table--wide .app-split-table-header .app-split-table-grid,
-    .app-split-table--wide .app-split-table-body .app-split-table-grid {
-      width: 52rem;
-      min-width: 52rem;
+    /** Wide master tables: min width + horizontal scroll on phones only (tablet+ fills card). */
+    @media (max-width: 639px) {
+      .app-data-table-scroll-10.app-data-table-wrap--wide .app-data-table,
+      .app-data-table-wrap.app-data-table-scroll-10--wide .app-data-table,
+      .app-split-table--wide .app-split-table-header .app-split-table-grid,
+      .app-split-table--wide .app-split-table-body .app-split-table-grid {
+        width: 52rem;
+        min-width: 52rem;
+      }
     }
 
     /** Short master lists → card per row on phones (table stays on sm+) */
