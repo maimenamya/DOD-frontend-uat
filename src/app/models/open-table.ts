@@ -153,6 +153,8 @@ export type SessionStaffDrink = {
   employeeName: string;
   roleDisplayNameTh: string;
   drinks: number;
+  /** Free PR drinks from mem/promo quota applied to this row. */
+  packageFreeDrinksCount?: number;
   drinkAmount: number;
   drinkBillingMode?: DrinkBillingMode;
   drinkBillingLabelTh?: string;
@@ -163,6 +165,7 @@ export type SessionStaffDrink = {
   canEditStaffDrink?: boolean;
   /** DB drinks_count — editable when {@link canEditStaffDrink}. */
   storedDrinksCount?: number;
+  usePackageFreeDrinks?: boolean;
   note?: string;
 };
 
@@ -223,6 +226,10 @@ export type OpenTableSessionDetail = {
   items: SessionOrderItem[];
   roomCharges?: SessionRoomCharge[];
   staffDrinks: SessionStaffDrink[];
+  /** Total free PR drink quota from mem/promo on this bill. */
+  packageFreeDrinksQuota?: number;
+  /** Remaining free PR drinks (projected FIFO across rows). */
+  packageFreeDrinksRemaining?: number;
   totalDrinks: number;
   totalAmount: number;
 };
@@ -267,6 +274,8 @@ export type AddItemsPayload = SessionMutationBase & {
     customerName?: string;
     customerCode?: string;
     packageDepositId?: number;
+    /** Mixer drinks only — operator marks free at add time. */
+    isFreeMixer?: boolean;
   }>;
   staffDrinks: Array<{
     employeeId: number;
@@ -278,6 +287,8 @@ export type AddItemsPayload = SessionMutationBase & {
     applyStartDrinks?: boolean;
     /** PR with active tag: true = ลงแท็ก (default), false = freelance. */
     billAsTag?: boolean;
+    /** Apply mem/promo free PR drink quota (operator choice). */
+    usePackageFreeDrinks?: boolean;
   }>;
 };
 

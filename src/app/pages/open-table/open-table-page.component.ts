@@ -40,6 +40,7 @@ import {
 } from '../../models/room-charge';
 import type { MstBeverage, MstBeverageCategory } from '../../models/beverage';
 import type { MstOtherCharge } from '../../models/other-charge';
+import { isMixerCategoryKind } from '../../utils/beverage-category-kind.util';
 import { OtherChargeService } from '../../services/other-charge.service';
 import { PackageDepositService } from '../../services/package-deposit.service';
 import {
@@ -242,6 +243,8 @@ export class OpenTablePageComponent implements OnInit {
   readonly selectedFoodId = signal<number | null>(null);
   readonly selectedBeverageCategoryId = signal<number | null>(null);
   readonly selectedBeverageId = signal<number | null>(null);
+  /** When adding mixer drink: operator chooses free vs paid (not from mem/promo). */
+  readonly beverageIsFreeMixer = signal(false);
   readonly selectedCocktailId = signal<number | null>(null);
   readonly selectedPromotionId = signal<number | null>(null);
   readonly selectedMembershipId = signal<number | null>(null);
@@ -264,6 +267,20 @@ export class OpenTablePageComponent implements OnInit {
   readonly staffReopenMode = signal<'CONTINUE' | 'NEW_START'>('CONTINUE');
   /** PR with active tag: bill drinks toward tag quota (default on). */
   readonly staffBillAsTag = signal(true);
+  /** Use mem/promo free PR drink quota for this add (default off — operator opts in). */
+  readonly staffUsePackageFreeDrinks = signal(false);
+
+  readonly packageFreeDrinksQuota = computed(
+    () => this.sessionDetail()?.packageFreeDrinksQuota ?? 0,
+  );
+
+  readonly packageFreeDrinksRemaining = computed(
+    () => this.sessionDetail()?.packageFreeDrinksRemaining ?? 0,
+  );
+
+  readonly showStaffPackageFreeToggle = computed(
+    () => this.packageFreeDrinksQuota() > 0,
+  );
 
   readonly roomChargeSeatingTypeId = signal<number | null>(null);
   readonly roomChargeSeatingId = signal<number | null>(null);
@@ -511,6 +528,13 @@ export class OpenTablePageComponent implements OnInit {
     const categoryId = this.selectedBeverageCategoryId();
     if (categoryId == null) return [];
     return this.beveragesRaw().filter((b) => b.categoryId === categoryId);
+  });
+
+  readonly selectedBeverageIsMixer = computed(() => {
+    const categoryId = this.selectedBeverageCategoryId();
+    if (categoryId == null) return false;
+    const category = this.beverageCategoriesRaw().find((c) => c.id === categoryId);
+    return category != null && isMixerCategoryKind(category.kind);
   });
 
   readonly beverageDropdownOptions = computed<DropdownOption[]>(() =>
@@ -1160,6 +1184,7 @@ export class OpenTablePageComponent implements OnInit {
     this.selectedFoodId.set(null);
     this.selectedBeverageCategoryId.set(null);
     this.selectedBeverageId.set(null);
+    this.beverageIsFreeMixer.set(false);
     this.selectedCocktailId.set(null);
     this.selectedPromotionId.set(null);
     this.selectedMembershipId.set(null);
@@ -1228,6 +1253,7 @@ export class OpenTablePageComponent implements OnInit {
     this.staffApplyStartDrinks.set(true);
     this.staffReopenMode.set('CONTINUE');
     this.staffBillAsTag.set(true);
+    this.staffUsePackageFreeDrinks.set(false);
     this.stampStaffSeatStartTime();
   }
 
@@ -1322,6 +1348,7 @@ export class OpenTablePageComponent implements OnInit {
     if (!this.beverageCategoriesRaw().some((c) => c.id === id)) return;
     this.selectedBeverageCategoryId.set(id);
     this.selectedBeverageId.set(null);
+    this.beverageIsFreeMixer.set(false);
     this.syncBeverageItemSelection();
   }
 
@@ -1329,9 +1356,11 @@ export class OpenTablePageComponent implements OnInit {
     const id = value == null || value === '' ? null : Number(value);
     if (id == null || !this.beveragesInSelectedCategory().some((b) => b.id === id)) {
       this.selectedBeverageId.set(null);
+      this.beverageIsFreeMixer.set(false);
       return;
     }
     this.selectedBeverageId.set(id);
+    this.beverageIsFreeMixer.set(false);
   }
 
   onCocktailChange(value: number | string | null): void {
@@ -1504,7 +1533,14 @@ export class OpenTablePageComponent implements OnInit {
         this.toast.showError('กรุณาเลือกเครื่องดื่ม');
         return null;
       }
-      items.push({ itemId: beverageId, quantity, type: 'DRINK' });
+      items.push({
+        itemId: beverageId,
+        quantity,
+        type: 'DRINK',
+        ...(this.selectedBeverageIsMixer()
+          ? { isFreeMixer: this.beverageIsFreeMixer() }
+          : {}),
+      });
     } else if (category === 'COCKTAIL') {
       const cocktailId = this.selectedCocktailId();
       if (cocktailId == null) {
@@ -1689,6 +1725,9 @@ export class OpenTablePageComponent implements OnInit {
         }
       }
       const billAsTag = this.showStaffBillAsTagToggle() ? this.staffBillAsTag() : undefined;
+      const usePackageFreeDrinks = this.showStaffPackageFreeToggle()
+        ? this.staffUsePackageFreeDrinks()
+        : undefined;
       return [
         {
           employeeId,
@@ -1696,6 +1735,7 @@ export class OpenTablePageComponent implements OnInit {
           seatStartedAt: seatLocal,
           applyStartDrinks,
           billAsTag,
+          usePackageFreeDrinks,
         },
       ];
     }
@@ -1704,7 +1744,10 @@ export class OpenTablePageComponent implements OnInit {
     const emp = this.selectedStaffLedgerEmployee();
     const billAsTag =
       emp?.hasActivePrTag === true ? this.staffBillAsTag() : undefined;
-    return [{ employeeId, quantity, billAsTag }];
+    const usePackageFreeDrinks = this.showStaffPackageFreeToggle()
+      ? this.staffUsePackageFreeDrinks()
+      : undefined;
+    return [{ employeeId, quantity, billAsTag, usePackageFreeDrinks }];
   }
 
   setStatusFilter(value: SeatStatusFilter): void {

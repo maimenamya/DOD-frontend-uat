@@ -639,6 +639,9 @@
                     - {{ row.employeeName }}
                     <span class="text-text-secondary">({{ row.roleDisplayNameTh }})</span>:
                     {{ row.drinks }} ดื่ม
+                    @if ((row.packageFreeDrinksCount ?? 0) > 0) {
+                      <span class="text-text-secondary">(ฟรีโปร {{ row.packageFreeDrinksCount }} ดื่ม)</span>
+                    }
                   </span>
                   @if (row.canStopDrinks) {
                     @if (row.seatStartedLabel) {
@@ -886,6 +889,23 @@
               />
             }
           </div>
+          @if (selectedBeverageIsMixer() && selectedBeverageId() != null) {
+            <div class="app-form-group">
+              <label class="app-label">มิกซ์เซอร์</label>
+              <label class="app-toggle" aria-label="ฟรีมิกซ์หรือคิดเงิน">
+                <input
+                  type="checkbox"
+                  class="app-toggle-input"
+                  [ngModel]="beverageIsFreeMixer()"
+                  (ngModelChange)="beverageIsFreeMixer.set($event)"
+                />
+                <span class="app-toggle-track" aria-hidden="true"></span>
+                <span class="app-toggle-text">
+                  {{ beverageIsFreeMixer() ? 'ฟรีมิกซ์ (ไม่คิดเงิน)' : 'คิดเงินตามราคาเมนู' }}
+                </span>
+              </label>
+            </div>
+          }
         }
 
         @if (orderLedgerCategory() === 'COCKTAIL') {
@@ -1093,6 +1113,31 @@
             />
           }
         </div>
+
+        @if (showStaffPackageFreeToggle()) {
+          <div class="app-form-group open-table-staff-choice">
+            <span class="app-label">โควต้าฟรี PR</span>
+            <label class="app-toggle open-table-staff-start-toggle">
+              <input
+                type="checkbox"
+                class="app-toggle-input"
+                [ngModel]="staffUsePackageFreeDrinks()"
+                (ngModelChange)="staffUsePackageFreeDrinks.set($event)"
+              />
+              <span class="app-toggle-track" aria-hidden="true"></span>
+              <span class="app-toggle-text open-table-staff-start-toggle-label">
+                {{
+                  staffUsePackageFreeDrinks()
+                    ? 'ใช้โควต้าฟรี (เหลือ ' + packageFreeDrinksRemaining() + '/' + packageFreeDrinksQuota() + ' ดื่ม)'
+                    : 'คิดเงินตามราคารันดื่ม'
+                }}
+              </span>
+            </label>
+            <p class="app-field-hint">
+              โควต้ามาจากเมม/โปรบนบิลนี้ — ใช้ได้สูงสุดตามที่กำหนดในแพ็กเกจ
+            </p>
+          </div>
+        }
 
         @if (showStaffBillAsTagToggle()) {
           <div class="app-form-group open-table-staff-choice">
