@@ -247,7 +247,7 @@
         class="open-table-drawer hidden min-w-0 shrink-0 desktop:block desktop:w-[35%] transition-all duration-300 ease-in-out"
       >
         <div
-          class="open-table-drawer__scroll sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto transition-all duration-300 ease-in-out"
+          class="open-table-drawer__scroll transition-all duration-300 ease-in-out"
         >
           <ng-container *ngTemplateOutlet="sessionPanel"></ng-container>
         </div>
@@ -606,7 +606,7 @@
                       </span>
                       <button
                         type="button"
-                        class="app-btn-inline shrink-0"
+                        class="open-table-bill-item-action shrink-0"
                         [disabled]="actionBusy()"
                         (click)="openStopRoomModal(row)"
                       >
@@ -648,7 +648,7 @@
                     }
                     <button
                       type="button"
-                      class="app-btn-inline shrink-0"
+                      class="open-table-bill-item-action shrink-0"
                       [disabled]="actionBusy()"
                       (click)="openStopDrinkModal(row)"
                     >

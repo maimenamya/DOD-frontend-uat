@@ -2,9 +2,6 @@
   <div class="app-page-header">
     <div>
       <h1 class="app-page-title">ฝากเมม / โปร</h1>
-      <p class="app-page-subtitle text-text-secondary">
-        นับขวดเป็นจำนวนเต็ม — ฝากคืนบอกสภาพจริง · ลบ = เปิดผิดหรือลบที่บิลแล้ว · ปิด = กินหมดไม่มีขวดเหลือ
-      </p>
     </div>
   </div>
 
@@ -59,8 +56,8 @@
               [attr.aria-label]="tileAriaLabel(row)"
               (click)="toggleExpanded(row)"
             >
-              <span class="package-deposit-tile__name">{{ customerNameDisplay(row) }}</span>
               <span class="package-deposit-tile__code">{{ customerCodeDisplay(row) }}</span>
+              <span class="package-deposit-tile__name">{{ customerNameDisplay(row) }}</span>
               <span class="package-deposit-tile__package">{{ row.packageName }}</span>
               <span class="package-deposit-tile__foot">
                 <span class="package-deposit-tile__bottles">{{ row.bottlesLabel }}</span>
@@ -90,7 +87,10 @@
   @if (mobileViewport()) {
     <app-modal layout="sheet" (dismiss)="closeExpanded()">
       <div class="app-modal-header">
-        <h2 class="app-modal-title">{{ row.packageName }}</h2>
+        <h2 class="app-modal-title package-deposit-detail__headline">
+          <span class="package-deposit-detail__customer-code">{{ customerCodeDisplay(row) }}</span>
+          <span class="package-deposit-detail__customer">{{ customerNameDisplay(row) }}</span>
+        </h2>
         <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeExpanded()">
           ✕
         </button>
@@ -104,22 +104,15 @@
 
 <ng-template #depositDetailTpl let-row="row" let-sheet="sheet">
   <div class="package-deposit-detail__head">
-    @if (!sheet) {
-      <div class="package-deposit-detail__title-block">
-        <p class="package-deposit-detail__package">{{ row.packageName }}</p>
-        <p class="package-deposit-detail__customer">
-          {{ customerNameDisplay(row) }}
+    <div class="package-deposit-detail__title-block">
+      @if (!sheet) {
+        <p class="package-deposit-detail__customer-line">
           <span class="package-deposit-detail__customer-code">{{ customerCodeDisplay(row) }}</span>
+          <span class="package-deposit-detail__customer">{{ customerNameDisplay(row) }}</span>
         </p>
-      </div>
-    } @else {
-      <div class="package-deposit-detail__title-block">
-        <p class="package-deposit-detail__customer">
-          {{ customerNameDisplay(row) }}
-          <span class="package-deposit-detail__customer-code">{{ customerCodeDisplay(row) }}</span>
-        </p>
-      </div>
-    }
+      }
+      <p class="package-deposit-detail__package">{{ row.packageName }}</p>
+    </div>
     @if (row.status === 'OPEN') {
       <span class="app-badge app-badge-staff shrink-0">{{ statusLabel(row) }}</span>
     } @else {

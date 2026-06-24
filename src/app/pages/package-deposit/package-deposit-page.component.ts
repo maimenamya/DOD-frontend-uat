@@ -141,7 +141,7 @@ export class PackageDepositPageComponent implements OnInit {
   }
 
   tileAriaLabel(row: PackageDepositRecord): string {
-    return `${this.customerNameDisplay(row)} รหัส ${this.customerCodeDisplay(row)} — ${row.packageName} เหลือ ${row.bottlesLabel}`;
+    return `รหัส ${this.customerCodeDisplay(row)} ${this.customerNameDisplay(row)} — ${row.packageName} เหลือ ${row.bottlesLabel}`;
   }
 
   openDeposit(row: PackageDepositRecord): void {

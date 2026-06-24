@@ -1757,8 +1757,8 @@
     scrollbar-gutter: auto;
   }
 
-  /** Split tables inside cards: clip to card; scroll horizontally only if needed */
-  @media (min-width: 640px) {
+  /** Split tables inside cards: clip on desktop; below 1000px shell scrolls (see mobile table block). */
+  @media (min-width: 1000px) {
     .app-card-flush .app-data-table-shell:has(.app-split-table) {
       overflow-x: hidden;
     }
@@ -2056,6 +2056,19 @@
       .app-split-table-grid {
       width: 36rem;
       min-width: 36rem;
+    }
+
+    /** Tablet 640–999: fill card width (phones below 640 keep fixed rem + horizontal scroll). */
+    @media (min-width: 640px) {
+      .app-split-table:not(.app-split-table--mobile-stack) .app-split-table-header .app-split-table-grid,
+      .app-split-table:not(.app-split-table--mobile-stack) .app-split-table-body .app-split-table-grid {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .app-split-table-grid col.app-col-actions {
+        width: 20%;
+      }
     }
 
     .app-split-table--mobile-stack .app-split-table-header .app-split-table-grid,
