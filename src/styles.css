@@ -788,6 +788,15 @@
     @apply min-w-0 max-w-full flex-1 p-4 sm:p-6 desktop:p-8;
   }
 
+  /** Routed page hosts are custom elements — block + full width so tables fill the shell */
+  .app-main-content > * {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
   /* ── Top header (profile + shop) ── */
   .app-top-header {
     @apply sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-theme-border px-4 py-3 backdrop-blur-glass sm:px-6 desktop:px-8;
@@ -1850,6 +1859,24 @@
 
   .app-split-table-grid col.app-col-action-btn {
     width: 6.5rem;
+  }
+
+  /** Wide master tables: fill card on tablet/desktop (phones use rem min-width in mobile block). */
+  @media (min-width: 640px) {
+    .app-split-table--wide,
+    .app-split-table--wide .app-split-table-header,
+    .app-split-table--wide .app-split-table-body {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+    }
+
+    .app-split-table--wide .app-split-table-header .app-split-table-grid,
+    .app-split-table--wide .app-split-table-body .app-split-table-grid {
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+    }
   }
 
   /** @deprecated — use .app-split-table */
