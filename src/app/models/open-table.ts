@@ -303,8 +303,11 @@ export type CheckoutPreviewPayload = {
   checkedOutAt: string;
 };
 
+export type BillPaymentMethod = 'CASH' | 'PROMPTPAY' | 'CREDIT_CARD';
+
 export type CheckoutPayload = SessionMutationBase & {
   checkedOutAt: string;
+  paymentMethod?: BillPaymentMethod;
   releaseSeat?: boolean;
   /** PC USB — request browser PNG layout (top pad + subtotal spacing); RawBT ESC unchanged. */
   browserPng?: boolean;
@@ -332,6 +335,8 @@ export type CheckoutResult = {
   billReference: string;
   billAmount: number;
   totalDrinks: number;
+  paymentMethod?: BillPaymentMethod;
+  paymentMethodLabel?: string;
   checkedOutLabel?: string;
   sessionClosed: boolean;
   receipt?: BillReceiptResponse;

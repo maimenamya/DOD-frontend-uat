@@ -1625,6 +1625,16 @@
         />
       </div>
 
+      <div class="app-form-group">
+        <label class="app-label">วิธีชำระเงิน</label>
+        <app-custom-dropdown
+          [options]="checkoutPaymentMethodOptions"
+          [ngModel]="checkoutPaymentMethod()"
+          (ngModelChange)="onCheckoutPaymentMethodChange($event)"
+          placeholder="เลือกวิธีชำระเงิน"
+        />
+      </div>
+
       <p class="checkout-preview-heading">สรุปยอด</p>
 
       <div class="checkout-preview-shell">

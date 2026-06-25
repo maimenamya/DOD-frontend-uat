@@ -20,7 +20,11 @@ export interface ReportBillRow {
   saleNickname: string;
   saleEmployeeId: string;
   billAmount: number;
+  paymentMethod?: BillPaymentMethod;
+  paymentMethodLabel?: string;
 }
+
+export type BillPaymentMethod = 'CASH' | 'PROMPTPAY' | 'CREDIT_CARD';
 
 export interface ReportBillBySale {
   saleEmployeeId: string;

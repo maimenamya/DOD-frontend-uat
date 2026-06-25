@@ -67,6 +67,11 @@ import { ShopMasterService } from '../../services/shop-master.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
 import { closeOpenShopFlatpickrCalendars } from '../../utils/flatpickr-shop.util';
+import {
+  CHECKOUT_PAYMENT_METHOD_OPTIONS,
+  billPaymentMethodLabel,
+  type BillPaymentMethod,
+} from '../../utils/bill-payment-method.util';
 import { compareRolesByThaiLabel, roleOptionLabel } from '../../utils/role-display.util';
 import {
   employeeDropdownLabel,
@@ -196,6 +201,8 @@ export class OpenTablePageComponent implements OnInit {
   readonly showPackageBottleModal = signal(false);
   readonly showCheckoutModal = signal(false);
   readonly checkoutAt = signal(currentDatetimeLocalValue());
+  readonly checkoutPaymentMethod = signal<BillPaymentMethod>('CASH');
+  readonly checkoutPaymentMethodOptions = CHECKOUT_PAYMENT_METHOD_OPTIONS;
   readonly checkoutPreview = signal<CheckoutPreview | null>(null);
   readonly checkoutPreviewLoading = signal(false);
   readonly lastCheckoutBillId = signal<number | null>(null);
@@ -268,8 +275,8 @@ export class OpenTablePageComponent implements OnInit {
   readonly staffReopenMode = signal<'CONTINUE' | 'NEW_START'>('CONTINUE');
   /** PR with active tag: bill drinks toward tag quota (default on). */
   readonly staffBillAsTag = signal(true);
-  /** Use mem/promo free PR drink quota for this add (default on — cashier toggles). */
-  readonly staffUsePackageFreeDrinks = signal(true);
+  /** Use mem/promo free PR drink quota for this add (default off — cashier opts in). */
+  readonly staffUsePackageFreeDrinks = signal(false);
 
   readonly packageFreeDrinksQuota = computed(
     () => this.sessionDetail()?.packageFreeDrinksQuota ?? 0,
@@ -1250,7 +1257,7 @@ export class OpenTablePageComponent implements OnInit {
     this.staffApplyStartDrinks.set(true);
     this.staffReopenMode.set('CONTINUE');
     this.staffBillAsTag.set(true);
-    this.staffUsePackageFreeDrinks.set(true);
+    this.staffUsePackageFreeDrinks.set(false);
     this.stampStaffSeatStartTime();
   }
 
@@ -1500,7 +1507,7 @@ export class OpenTablePageComponent implements OnInit {
     this.staffApplyStartDrinks.set(true);
     const emp = this.staffLedgerEmployees().find((e) => e.id === id);
     this.staffBillAsTag.set(emp?.hasActivePrTag === true);
-    this.staffUsePackageFreeDrinks.set(true);
+    this.staffUsePackageFreeDrinks.set(false);
   }
 
   onStaffLedgerQtyTextChange(value: string): void {
@@ -2873,6 +2880,7 @@ export class OpenTablePageComponent implements OnInit {
 
   openCheckoutModal(): void {
     this.checkoutAt.set(currentDatetimeLocalValue());
+    this.checkoutPaymentMethod.set('CASH');
     this.checkoutPreview.set(null);
     this.showCheckoutModal.set(true);
     this.showMobileSheet.set(false);
@@ -2889,6 +2897,13 @@ export class OpenTablePageComponent implements OnInit {
     this.showCheckoutModal.set(false);
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
+    }
+  }
+
+  onCheckoutPaymentMethodChange(value: number | string | null): void {
+    const method = String(value ?? '').trim().toUpperCase();
+    if (method === 'CASH' || method === 'PROMPTPAY' || method === 'CREDIT_CARD') {
+      this.checkoutPaymentMethod.set(method);
     }
   }
 
@@ -2955,9 +2970,10 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
 
+    const paymentLabel = billPaymentMethodLabel(this.checkoutPaymentMethod());
     const ok = await this.confirmDialog.confirm({
       title: 'ยืนยันเช็กบิล',
-      message: `เช็กบิลเวลา ${this.formatShopDatetimeLabel(checkedOutAt)} · ยอดรวม ${preview.billAmount.toLocaleString('th-TH')} บาท ใช่หรือไม่?`,
+      message: `เช็กบิลเวลา ${this.formatShopDatetimeLabel(checkedOutAt)} · ${paymentLabel} · ยอดรวม ${preview.billAmount.toLocaleString('th-TH')} บาท ใช่หรือไม่?`,
       confirmLabel: 'เช็กบิล',
     });
     if (!ok) return;
@@ -2972,6 +2988,7 @@ export class OpenTablePageComponent implements OnInit {
         sessionId,
         expectedRevision,
         checkedOutAt,
+        paymentMethod: this.checkoutPaymentMethod(),
         releaseSeat: false,
         browserPng: this.billReceiptService.shouldPreparePrintFrame(),
       }),
