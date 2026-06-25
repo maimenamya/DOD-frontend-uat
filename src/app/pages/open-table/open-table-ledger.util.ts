@@ -24,7 +24,7 @@ export const ORDER_LEDGER_CATEGORY_LABELS: Record<OrderLedgerCategory, string> =
   COCKTAIL: 'ค็อกเทล',
   PROMOTION: 'โปร',
   MEMBER: 'เมมเบอร์',
-  OTHER: 'อื่นๆ',
+  OTHER: 'เบ็ดเตล็ด',
 };
 
 export type SessionOrderItemType =

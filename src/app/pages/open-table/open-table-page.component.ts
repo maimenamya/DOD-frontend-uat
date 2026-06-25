@@ -1685,7 +1685,7 @@ export class OpenTablePageComponent implements OnInit {
       const otherId = this.selectedOtherChargeId();
       if (otherId == null) {
         this.flagAddItemValidation();
-        this.toast.showError('กรุณาเลือกรายการอื่นๆ');
+        this.toast.showError('กรุณาเลือกรายการเบ็ดเตล็ด');
         return null;
       }
       items.push({ itemId: otherId, quantity, type: 'OTHER' });

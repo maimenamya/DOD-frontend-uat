@@ -157,17 +157,14 @@ export class AuthService {
   /** Sale read-only: own open bills on open-table page. */
   openTableSelfBillOnly(): boolean {
     const group = this.getPermissionGroup();
-    const roleName = this.getRole();
-    if (!group || !roleName) return false;
-    return openTableSelfBillOnly(group, roleName);
+    if (!group) return false;
+    return openTableSelfBillOnly(group, this.getRole(), this.getRoleCategory());
   }
 
   canAccessOpenTable(): boolean {
     const group = this.getPermissionGroup();
-    const roleName = this.getRole();
-    const roleCategory = this.getRoleCategory();
-    if (!group || !roleName || !roleCategory) return false;
-    return canAccessOpenTablePage(group, roleName, roleCategory);
+    if (!group) return false;
+    return canAccessOpenTablePage(group, this.getRole(), this.getRoleCategory());
   }
 
   /** Same as route guard — use for save/edit/delete on a page the user can open. */
@@ -395,8 +392,9 @@ export class AuthService {
         ? user.role
         : ((user as { role?: { name?: string } }).role?.name ?? '');
     const roleCategory =
-      user.roleCategory ??
-      (role.toUpperCase() === 'PR' ? 'ENTERTAINER' : 'STAFF');
+      (user.roleCategory && user.roleCategory.trim() !== ''
+        ? user.roleCategory
+        : null) ?? (role.toUpperCase() === 'PR' ? 'ENTERTAINER' : 'STAFF');
     const permissionGroup =
       user.permissionGroup ??
       (role.toUpperCase() === 'OWNER'

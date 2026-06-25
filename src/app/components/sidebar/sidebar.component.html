@@ -24,7 +24,7 @@
       <span class="app-sidebar-label">แดชบอร์ด</span>
     </a>
 
-    @if (showOpenTable()) {
+    @if (showOpenTableLink()) {
       <a
         routerLink="/dashboard/open-table"
         routerLinkActive="app-sidebar-link-active"
@@ -36,100 +36,102 @@
         </span>
         <span class="app-sidebar-label">{{ openTableNavLabel() }}</span>
       </a>
+    }
 
+    @if (showFullOpenTableNav()) {
       @if (showPackageDepositsNav()) {
+        <a
+          routerLink="/dashboard/package-deposits"
+          routerLinkActive="app-sidebar-link-active"
+          (click)="collapseAllSubmenus(); mobileClose.emit()"
+          class="app-sidebar-link"
+        >
+          <span class="app-sidebar-icon-slot">
+            <app-sidebar-icon name="package" />
+          </span>
+          <span class="app-sidebar-label">ฝาก</span>
+        </a>
+      }
+    }
+
+    @if (showPrTagOps()) {
       <a
-        routerLink="/dashboard/package-deposits"
+        routerLink="/dashboard/pr-tag-operations"
         routerLinkActive="app-sidebar-link-active"
         (click)="collapseAllSubmenus(); mobileClose.emit()"
         class="app-sidebar-link"
       >
         <span class="app-sidebar-icon-slot">
-          <app-sidebar-icon name="package" />
+          <app-sidebar-icon name="tag" />
         </span>
-        <span class="app-sidebar-label">ฝาก</span>
+        <span class="app-sidebar-label">จัดการ tag</span>
       </a>
-      }
+    }
 
-      @if (showPrTagOps()) {
-        <a
-          routerLink="/dashboard/pr-tag-operations"
-          routerLinkActive="app-sidebar-link-active"
-          (click)="collapseAllSubmenus(); mobileClose.emit()"
-          class="app-sidebar-link"
-        >
-          <span class="app-sidebar-icon-slot">
-            <app-sidebar-icon name="tag" />
-          </span>
-          <span class="app-sidebar-label">จัดการ tag</span>
-        </a>
-      }
+    @if (showReports()) {
+      <a
+        routerLink="/dashboard/reports"
+        routerLinkActive="app-sidebar-link-active"
+        (click)="collapseAllSubmenus(); mobileClose.emit()"
+        class="app-sidebar-link"
+      >
+        <span class="app-sidebar-icon-slot">
+          <app-sidebar-icon name="report" />
+        </span>
+        <span class="app-sidebar-label">ออกรายงาน</span>
+      </a>
+    }
 
-      @if (showReports()) {
-        <a
-          routerLink="/dashboard/reports"
-          routerLinkActive="app-sidebar-link-active"
-          (click)="collapseAllSubmenus(); mobileClose.emit()"
-          class="app-sidebar-link"
-        >
-          <span class="app-sidebar-icon-slot">
-            <app-sidebar-icon name="report" />
-          </span>
-          <span class="app-sidebar-label">ออกรายงาน</span>
-        </a>
-      }
+    @if (showDailyExpenses()) {
+      <a
+        routerLink="/dashboard/daily-expenses"
+        routerLinkActive="app-sidebar-link-active"
+        (click)="collapseAllSubmenus(); mobileClose.emit()"
+        class="app-sidebar-link"
+      >
+        <span class="app-sidebar-icon-slot">
+          <app-sidebar-icon name="receipt" />
+        </span>
+        <span class="app-sidebar-label">บันทึกค่าใช้จ่าย</span>
+      </a>
+    }
 
-      @if (showDailyExpenses()) {
-        <a
-          routerLink="/dashboard/daily-expenses"
-          routerLinkActive="app-sidebar-link-active"
-          (click)="collapseAllSubmenus(); mobileClose.emit()"
-          class="app-sidebar-link"
-        >
-          <span class="app-sidebar-icon-slot">
-            <app-sidebar-icon name="receipt" />
-          </span>
-          <span class="app-sidebar-label">บันทึกค่าใช้จ่าย</span>
-        </a>
-      }
-
-      @if (showMasterNav()) {
-        @for (group of navGroups; track group.id) {
-          <div class="app-sidebar-group" [class.app-sidebar-group--active]="isGroupActive(group)">
-            <button
-              type="button"
-              class="app-sidebar-group-toggle"
-              [class.app-sidebar-group-toggle-active]="isGroupActive(group)"
-              [attr.aria-expanded]="isGroupOpen(group.id)"
-              (click)="toggleSubmenu(group.id)"
-            >
-              <span class="app-sidebar-icon-slot">
-                <app-sidebar-icon [name]="group.icon" />
-              </span>
-              <span class="app-sidebar-label app-sidebar-group-label">{{ group.label }}</span>
-              <app-sidebar-icon
-                class="app-sidebar-group-chevron app-sidebar-label"
-                [name]="isGroupOpen(group.id) ? 'chevron-down' : 'chevron-right'"
-              />
-            </button>
-            @if (isGroupOpen(group.id)) {
-              <div class="app-sidebar-subnav">
-                @for (item of group.children; track item.path) {
-                  <a
-                    [routerLink]="item.path"
-                    routerLinkActive="app-sidebar-link-active"
-                    [routerLinkActiveOptions]="{ exact: true }"
-                    (click)="mobileClose.emit()"
-                    class="app-sidebar-link app-sidebar-sublink"
-                  >
-                    <span class="app-sidebar-sublink-dot" aria-hidden="true"></span>
-                    <span class="app-sidebar-label">{{ item.label }}</span>
-                  </a>
-                }
-              </div>
-            }
-          </div>
-        }
+    @if (showMasterNav()) {
+      @for (group of navGroups; track group.id) {
+        <div class="app-sidebar-group" [class.app-sidebar-group--active]="isGroupActive(group)">
+          <button
+            type="button"
+            class="app-sidebar-group-toggle"
+            [class.app-sidebar-group-toggle-active]="isGroupActive(group)"
+            [attr.aria-expanded]="isGroupOpen(group.id)"
+            (click)="toggleSubmenu(group.id)"
+          >
+            <span class="app-sidebar-icon-slot">
+              <app-sidebar-icon [name]="group.icon" />
+            </span>
+            <span class="app-sidebar-label app-sidebar-group-label">{{ group.label }}</span>
+            <app-sidebar-icon
+              class="app-sidebar-group-chevron app-sidebar-label"
+              [name]="isGroupOpen(group.id) ? 'chevron-down' : 'chevron-right'"
+            />
+          </button>
+          @if (isGroupOpen(group.id)) {
+            <div class="app-sidebar-subnav">
+              @for (item of group.children; track item.path) {
+                <a
+                  [routerLink]="item.path"
+                  routerLinkActive="app-sidebar-link-active"
+                  [routerLinkActiveOptions]="{ exact: true }"
+                  (click)="mobileClose.emit()"
+                  class="app-sidebar-link app-sidebar-sublink"
+                >
+                  <span class="app-sidebar-sublink-dot" aria-hidden="true"></span>
+                  <span class="app-sidebar-label">{{ item.label }}</span>
+                </a>
+              }
+            </div>
+          }
+        </div>
       }
     }
   </nav>

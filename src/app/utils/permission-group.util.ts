@@ -1,5 +1,6 @@
 import type { PermissionGroup } from '../models/permission-group';
 import type { RoleCategory } from '../models/role';
+import { normalizeRoleName } from './role-display.util';
 
 /**
  * หลักสิทธิ์ UI: ใครเข้าหน้าได้จาก `permissionGuard(feature)` ต้องทำงานบนหน้านั้นได้ด้วย
@@ -36,19 +37,26 @@ export function usesSelfOnlyDashboard(group: PermissionGroup): boolean {
 }
 
 /** Sale (EMPLOYEE) may open read-only self-bill view on open-table page. */
-export function openTableSelfBillOnly(group: PermissionGroup, roleName: string): boolean {
+export function openTableSelfBillOnly(
+  group: PermissionGroup,
+  roleName: string | null | undefined,
+  roleCategory?: RoleCategory | null,
+): boolean {
   if (group !== 'EMPLOYEE') {
     return false;
   }
-  return roleName.trim().toUpperCase() === 'SALE';
+  if (roleCategory === 'ENTERTAINER') {
+    return false;
+  }
+  return normalizeRoleName(roleName) === 'SALE';
 }
 
 export function canAccessOpenTablePage(
   group: PermissionGroup,
-  roleName: string,
-  _roleCategory: RoleCategory,
+  roleName: string | null | undefined,
+  roleCategory?: RoleCategory | null,
 ): boolean {
-  return hasFeature(group, 'open_table') || openTableSelfBillOnly(group, roleName);
+  return hasFeature(group, 'open_table') || openTableSelfBillOnly(group, roleName, roleCategory);
 }
 
 export function canManageEmployees(group: PermissionGroup): boolean {

@@ -65,3 +65,29 @@ export function compareRolesByThaiLabel(a: RoleLike, b: RoleLike): number {
   if (rankA !== rankB) return rankA - rankB;
   return roleDisplayNameTh(a).localeCompare(roleDisplayNameTh(b), 'th');
 }
+
+const ROLE_ALIASES: Record<string, string> = {
+  ADMIN: 'ADMIN',
+  OWNER: 'OWNER',
+  SALE: 'SALE',
+  SALES: 'SALE',
+  Sale: 'SALE',
+  PR: 'PR',
+  CASHIER: 'CASHIER',
+  SERVICE: 'SERVICE',
+  MANAGER: 'MANAGER',
+  Manager: 'MANAGER',
+};
+
+/** Match backend role.model normalizeRoleName for permission checks. */
+export function normalizeRoleName(role: string | null | undefined): string | null {
+  const trimmed = role?.trim();
+  if (!trimmed) return null;
+  const fromAlias = ROLE_ALIASES[trimmed] ?? ROLE_ALIASES[trimmed.toUpperCase()];
+  if (fromAlias) return fromAlias;
+  const upper = trimmed.toUpperCase();
+  if (upper in ROLE_DISPLAY_ORDER || upper in SYSTEM_ROLE_LABEL_TH) {
+    return upper;
+  }
+  return upper;
+}
