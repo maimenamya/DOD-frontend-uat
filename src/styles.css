@@ -3541,7 +3541,7 @@
     right: 0;
     bottom: 0;
     z-index: 56;
-    max-height: min(72dvh, calc(var(--app-visual-viewport-height, 100dvh) * 0.72));
+    max-height: min(78dvh, calc(var(--app-visual-viewport-height, 100dvh) * 0.78));
     overflow-y: auto;
     border: 1px solid var(--border);
     border-bottom: 0;
@@ -3555,15 +3555,15 @@
 
   @media (max-width: 999px) and (orientation: landscape) {
     .open-table-mobile-sheet {
-      max-height: min(75dvh, calc(var(--app-visual-viewport-height, 100dvh) * 0.75));
+      max-height: min(80dvh, calc(var(--app-visual-viewport-height, 100dvh) * 0.8));
     }
   }
 
   html.app-keyboard-open .open-table-mobile-sheet {
     bottom: var(--app-keyboard-overlap, 0px);
     max-height: min(
-      calc(var(--app-visual-viewport-height, 72dvh) - 0.75rem),
-      calc(var(--app-visual-viewport-height, 100dvh) * 0.72)
+      calc(var(--app-visual-viewport-height, 78dvh) - 0.75rem),
+      calc(var(--app-visual-viewport-height, 100dvh) * 0.78)
     );
   }
 
