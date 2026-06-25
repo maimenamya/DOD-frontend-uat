@@ -9,15 +9,26 @@
 
 Local `npm start` does **not** use these files — it uses `environment.ts` with `apiUrl: '/api'` and `proxy.conf.json`.
 
-### UAT vs git branch `uat`
+### UAT vs Production repos
 
-| Name | What it is |
-|------|------------|
-| **UAT (สำหรับทดสอบ)** | Vercel project **`dod-frontend-uat`** → deploy จาก branch **`main`** |
-| **Production** | Vercel project **`dod-frontend`** → deploy จาก branch **`main`** |
-| Git branch `uat` | แค่ branch ทำงานใน repo — **ไม่ใช่** URL UAT โดยอัตโนมัติ |
+| Environment | GitHub repo | Branch | Vercel project |
+|-------------|-------------|--------|----------------|
+| **FE UAT** | `maimenamya/DOD-frontend-uat` | `main` | `dod-frontend-uat` |
+| **FE Prod** | `maimenamya/DOD-frontend` | `main` | `dod-frontend` |
+| **BE UAT** | `maimenamya/DOD-backend` | `uat` | Railway UAT service |
+| **BE Prod** | `maimenamya/DOD-backend` | `main` | Railway prod service |
 
-Push ขึ้น **`main`** แล้วทั้ง `dod-frontend-uat` และ `dod-frontend` จะ build ใหม่ (ถ้าทั้งสอง project ผูก repo เดียวกัน + branch `main`).
+After frontend changes on `DOD-frontend`, **also push to UAT repo**:
+
+```bash
+cd frontend
+git checkout main
+git push uat-origin main
+```
+
+(`uat-origin` → `https://github.com/maimenamya/DOD-frontend-uat.git`)
+
+Backend: merge/push `uat` for UAT Railway, `main` for prod Railway.
 
 ---
 
