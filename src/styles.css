@@ -47,6 +47,12 @@
     --app-keyboard-overlap: 0px;
     --app-visual-viewport-height: 100dvh;
     --app-visual-viewport-offset-top: 0px;
+
+    /* Mobile bottom sheets — open-table drawer, app-modal sheet, flatpickr picker */
+    --app-bottom-sheet-max-height: 85dvh;
+    --app-bottom-sheet-max-ratio: 0.85;
+    --app-bottom-sheet-landscape-max-height: 88dvh;
+    --app-bottom-sheet-landscape-max-ratio: 0.88;
   }
 
   [data-theme='light'] {
@@ -3541,7 +3547,10 @@
     right: 0;
     bottom: 0;
     z-index: 56;
-    max-height: min(78dvh, calc(var(--app-visual-viewport-height, 100dvh) * 0.78));
+    max-height: min(
+      var(--app-bottom-sheet-max-height),
+      calc(var(--app-visual-viewport-height, 100dvh) * var(--app-bottom-sheet-max-ratio))
+    );
     overflow-y: auto;
     border: 1px solid var(--border);
     border-bottom: 0;
@@ -3555,15 +3564,18 @@
 
   @media (max-width: 999px) and (orientation: landscape) {
     .open-table-mobile-sheet {
-      max-height: min(80dvh, calc(var(--app-visual-viewport-height, 100dvh) * 0.8));
+      max-height: min(
+        var(--app-bottom-sheet-landscape-max-height),
+        calc(var(--app-visual-viewport-height, 100dvh) * var(--app-bottom-sheet-landscape-max-ratio))
+      );
     }
   }
 
   html.app-keyboard-open .open-table-mobile-sheet {
     bottom: var(--app-keyboard-overlap, 0px);
     max-height: min(
-      calc(var(--app-visual-viewport-height, 78dvh) - 0.75rem),
-      calc(var(--app-visual-viewport-height, 100dvh) * 0.78)
+      calc(var(--app-visual-viewport-height, var(--app-bottom-sheet-max-height)) - 0.75rem),
+      calc(var(--app-visual-viewport-height, 100dvh) * var(--app-bottom-sheet-max-ratio))
     );
   }
 
@@ -3587,12 +3599,20 @@
   }
 
   .app-modal-overlay--sheet .app-modal-scroll {
-    max-height: min(72dvh, calc(var(--app-visual-viewport-height, 100dvh) * 0.72), 52rem);
+    max-height: min(
+      var(--app-bottom-sheet-max-height),
+      calc(var(--app-visual-viewport-height, 100dvh) * var(--app-bottom-sheet-max-ratio)),
+      52rem
+    );
   }
 
   @media (max-width: 999px) and (orientation: landscape) {
     .app-modal-overlay--sheet .app-modal-scroll {
-      max-height: min(75dvh, calc(var(--app-visual-viewport-height, 100dvh) * 0.75), 52rem);
+      max-height: min(
+        var(--app-bottom-sheet-landscape-max-height),
+        calc(var(--app-visual-viewport-height, 100dvh) * var(--app-bottom-sheet-landscape-max-ratio)),
+        52rem
+      );
     }
   }
 
@@ -3602,7 +3622,10 @@
   }
 
   html.app-keyboard-open .app-modal-overlay--sheet .app-modal-scroll {
-    max-height: min(calc(var(--app-visual-viewport-height, 72dvh) - 1rem), 52rem);
+    max-height: min(
+      calc(var(--app-visual-viewport-height, var(--app-bottom-sheet-max-height)) - 1rem),
+      52rem
+    );
   }
 
   .app-modal-scroll {
@@ -4579,7 +4602,10 @@ input.app-input.app-shop-date-input.flatpickr-input.active {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
-    max-height: min(72dvh, calc(100dvh - env(safe-area-inset-top, 0px)));
+    max-height: min(
+      var(--app-bottom-sheet-max-height),
+      calc(100dvh - env(safe-area-inset-top, 0px))
+    );
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -4594,7 +4620,10 @@ input.app-input.app-shop-date-input.flatpickr-input.active {
 
   @media (orientation: landscape) {
     .app-flatpickr-calendar.flatpickr-calendar.app-flatpickr-calendar--mobile {
-      max-height: min(75dvh, calc(100dvh - env(safe-area-inset-top, 0px)));
+      max-height: min(
+        var(--app-bottom-sheet-landscape-max-height),
+        calc(100dvh - env(safe-area-inset-top, 0px))
+      );
     }
   }
 

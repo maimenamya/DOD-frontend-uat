@@ -6,7 +6,7 @@
 }
 
 .app-system-guide-body {
-  max-height: min(70vh, 32rem);
+  max-height: min(var(--app-bottom-sheet-max-height), 36rem);
   overflow-y: auto;
   padding-top: 0.5rem;
 }

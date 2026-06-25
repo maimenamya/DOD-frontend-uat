@@ -602,7 +602,7 @@
 
 .checkout-preview-shell {
   margin-bottom: 1rem;
-  max-height: min(50vh, 22rem);
+  max-height: min(calc(var(--app-bottom-sheet-max-height) * 0.62), 28rem);
   overflow-y: auto;
   border: 1px solid var(--border);
   border-radius: var(--radius-input, 0.5rem);
