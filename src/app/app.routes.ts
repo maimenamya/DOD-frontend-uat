@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from './guards/auth.guard';
 import { mustChangePasswordChildGuard } from './guards/must-change-password.guard';
 import { permissionGuard } from './guards/permission.guard';
+import { openTableGuard } from './guards/open-table.guard';
 import { MainShellComponent } from './layouts/main-shell/main-shell.component';
 import { DashboardPageComponent } from './pages/dashboard/dashboard-page.component';
 import { EmployeeManagementPageComponent } from './pages/employee-management/employee-management-page.component';
@@ -51,7 +52,7 @@ export const routes: Routes = [
       {
         path: 'open-table',
         component: OpenTablePageComponent,
-        canActivate: [permissionGuard('open_table')],
+        canActivate: [openTableGuard],
       },
       {
         path: 'employees',

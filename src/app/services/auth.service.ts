@@ -15,10 +15,12 @@ import { ApiConfig } from '../core/api-config';
 import type { PermissionGroup } from '../models/permission-group';
 import type { RoleCategory } from '../models/role';
 import {
+  canAccessOpenTablePage,
   canManageEmployees,
   canManageRoles,
   canMutateEmployeeWithRoleGroup,
   hasFeature,
+  openTableSelfBillOnly,
   usesSelfOnlyDashboard,
   type AppFeature,
 } from '../utils/permission-group.util';
@@ -152,8 +154,27 @@ export class AuthService {
     return hasFeature(group, feature);
   }
 
+  /** Sale read-only: own open bills on open-table page. */
+  openTableSelfBillOnly(): boolean {
+    const group = this.getPermissionGroup();
+    const roleName = this.getRole();
+    if (!group || !roleName) return false;
+    return openTableSelfBillOnly(group, roleName);
+  }
+
+  canAccessOpenTable(): boolean {
+    const group = this.getPermissionGroup();
+    const roleName = this.getRole();
+    const roleCategory = this.getRoleCategory();
+    if (!group || !roleName || !roleCategory) return false;
+    return canAccessOpenTablePage(group, roleName, roleCategory);
+  }
+
   /** Same as route guard — use for save/edit/delete on a page the user can open. */
   canWriteOnPage(feature: AppFeature): boolean {
+    if (feature === 'open_table' && this.openTableSelfBillOnly()) {
+      return false;
+    }
     return this.hasFeature(feature);
   }
 

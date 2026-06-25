@@ -1,7 +1,10 @@
 <div class="app-page">
   <header class="app-page-header">
     <div>
-      <h1 class="app-page-title">เปิดโต๊ะ</h1>
+      <h1 class="app-page-title">{{ openTableSelfBillOnly() ? 'บิลของฉัน' : 'เปิดโต๊ะ' }}</h1>
+      @if (openTableSelfBillOnly()) {
+        <p class="mt-1 text-sm text-text-secondary">ดูบิลโต๊ะที่คุณดูแล — ให้ลูกค้าดูยอดได้ (ดูอย่างเดียว)</p>
+      }
     </div>
   </header>
 
@@ -21,7 +24,7 @@
         <input
           type="search"
           class="app-input open-table-search-input"
-          placeholder="ค้นหาเลขโต๊ะ, เซลล์ผู้ดูแล"
+          [placeholder]="openTableSelfBillOnly() ? 'ค้นหาเลขโต๊ะ' : 'ค้นหาเลขโต๊ะ, เซลล์ผู้ดูแล'"
           [value]="search()"
           (input)="search.set($any($event.target).value)"
         />
@@ -39,6 +42,33 @@
                   <div class="app-skeleton h-3 w-16 rounded" aria-hidden="true"></div>
                   <div class="app-skeleton h-7 w-10 rounded" aria-hidden="true"></div>
                   <div class="app-skeleton h-3 w-8 rounded" aria-hidden="true"></div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else if (openTableSelfBillOnly()) {
+          <div class="open-table-kpi-grid open-table-kpi-grid--self-bill">
+            <div class="open-table-kpi-card open-table-kpi-card--occupied">
+              <div class="open-table-kpi-card__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                </svg>
+              </div>
+              <div class="open-table-kpi-card__body">
+                <p class="open-table-kpi-label">โต๊ะที่ดูแล</p>
+                <p class="open-table-kpi-value">{{ floorPlanKpi().inUse }}</p>
+              </div>
+            </div>
+            @if (floorPlanKpi().reserved > 0) {
+              <div class="open-table-kpi-card open-table-kpi-card--reserved">
+                <div class="open-table-kpi-card__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zm0 16H5V10h14v10z" />
+                  </svg>
+                </div>
+                <div class="open-table-kpi-card__body">
+                  <p class="open-table-kpi-label">จองของฉัน</p>
+                  <p class="open-table-kpi-value">{{ floorPlanKpi().reserved }}</p>
                 </div>
               </div>
             }
@@ -106,6 +136,7 @@
       <section class="app-card app-card-flush open-table-floor-card min-w-0 w-full p-4 transition-all duration-300 ease-in-out sm:p-5">
       <div class="space-y-4">
           <div class="open-table-floor-toolbar">
+            @if (!openTableSelfBillOnly()) {
             <div class="app-filter-bar" role="tablist" aria-label="สถานะโต๊ะ">
           <button
             type="button"
@@ -152,6 +183,7 @@
             รอลูกค้ากลับ
           </button>
             </div>
+            }
           </div>
 
           @if (floorPlanSkeleton()) {
@@ -234,7 +266,11 @@
                 </div>
               </section>
             } @empty {
-              <p class="text-sm text-text-secondary">ไม่มีที่นั่ง — ตั้งค่าที่เมนู จัดการที่นั่ง</p>
+              @if (openTableSelfBillOnly()) {
+                <p class="text-sm text-text-secondary">ยังไม่มีโต๊ะที่คุณดูแลอยู่ — เปิดโต๊ะให้ลูกค้าแล้วจะแสดงที่นี่</p>
+              } @else {
+                <p class="text-sm text-text-secondary">ไม่มีที่นั่ง — ตั้งค่าที่เมนู จัดการที่นั่ง</p>
+              }
             }
           </div>
           }
@@ -407,6 +443,21 @@
             </button>
           </div>
         } @else if (seat.status === 'RESERVED') {
+          @if (openTableSelfBillOnly()) {
+            <div class="space-y-2 rounded-input border border-theme-border bg-surface px-3 py-3">
+              <p class="text-sm text-text-secondary">
+                @if (seat.reservedCreditSaleToShop) {
+                  จองไว้ · {{ seat.guestCount ?? '—' }} คน · ยอดเข้าร้าน
+                } @else {
+                  จองไว้ · {{ seat.guestCount ?? '—' }} คน
+                }
+                @if (seat.reservedTimeLabel) {
+                  <span class="text-text-muted"> · เวลา {{ seat.reservedTimeLabel }}</span>
+                }
+              </p>
+              <p class="text-xs text-text-muted">รอแคชเชียร์/ผู้จัดการเปิดโต๊ะเมื่อลูกค้ามา</p>
+            </div>
+          } @else {
           <div class="space-y-3 rounded-input border border-theme-border bg-surface px-3 py-3">
             <p class="text-sm text-text-secondary">
               @if (seat.reservedCreditSaleToShop) {
@@ -471,6 +522,7 @@
               ยกเลิกจอง
             </button>
           </div>
+          }
         } @else if (sessionDetailLoading()) {
           <div class="open-table-bill-skeleton space-y-4" aria-busy="true" aria-live="polite">
             <div class="space-y-2">
@@ -500,25 +552,30 @@
             }
             ลูกค้ายังนั่งอยู่
           </p>
-          @if (reprintBillId()) {
+          @if (!openTableSelfBillOnly()) {
+            @if (reprintBillId()) {
+              <button
+                type="button"
+                class="app-btn-secondary w-full mb-2"
+                [disabled]="actionBusy()"
+                (click)="reprintLastReceipt()"
+              >
+                พิมพ์ใบเสร็จ
+              </button>
+            }
             <button
               type="button"
-              class="app-btn-secondary w-full mb-2"
+              class="app-btn-primary w-full"
               [disabled]="actionBusy()"
-              (click)="reprintLastReceipt()"
+              (click)="releaseCustomerFromSeat()"
             >
-              พิมพ์ใบเสร็จ
+              ลูกค้ากลับแล้ว
             </button>
           }
-          <button
-            type="button"
-            class="app-btn-primary w-full"
-            [disabled]="actionBusy()"
-            (click)="releaseCustomerFromSeat()"
-          >
-            ลูกค้ากลับแล้ว
-          </button>
         } @else {
+          @if (openTableSelfBillOnly()) {
+            <p class="mb-3 rounded-input border border-theme-border bg-surface px-3 py-2 text-sm text-text-secondary" role="status">โหมดดูบิล — ไม่สามารถแก้ไขรายการได้</p>
+          }
           <div>
             <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">
               รายการในบิล

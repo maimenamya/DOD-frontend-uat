@@ -1,4 +1,5 @@
 import type { PermissionGroup } from '../models/permission-group';
+import type { RoleCategory } from '../models/role';
 
 /**
  * หลักสิทธิ์ UI: ใครเข้าหน้าได้จาก `permissionGuard(feature)` ต้องทำงานบนหน้านั้นได้ด้วย
@@ -32,6 +33,22 @@ export function hasFeature(group: PermissionGroup, feature: AppFeature): boolean
 
 export function usesSelfOnlyDashboard(group: PermissionGroup): boolean {
   return group === 'EMPLOYEE';
+}
+
+/** Sale (EMPLOYEE) may open read-only self-bill view on open-table page. */
+export function openTableSelfBillOnly(group: PermissionGroup, roleName: string): boolean {
+  if (group !== 'EMPLOYEE') {
+    return false;
+  }
+  return roleName.trim().toUpperCase() === 'SALE';
+}
+
+export function canAccessOpenTablePage(
+  group: PermissionGroup,
+  roleName: string,
+  _roleCategory: RoleCategory,
+): boolean {
+  return hasFeature(group, 'open_table') || openTableSelfBillOnly(group, roleName);
 }
 
 export function canManageEmployees(group: PermissionGroup): boolean {

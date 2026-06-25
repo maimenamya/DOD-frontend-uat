@@ -45,6 +45,7 @@ export type FloorPlanSeatingType = {
 };
 
 export type OpenTableFloorPlan = {
+  viewMode?: 'full' | 'self_bill';
   kpi?: FloorPlanKpi;
   seatingTypes: FloorPlanSeatingType[];
   seatings: FloorPlanSeat[];

@@ -34,9 +34,10 @@
         <span class="app-sidebar-icon-slot">
           <app-sidebar-icon name="open-table" />
         </span>
-        <span class="app-sidebar-label">เปิดโต๊ะ</span>
+        <span class="app-sidebar-label">{{ openTableNavLabel() }}</span>
       </a>
 
+      @if (showPackageDepositsNav()) {
       <a
         routerLink="/dashboard/package-deposits"
         routerLinkActive="app-sidebar-link-active"
@@ -48,6 +49,7 @@
         </span>
         <span class="app-sidebar-label">ฝาก</span>
       </a>
+      }
 
       @if (showPrTagOps()) {
         <a

@@ -451,7 +451,10 @@ export class OpenTablePageComponent implements OnInit {
 
   readonly seatReserved = computed(() => this.selectedSeat()?.status === 'RESERVED');
 
+  readonly openTableSelfBillOnly = computed(() => this.auth.openTableSelfBillOnly());
+
   readonly ledgerCanMutate = computed(() => {
+    if (this.openTableSelfBillOnly()) return false;
     if (!this.seatLedgerOpen()) return false;
     const detail = this.sessionDetail();
     if (detail?.canMutateLedger === false) return false;
@@ -772,7 +775,9 @@ export class OpenTablePageComponent implements OnInit {
 
   ngOnInit(): void {
     this.refreshFloorPlan();
-    this.loadMasterData();
+    if (!this.openTableSelfBillOnly()) {
+      this.loadMasterData();
+    }
     this.startFloorPlanSync();
     this.bindMobileDrawerViewportListener();
   }
@@ -1757,6 +1762,9 @@ export class OpenTablePageComponent implements OnInit {
 
   selectSeat(seat: SeatTile): void {
     if (this.anyModalOpen()) return;
+    if (this.openTableSelfBillOnly() && !seat.sessionId && seat.status !== 'RESERVED') {
+      return;
+    }
     this.selectedSeatKey.set(seat.key);
     this.checkInValidated.set(false);
     this.showMobileSheet.set(true);
