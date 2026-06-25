@@ -102,7 +102,7 @@ export class AppHeaderComponent implements OnInit {
         this.switchingBranch.set(false);
         this.profileMenuOpen.set(false);
         this.toast.showSuccess('เปลี่ยนสาขาแล้ว');
-        window.location.assign('/dashboard');
+        window.location.assign(this.auth.homePathAfterLogin());
       },
       error: (err: { error?: { error?: string } }) => {
         this.switchingBranch.set(false);

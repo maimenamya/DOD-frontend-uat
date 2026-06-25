@@ -4,6 +4,7 @@ import { authGuard, guestGuard } from './guards/auth.guard';
 import { mustChangePasswordChildGuard } from './guards/must-change-password.guard';
 import { permissionGuard } from './guards/permission.guard';
 import { openTableGuard } from './guards/open-table.guard';
+import { saleSelfBillGuard } from './guards/sale-self-bill.guard';
 import { MainShellComponent } from './layouts/main-shell/main-shell.component';
 import { DashboardPageComponent } from './pages/dashboard/dashboard-page.component';
 import { EmployeeManagementPageComponent } from './pages/employee-management/employee-management-page.component';
@@ -49,6 +50,11 @@ export const routes: Routes = [
     canActivateChild: [mustChangePasswordChildGuard],
     children: [
       { path: '', component: DashboardPageComponent },
+      {
+        path: 'my-bills',
+        component: OpenTablePageComponent,
+        canActivate: [saleSelfBillGuard],
+      },
       {
         path: 'open-table',
         component: OpenTablePageComponent,

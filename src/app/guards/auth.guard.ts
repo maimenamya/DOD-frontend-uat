@@ -31,7 +31,7 @@ export const teamManagementGuard: CanActivateFn = () => {
     return true;
   }
 
-  return router.createUrlTree(['/dashboard']);
+  return router.createUrlTree(auth.homeRouteSegments());
 };
 
 export const guestGuard: CanActivateFn = () => {
@@ -42,5 +42,5 @@ export const guestGuard: CanActivateFn = () => {
     return true;
   }
 
-  return router.createUrlTree(['/dashboard']);
+  return router.createUrlTree(auth.homeRouteSegments());
 };

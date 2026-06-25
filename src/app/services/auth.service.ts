@@ -180,6 +180,15 @@ export class AuthService {
     return group ? usesSelfOnlyDashboard(group) : false;
   }
 
+  /** First screen after login. */
+  homePathAfterLogin(): string {
+    return '/dashboard';
+  }
+
+  homeRouteSegments(): string[] {
+    return ['/dashboard'];
+  }
+
   isOwner(): boolean {
     return this.getPermissionGroup() === 'OWNER';
   }

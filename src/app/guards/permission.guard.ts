@@ -13,6 +13,6 @@ export function permissionGuard(feature: AppFeature): CanActivateFn {
       return true;
     }
 
-    return router.createUrlTree(['/dashboard']);
+    return router.createUrlTree(auth.homeRouteSegments());
   };
 }

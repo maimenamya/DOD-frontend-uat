@@ -114,11 +114,8 @@ export class SidebarComponent implements OnInit {
   readonly mobileOpen = input(false);
   readonly mobileClose = output<void>();
 
-  readonly showOpenTableLink = computed(() => this.auth.canAccessOpenTable());
+  readonly showSaleSelfBillNav = computed(() => this.auth.openTableSelfBillOnly());
   readonly showFullOpenTableNav = computed(() => this.auth.hasFeature('open_table'));
-  readonly openTableNavLabel = computed(() =>
-    this.auth.openTableSelfBillOnly() ? 'บิลของฉัน' : 'เปิดโต๊ะ',
-  );
   readonly showPackageDepositsNav = computed(() => this.auth.hasFeature('open_table'));
   readonly showPrTagOps = computed(() => this.auth.hasFeature('pr_tag_operations'));
   readonly showReports = computed(() => this.auth.hasFeature('reports'));

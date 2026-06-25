@@ -114,11 +114,11 @@ export class LoginComponent implements OnInit {
     this.auth.fetchAccessibleBranches().subscribe({
       next: () => {
         this.loading.set(false);
-        void this.router.navigate(['/dashboard']);
+        void this.router.navigate([this.auth.homePathAfterLogin()]);
       },
       error: () => {
         this.loading.set(false);
-        void this.router.navigate(['/dashboard']);
+        void this.router.navigate([this.auth.homePathAfterLogin()]);
       },
     });
   }

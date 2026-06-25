@@ -109,8 +109,8 @@ export class MyProfileComponent implements OnInit {
               : 'บันทึกโปรไฟล์เรียบร้อย',
           );
           this.auth.fetchAccessibleBranches().subscribe({
-            next: () => void this.router.navigate(['/dashboard']),
-            error: () => void this.router.navigate(['/dashboard']),
+            next: () => void this.router.navigate([this.auth.homePathAfterLogin()]),
+            error: () => void this.router.navigate([this.auth.homePathAfterLogin()]),
           });
         },
         error: (err: { error?: { error?: string } }) => {

@@ -3,15 +3,12 @@ import { CanActivateFn, Router } from '@angular/router';
 
 import { AuthService } from '../services/auth.service';
 
-export const openTableGuard: CanActivateFn = () => {
+/** Sale only — read-only own bills (not shared with open-table ops menu). */
+export const saleSelfBillGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
   if (auth.openTableSelfBillOnly()) {
-    return router.createUrlTree(['/dashboard/my-bills']);
-  }
-
-  if (auth.hasFeature('open_table')) {
     return true;
   }
 
