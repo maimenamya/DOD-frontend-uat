@@ -4,10 +4,20 @@
 
 | File | Purpose |
 |------|---------|
-| `.env.uat` | Copy `BACKEND_URL` into Vercel → **Preview** / UAT |
-| `.env.prod` | Copy `BACKEND_URL` into Vercel → **Production** |
+| `.env.uat` | Copy `BACKEND_URL` into Vercel project **`dod-frontend-uat`** (Production env) |
+| `.env.prod` | Copy `BACKEND_URL` into Vercel project **`dod-frontend`** (Production env) |
 
 Local `npm start` does **not** use these files — it uses `environment.ts` with `apiUrl: '/api'` and `proxy.conf.json`.
+
+### UAT vs git branch `uat`
+
+| Name | What it is |
+|------|------------|
+| **UAT (สำหรับทดสอบ)** | Vercel project **`dod-frontend-uat`** → deploy จาก branch **`main`** |
+| **Production** | Vercel project **`dod-frontend`** → deploy จาก branch **`main`** |
+| Git branch `uat` | แค่ branch ทำงานใน repo — **ไม่ใช่** URL UAT โดยอัตโนมัติ |
+
+Push ขึ้น **`main`** แล้วทั้ง `dod-frontend-uat` และ `dod-frontend` จะ build ใหม่ (ถ้าทั้งสอง project ผูก repo เดียวกัน + branch `main`).
 
 ---
 
@@ -19,8 +29,8 @@ Local `npm start` does **not** use these files — it uses `environment.ts` with
 
 ## 2. Vercel environment variable (required)
 
-| Name | UAT (Preview) | Production |
-|------|---------------|------------|
+| Name | UAT (`dod-frontend-uat`) | Production (`dod-frontend`) |
+|------|---------------------------|----------------------------|
 | `BACKEND_URL` | Railway UAT/public URL | Railway production URL |
 
 Example: `https://dod-backend-production.up.railway.app` — **no trailing slash**.
@@ -37,8 +47,10 @@ The browser calls Railway **directly** (no `/api` proxy on Vercel).
 
 On Railway, set `CORS_ORIGIN` to your Vercel frontend URL only:
 
-- Production: `https://dod-frontend.vercel.app`
-- Preview: your preview URL if needed
+- UAT backend: `https://dod-frontend-uat.vercel.app`
+- Production backend: `https://dod-frontend.vercel.app`
+
+(`cors.ts` also allowlists both URLs; set `CORS_ORIGIN` on Railway UAT to the UAT frontend.)
 
 Do **not** put the Railway backend URL in `CORS_ORIGIN`.
 
