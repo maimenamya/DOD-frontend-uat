@@ -209,7 +209,7 @@
                       {{ item.packagePrice | number: '1.0-0' }}
                     </td>
                     <td>{{ freeMixerLabel(item.isFreeMixer) }}</td>
-                    <td>{{ allowDepositLabel(item.allowDeposit ?? false) }}</td>
+                    <td>{{ allowDepositLabel(item.allowDeposit) }}</td>
                     <td class="app-cell-right">{{ item.freeDrinks ?? 0 }}</td>
                     @if (canManage()) {
                       <td class="app-cell-right">
