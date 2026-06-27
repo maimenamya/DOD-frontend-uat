@@ -78,6 +78,7 @@ import {
   employeeMatchesBranchRole,
   sortEmployeesByCode,
 } from '../../utils/employee-option.util';
+import { isEmployeeOnDutyForDrinkEntry } from '../../utils/employee-status-label.util';
 import {
   blockNonNumericInputKey,
   parsePositiveIntFromText,
@@ -572,7 +573,9 @@ export class OpenTablePageComponent implements OnInit {
     if (roleId == null) return [];
     const role = this.masterRolesForDropdown().find((r) => r.id === roleId);
     return sortEmployeesByCode(
-      this.staffEmployees().filter((e) => employeeMatchesBranchRole(e, role)),
+      this.staffEmployees().filter(
+        (e) => employeeMatchesBranchRole(e, role) && isEmployeeOnDutyForDrinkEntry(e),
+      ),
     ).map(
       (e) => ({
         value: e.id,
@@ -844,7 +847,9 @@ export class OpenTablePageComponent implements OnInit {
     employee: MstEmployee,
     role: MstRole | undefined,
   ): boolean {
-    // TODO(attendance): hide OFF_DUTY when shop has time-clock integration.
+    if (!isEmployeeOnDutyForDrinkEntry(employee)) {
+      return false;
+    }
     if (!role || !isEntertainmentStaffRole(role)) {
       return true;
     }

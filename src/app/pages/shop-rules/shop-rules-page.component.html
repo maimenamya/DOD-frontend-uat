@@ -172,6 +172,44 @@
       </section>
 
       <section class="app-card shop-rules-section">
+        <h2 class="shop-rules-section-title">เวลาเข้า–ออกงาน</h2>
+        <p class="app-field-hint shop-rules-section-hint">
+          ใช้เปรียบเทียบกับเวลาที่แสกนจริง (เช่น เข้า 20:00 ออก 04:00 วันถัดไป) — ไม่บังคับกรอก
+        </p>
+        <div class="shop-rules-attendance-grid">
+          <div class="app-form-group">
+            <label class="app-label" for="expected-check-in">เวลาเข้างาน</label>
+            <input
+              id="expected-check-in"
+              type="time"
+              class="app-input"
+              formControlName="expectedCheckInTime"
+              [readonly]="!canManage()"
+            />
+          </div>
+          <div class="app-form-group">
+            <label class="app-label" for="expected-check-out">เวลาออกงาน</label>
+            <input
+              id="expected-check-out"
+              type="time"
+              class="app-input"
+              formControlName="expectedCheckOutTime"
+              [readonly]="!canManage()"
+            />
+          </div>
+        </div>
+        <label class="mt-3 flex items-center gap-2 text-sm text-text-secondary">
+          <input
+            type="checkbox"
+            class="app-checkbox"
+            formControlName="expectedCheckOutNextDay"
+            [disabled]="!canManage()"
+          />
+          ออกงานวันถัดไป (กะข้ามเที่ยงคืน)
+        </label>
+      </section>
+
+      <section class="app-card shop-rules-section">
         <h2 class="shop-rules-section-title">มาสาย / ขาด</h2>
         <div class="shop-rules-attendance-grid">
           <div class="app-form-group">

@@ -8,6 +8,9 @@ export interface ShopPolicyConfig {
   seatDrinkRounding: ShopSeatDrinkRounding;
   lateFinePerMinuteBaht: number;
   absenceDeductionBaht: number;
+  expectedCheckInTime: string | null;
+  expectedCheckOutTime: string | null;
+  expectedCheckOutNextDay: boolean;
   /** บาท/ดื่มที่หักเข้าร้าน */
   drinkShopPortionBaht: number;
 }

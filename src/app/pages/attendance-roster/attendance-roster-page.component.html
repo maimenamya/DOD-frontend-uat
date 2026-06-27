@@ -1,0 +1,172 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">ดูเวลาเข้างาน</h1>
+      <p class="app-page-subtitle">รายชื่อพนักงานในเครือ — แตะชื่อเพื่อดูรายละเอียดรายเดือน</p>
+    </div>
+  </div>
+
+  <div class="app-filter-bar app-role-tabs" role="tablist" aria-label="กลุ่มพนักงาน">
+    <button
+      type="button"
+      role="tab"
+      class="app-filter-chip"
+      [class.app-filter-chip-active]="categoryTab() === 'STAFF'"
+      [attr.aria-selected]="categoryTab() === 'STAFF'"
+      (click)="setCategoryTab('STAFF')"
+    >
+      พนักงาน
+    </button>
+    <button
+      type="button"
+      role="tab"
+      class="app-filter-chip"
+      [class.app-filter-chip-active]="categoryTab() === 'ENTERTAINER'"
+      [attr.aria-selected]="categoryTab() === 'ENTERTAINER'"
+      (click)="setCategoryTab('ENTERTAINER')"
+    >
+      เด็กนั่งดริ้ง
+    </button>
+  </div>
+
+  @if (!loading()) {
+    <app-master-list-toolbar
+      [search]="listQuery.search()"
+      placeholder="ค้นหารหัสหรือชื่อเล่น..."
+      (searchChange)="listQuery.onSearchChange($event)"
+    />
+  }
+
+  @if (loading()) {
+    <p class="text-text-secondary">กำลังโหลด...</p>
+  } @else if (listView().total === 0) {
+    <div class="app-card p-6 text-center text-text-secondary">ไม่พบพนักงานในกลุ่มนี้</div>
+  } @else {
+    <div class="app-card overflow-x-auto">
+      <table class="app-table w-full min-w-[36rem]">
+        <thead>
+          <tr>
+            <th class="w-12">#</th>
+            <th>รหัส</th>
+            <th>ชื่อเล่น</th>
+            <th>ตำแหน่ง</th>
+            <th>สถานะวันนี้</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of listView().items; track row.id; let i = $index) {
+            <tr
+              class="cursor-pointer hover:bg-surface-elevated/60"
+              tabindex="0"
+              (click)="openEmployee(row)"
+              (keydown.enter)="openEmployee(row)"
+            >
+              <td>{{ rowNumber(i) }}</td>
+              <td>{{ row.employeeId }}</td>
+              <td>{{ row.nickname }}</td>
+              <td>{{ row.role ? (row.role.displayNameTh || row.role.name) : '—' }}</td>
+              <td>{{ statusLabel(row) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-list-paginator
+      class="mt-4"
+      [page]="listView().page"
+      [totalPages]="listView().totalPages"
+      [rangeStart]="listView().rangeStart"
+      [rangeEnd]="listView().rangeEnd"
+      [total]="listView().total"
+      [limit]="listView().limit"
+      (pageChange)="listQuery.goToPage($event)"
+      (limitChange)="listQuery.onLimitChange($event)"
+    />
+  }
+</div>
+
+@if (selectedEmployee(); as employee) {
+  <app-modal (dismiss)="closeModal()">
+    <div class="app-modal-header">
+      <div>
+        <h2 class="app-modal-title">
+          {{ employee.nickname }} ({{ employee.employeeId }})
+        </h2>
+        <p class="text-sm text-text-secondary">
+          {{ employee.role?.displayNameTh || employee.role?.name || '—' }}
+        </p>
+      </div>
+      <button type="button" class="app-btn-ghost" (click)="closeModal()">✕</button>
+    </div>
+
+    <div class="app-form-group">
+      <label class="app-label" for="attendance-month">เดือน</label>
+      <input
+        id="attendance-month"
+        type="month"
+        class="app-input"
+        [ngModel]="monthValue()"
+        (ngModelChange)="onMonthChange($event)"
+      />
+    </div>
+
+    @if (monthPayload()?.expectedCheckInLabel || monthPayload()?.expectedCheckOutLabel) {
+      <p class="mb-3 text-sm text-text-secondary">
+        เวลากำหนด:
+        @if (monthPayload()?.expectedCheckInLabel) {
+          เข้า {{ monthPayload()!.expectedCheckInLabel! }}
+        }
+        @if (monthPayload()?.expectedCheckOutLabel) {
+          · ออก {{ monthPayload()!.expectedCheckOutLabel! }}
+        }
+      </p>
+    }
+
+    @if (monthLoading()) {
+      <p class="text-text-secondary">กำลังโหลดรายการ...</p>
+    } @else {
+      @if (monthPayload(); as detail) {
+        <p class="mb-2 text-sm font-medium text-text-primary">{{ monthLabel() }}</p>
+        @if (detail.shifts.length === 0) {
+          <p class="text-text-secondary">ไม่มีการลงเวลาในเดือนนี้</p>
+        } @else {
+          <div class="max-h-[min(24rem,50vh)] overflow-y-auto">
+            <table class="app-table w-full min-w-[32rem]">
+              <thead>
+                <tr>
+                  <th>วันที่เข้า</th>
+                  <th>เข้างาน</th>
+                  <th>ออกงาน</th>
+                  <th>สาย (นาที)</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (shift of detail.shifts; track shift.roundDateIso + shift.checkInLabel) {
+                  <tr>
+                    <td>{{ shift.roundDateLabel }}</td>
+                    <td>{{ shift.checkInLabel ?? '—' }}</td>
+                    <td>
+                      @if (shift.openShift) {
+                        <span class="text-amber-300">ยังไม่ออก</span>
+                      } @else {
+                        {{ shift.checkOutLabel ?? '—' }}
+                      }
+                    </td>
+                    <td>
+                      @if (shift.lateMinutes != null && shift.lateMinutes > 0) {
+                        {{ shift.lateMinutes }}
+                      } @else {
+                        —
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+    }
+  </app-modal>
+}

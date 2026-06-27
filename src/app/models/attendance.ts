@@ -41,3 +41,25 @@ export interface AttendanceLogRow {
 export interface AttendanceLogsResponse {
   items: AttendanceLogRow[];
 }
+
+export interface AttendanceShiftRow {
+  roundDateIso: string;
+  roundDateLabel: string;
+  checkInLabel: string | null;
+  checkOutLabel: string | null;
+  expectedCheckInLabel: string | null;
+  expectedCheckOutLabel: string | null;
+  lateMinutes: number | null;
+  openShift: boolean;
+}
+
+export interface AttendanceEmployeeMonthPayload {
+  employeeId: string;
+  employeeNickname: string;
+  roleDisplayNameTh: string;
+  year: number;
+  month: number;
+  expectedCheckInLabel: string | null;
+  expectedCheckOutLabel: string | null;
+  shifts: AttendanceShiftRow[];
+}

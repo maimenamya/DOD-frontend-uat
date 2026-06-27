@@ -8,6 +8,7 @@ import type {
   AttendanceLogsResponse,
   AttendanceMePayload,
   AttendancePunchResult,
+  AttendanceEmployeeMonthPayload,
 } from '../models/attendance';
 
 @Injectable({
@@ -35,5 +36,19 @@ export class AttendanceService {
 
   listTodayLogs(): Observable<AttendanceLogsResponse> {
     return this.http.get<AttendanceLogsResponse>(this.api.resource('attendance', 'logs'));
+  }
+
+  getEmployeeMonth(
+    employeeId: string,
+    year: number,
+    month: number,
+  ): Observable<AttendanceEmployeeMonthPayload> {
+    const params = new URLSearchParams({
+      year: String(year),
+      month: String(month),
+    });
+    return this.http.get<AttendanceEmployeeMonthPayload>(
+      `${this.api.resource('attendance', 'employee', employeeId, 'month')}?${params.toString()}`,
+    );
   }
 }
