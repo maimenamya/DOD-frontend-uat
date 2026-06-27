@@ -175,7 +175,9 @@
                     <td>{{ shift.roundDateLabel }}</td>
                     <td>{{ shift.checkInLabel ?? '—' }}</td>
                     <td>
-                      @if (shift.openShift) {
+                      @if (shift.autoClosedForgotCheckout) {
+                        <span class="text-amber-300">ลืมแสกนออก</span>
+                      } @else if (shift.openShift) {
                         <span class="text-amber-300">ยังไม่ออก</span>
                       } @else {
                         {{ shift.checkOutLabel ?? '—' }}

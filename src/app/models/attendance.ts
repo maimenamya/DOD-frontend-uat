@@ -52,6 +52,7 @@ export interface AttendanceShiftRow {
   lateMinutes: number | null;
   deductionBaht: number;
   openShift: boolean;
+  autoClosedForgotCheckout: boolean;
 }
 
 export interface AttendanceEmployeeMonthPayload {

@@ -181,6 +181,24 @@
             <span class="app-toggle-track" aria-hidden="true"></span>
             <span class="app-toggle-text text-sm">ออกงานวันถัดไป (กะข้ามเที่ยงคืน)</span>
           </label>
+          <div class="app-form-group mt-4">
+            <label class="app-label" for="auto-close-cutoff">ตัดกะอัตโนมัติ (ลืมแสกนออก)</label>
+            <input
+              id="auto-close-cutoff"
+              type="text"
+              class="app-input"
+              formControlName="autoCloseCutoffTime"
+              placeholder="เช่น 12:00"
+              inputmode="numeric"
+              maxlength="5"
+              autocomplete="off"
+              (blur)="normalizeTime('autoCloseCutoffTime')"
+              [readonly]="!canManage()"
+            />
+            <p class="app-field-hint">
+              หลังเวลานี้ของวันถัดจากกะ ระบบปิดกะและหักลืมแสกนออก — ว่างไว้ = ปิดฟีเจอร์
+            </p>
+          </div>
         </section>
 
         <section class="app-card shop-rules-section">
@@ -288,6 +306,39 @@
               </button>
             </div>
             <p class="app-field-hint">บาท / วัน</p>
+          </div>
+
+          <div class="app-form-group">
+            <label class="app-label">ลืมแสกนออก</label>
+            <div class="app-number-stepper">
+              <button
+                type="button"
+                class="app-number-stepper-btn"
+                [disabled]="!canManage() || submitting()"
+                (click)="stepMoney('forgotCheckOutDeductionBaht', -50)"
+                aria-label="ลดยอดหักลืมแสกนออก"
+              >
+                −
+              </button>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                class="app-input app-input-number app-number-stepper-input"
+                formControlName="forgotCheckOutDeductionBaht"
+                [readonly]="!canManage()"
+              />
+              <button
+                type="button"
+                class="app-number-stepper-btn"
+                [disabled]="!canManage() || submitting()"
+                (click)="stepMoney('forgotCheckOutDeductionBaht', 50)"
+                aria-label="เพิ่มยอดหักลืมแสกนออก"
+              >
+                +
+              </button>
+            </div>
+            <p class="app-field-hint">บาท / ครั้ง (เมื่อระบบปิดกะอัตโนมัติ)</p>
           </div>
         </div>
         </section>

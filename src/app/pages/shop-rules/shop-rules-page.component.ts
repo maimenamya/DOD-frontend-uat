@@ -53,6 +53,8 @@ export class ShopRulesPageComponent implements OnInit {
     expectedCheckInTime: [''],
     expectedCheckOutTime: [''],
     expectedCheckOutNextDay: [true],
+    autoCloseCutoffTime: [''],
+    forgotCheckOutDeductionBaht: [0, [Validators.required, Validators.min(0)]],
     drinkShopPortionBaht: [60, [Validators.required, Validators.min(0)]],
   });
 
@@ -83,7 +85,11 @@ export class ShopRulesPageComponent implements OnInit {
   }
 
   stepMoney(
-    field: 'lateFinePerMinuteBaht' | 'absenceDeductionBaht' | 'drinkShopPortionBaht',
+    field:
+      | 'lateFinePerMinuteBaht'
+      | 'absenceDeductionBaht'
+      | 'forgotCheckOutDeductionBaht'
+      | 'drinkShopPortionBaht',
     delta: number,
   ): void {
     if (!this.canManage()) return;
@@ -93,7 +99,9 @@ export class ShopRulesPageComponent implements OnInit {
     control.markAsDirty();
   }
 
-  normalizeTime(field: 'expectedCheckInTime' | 'expectedCheckOutTime'): void {
+  normalizeTime(
+    field: 'expectedCheckInTime' | 'expectedCheckOutTime' | 'autoCloseCutoffTime',
+  ): void {
     const control = this.form.controls[field];
     control.setValue(normalizeShopTimeHm(control.value));
   }
@@ -103,18 +111,28 @@ export class ShopRulesPageComponent implements OnInit {
     resetFormValidationFlag(this.formValidated);
     this.normalizeTime('expectedCheckInTime');
     this.normalizeTime('expectedCheckOutTime');
+    this.normalizeTime('autoCloseCutoffTime');
 
     const checkIn = this.form.controls.expectedCheckInTime.value.trim();
     const checkOut = this.form.controls.expectedCheckOutTime.value.trim();
+    const autoClose = this.form.controls.autoCloseCutoffTime.value.trim();
     if (!isValidShopTimeHm(checkIn) || !isValidShopTimeHm(checkOut)) {
       this.toast.showError('เวลาเข้า-ออกงานต้องเป็นรูปแบบ 24 ชม. เช่น 20:00');
+      return;
+    }
+    if (autoClose && !isValidShopTimeHm(autoClose)) {
+      this.toast.showError('เวลาตัดกะอัตโนมัติต้องเป็นรูปแบบ 24 ชม. เช่น 12:00');
       return;
     }
 
     if (highlightInvalidForm(this.form, this.formValidated, this.toast)) return;
 
     this.submitting.set(true);
-    const value = this.form.getRawValue();
+    const raw = this.form.getRawValue();
+    const value = {
+      ...raw,
+      autoCloseCutoffTime: raw.autoCloseCutoffTime.trim() || null,
+    };
     this.policyService.save(value).subscribe({
       next: (config) => {
         this.patchForm(config);
@@ -144,6 +162,8 @@ export class ShopRulesPageComponent implements OnInit {
       expectedCheckInTime: config.expectedCheckInTime ?? '',
       expectedCheckOutTime: config.expectedCheckOutTime ?? '',
       expectedCheckOutNextDay: config.expectedCheckOutNextDay ?? true,
+      autoCloseCutoffTime: config.autoCloseCutoffTime ?? '',
+      forgotCheckOutDeductionBaht: config.forgotCheckOutDeductionBaht ?? 0,
       drinkShopPortionBaht: config.drinkShopPortionBaht,
     });
     if (!this.canManage()) {
