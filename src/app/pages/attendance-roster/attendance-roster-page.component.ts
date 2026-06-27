@@ -130,11 +130,11 @@ export class AttendanceRosterPageComponent implements OnInit {
       next: (payload) => {
         this.monthPayload.set(payload);
         this.waivingRoundDate.set(null);
-        this.toast.showSuccess('อนุโลมไม่หักแล้ว');
+        this.toast.showSuccess('ยอดไม่หักแล้ว');
       },
       error: (err: { error?: { error?: string } }) => {
         this.waivingRoundDate.set(null);
-        this.toast.showError(err.error?.error ?? 'อนุโลมไม่หักไม่สำเร็จ');
+        this.toast.showError(err.error?.error ?? 'ยอดไม่หักไม่สำเร็จ');
       },
     });
   }
@@ -148,11 +148,11 @@ export class AttendanceRosterPageComponent implements OnInit {
       next: (payload) => {
         this.monthPayload.set(payload);
         this.waivingRoundDate.set(null);
-        this.toast.showSuccess('ยกเลิกอนุโลมแล้ว');
+        this.toast.showSuccess('ยกเลิกแล้ว');
       },
       error: (err: { error?: { error?: string } }) => {
         this.waivingRoundDate.set(null);
-        this.toast.showError(err.error?.error ?? 'ยกเลิกอนุโลมไม่สำเร็จ');
+        this.toast.showError(err.error?.error ?? 'ยกเลิกไม่สำเร็จ');
       },
     });
   }
