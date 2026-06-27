@@ -1,6 +1,7 @@
 <div
   class="app-modal-overlay"
   [class.app-modal-overlay--sheet]="resolvedLayout() === 'sheet'"
+  [class.app-modal-overlay--mobile-fullscreen]="mobileFullscreenActive()"
   role="dialog"
   aria-modal="true"
   (pointerdown)="onBackdropPointerDown($event)"

@@ -2609,8 +2609,35 @@
   }
 
   .shop-rules-form {
-    max-width: 42rem;
+    max-width: 72rem;
     gap: 1.25rem;
+  }
+
+  .shop-rules-top-grid {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  @media (min-width: 900px) {
+    .shop-rules-top-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
+    }
+  }
+
+  .shop-rules-section-narrow {
+    max-width: 42rem;
+  }
+
+  .shop-rules-work-hours-grid {
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 480px) {
+    .shop-rules-work-hours-grid {
+      grid-template-columns: 1fr 1fr;
+    }
   }
 
   .shop-rules-section {
@@ -3581,6 +3608,62 @@
 
   .app-modal-overlay--sheet {
     @apply items-end p-0 desktop:items-center desktop:p-4;
+  }
+
+  .app-modal-overlay--mobile-fullscreen {
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  .app-modal-overlay--mobile-fullscreen .app-modal {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: 100dvh;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    border-top: 0;
+  }
+
+  .app-modal-overlay--mobile-fullscreen .app-modal-scroll {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+  }
+
+  .app-modal-host--wide .app-modal {
+    max-width: min(44rem, 100%);
+  }
+
+  /* บันทึกเวลาเข้างาน — modal รายละเอียดรายเดือน */
+  .attendance-roster-month-picker {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .attendance-roster-modal-table {
+    flex: 1;
+    min-height: 0;
+    overflow-x: auto;
+    overflow-y: auto;
+  }
+
+  .app-modal-overlay--mobile-fullscreen .attendance-roster-modal-table {
+    max-height: none;
+  }
+
+  @media (min-width: 1000px) {
+    .attendance-roster-modal-table {
+      max-height: min(24rem, 50vh);
+    }
   }
 
   .app-modal {

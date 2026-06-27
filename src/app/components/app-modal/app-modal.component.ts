@@ -22,6 +22,8 @@ export type AppModalLayout = 'center' | 'sheet';
   host: {
     '[class.app-modal-host--sheet]': 'resolvedLayout() === "sheet"',
     '[class.app-modal-host--center]': 'resolvedLayout() === "center"',
+    '[class.app-modal-host--mobile-fullscreen]': 'mobileFullscreenActive()',
+    '[class.app-modal-host--wide]': 'modalWide()',
     '[class.app-modal-host--elevated]': 'pinCenterOnMobile()',
   },
 })
@@ -33,6 +35,11 @@ export class AppModalComponent {
   readonly closeOnBackdrop = input(true);
   /** Desktop layout preference — viewports below 1000px default to bottom sheet. */
   readonly layout = input<AppModalLayout>('center');
+  /**
+   * Opt-in: full viewport on mobile only (e.g. attendance roster detail).
+   * Other modals keep default center/sheet behavior.
+   */
+  readonly mobileFullscreen = input(false);
   /** Keep centered modal on mobile (confirm dialogs). */
   readonly pinCenterOnMobile = input(false);
   readonly dismiss = output<void>();
@@ -43,11 +50,22 @@ export class AppModalComponent {
     if (this.pinCenterOnMobile()) {
       return 'center';
     }
+    if (this.mobileFullscreen() && this.mobileViewport()) {
+      return 'center';
+    }
     if (this.mobileViewport()) {
       return 'sheet';
     }
     return this.layout();
   });
+
+  readonly mobileFullscreenActive = computed(
+    () => this.mobileFullscreen() && this.mobileViewport(),
+  );
+
+  readonly modalWide = computed(
+    () => this.mobileFullscreen() && !this.mobileViewport(),
+  );
 
   /** First backdrop tap closes datetime picker only; second tap closes modal. */
   private closedFlatpickrOnBackdrop = false;

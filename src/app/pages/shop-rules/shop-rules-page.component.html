@@ -15,8 +15,9 @@
       [formGroup]="form"
       (ngSubmit)="submit()"
     >
-      <section class="app-card shop-rules-section">
-        <h2 class="shop-rules-section-title">เวลานั่งดื่ม</h2>
+      <div class="shop-rules-top-grid">
+        <section class="app-card shop-rules-section">
+          <h2 class="shop-rules-section-title">เวลานั่งดื่ม</h2>
         <p class="app-field-hint shop-rules-section-hint">
           คิดเฉพาะเศษนาทีที่ยังไม่ครบชั่วโมงเต็ม (0–59 นาที) — ชั่วโมงเต็มใช้「รันดื่มต่อชม.」ที่ตั้งในหน้าตำแหน่ง
           (เช่น นั่ง 1 ชม. 15 นาที = รันดื่ม/ชม. × 1 + ดื่มที่ 15 นาที)
@@ -131,9 +132,59 @@
             placeholder="เลือกการปัด"
           />
         </div>
-      </section>
+        </section>
 
-      <section class="app-card shop-rules-section">
+        <section class="app-card shop-rules-section shop-rules-work-hours">
+          <h2 class="shop-rules-section-title">เวลาเข้า–ออกงาน</h2>
+          <p class="app-field-hint shop-rules-section-hint">
+            ใช้เปรียบเทียบกับเวลาที่แสกนจริง (เช่น เข้า 20:00 ออก 04:00 วันถัดไป) — ไม่บังคับกรอก
+          </p>
+          <div class="shop-rules-attendance-grid shop-rules-work-hours-grid">
+            <div class="app-form-group">
+              <label class="app-label" for="expected-check-in">เวลาเข้างาน</label>
+              <input
+                id="expected-check-in"
+                type="text"
+                class="app-input"
+                formControlName="expectedCheckInTime"
+                placeholder="เช่น 20:00"
+                inputmode="numeric"
+                maxlength="5"
+                autocomplete="off"
+                (blur)="normalizeTime('expectedCheckInTime')"
+                [readonly]="!canManage()"
+              />
+            </div>
+            <div class="app-form-group">
+              <label class="app-label" for="expected-check-out">เวลาออกงาน</label>
+              <input
+                id="expected-check-out"
+                type="text"
+                class="app-input"
+                formControlName="expectedCheckOutTime"
+                placeholder="เช่น 04:00"
+                inputmode="numeric"
+                maxlength="5"
+                autocomplete="off"
+                (blur)="normalizeTime('expectedCheckOutTime')"
+                [readonly]="!canManage()"
+              />
+            </div>
+          </div>
+          <label class="app-toggle mt-3">
+            <input
+              type="checkbox"
+              class="app-toggle-input"
+              formControlName="expectedCheckOutNextDay"
+              [disabled]="!canManage()"
+            />
+            <span class="app-toggle-track" aria-hidden="true"></span>
+            <span class="app-toggle-text text-sm">ออกงานวันถัดไป (กะข้ามเที่ยงคืน)</span>
+          </label>
+        </section>
+      </div>
+
+      <section class="app-card shop-rules-section shop-rules-section-narrow">
         <h2 class="shop-rules-section-title">ค่าดื่ม — ส่วนแบ่งร้าน / พนักงาน</h2>
         <div class="shop-rules-attendance-grid">
           <div class="app-form-group">
@@ -171,58 +222,7 @@
         </div>
       </section>
 
-      <section class="app-card shop-rules-section">
-        <h2 class="shop-rules-section-title">เวลาเข้า–ออกงาน</h2>
-        <p class="app-field-hint shop-rules-section-hint">
-          ใช้เปรียบเทียบกับเวลาที่แสกนจริง (เช่น เข้า 20:00 ออก 04:00 วันถัดไป) — ไม่บังคับกรอก
-        </p>
-        <div class="shop-rules-attendance-grid">
-          <div class="app-form-group">
-            <label class="app-label" for="expected-check-in">เวลาเข้างาน</label>
-            <input
-              id="expected-check-in"
-              type="text"
-              class="app-input"
-              formControlName="expectedCheckInTime"
-              placeholder="เช่น 20:00"
-              inputmode="numeric"
-              maxlength="5"
-              autocomplete="off"
-              (blur)="normalizeTime('expectedCheckInTime')"
-              [readonly]="!canManage()"
-            />
-            <p class="app-field-hint">รูปแบบ 24 ชม. (ไม่ใช่ AM/PM)</p>
-          </div>
-          <div class="app-form-group">
-            <label class="app-label" for="expected-check-out">เวลาออกงาน</label>
-            <input
-              id="expected-check-out"
-              type="text"
-              class="app-input"
-              formControlName="expectedCheckOutTime"
-              placeholder="เช่น 04:00"
-              inputmode="numeric"
-              maxlength="5"
-              autocomplete="off"
-              (blur)="normalizeTime('expectedCheckOutTime')"
-              [readonly]="!canManage()"
-            />
-            <p class="app-field-hint">รูปแบบ 24 ชม.</p>
-          </div>
-        </div>
-        <label class="app-toggle mt-3">
-          <input
-            type="checkbox"
-            class="app-toggle-input"
-            formControlName="expectedCheckOutNextDay"
-            [disabled]="!canManage()"
-          />
-          <span class="app-toggle-track" aria-hidden="true"></span>
-          <span class="app-toggle-text text-sm">ออกงานวันถัดไป (กะข้ามเที่ยงคืน)</span>
-        </label>
-      </section>
-
-      <section class="app-card shop-rules-section">
+      <section class="app-card shop-rules-section shop-rules-section-narrow">
         <h2 class="shop-rules-section-title">มาสาย / ขาด</h2>
         <div class="shop-rules-attendance-grid">
           <div class="app-form-group">

@@ -2,48 +2,8 @@
   <div class="app-page-header">
     <div>
       <h1 class="app-page-title">บันทึกเวลาเข้างาน</h1>
-      <p class="app-page-subtitle">รายชื่อพนักงานในเครือ — แตะชื่อเพื่อดูรายละเอียดรายเดือน</p>
     </div>
   </div>
-
-  <section class="app-card mb-4 p-4">
-    <h2 class="mb-2 text-sm font-semibold text-text-primary">จุดลงเวลา (แท็บเล็ต) — แยกตามสาขา</h2>
-    <p class="text-sm text-text-secondary">
-      รูปแบบลิงก์เหมือนหน้า login:
-      <code class="text-xs">/s/&#123;รหัสสาขา&#125;/attendance-kiosk</code>
-      — ไม่ต้องล็อกอิน เปิดทิ้งบนแท็บเล็ตได้เลย แต่ละสาขามี QR คนละชุด
-    </p>
-    @if (branchKiosks().length === 0) {
-      <p class="mt-2 text-sm text-amber-300">ไม่พบลิงก์สาขา — ลองรีเฟรชหรือเข้าสู่ระบบใหม่</p>
-    } @else {
-      <ul class="mt-3 space-y-3">
-        @for (branch of branchKiosks(); track branch.shopId) {
-          <li class="rounded-input border border-theme-border bg-surface px-3 py-3">
-            <p class="font-medium text-text-primary">
-              {{ branch.branchName }}
-              @if (branch.branchCode) {
-                <span class="text-sm font-normal text-text-secondary">({{ branch.branchCode }})</span>
-              }
-            </p>
-            <div class="mt-2 flex flex-wrap items-center gap-2">
-              <a
-                class="app-btn-primary"
-                [href]="branch.url"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                เปิดจุดลงเวลา
-              </a>
-              <button type="button" class="app-btn-secondary" (click)="copyKioskUrl(branch.url)">
-                คัดลอกลิงก์
-              </button>
-            </div>
-            <p class="mt-2 break-all text-xs text-text-secondary">{{ branch.url }}</p>
-          </li>
-        }
-      </ul>
-    }
-  </section>
 
   <div class="app-filter-bar app-role-tabs" role="tablist" aria-label="กลุ่มพนักงาน">
     <button
@@ -150,58 +110,63 @@
 </div>
 
 @if (selectedEmployee(); as employee) {
-  <app-modal (dismiss)="closeModal()">
+  <app-modal [mobileFullscreen]="true" (dismiss)="closeModal()">
     <div class="app-modal-header">
-      <div>
-        <h2 class="app-modal-title">
-          {{ employee.nickname }} ({{ employee.employeeId }})
-        </h2>
-        <p class="text-sm text-text-secondary">
-          {{ employee.role?.displayNameTh || employee.role?.name || '—' }}
-        </p>
-      </div>
+      <h2 class="app-modal-title">
+        {{ employee.nickname }} ({{ employee.employeeId }})
+      </h2>
       <button type="button" class="app-btn-ghost" (click)="closeModal()">✕</button>
     </div>
 
-    <div class="app-form-group">
-      <label class="app-label" for="attendance-month">เดือน</label>
-      <input
-        id="attendance-month"
-        type="month"
-        class="app-input"
-        [ngModel]="monthValue()"
-        (ngModelChange)="onMonthChange($event)"
-      />
+    <div class="attendance-roster-month-picker">
+      <div class="app-form-group">
+        <label class="app-label">เดือน</label>
+        <app-custom-dropdown
+          [options]="monthOptions"
+          placeholder="เลือกเดือน"
+          [ngModel]="pickerMonth()"
+          (ngModelChange)="onPickerMonth($event)"
+        />
+      </div>
+      <div class="app-form-group">
+        <label class="app-label">ปี (พ.ศ.)</label>
+        <app-custom-dropdown
+          [options]="yearOptions()"
+          placeholder="เลือกปี"
+          [ngModel]="pickerYear()"
+          (ngModelChange)="onPickerYear($event)"
+        />
+      </div>
     </div>
-
-    @if (monthPayload()?.expectedCheckInLabel || monthPayload()?.expectedCheckOutLabel) {
-      <p class="mb-3 text-sm text-text-secondary">
-        เวลากำหนด:
-        @if (monthPayload()?.expectedCheckInLabel) {
-          เข้า {{ monthPayload()!.expectedCheckInLabel! }}
-        }
-        @if (monthPayload()?.expectedCheckOutLabel) {
-          · ออก {{ monthPayload()!.expectedCheckOutLabel! }}
-        }
-      </p>
-    }
 
     @if (monthLoading()) {
       <p class="text-text-secondary">กำลังโหลดรายการ...</p>
     } @else {
       @if (monthPayload(); as detail) {
-        <p class="mb-2 text-sm font-medium text-text-primary">{{ monthLabel() }}</p>
+        @if (detail.expectedCheckInLabel || detail.expectedCheckOutLabel) {
+          <p class="mb-3 text-sm text-text-secondary">
+            เวลากำหนด:
+            @if (detail.expectedCheckInLabel) {
+              เข้า {{ detail.expectedCheckInLabel }}
+            }
+            @if (detail.expectedCheckOutLabel) {
+              · ออก {{ detail.expectedCheckOutLabel }}
+            }
+          </p>
+        }
+
         @if (detail.shifts.length === 0) {
           <p class="text-text-secondary">ไม่มีการลงเวลาในเดือนนี้</p>
         } @else {
-          <div class="app-data-table-shell max-h-[min(24rem,50vh)] overflow-y-auto">
-            <table class="app-data-table w-full">
+          <div class="attendance-roster-modal-table app-data-table-shell">
+            <table class="app-data-table w-full min-w-[36rem]">
               <thead>
                 <tr>
-                  <th>วันที่เข้า</th>
+                  <th>วันที่</th>
                   <th>เข้างาน</th>
                   <th>ออกงาน</th>
                   <th class="app-cell-right">สาย (นาที)</th>
+                  <th class="app-cell-right">ยอดหัก</th>
                 </tr>
               </thead>
               <tbody>
@@ -219,6 +184,13 @@
                     <td class="app-cell-right">
                       @if (shift.lateMinutes != null && shift.lateMinutes > 0) {
                         {{ shift.lateMinutes }}
+                      } @else {
+                        —
+                      }
+                    </td>
+                    <td class="app-cell-right">
+                      @if (shift.deductionBaht > 0) {
+                        {{ shift.deductionBaht | number: '1.0-0' }}
                       } @else {
                         —
                       }

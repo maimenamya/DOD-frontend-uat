@@ -1,7 +1,12 @@
+import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import {
+  CustomDropdownComponent,
+  type DropdownOption,
+} from '../../components/custom-dropdown/custom-dropdown.component';
 import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
 import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
 import type { AttendanceEmployeeMonthPayload } from '../../models/attendance';
@@ -11,7 +16,6 @@ import { AttendanceService } from '../../services/attendance.service';
 import { AuthService } from '../../services/auth.service';
 import { EmployeeService } from '../../services/employee.service';
 import { ToastService } from '../../services/toast.service';
-import { attendanceKioskUrl } from '../../utils/attendance-kiosk-url.util';
 import { attendanceStatusLabel } from '../../utils/employee-status-label.util';
 import { roleDisplayNameTh } from '../../utils/employee-team.util';
 import {
@@ -41,8 +45,10 @@ const THAI_MONTHS = [
 @Component({
   selector: 'app-attendance-roster-page',
   imports: [
+    DecimalPipe,
     FormsModule,
     AppModalComponent,
+    CustomDropdownComponent,
     MasterListToolbarComponent,
     ListPaginatorComponent,
   ],
@@ -64,36 +70,28 @@ export class AttendanceRosterPageComponent implements OnInit {
   readonly monthLoading = signal(false);
   readonly monthPayload = signal<AttendanceEmployeeMonthPayload | null>(null);
 
-  readonly branchKiosks = computed(() => {
-    this.auth.session();
-    const branches = this.auth.getAvailableBranches();
-    const mapped = branches
-      .map((branch) => {
-        const publicId = branch.publicId?.trim();
-        if (!publicId) return null;
-        return {
-          shopId: branch.shopId,
-          branchName: branch.branchName,
-          branchCode: branch.branchCode,
-          url: attendanceKioskUrl(publicId),
-        };
-      })
-      .filter((row): row is NonNullable<typeof row> => row != null);
+  readonly monthOptions: DropdownOption[] = THAI_MONTHS.map((label, index) => ({
+    value: index + 1,
+    label,
+  }));
 
-    if (mapped.length > 0) {
-      return mapped;
+  readonly yearOptions = computed((): DropdownOption[] => {
+    const currentYear = Number(shopCalendarTodayInput().slice(0, 4));
+    const years: DropdownOption[] = [];
+    for (let year = currentYear - 2; year <= currentYear + 1; year += 1) {
+      years.push({ value: year, label: String(year + 543) });
     }
+    return years;
+  });
 
-    const publicId = this.auth.getShopPublicId();
-    if (!publicId) return [];
-    return [
-      {
-        shopId: this.auth.getShopId() ?? 0,
-        branchName: this.auth.getShopDisplayName(),
-        branchCode: '',
-        url: attendanceKioskUrl(publicId),
-      },
-    ];
+  readonly pickerMonth = computed(() => {
+    const match = /^(\d{4})-(\d{2})$/.exec(this.monthValue());
+    return match ? Number(match[2]) : 1;
+  });
+
+  readonly pickerYear = computed(() => {
+    const match = /^(\d{4})-(\d{2})$/.exec(this.monthValue());
+    return match ? Number(match[1]) : Number(shopCalendarTodayInput().slice(0, 4));
   });
 
   readonly filteredEmployees = computed(() => {
@@ -114,25 +112,7 @@ export class AttendanceRosterPageComponent implements OnInit {
       `${row.employeeId} ${row.nickname} ${row.role ? roleDisplayNameTh(row.role) : ''}`,
   );
 
-  readonly monthLabel = computed(() => {
-    const value = this.monthValue();
-    const match = /^(\d{4})-(\d{2})$/.exec(value);
-    if (!match) return value;
-    const year = Number(match[1]);
-    const month = Number(match[2]);
-    if (month < 1 || month > 12) return value;
-    return `${THAI_MONTHS[month - 1]} ${year + 543}`;
-  });
-
   ngOnInit(): void {
-    if (this.auth.getAvailableBranches().length === 0) {
-      this.auth.fetchAccessibleBranches().subscribe({
-        error: () => {
-          // ใช้สาขาจาก session เป็นทางเลือกสำรอง
-        },
-      });
-    }
-
     const shopId = this.auth.getShopId();
     if (!shopId) {
       this.loading.set(false);
@@ -173,6 +153,20 @@ export class AttendanceRosterPageComponent implements OnInit {
     this.monthPayload.set(null);
   }
 
+  onPickerMonth(value: number | string | null): void {
+    if (value == null) return;
+    const month = Number(value);
+    if (!Number.isFinite(month) || month < 1 || month > 12) return;
+    this.onMonthChange(`${this.pickerYear()}-${String(month).padStart(2, '0')}`);
+  }
+
+  onPickerYear(value: number | string | null): void {
+    if (value == null) return;
+    const year = Number(value);
+    if (!Number.isInteger(year)) return;
+    this.onMonthChange(`${year}-${String(this.pickerMonth()).padStart(2, '0')}`);
+  }
+
   onMonthChange(value: string): void {
     this.monthValue.set(value);
     if (this.selectedEmployee()) {
@@ -201,16 +195,5 @@ export class AttendanceRosterPageComponent implements OnInit {
         this.monthLoading.set(false);
       },
     });
-  }
-
-  copyKioskUrl(url: string): void {
-    if (!url) {
-      this.toast.showError('ไม่พบลิงก์ร้านสำหรับจุดลงเวลา');
-      return;
-    }
-    void navigator.clipboard.writeText(url).then(
-      () => this.toast.showSuccess('คัดลอกลิงก์จุดลงเวลาแล้ว'),
-      () => this.toast.showError('คัดลอกลิงก์ไม่สำเร็จ'),
-    );
   }
 }

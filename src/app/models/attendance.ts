@@ -50,6 +50,7 @@ export interface AttendanceShiftRow {
   expectedCheckInLabel: string | null;
   expectedCheckOutLabel: string | null;
   lateMinutes: number | null;
+  deductionBaht: number;
   openShift: boolean;
 }
 
