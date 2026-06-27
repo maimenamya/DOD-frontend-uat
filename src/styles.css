@@ -2609,41 +2609,32 @@
   }
 
   .shop-rules-form {
-    max-width: 72rem;
+    max-width: 56rem;
     gap: 1.25rem;
   }
 
-  .shop-rules-top-grid {
+  .shop-rules-grid {
     display: grid;
     gap: 1.25rem;
     grid-template-columns: 1fr;
-    align-items: start;
+    align-items: stretch;
   }
 
   @media (min-width: 900px) {
-    .shop-rules-top-grid {
-      grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
+    .shop-rules-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-  }
-
-  .shop-rules-section-narrow {
-    max-width: 42rem;
   }
 
   .shop-rules-work-hours-grid {
-    grid-template-columns: 1fr;
-  }
-
-  @media (min-width: 480px) {
-    .shop-rules-work-hours-grid {
-      grid-template-columns: 1fr 1fr;
-    }
+    grid-template-columns: 1fr 1fr;
   }
 
   .shop-rules-section {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    height: 100%;
   }
 
   .shop-rules-section-title {
@@ -2665,12 +2656,18 @@
   }
 
   .shop-rules-rounding {
-    max-width: 16rem;
+    max-width: 100%;
   }
 
   .shop-rules-actions {
     display: flex;
     justify-content: flex-start;
+  }
+
+  @media (min-width: 900px) {
+    .shop-rules-actions {
+      grid-column: 1 / -1;
+    }
   }
 
   /**

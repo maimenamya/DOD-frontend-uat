@@ -15,7 +15,7 @@
       [formGroup]="form"
       (ngSubmit)="submit()"
     >
-      <div class="shop-rules-top-grid">
+      <div class="shop-rules-grid">
         <section class="app-card shop-rules-section">
           <h2 class="shop-rules-section-title">เวลานั่งดื่ม</h2>
         <p class="app-field-hint shop-rules-section-hint">
@@ -134,7 +134,7 @@
         </div>
         </section>
 
-        <section class="app-card shop-rules-section shop-rules-work-hours">
+        <section class="app-card shop-rules-section">
           <h2 class="shop-rules-section-title">เวลาเข้า–ออกงาน</h2>
           <p class="app-field-hint shop-rules-section-hint">
             ใช้เปรียบเทียบกับเวลาที่แสกนจริง (เช่น เข้า 20:00 ออก 04:00 วันถัดไป) — ไม่บังคับกรอก
@@ -182,10 +182,9 @@
             <span class="app-toggle-text text-sm">ออกงานวันถัดไป (กะข้ามเที่ยงคืน)</span>
           </label>
         </section>
-      </div>
 
-      <section class="app-card shop-rules-section shop-rules-section-narrow">
-        <h2 class="shop-rules-section-title">ค่าดื่ม — ส่วนแบ่งร้าน / พนักงาน</h2>
+        <section class="app-card shop-rules-section">
+          <h2 class="shop-rules-section-title">ค่าดื่ม — ส่วนแบ่งร้าน / พนักงาน</h2>
         <div class="shop-rules-attendance-grid">
           <div class="app-form-group">
             <label class="app-label">หักดื่มเข้าร้าน</label>
@@ -220,10 +219,10 @@
             <p class="app-field-hint">บาท / ดื่ม</p>
           </div>
         </div>
-      </section>
+        </section>
 
-      <section class="app-card shop-rules-section shop-rules-section-narrow">
-        <h2 class="shop-rules-section-title">มาสาย / ขาด</h2>
+        <section class="app-card shop-rules-section">
+          <h2 class="shop-rules-section-title">มาสาย / ขาด</h2>
         <div class="shop-rules-attendance-grid">
           <div class="app-form-group">
             <label class="app-label">มาสาย</label>
@@ -291,7 +290,7 @@
             <p class="app-field-hint">บาท / วัน</p>
           </div>
         </div>
-      </section>
+        </section>
 
       @if (canManage()) {
         <div class="shop-rules-actions">
@@ -300,6 +299,7 @@
           </button>
         </div>
       }
+      </div>
     </form>
   }
 </div>
