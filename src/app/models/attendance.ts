@@ -16,6 +16,7 @@ export interface AttendancePunchResult {
   attendanceStatus: 'ON_DUTY' | 'OFF_DUTY';
   attendanceStatusLabel: string;
   employeeNickname: string;
+  prTagWorkDayRecorded?: boolean;
 }
 
 export interface AttendanceMePayload {

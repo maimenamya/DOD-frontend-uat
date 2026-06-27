@@ -162,7 +162,11 @@ export class AttendanceCheckInPageComponent implements OnInit {
         next: (result) => {
           this.lastPunch.set(result);
           this.punching.set(false);
-          this.toast.showSuccess(`${result.punchTypeLabel} — ${result.punchedAtLabel} น.`);
+          const tagNote =
+            result.prTagWorkDayRecorded ? ' · บันทึกวันทำงานแท็กแล้ว' : '';
+          this.toast.showSuccess(
+            `${result.punchTypeLabel} — ${result.punchedAtLabel} น.${tagNote}`,
+          );
           this.reload();
           this.loadMyMonth();
         },

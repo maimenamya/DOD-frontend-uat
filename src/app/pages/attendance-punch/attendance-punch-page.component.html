@@ -15,6 +15,9 @@
       <p class="mt-2 text-sm text-text-secondary">
         สถานะ: {{ result()!.attendanceStatusLabel }}
       </p>
+      @if (result()!.prTagWorkDayRecorded) {
+        <p class="mt-2 text-sm text-emerald-300">บันทึกวันทำงานแท็ก (+1 วัน)</p>
+      }
       <button type="button" class="app-btn-primary mt-6 w-full" (click)="goHome()">
         กลับหน้าหลัก
       </button>
