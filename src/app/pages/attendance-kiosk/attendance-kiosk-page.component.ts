@@ -9,7 +9,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { distinctUntilChanged, map } from 'rxjs';
-import QRCode from 'qrcode';
 
 import { writeStoredShopPublicId } from '../../core/shop-public-id.storage';
 import type { AttendanceKioskPayload } from '../../models/attendance';
@@ -94,6 +93,7 @@ export class AttendanceKioskPageComponent implements OnInit {
 
     const scanUrl = this.buildScanUrl(payload.shopPublicId, payload.token);
     try {
+      const QRCode = (await import('qrcode')).default;
       const dataUrl = await QRCode.toDataURL(scanUrl, {
         width: 420,
         margin: 2,

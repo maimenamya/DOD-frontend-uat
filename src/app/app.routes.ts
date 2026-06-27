@@ -18,7 +18,6 @@ import { MasterMembershipPageComponent } from './pages/master-membership/master-
 import { MasterOtherChargePageComponent } from './pages/master-other-charge/master-other-charge-page.component';
 import { MasterPrTagPageComponent } from './pages/master-pr-tag/master-pr-tag-page.component';
 import { PrTagOperationsPageComponent } from './pages/pr-tag-operations/pr-tag-operations-page.component';
-import { DrinkPayoutPageComponent } from './pages/drink-payout/drink-payout-page.component';
 import { MasterPromotionPageComponent } from './pages/master-promotion/master-promotion-page.component';
 import { MasterRolePageComponent } from './pages/master-role/master-role-page.component';
 import { MasterSeatingListPageComponent } from './pages/master-seating-list/master-seating-list-page.component';
@@ -31,9 +30,6 @@ import { ShopRulesPageComponent } from './pages/shop-rules/shop-rules-page.compo
 import { ReceiptPrinterPageComponent } from './pages/receipt-printer/receipt-printer-page.component';
 import { PackageDepositPageComponent } from './pages/package-deposit/package-deposit-page.component';
 import { StockPageComponent } from './pages/stock/stock-page.component';
-import { AttendanceKioskPageComponent } from './pages/attendance-kiosk/attendance-kiosk-page.component';
-import { AttendancePunchPageComponent } from './pages/attendance-punch/attendance-punch-page.component';
-import { AttendanceLogsPageComponent } from './pages/attendance-logs/attendance-logs-page.component';
 import { attendancePunchGuard } from './guards/attendance-punch.guard';
 
 export const routes: Routes = [
@@ -45,11 +41,17 @@ export const routes: Routes = [
   },
   {
     path: 's/:shopPublicId/attendance-kiosk',
-    component: AttendanceKioskPageComponent,
+    loadComponent: () =>
+      import('./pages/attendance-kiosk/attendance-kiosk-page.component').then(
+        (m) => m.AttendanceKioskPageComponent,
+      ),
   },
   {
     path: 's/:shopPublicId/attendance/punch',
-    component: AttendancePunchPageComponent,
+    loadComponent: () =>
+      import('./pages/attendance-punch/attendance-punch-page.component').then(
+        (m) => m.AttendancePunchPageComponent,
+      ),
     canActivate: [attendancePunchGuard],
   },
   {
@@ -81,7 +83,10 @@ export const routes: Routes = [
       },
       {
         path: 'attendance-logs',
-        component: AttendanceLogsPageComponent,
+        loadComponent: () =>
+          import('./pages/attendance-logs/attendance-logs-page.component').then(
+            (m) => m.AttendanceLogsPageComponent,
+          ),
         canActivate: [permissionGuard('manage_employees')],
       },
       {
@@ -161,7 +166,10 @@ export const routes: Routes = [
       },
       {
         path: 'drink-payout',
-        component: DrinkPayoutPageComponent,
+        loadComponent: () =>
+          import('./pages/drink-payout/drink-payout-page.component').then(
+            (m) => m.DrinkPayoutPageComponent,
+          ),
         canActivate: [permissionGuard('drink_payout')],
       },
       {
