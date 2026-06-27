@@ -1,0 +1,89 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">ลงเวลาพนักงาน</h1>
+      <p class="app-page-subtitle">รายการเข้า-ออกงานวันนี้ (เวลาไทย)</p>
+    </div>
+    <button type="button" class="app-btn-secondary" (click)="reload()">รีเฟรช</button>
+  </div>
+
+  <section class="app-card mb-4 p-4">
+    <h2 class="mb-2 text-sm font-semibold text-text-primary">จุดลงเวลา (แท็บเล็ต) — แยกตามสาขา</h2>
+    <p class="text-sm text-text-secondary">
+      รูปแบบลิงก์เหมือนหน้า login: <code class="text-xs">/s/&#123;รหัสสาขา&#125;/attendance-kiosk</code>
+      — ไม่ต้องล็อกอิน เปิดทิ้งบนแท็บเล็ตได้เลย แต่ละสาขามี QR คนละชุด
+      พนักงานในเครือเดียวกันแสกนได้ทุกสาขา (ลงเวลาที่สาขาที่แสกน)
+    </p>
+    @if (branchKiosks().length === 0) {
+      <p class="mt-2 text-sm text-amber-300">ไม่พบลิงก์สาขา — ลองรีเฟรชหรือเข้าสู่ระบบใหม่</p>
+    } @else {
+      <ul class="mt-3 space-y-3">
+        @for (branch of branchKiosks(); track branch.shopId) {
+          <li class="rounded-input border border-theme-border bg-surface px-3 py-3">
+            <p class="font-medium text-text-primary">
+              {{ branch.branchName }}
+              @if (branch.branchCode) {
+                <span class="text-sm font-normal text-text-secondary">({{ branch.branchCode }})</span>
+              }
+            </p>
+            <div class="mt-2 flex flex-wrap items-center gap-2">
+              <a
+                class="app-btn-primary"
+                [href]="branch.url"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                เปิดจุดลงเวลา
+              </a>
+              <button type="button" class="app-btn-secondary" (click)="copyKioskUrl(branch.url)">
+                คัดลอกลิงก์
+              </button>
+            </div>
+            <p class="mt-2 break-all text-xs text-text-secondary">{{ branch.url }}</p>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  @if (loading()) {
+    <p class="text-text-secondary">กำลังโหลด...</p>
+  } @else if (items().length === 0) {
+    <div class="app-card p-6 text-center text-text-secondary">ยังไม่มีรายการลงเวลาวันนี้</div>
+  } @else {
+    <div class="app-card overflow-x-auto">
+      <table class="app-table w-full min-w-[36rem]">
+        <thead>
+          <tr>
+            <th>เวลา</th>
+            <th>รหัส</th>
+            <th>ชื่อ</th>
+            <th>ตำแหน่ง</th>
+            <th>ประเภท</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of items(); track row.id) {
+            <tr>
+              <td>{{ row.punchedAtLabel }}</td>
+              <td>{{ row.employeeId }}</td>
+              <td>{{ row.employeeNickname }}</td>
+              <td>{{ row.roleDisplayNameTh }}</td>
+              <td>
+                @if (row.punchType === 'CHECK_IN') {
+                  <span class="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-medium text-emerald-300">
+                    {{ row.punchTypeLabel }}
+                  </span>
+                } @else {
+                  <span class="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-300">
+                    {{ row.punchTypeLabel }}
+                  </span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

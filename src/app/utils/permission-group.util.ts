@@ -13,6 +13,7 @@ export type AppFeature =
   | 'pr_tag_operations'
   | 'reports'
   | 'daily_expenses'
+  | 'drink_payout'
   | 'manage_employees'
   | 'manage_roles'
   | 'master_data';

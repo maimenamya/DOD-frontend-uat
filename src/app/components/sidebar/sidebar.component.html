@@ -82,6 +82,20 @@
       </a>
     }
 
+    @if (showDrinkPayout()) {
+      <a
+        routerLink="/dashboard/drink-payout"
+        routerLinkActive="app-sidebar-link-active"
+        (click)="collapseAllSubmenus(); mobileClose.emit()"
+        class="app-sidebar-link"
+      >
+        <span class="app-sidebar-icon-slot">
+          <app-sidebar-icon name="report" />
+        </span>
+        <span class="app-sidebar-label">จ่ายค่าดื่ม PR</span>
+      </a>
+    }
+
     @if (showReports()) {
       <a
         routerLink="/dashboard/reports"

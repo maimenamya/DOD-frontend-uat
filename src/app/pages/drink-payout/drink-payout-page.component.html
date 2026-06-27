@@ -1,0 +1,205 @@
+<div class="app-page">
+  <header class="app-page-header app-page-header-dashboard">
+    <div>
+      <h1 class="app-page-title">จ่ายค่าดื่ม PR</h1>
+      <p class="app-page-subtitle">
+        Freelance เบิกรายวัน · แท็กขึ้นวันที่จบแท็ก · หักเข้าร้าน
+        {{ drinkShopPortionBaht() | number: '1.0-0' }} บาท/ดื่ม
+      </p>
+    </div>
+    <div class="dashboard-date-filter">
+      <div class="dashboard-date-presets">
+        <button
+          type="button"
+          class="dashboard-date-btn"
+          [class.dashboard-date-btn-active]="datePreset() === 'today'"
+          (click)="selectPreset('today')"
+        >
+          วันนี้
+        </button>
+        <button
+          type="button"
+          class="dashboard-date-btn"
+          [class.dashboard-date-btn-active]="datePreset() === 'yesterday'"
+          (click)="selectPreset('yesterday')"
+        >
+          เมื่อวาน
+        </button>
+        <button
+          type="button"
+          class="dashboard-date-btn"
+          [class.dashboard-date-btn-active]="datePreset() === 'custom'"
+          (click)="selectPreset('custom')"
+        >
+          กำหนดเอง
+        </button>
+      </div>
+      @if (datePreset() === 'custom') {
+        <div class="dashboard-date-custom">
+          <app-shop-date-input
+            extraInputClass="dashboard-date-input"
+            [requireConfirm]="false"
+            [ngModel]="customFrom()"
+            (ngModelChange)="customFrom.set($event)"
+          />
+          <span class="dashboard-date-separator">–</span>
+          <app-shop-date-input
+            extraInputClass="dashboard-date-input"
+            [requireConfirm]="false"
+            [ngModel]="customTo()"
+            (ngModelChange)="customTo.set($event)"
+          />
+          <button type="button" class="dashboard-date-apply" (click)="applyCustomRange()">
+            ใช้ช่วงนี้
+          </button>
+        </div>
+      }
+    </div>
+  </header>
+
+  @if (rangeLabelFrom() && rangeLabelTo()) {
+    <p class="mb-4 text-sm text-text-secondary">
+      แสดง {{ rangeLabelFrom() }} – {{ rangeLabelTo() }}
+    </p>
+  }
+
+  @if (loading()) {
+    <p class="app-muted">กำลังโหลด...</p>
+  } @else {
+    <section class="app-card mb-6 app-card-flush">
+      <div class="border-b border-theme-border px-4 py-3">
+        <h2 class="text-base font-semibold text-text-primary">Freelance — เบิกรายวัน</h2>
+        <p class="mt-1 text-sm text-text-secondary">
+          ยอดค้างจ่ายในช่วงที่เลือก:
+          <span class="font-semibold text-theme-accent-strong">
+            {{ freelanceUnpaidTotal() | number: '1.0-0' }} บาท
+          </span>
+        </p>
+      </div>
+
+      @if (freelanceRows().length === 0) {
+        <p class="app-empty-state">ไม่มีรายการค้างจ่าย Freelance ในช่วงนี้</p>
+      } @else {
+        <div class="app-data-table-shell">
+          <table class="app-data-table">
+            <thead>
+              <tr>
+                <th>วันที่</th>
+                <th>ชื่อ</th>
+                <th>ตำแหน่ง</th>
+                <th class="app-cell-right">ดื่ม</th>
+                <th class="app-cell-right">บาท/ดื่ม (พนักงาน)</th>
+                <th class="app-cell-right">รวมจ่าย</th>
+                @if (canPay()) {
+                  <th class="app-cell-center">ดำเนินการ</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of freelanceRows(); track row.rowKey) {
+                <tr>
+                  <td>{{ row.businessDateLabel }}</td>
+                  <td class="font-medium">{{ row.nickname }}</td>
+                  <td>{{ roleLabel(row) }}</td>
+                  <td class="app-cell-right">{{ row.drinksCount }}</td>
+                  <td class="app-cell-right">{{ row.employeePerDrink | number: '1.0-0' }}</td>
+                  <td class="app-cell-right font-semibold">
+                    {{ row.totalPayoutBaht | number: '1.0-0' }}
+                  </td>
+                  @if (canPay()) {
+                    <td class="app-cell-center">
+                      <button
+                        type="button"
+                        class="app-btn-primary-sm"
+                        [disabled]="acting()"
+                        (click)="payFreelance(row)"
+                      >
+                        ยืนยันจ่ายแล้ว
+                      </button>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+    <section class="app-card app-card-flush">
+      <div class="border-b border-theme-border px-4 py-3">
+        <h2 class="text-base font-semibold text-text-primary">จบแท็ก — จ่ายครั้งเดียว</h2>
+        <p class="mt-1 text-sm text-text-secondary">
+          ขึ้นเมื่อแคชเชียร์กดจบแท็กในวันที่เลือก · ค้างจ่าย
+          <span class="font-semibold text-theme-accent-strong">
+            {{ tagUnpaidTotal() | number: '1.0-0' }} บาท
+          </span>
+        </p>
+      </div>
+
+      @if (tagRows().length === 0) {
+        <p class="app-empty-state">ไม่มีรายการจบแท็กค้างจ่ายในช่วงวันที่นี้</p>
+      } @else {
+        <div class="app-data-table-shell">
+          <table class="app-data-table">
+            <thead>
+              <tr>
+                <th>วันที่จบแท็ก</th>
+                <th>ชื่อ</th>
+                <th>แท็ก</th>
+                <th class="app-cell-right">วันทำงาน</th>
+                <th class="app-cell-right">ดื่ม</th>
+                <th class="app-cell-right">การันตี</th>
+                <th class="app-cell-right">เกินเป้า</th>
+                <th class="app-cell-right">รวมจ่าย</th>
+                @if (canPay()) {
+                  <th class="app-cell-center">ดำเนินการ</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of tagRows(); track row.enrollmentId) {
+                <tr>
+                  <td>{{ row.businessDateLabel }}</td>
+                  <td class="font-medium">{{ row.nickname }}</td>
+                  <td>{{ row.tagName }}</td>
+                  <td class="app-cell-right">
+                    {{ row.workingDaysCount }}/{{ row.requiredWorkingDays }}
+                  </td>
+                  <td class="app-cell-right">
+                    {{ row.accumulatedDrinks }}/{{ row.targetDrinks }}
+                  </td>
+                  <td class="app-cell-right">
+                    {{ row.guaranteeAmountBaht | number: '1.0-0' }}
+                  </td>
+                  <td class="app-cell-right">
+                    @if (row.overQuotaDrinks > 0) {
+                      {{ row.overQuotaDrinks }} ดื่ม (+{{ row.overQuotaAmountBaht | number: '1.0-0' }})
+                    } @else {
+                      —
+                    }
+                  </td>
+                  <td class="app-cell-right font-semibold">
+                    {{ row.totalPayoutBaht | number: '1.0-0' }}
+                  </td>
+                  @if (canPay()) {
+                    <td class="app-cell-center">
+                      <button
+                        type="button"
+                        class="app-btn-primary-sm"
+                        [disabled]="acting()"
+                        (click)="payTag(row)"
+                      >
+                        ยืนยันจ่ายแล้ว
+                      </button>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  }
+</div>

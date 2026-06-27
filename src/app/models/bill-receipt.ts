@@ -18,6 +18,7 @@ export type BillReceiptPayload = {
   staffLabel: string;
   checkedInLabel: string;
   printedAtLabel: string;
+  paymentMethodLabel?: string | null;
   lines: BillReceiptLine[];
   totalQuantity: number;
   grandTotal: number;

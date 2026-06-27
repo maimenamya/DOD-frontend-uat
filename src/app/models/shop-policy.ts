@@ -8,6 +8,8 @@ export interface ShopPolicyConfig {
   seatDrinkRounding: ShopSeatDrinkRounding;
   lateFinePerMinuteBaht: number;
   absenceDeductionBaht: number;
+  /** บาท/ดื่มที่หักเข้าร้าน */
+  drinkShopPortionBaht: number;
 }
 
 export type ShopPolicyInput = Omit<ShopPolicyConfig, 'shopId'>;

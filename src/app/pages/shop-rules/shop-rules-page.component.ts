@@ -49,6 +49,7 @@ export class ShopRulesPageComponent implements OnInit {
     seatDrinkRounding: ['FLOOR' as DrinkAccrualRounding, Validators.required],
     lateFinePerMinuteBaht: [5, [Validators.required, Validators.min(0)]],
     absenceDeductionBaht: [500, [Validators.required, Validators.min(0)]],
+    drinkShopPortionBaht: [60, [Validators.required, Validators.min(0)]],
   });
 
   ngOnInit(): void {
@@ -78,7 +79,7 @@ export class ShopRulesPageComponent implements OnInit {
   }
 
   stepMoney(
-    field: 'lateFinePerMinuteBaht' | 'absenceDeductionBaht',
+    field: 'lateFinePerMinuteBaht' | 'absenceDeductionBaht' | 'drinkShopPortionBaht',
     delta: number,
   ): void {
     if (!this.canManage()) return;
@@ -121,6 +122,7 @@ export class ShopRulesPageComponent implements OnInit {
       seatDrinkRounding: config.seatDrinkRounding,
       lateFinePerMinuteBaht: config.lateFinePerMinuteBaht,
       absenceDeductionBaht: config.absenceDeductionBaht,
+      drinkShopPortionBaht: config.drinkShopPortionBaht,
     });
     if (!this.canManage()) {
       this.form.disable();

@@ -15,6 +15,7 @@ export interface AuthBranchOption {
   shopId: number;
   branchName: string;
   branchCode: string;
+  publicId: string;
   roleId: number;
   roleName: string;
   roleDisplayNameTh: string;

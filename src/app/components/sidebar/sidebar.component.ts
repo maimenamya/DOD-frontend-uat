@@ -27,6 +27,7 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
     icon: 'employees',
     children: [
       { path: '/dashboard/employees', label: 'พนักงาน' },
+      { path: '/dashboard/attendance-logs', label: 'รายการลงเวลา' },
       { path: '/dashboard/master-roles', label: 'ตำแหน่ง' },
     ],
   },
@@ -121,6 +122,7 @@ export class SidebarComponent implements OnInit {
   readonly showFullOpenTableNav = computed(() => this.auth.hasFeature('open_table'));
   readonly showPackageDepositsNav = computed(() => this.auth.hasFeature('open_table'));
   readonly showPrTagOps = computed(() => this.auth.hasFeature('pr_tag_operations'));
+  readonly showDrinkPayout = computed(() => this.auth.hasFeature('drink_payout'));
   readonly showReports = computed(() => this.auth.hasFeature('reports'));
   readonly showDailyExpenses = computed(() => this.auth.hasFeature('daily_expenses'));
   readonly showMasterNav = computed(() => this.auth.hasFeature('master_data'));

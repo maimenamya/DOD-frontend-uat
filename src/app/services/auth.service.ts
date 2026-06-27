@@ -128,6 +128,15 @@ export class AuthService {
     return label || '—';
   }
 
+  /** Current branch login URL id — prefer session over stored login link. */
+  getShopPublicId(): string | null {
+    const fromSession = this.getUser()?.shop?.publicId?.trim();
+    if (fromSession) {
+      return fromSession;
+    }
+    return readStoredShopPublicId();
+  }
+
   getOrganizationId(): number | null {
     return this.getUser()?.organizationId ?? null;
   }

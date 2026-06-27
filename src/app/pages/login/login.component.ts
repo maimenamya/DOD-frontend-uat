@@ -111,14 +111,30 @@ export class LoginComponent implements OnInit {
       return;
     }
 
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl')?.trim();
+    const navigateAfterLogin = (path: string | string[]) => {
+      this.loading.set(false);
+      if (typeof path === 'string') {
+        void this.router.navigateByUrl(path);
+      } else {
+        void this.router.navigate(path);
+      }
+    };
+
     this.auth.fetchAccessibleBranches().subscribe({
       next: () => {
-        this.loading.set(false);
-        void this.router.navigate([this.auth.homePathAfterLogin()]);
+        if (returnUrl && returnUrl.startsWith('/')) {
+          navigateAfterLogin(returnUrl);
+          return;
+        }
+        navigateAfterLogin([this.auth.homePathAfterLogin()]);
       },
       error: () => {
-        this.loading.set(false);
-        void this.router.navigate([this.auth.homePathAfterLogin()]);
+        if (returnUrl && returnUrl.startsWith('/')) {
+          navigateAfterLogin(returnUrl);
+          return;
+        }
+        navigateAfterLogin([this.auth.homePathAfterLogin()]);
       },
     });
   }

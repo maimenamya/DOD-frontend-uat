@@ -693,6 +693,10 @@ export class BillReceiptService {
     const grandRow = (label: string, amount: string) =>
       itemGridRow(label, '', amount, 'grand-row');
 
+    const paymentMethodRow = receipt.paymentMethodLabel?.trim()
+      ? itemGridRow('วิธีชำระเงิน', '', escapeHtml(receipt.paymentMethodLabel.trim()))
+      : '';
+
     const zoneDash = buildReceiptZoneDash(sheetPx);
     const zoneSpacer = '<div class="zone-spacer" aria-hidden="true"></div>';
 
@@ -963,6 +967,7 @@ export class BillReceiptService {
   <table class="items">
     ${itemsColgroup}
     ${grandRow('ทั้งหมด', `฿ ${formatReceiptMoney(receipt.grandTotal)}`)}
+    ${paymentMethodRow}
   </table>
   </div>
   <footer class="receipt-foot">

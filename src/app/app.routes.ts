@@ -18,6 +18,7 @@ import { MasterMembershipPageComponent } from './pages/master-membership/master-
 import { MasterOtherChargePageComponent } from './pages/master-other-charge/master-other-charge-page.component';
 import { MasterPrTagPageComponent } from './pages/master-pr-tag/master-pr-tag-page.component';
 import { PrTagOperationsPageComponent } from './pages/pr-tag-operations/pr-tag-operations-page.component';
+import { DrinkPayoutPageComponent } from './pages/drink-payout/drink-payout-page.component';
 import { MasterPromotionPageComponent } from './pages/master-promotion/master-promotion-page.component';
 import { MasterRolePageComponent } from './pages/master-role/master-role-page.component';
 import { MasterSeatingListPageComponent } from './pages/master-seating-list/master-seating-list-page.component';
@@ -30,6 +31,10 @@ import { ShopRulesPageComponent } from './pages/shop-rules/shop-rules-page.compo
 import { ReceiptPrinterPageComponent } from './pages/receipt-printer/receipt-printer-page.component';
 import { PackageDepositPageComponent } from './pages/package-deposit/package-deposit-page.component';
 import { StockPageComponent } from './pages/stock/stock-page.component';
+import { AttendanceKioskPageComponent } from './pages/attendance-kiosk/attendance-kiosk-page.component';
+import { AttendancePunchPageComponent } from './pages/attendance-punch/attendance-punch-page.component';
+import { AttendanceLogsPageComponent } from './pages/attendance-logs/attendance-logs-page.component';
+import { attendancePunchGuard } from './guards/attendance-punch.guard';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -37,6 +42,15 @@ export const routes: Routes = [
     path: 's/:shopPublicId/login',
     component: LoginComponent,
     canActivate: [guestGuard],
+  },
+  {
+    path: 's/:shopPublicId/attendance-kiosk',
+    component: AttendanceKioskPageComponent,
+  },
+  {
+    path: 's/:shopPublicId/attendance/punch',
+    component: AttendancePunchPageComponent,
+    canActivate: [attendancePunchGuard],
   },
   {
     path: 'login',
@@ -63,6 +77,11 @@ export const routes: Routes = [
       {
         path: 'employees',
         component: EmployeeManagementPageComponent,
+        canActivate: [permissionGuard('manage_employees')],
+      },
+      {
+        path: 'attendance-logs',
+        component: AttendanceLogsPageComponent,
         canActivate: [permissionGuard('manage_employees')],
       },
       {
@@ -139,6 +158,11 @@ export const routes: Routes = [
         path: 'pr-tag-operations',
         component: PrTagOperationsPageComponent,
         canActivate: [permissionGuard('pr_tag_operations')],
+      },
+      {
+        path: 'drink-payout',
+        component: DrinkPayoutPageComponent,
+        canActivate: [permissionGuard('drink_payout')],
       },
       {
         path: 'reports',
