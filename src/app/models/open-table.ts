@@ -231,6 +231,8 @@ export type OpenTableSessionDetail = {
   packageFreeDrinksQuota?: number;
   /** Remaining free PR drinks (projected FIFO across rows). */
   packageFreeDrinksRemaining?: number;
+  /** Package deposit rows already opened on this table (อันที่ฝาก — one per deposit). */
+  packageDepositIdsInUse?: number[];
   totalDrinks: number;
   totalAmount: number;
 };

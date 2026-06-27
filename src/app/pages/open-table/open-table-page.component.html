@@ -1025,6 +1025,7 @@
                 (ngModelChange)="onPackageDepositChange($event)"
                 placeholder="ชื่อลูกค้า — ชื่อโปร"
               />
+              <p class="app-hint">เบิกขวดทำที่หน้ารายการหลังบันทึก</p>
             </div>
           } @else {
             <div class="app-form-group">
@@ -1075,6 +1076,7 @@
                 (ngModelChange)="onPackageDepositChange($event)"
                 placeholder="ชื่อลูกค้า — ชื่อเมม"
               />
+              <p class="app-hint">เบิกขวดทำที่หน้ารายการหลังบันทึก</p>
             </div>
           } @else {
             <div class="app-form-group">
@@ -1127,19 +1129,21 @@
           </div>
         }
 
-        <div class="app-form-group">
-          <label class="app-label">จำนวน</label>
-          <input
-            type="text"
-            inputmode="numeric"
-            autocomplete="off"
-            class="app-input"
-            [ngModel]="orderQtyText()"
-            (ngModelChange)="onOrderQtyTextChange($event)"
-            (keydown)="blockNonNumericKey($event)"
-            placeholder="1"
-          />
-        </div>
+        @if (showOrderQtyField()) {
+          <div class="app-form-group">
+            <label class="app-label">จำนวน</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              class="app-input"
+              [ngModel]="orderQtyText()"
+              (ngModelChange)="onOrderQtyTextChange($event)"
+              (keydown)="blockNonNumericKey($event)"
+              placeholder="1"
+            />
+          </div>
+        }
       }
 
       @if (addModalMode() === 'STAFF_LEDGER') {

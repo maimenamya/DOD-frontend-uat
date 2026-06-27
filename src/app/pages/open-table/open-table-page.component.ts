@@ -604,6 +604,12 @@ export class OpenTablePageComponent implements OnInit {
     () => this.orderLedgerCategory() === 'PROMOTION' || this.orderLedgerCategory() === 'MEMBER',
   );
 
+  /** อันที่ฝาก — เปิดลงโต๊ะเท่านั้น เบิกขวดทำที่หน้ารายการ */
+  readonly showOrderQtyField = computed(() => {
+    if (!this.showPackageOpenMode()) return true;
+    return this.packageOpenMode() !== 'DEPOSIT';
+  });
+
   readonly selectedPackageAllowsDeposit = computed(() => {
     const category = this.orderLedgerCategory();
     if (category === 'PROMOTION') {
@@ -623,7 +629,10 @@ export class OpenTablePageComponent implements OnInit {
     return this.packageDepositsRaw()
       .filter(
         (row) =>
-          row.sourceType === sourceType && row.status === 'OPEN' && row.bottlesRemaining > 0,
+          row.sourceType === sourceType &&
+          row.status === 'OPEN' &&
+          row.bottlesRemaining > 0 &&
+          row.onOpenSessionId == null,
       )
       .map((row) => ({
         value: row.id,
@@ -1454,6 +1463,20 @@ export class OpenTablePageComponent implements OnInit {
     return digits.length === 3 ? digits : null;
   }
 
+  /** @returns true when deposit is already on an open table (blocks save). */
+  private rejectPackageDepositIfOnOpenTable(deposit: PackageDepositRecord): boolean {
+    const onSessionId = deposit.onOpenSessionId;
+    if (onSessionId == null) return false;
+    this.flagAddItemValidation();
+    const currentSessionId = this.selectedSeat()?.sessionId;
+    this.toast.showError(
+      onSessionId === currentSessionId
+        ? 'รายการฝากนี้ลงโต๊ะแล้ว'
+        : 'รายการฝากนี้อยู่ที่โต๊ะอื่นแล้ว',
+    );
+    return true;
+  }
+
   private syncPackageDepositSelection(): void {
     if (this.packageOpenMode() !== 'DEPOSIT') {
       this.selectedPackageDepositId.set(null);
@@ -1528,8 +1551,13 @@ export class OpenTablePageComponent implements OnInit {
     items: AddItemsPayload['items'];
     staffDrinks: AddItemsPayload['staffDrinks'];
   } | null {
-    const quantity = parsePositiveIntFromText(this.orderQtyText());
     const category = this.orderLedgerCategory();
+    const isPackageDepositOpen =
+      (category === 'PROMOTION' || category === 'MEMBER') &&
+      this.packageOpenMode() === 'DEPOSIT';
+    const quantity = isPackageDepositOpen
+      ? 1
+      : parsePositiveIntFromText(this.orderQtyText());
     const items: AddItemsPayload['items'] = [];
     const staffDrinks: AddItemsPayload['staffDrinks'] = [];
 
@@ -1582,6 +1610,9 @@ export class OpenTablePageComponent implements OnInit {
         const deposit = this.packageDepositsRaw().find((row) => row.id === depositId);
         if (!deposit || deposit.sourceType !== 'PROMOTION') {
           this.toast.showError('ไม่พบรายการฝาก');
+          return null;
+        }
+        if (this.rejectPackageDepositIfOnOpenTable(deposit)) {
           return null;
         }
         items.push({
@@ -1640,6 +1671,9 @@ export class OpenTablePageComponent implements OnInit {
         const deposit = this.packageDepositsRaw().find((row) => row.id === depositId);
         if (!deposit || deposit.sourceType !== 'MEMBERSHIP') {
           this.toast.showError('ไม่พบรายการฝาก');
+          return null;
+        }
+        if (this.rejectPackageDepositIfOnOpenTable(deposit)) {
           return null;
         }
         items.push({
@@ -2062,6 +2096,7 @@ export class OpenTablePageComponent implements OnInit {
     this.addItemValidated.set(false);
     this.showAddModal.set(true);
     this.reloadStaffEmployees();
+    this.reloadPackageDeposits();
   }
 
   private flagAddItemValidation(): void {

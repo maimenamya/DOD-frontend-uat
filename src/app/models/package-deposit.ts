@@ -18,6 +18,8 @@ export interface PackageDepositRecord {
   canClose: boolean;
   canDelete: boolean;
   bottlesLabel: string;
+  /** โต๊ะที่เปิดอยู่ที่ถือรายการฝากนี้ (null = ยังไม่อยู่โต๊ะไหน) */
+  onOpenSessionId: number | null;
 }
 
 export interface PackageDepositCancelPayload {
