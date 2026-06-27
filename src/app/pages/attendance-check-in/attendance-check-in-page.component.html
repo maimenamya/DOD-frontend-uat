@@ -2,7 +2,6 @@
   <div class="app-page-header">
     <div>
       <h1 class="app-page-title">ลงเวลาเข้า-ออกงาน</h1>
-      <p class="app-page-subtitle">แสกน QR ที่จุดลงเวลาหน้าร้านด้วยมือถือ (ต้องเข้าสู่ระบบอยู่แล้ว)</p>
     </div>
     <button type="button" class="app-btn-secondary" (click)="reload()">รีเฟรช</button>
   </div>
@@ -11,72 +10,97 @@
     <p class="text-text-secondary">กำลังโหลด...</p>
   } @else {
     @if (payload(); as me) {
-    <section class="app-card app-card-section mb-4">
-      <div class="app-card-body">
-        @if (employeeNickname()) {
-          <p class="text-sm text-text-secondary">{{ employeeNickname() }}</p>
-        }
-        <div class="mt-2 flex flex-wrap items-center gap-3">
-          <h2 class="text-lg font-semibold text-text-primary">สถานะวันนี้</h2>
-          @if (me.attendanceStatus === 'ON_DUTY') {
-            <span class="rounded-full bg-emerald-500/15 px-3 py-1 text-sm font-medium text-emerald-300">
-              {{ me.attendanceStatusLabel }}
-            </span>
-          } @else {
-            <span class="rounded-full bg-slate-500/15 px-3 py-1 text-sm font-medium text-slate-300">
-              {{ me.attendanceStatusLabel }}
-            </span>
+      <section class="app-card app-card-section mb-4">
+        <div class="app-card-body">
+          @if (employeeNickname()) {
+            <p class="text-sm text-text-secondary">{{ employeeNickname() }}</p>
+          }
+          <div class="mt-2 flex flex-wrap items-center gap-3">
+            <h2 class="text-lg font-semibold text-text-primary">สถานะวันนี้</h2>
+            @if (me.attendanceStatus === 'ON_DUTY') {
+              <span class="rounded-full bg-emerald-500/15 px-3 py-1 text-sm font-medium text-emerald-300">
+                {{ me.attendanceStatusLabel }}
+              </span>
+            } @else {
+              <span class="rounded-full bg-slate-500/15 px-3 py-1 text-sm font-medium text-slate-300">
+                {{ me.attendanceStatusLabel }}
+              </span>
+            }
+          </div>
+          @if (nextPunchLabel()) {
+            <p class="mt-3 text-sm text-text-secondary">
+              ครั้งถัดไปเมื่อแสกน QR: <strong class="text-text-primary">{{ nextPunchLabel() }}</strong>
+            </p>
           }
         </div>
-        @if (nextPunchLabel()) {
-          <p class="mt-3 text-sm text-text-secondary">
-            ครั้งถัดไปเมื่อแสกน QR: <strong class="text-text-primary">{{ nextPunchLabel() }}</strong>
-          </p>
-        }
-      </div>
-    </section>
+      </section>
 
-    <section class="app-card app-card-section mb-4">
-      <div class="app-card-body">
-        <h2 class="text-base font-semibold text-text-primary">วิธีลงเวลา</h2>
-        <ol class="mt-3 list-decimal space-y-2 pl-5 text-sm text-text-secondary">
-          <li>ไปที่จุดลงเวลา (แท็บเล็ตหน้าร้าน) ที่แสดง QR</li>
-          <li>เปิดกล้องมือถือหรือแอปแสกน QR แล้วสแกนรหัสบนจอ</li>
-          <li>ระบบจะเปิดหน้านี้และบันทึกเวลาให้อัตโนมัติ</li>
-        </ol>
-        <p class="mt-3 text-xs text-text-secondary">
-          QR เปลี่ยนทุก 5 นาที — ถ้าแสกนไม่ได้ให้รอจอรีเฟรชแล้วลองใหม่
-        </p>
-      </div>
-    </section>
+      <section class="app-card app-card-section mb-4">
+        <div class="app-card-body">
+          @if (lastPunch(); as punch) {
+            <div
+              class="mb-4 rounded-input border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-center"
+              role="status"
+            >
+              <p class="text-sm text-text-secondary">{{ punch.employeeNickname }}</p>
+              <p class="text-xl font-bold text-emerald-300">{{ punch.punchTypeLabel }}</p>
+              <p class="mt-1 text-sm text-text-primary">{{ punch.punchedAtLabel }} น.</p>
+            </div>
+          }
 
-    <section class="app-card app-card-section">
-      <div class="app-card-body">
-        <h2 class="text-base font-semibold text-text-primary">รายการวันนี้ของฉัน</h2>
-        @if (me.todayPunches.length === 0) {
-          <p class="mt-3 text-sm text-text-secondary">ยังไม่มีการลงเวลาวันนี้</p>
-        } @else {
-          <ul class="mt-3 space-y-2">
-            @for (row of me.todayPunches; track $index) {
-              <li
-                class="flex items-center justify-between rounded-input border border-theme-border bg-surface px-3 py-2 text-sm"
-              >
-                <span
-                  [class]="
-                    row.punchType === 'CHECK_IN'
-                      ? 'font-medium text-emerald-300'
-                      : 'font-medium text-amber-300'
-                  "
+          @if (scanning()) {
+            <div id="attendance-qr-reader" class="attendance-qr-reader"></div>
+            <p class="mt-3 text-center text-sm text-text-secondary">ชี้กล้องไปที่ QR บนจอจุดลงเวลา</p>
+            <button type="button" class="app-btn-secondary mt-3 w-full" (click)="stopScan()">
+              ยกเลิก
+            </button>
+          } @else {
+            <button
+              type="button"
+              class="app-btn-primary w-full"
+              [disabled]="punching()"
+              (click)="startScan()"
+            >
+              {{ punching() ? 'กำลังบันทึกเวลา...' : 'แสกน QR ลงเวลา' }}
+            </button>
+            <p class="mt-3 text-center text-xs text-text-secondary">
+              QR บนจอจุดลงเวลาเปลี่ยนทุก 5 นาที
+            </p>
+          }
+
+          @if (scanError()) {
+            <p class="mt-3 text-sm text-red-400" role="alert">{{ scanError() }}</p>
+          }
+        </div>
+      </section>
+
+      <section class="app-card app-card-section">
+        <div class="app-card-body">
+          <h2 class="text-base font-semibold text-text-primary">รายการวันนี้ของฉัน</h2>
+          @if (me.todayPunches.length === 0) {
+            <p class="mt-3 text-sm text-text-secondary">ยังไม่มีการลงเวลาวันนี้</p>
+          } @else {
+            <ul class="mt-3 space-y-2">
+              @for (row of me.todayPunches; track $index) {
+                <li
+                  class="flex items-center justify-between rounded-input border border-theme-border bg-surface px-3 py-2 text-sm"
                 >
-                  {{ row.punchTypeLabel }}
-                </span>
-                <span class="text-text-secondary">{{ row.punchedAtLabel }} น.</span>
-              </li>
-            }
-          </ul>
-        }
-      </div>
-    </section>
+                  <span
+                    [class]="
+                      row.punchType === 'CHECK_IN'
+                        ? 'font-medium text-emerald-300'
+                        : 'font-medium text-amber-300'
+                    "
+                  >
+                    {{ row.punchTypeLabel }}
+                  </span>
+                  <span class="text-text-secondary">{{ row.punchedAtLabel }} น.</span>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </section>
     }
   }
 </div>
