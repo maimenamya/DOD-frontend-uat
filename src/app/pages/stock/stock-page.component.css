@@ -1,0 +1,14 @@
+/* คงเหลือ — กว้างพอสำหรับ "999 ขวด" และเว้นระยะจากปุ่มจัดการ */
+:host .app-split-table-grid col.stock-col-qty {
+  width: 11rem;
+  min-width: 11rem;
+}
+
+:host .app-split-table-grid col.stock-col-actions {
+  width: 10.5rem;
+  min-width: 10.5rem;
+}
+
+:host .stock-qty-cell {
+  padding-right: 1.25rem;
+}

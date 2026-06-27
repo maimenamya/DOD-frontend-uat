@@ -28,6 +28,7 @@ import {
   selector: 'app-stock-page',
   imports: [ReactiveFormsModule, AppModalComponent, DecimalPipe, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './stock-page.component.html',
+  styleUrl: './stock-page.component.css',
 })
 export class StockPageComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);

@@ -67,6 +67,13 @@ export const routes: Routes = [
     children: [
       { path: '', component: DashboardPageComponent },
       {
+        path: 'attendance',
+        loadComponent: () =>
+          import('./pages/attendance-check-in/attendance-check-in-page.component').then(
+            (m) => m.AttendanceCheckInPageComponent,
+          ),
+      },
+      {
         path: 'my-bills',
         component: OpenTablePageComponent,
         canActivate: [saleSelfBillGuard],

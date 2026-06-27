@@ -18,7 +18,8 @@ export type SidebarIconName =
   | 'logout'
   | 'help'
   | 'chevron-down'
-  | 'chevron-right';
+  | 'chevron-right'
+  | 'attendance';
 
 @Component({
   selector: 'app-sidebar-icon',
@@ -148,6 +149,10 @@ export type SidebarIconName =
         }
         @case ('chevron-right') {
           <path d="m9 18 6-6-6-6" />
+        }
+        @case ('attendance') {
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 6v6l4 2" />
         }
       }
     </svg>

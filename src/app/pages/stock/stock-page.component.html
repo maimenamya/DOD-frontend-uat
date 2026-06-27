@@ -101,15 +101,15 @@
     } @else {
     <section class="app-card app-card-flush">
       <div class="app-data-table-shell">
-        <div class="app-split-table">
+        <div class="app-split-table app-split-table--wide">
           <div class="app-split-table-header">
             <table class="app-data-table app-split-table-grid">
               <colgroup>
                 <col class="app-col-id" />
                 <col />
-                <col class="app-col-narrow" />
+                <col class="stock-col-qty" />
                 @if (canManage()) {
-                  <col class="app-col-actions" />
+                  <col class="stock-col-actions" />
                 }
               </colgroup>
               <thead>
@@ -129,9 +129,9 @@
               <colgroup>
                 <col class="app-col-id" />
                 <col />
-                <col class="app-col-narrow" />
+                <col class="stock-col-qty" />
                 @if (canManage()) {
-                  <col class="app-col-actions" />
+                  <col class="stock-col-actions" />
                 }
               </colgroup>
               <tbody>
@@ -139,7 +139,7 @@
                   <tr>
                     <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
                     <td class="app-cell-primary">{{ row.name }}</td>
-                    <td class="app-cell-right app-cell-highlight-violet">
+                    <td class="app-cell-right app-cell-highlight-violet stock-qty-cell">
                       {{ row.quantityOnHand | number: '1.0-0' }} {{ row.unitLabelTh }}
                     </td>
                     @if (canManage()) {
