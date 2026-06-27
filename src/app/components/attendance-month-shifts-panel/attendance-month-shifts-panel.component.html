@@ -1,0 +1,99 @@
+@if (loading()) {
+  <p class="text-text-secondary">กำลังโหลดรายการ...</p>
+} @else {
+  @if (detail(); as payload) {
+    @if (payload.expectedCheckInLabel || payload.expectedCheckOutLabel) {
+      <p class="mb-3 text-sm text-text-secondary">
+        เวลากำหนด:
+        @if (payload.expectedCheckInLabel) {
+          เข้า {{ payload.expectedCheckInLabel }}
+        }
+        @if (payload.expectedCheckOutLabel) {
+          · ออก {{ payload.expectedCheckOutLabel }}
+        }
+      </p>
+    }
+
+    @if (payload.shifts.length === 0) {
+      <p class="text-text-secondary">ไม่มีการลงเวลาในเดือนนี้</p>
+    } @else {
+      <div class="attendance-roster-modal-table app-data-table-shell">
+        <table class="app-data-table w-full min-w-[36rem]">
+          <thead>
+            <tr>
+              <th>วันที่</th>
+              <th>เข้างาน</th>
+              <th>ออกงาน</th>
+              <th class="app-cell-right">สาย (นาที)</th>
+              <th class="app-cell-right">ยอดหัก</th>
+              @if (showWaiveActions()) {
+                <th class="app-cell-right">อนุโลม</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (shift of payload.shifts; track shift.roundDateIso + shift.checkInLabel) {
+              <tr>
+                <td>{{ shift.roundDateLabel }}</td>
+                <td>{{ shift.checkInLabel ?? '—' }}</td>
+                <td>
+                  @if (shift.autoClosedForgotCheckout) {
+                    <span class="text-amber-300">ลืมแสกนออก</span>
+                  } @else if (shift.openShift) {
+                    <span class="text-amber-300">ยังไม่ออก</span>
+                  } @else {
+                    {{ shift.checkOutLabel ?? '—' }}
+                  }
+                </td>
+                <td class="app-cell-right">
+                  @if (shift.lateMinutes != null && shift.lateMinutes > 0) {
+                    {{ shift.lateMinutes }}
+                  } @else {
+                    —
+                  }
+                </td>
+                <td class="app-cell-right">
+                  @if (shift.deductionWaived && shift.rawDeductionBaht > 0) {
+                    <span class="text-emerald-300">ไม่หัก</span>
+                    <span class="ml-1 text-xs text-text-secondary line-through">
+                      {{ shift.rawDeductionBaht | number: '1.0-0' }}
+                    </span>
+                  } @else if (shift.deductionBaht > 0) {
+                    {{ shift.deductionBaht | number: '1.0-0' }}
+                  } @else {
+                    —
+                  }
+                </td>
+                @if (showWaiveActions()) {
+                  <td class="app-cell-right">
+                    @if (canWaive(shift)) {
+                      <button
+                        type="button"
+                        class="app-btn-ghost text-sm text-emerald-300"
+                        [disabled]="isWaiving(shift)"
+                        (click)="waiveDeduction.emit(shift)"
+                      >
+                        {{ isWaiving(shift) ? 'กำลังบันทึก...' : 'ไม่หัก' }}
+                      </button>
+                    } @else if (canRevoke(shift)) {
+                      <button
+                        type="button"
+                        class="app-btn-ghost text-sm text-text-secondary"
+                        [disabled]="isWaiving(shift)"
+                        (click)="revokeWaiver.emit(shift)"
+                      >
+                        {{ isWaiving(shift) ? 'กำลังบันทึก...' : 'ยกเลิกอนุโลม' }}
+                      </button>
+                    } @else {
+                      —
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+}

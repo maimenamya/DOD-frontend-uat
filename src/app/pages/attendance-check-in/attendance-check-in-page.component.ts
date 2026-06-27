@@ -8,16 +8,25 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import type { AttendanceMePayload, AttendancePunchResult } from '../../models/attendance';
+import type {
+  AttendanceEmployeeMonthPayload,
+  AttendanceMePayload,
+  AttendancePunchResult,
+} from '../../models/attendance';
 import { AttendanceService } from '../../services/attendance.service';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
+import { parseAttendanceMonthValue } from '../../utils/attendance-month.util';
 import { parseAttendancePunchTokenFromQr } from '../../utils/attendance-qr-scan.util';
+import { shopCalendarTodayInput } from '../open-table/open-table-ledger.util';
+import { AttendanceMonthPickerComponent } from '../../components/attendance-month-picker/attendance-month-picker.component';
+import { AttendanceMonthShiftsPanelComponent } from '../../components/attendance-month-shifts-panel/attendance-month-shifts-panel.component';
 
 const QR_READER_ELEMENT_ID = 'attendance-qr-reader';
 
 @Component({
   selector: 'app-attendance-check-in-page',
+  imports: [AttendanceMonthPickerComponent, AttendanceMonthShiftsPanelComponent],
   templateUrl: './attendance-check-in-page.component.html',
   styleUrl: './attendance-check-in-page.component.css',
 })
@@ -36,6 +45,9 @@ export class AttendanceCheckInPageComponent implements OnInit {
   readonly punching = signal(false);
   readonly scanError = signal<string | null>(null);
   readonly lastPunch = signal<AttendancePunchResult | null>(null);
+  readonly monthValue = signal(shopCalendarTodayInput().slice(0, 7));
+  readonly monthLoading = signal(false);
+  readonly monthPayload = signal<AttendanceEmployeeMonthPayload | null>(null);
 
   readonly nextPunchLabel = computed(() => {
     const status = this.payload()?.attendanceStatus;
@@ -53,6 +65,30 @@ export class AttendanceCheckInPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.reload();
+    this.loadMyMonth();
+  }
+
+  onMonthChange(value: string): void {
+    this.monthValue.set(value);
+    this.loadMyMonth();
+  }
+
+  private loadMyMonth(): void {
+    const parsed = parseAttendanceMonthValue(this.monthValue());
+    if (!parsed) return;
+
+    this.monthLoading.set(true);
+    this.monthPayload.set(null);
+    this.attendance.getMyMonth(parsed.year, parsed.month).subscribe({
+      next: (payload) => {
+        this.monthPayload.set(payload);
+        this.monthLoading.set(false);
+      },
+      error: () => {
+        this.toast.showError('โหลดบันทึกเวลาไม่สำเร็จ');
+        this.monthLoading.set(false);
+      },
+    });
   }
 
   reload(): void {
@@ -128,6 +164,7 @@ export class AttendanceCheckInPageComponent implements OnInit {
           this.punching.set(false);
           this.toast.showSuccess(`${result.punchTypeLabel} — ${result.punchedAtLabel} น.`);
           this.reload();
+          this.loadMyMonth();
         },
         error: (err: { error?: { error?: string } }) => {
           this.punching.set(false);

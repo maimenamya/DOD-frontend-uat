@@ -51,4 +51,47 @@ export class AttendanceService {
       `${this.api.resource('attendance', 'employee', employeeId, 'month')}?${params.toString()}`,
     );
   }
+
+  getMyMonth(year: number, month: number): Observable<AttendanceEmployeeMonthPayload> {
+    const params = new URLSearchParams({
+      year: String(year),
+      month: String(month),
+    });
+    return this.http.get<AttendanceEmployeeMonthPayload>(
+      `${this.api.resource('attendance', 'me', 'month')}?${params.toString()}`,
+    );
+  }
+
+  waiveShiftDeduction(
+    employeeId: string,
+    roundDateIso: string,
+  ): Observable<AttendanceEmployeeMonthPayload> {
+    return this.http.post<AttendanceEmployeeMonthPayload>(
+      this.api.resource(
+        'attendance',
+        'employee',
+        employeeId,
+        'shift',
+        roundDateIso,
+        'waive-deduction',
+      ),
+      {},
+    );
+  }
+
+  revokeShiftDeductionWaiver(
+    employeeId: string,
+    roundDateIso: string,
+  ): Observable<AttendanceEmployeeMonthPayload> {
+    return this.http.delete<AttendanceEmployeeMonthPayload>(
+      this.api.resource(
+        'attendance',
+        'employee',
+        employeeId,
+        'shift',
+        roundDateIso,
+        'waive-deduction',
+      ),
+    );
+  }
 }

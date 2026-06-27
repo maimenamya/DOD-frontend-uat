@@ -72,6 +72,20 @@
           }
         </div>
       </section>
+
+      <section class="app-card app-card-section">
+        <div class="app-card-body">
+          <h2 class="mb-4 text-lg font-semibold text-text-primary">บันทึกเวลาของฉัน</h2>
+          <app-attendance-month-picker
+            [monthValue]="monthValue()"
+            (monthChange)="onMonthChange($event)"
+          />
+          <app-attendance-month-shifts-panel
+            [detail]="monthPayload()"
+            [loading]="monthLoading()"
+          />
+        </div>
+      </section>
     }
   }
 </div>

@@ -118,92 +118,18 @@
       <button type="button" class="app-btn-ghost" (click)="closeModal()">✕</button>
     </div>
 
-    <div class="attendance-roster-month-picker">
-      <div class="app-form-group">
-        <label class="app-label">เดือน</label>
-        <app-custom-dropdown
-          [options]="monthOptions"
-          placeholder="เลือกเดือน"
-          [ngModel]="pickerMonth()"
-          (ngModelChange)="onPickerMonth($event)"
-        />
-      </div>
-      <div class="app-form-group">
-        <label class="app-label">ปี (พ.ศ.)</label>
-        <app-custom-dropdown
-          [options]="yearOptions()"
-          placeholder="เลือกปี"
-          [ngModel]="pickerYear()"
-          (ngModelChange)="onPickerYear($event)"
-        />
-      </div>
-    </div>
+    <app-attendance-month-picker
+      [monthValue]="monthValue()"
+      (monthChange)="onMonthChange($event)"
+    />
 
-    @if (monthLoading()) {
-      <p class="text-text-secondary">กำลังโหลดรายการ...</p>
-    } @else {
-      @if (monthPayload(); as detail) {
-        @if (detail.expectedCheckInLabel || detail.expectedCheckOutLabel) {
-          <p class="mb-3 text-sm text-text-secondary">
-            เวลากำหนด:
-            @if (detail.expectedCheckInLabel) {
-              เข้า {{ detail.expectedCheckInLabel }}
-            }
-            @if (detail.expectedCheckOutLabel) {
-              · ออก {{ detail.expectedCheckOutLabel }}
-            }
-          </p>
-        }
-
-        @if (detail.shifts.length === 0) {
-          <p class="text-text-secondary">ไม่มีการลงเวลาในเดือนนี้</p>
-        } @else {
-          <div class="attendance-roster-modal-table app-data-table-shell">
-            <table class="app-data-table w-full min-w-[36rem]">
-              <thead>
-                <tr>
-                  <th>วันที่</th>
-                  <th>เข้างาน</th>
-                  <th>ออกงาน</th>
-                  <th class="app-cell-right">สาย (นาที)</th>
-                  <th class="app-cell-right">ยอดหัก</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (shift of detail.shifts; track shift.roundDateIso + shift.checkInLabel) {
-                  <tr>
-                    <td>{{ shift.roundDateLabel }}</td>
-                    <td>{{ shift.checkInLabel ?? '—' }}</td>
-                    <td>
-                      @if (shift.autoClosedForgotCheckout) {
-                        <span class="text-amber-300">ลืมแสกนออก</span>
-                      } @else if (shift.openShift) {
-                        <span class="text-amber-300">ยังไม่ออก</span>
-                      } @else {
-                        {{ shift.checkOutLabel ?? '—' }}
-                      }
-                    </td>
-                    <td class="app-cell-right">
-                      @if (shift.lateMinutes != null && shift.lateMinutes > 0) {
-                        {{ shift.lateMinutes }}
-                      } @else {
-                        —
-                      }
-                    </td>
-                    <td class="app-cell-right">
-                      @if (shift.deductionBaht > 0) {
-                        {{ shift.deductionBaht | number: '1.0-0' }}
-                      } @else {
-                        —
-                      }
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        }
-      }
-    }
+    <app-attendance-month-shifts-panel
+      [detail]="monthPayload()"
+      [loading]="monthLoading()"
+      [showWaiveActions]="canWaiveDeduction()"
+      [waivingRoundDate]="waivingRoundDate()"
+      (waiveDeduction)="waiveDeduction($event)"
+      (revokeWaiver)="revokeWaiver($event)"
+    />
   </app-modal>
 }

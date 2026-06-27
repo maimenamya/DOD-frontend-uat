@@ -1,0 +1,20 @@
+<div class="attendance-roster-month-picker">
+  <div class="app-form-group">
+    <label class="app-label">เดือน</label>
+    <app-custom-dropdown
+      [options]="monthOptions"
+      placeholder="เลือกเดือน"
+      [ngModel]="pickerMonth()"
+      (ngModelChange)="onPickerMonth($event)"
+    />
+  </div>
+  <div class="app-form-group">
+    <label class="app-label">ปี (พ.ศ.)</label>
+    <app-custom-dropdown
+      [options]="yearOptions()"
+      placeholder="เลือกปี"
+      [ngModel]="pickerYear()"
+      (ngModelChange)="onPickerYear($event)"
+    />
+  </div>
+</div>

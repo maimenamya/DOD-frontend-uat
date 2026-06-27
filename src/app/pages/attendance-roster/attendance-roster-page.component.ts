@@ -1,21 +1,19 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
-import {
-  CustomDropdownComponent,
-  type DropdownOption,
-} from '../../components/custom-dropdown/custom-dropdown.component';
+import { AttendanceMonthPickerComponent } from '../../components/attendance-month-picker/attendance-month-picker.component';
+import { AttendanceMonthShiftsPanelComponent } from '../../components/attendance-month-shifts-panel/attendance-month-shifts-panel.component';
 import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
 import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
-import type { AttendanceEmployeeMonthPayload } from '../../models/attendance';
+import type { AttendanceEmployeeMonthPayload, AttendanceShiftRow } from '../../models/attendance';
 import type { MstEmployee } from '../../models/employee';
 import type { RoleCategory } from '../../models/role';
 import { AttendanceService } from '../../services/attendance.service';
 import { AuthService } from '../../services/auth.service';
 import { EmployeeService } from '../../services/employee.service';
 import { ToastService } from '../../services/toast.service';
+import { parseAttendanceMonthValue } from '../../utils/attendance-month.util';
 import { attendanceStatusLabel } from '../../utils/employee-status-label.util';
 import { roleDisplayNameTh } from '../../utils/employee-team.util';
 import {
@@ -27,28 +25,12 @@ import { shopCalendarTodayInput } from '../open-table/open-table-ledger.util';
 
 type RosterCategoryTab = 'STAFF' | 'ENTERTAINER';
 
-const THAI_MONTHS = [
-  'มกราคม',
-  'กุมภาพันธ์',
-  'มีนาคม',
-  'เมษายน',
-  'พฤษภาคม',
-  'มิถุนายน',
-  'กรกฎาคม',
-  'สิงหาคม',
-  'กันยายน',
-  'ตุลาคม',
-  'พฤศจิกายน',
-  'ธันวาคม',
-];
-
 @Component({
   selector: 'app-attendance-roster-page',
   imports: [
-    DecimalPipe,
-    FormsModule,
     AppModalComponent,
-    CustomDropdownComponent,
+    AttendanceMonthPickerComponent,
+    AttendanceMonthShiftsPanelComponent,
     MasterListToolbarComponent,
     ListPaginatorComponent,
   ],
@@ -69,30 +51,9 @@ export class AttendanceRosterPageComponent implements OnInit {
   readonly monthValue = signal(shopCalendarTodayInput().slice(0, 7));
   readonly monthLoading = signal(false);
   readonly monthPayload = signal<AttendanceEmployeeMonthPayload | null>(null);
+  readonly waivingRoundDate = signal<string | null>(null);
 
-  readonly monthOptions: DropdownOption[] = THAI_MONTHS.map((label, index) => ({
-    value: index + 1,
-    label,
-  }));
-
-  readonly yearOptions = computed((): DropdownOption[] => {
-    const currentYear = Number(shopCalendarTodayInput().slice(0, 4));
-    const years: DropdownOption[] = [];
-    for (let year = currentYear - 2; year <= currentYear + 1; year += 1) {
-      years.push({ value: year, label: String(year + 543) });
-    }
-    return years;
-  });
-
-  readonly pickerMonth = computed(() => {
-    const match = /^(\d{4})-(\d{2})$/.exec(this.monthValue());
-    return match ? Number(match[2]) : 1;
-  });
-
-  readonly pickerYear = computed(() => {
-    const match = /^(\d{4})-(\d{2})$/.exec(this.monthValue());
-    return match ? Number(match[1]) : Number(shopCalendarTodayInput().slice(0, 4));
-  });
+  readonly canWaiveDeduction = computed(() => this.auth.canWriteOnPage('manage_employees'));
 
   readonly filteredEmployees = computed(() => {
     const tab = this.categoryTab();
@@ -153,20 +114,6 @@ export class AttendanceRosterPageComponent implements OnInit {
     this.monthPayload.set(null);
   }
 
-  onPickerMonth(value: number | string | null): void {
-    if (value == null) return;
-    const month = Number(value);
-    if (!Number.isFinite(month) || month < 1 || month > 12) return;
-    this.onMonthChange(`${this.pickerYear()}-${String(month).padStart(2, '0')}`);
-  }
-
-  onPickerYear(value: number | string | null): void {
-    if (value == null) return;
-    const year = Number(value);
-    if (!Number.isInteger(year)) return;
-    this.onMonthChange(`${year}-${String(this.pickerMonth()).padStart(2, '0')}`);
-  }
-
   onMonthChange(value: string): void {
     this.monthValue.set(value);
     if (this.selectedEmployee()) {
@@ -174,14 +121,48 @@ export class AttendanceRosterPageComponent implements OnInit {
     }
   }
 
+  waiveDeduction(shift: AttendanceShiftRow): void {
+    const employee = this.selectedEmployee();
+    if (!employee || !this.canWaiveDeduction()) return;
+
+    this.waivingRoundDate.set(shift.roundDateIso);
+    this.attendance.waiveShiftDeduction(employee.employeeId, shift.roundDateIso).subscribe({
+      next: (payload) => {
+        this.monthPayload.set(payload);
+        this.waivingRoundDate.set(null);
+        this.toast.showSuccess('อนุโลมไม่หักแล้ว');
+      },
+      error: (err: { error?: { error?: string } }) => {
+        this.waivingRoundDate.set(null);
+        this.toast.showError(err.error?.error ?? 'อนุโลมไม่หักไม่สำเร็จ');
+      },
+    });
+  }
+
+  revokeWaiver(shift: AttendanceShiftRow): void {
+    const employee = this.selectedEmployee();
+    if (!employee || !this.canWaiveDeduction()) return;
+
+    this.waivingRoundDate.set(shift.roundDateIso);
+    this.attendance.revokeShiftDeductionWaiver(employee.employeeId, shift.roundDateIso).subscribe({
+      next: (payload) => {
+        this.monthPayload.set(payload);
+        this.waivingRoundDate.set(null);
+        this.toast.showSuccess('ยกเลิกอนุโลมแล้ว');
+      },
+      error: (err: { error?: { error?: string } }) => {
+        this.waivingRoundDate.set(null);
+        this.toast.showError(err.error?.error ?? 'ยกเลิกอนุโลมไม่สำเร็จ');
+      },
+    });
+  }
+
   private loadMonthDetail(): void {
     const employee = this.selectedEmployee();
-    const monthValue = this.monthValue().trim();
-    const match = /^(\d{4})-(\d{2})$/.exec(monthValue);
-    if (!employee || !match) return;
+    const parsed = parseAttendanceMonthValue(this.monthValue());
+    if (!employee || !parsed) return;
 
-    const year = Number(match[1]);
-    const month = Number(match[2]);
+    const { year, month } = parsed;
     this.monthLoading.set(true);
     this.monthPayload.set(null);
 
