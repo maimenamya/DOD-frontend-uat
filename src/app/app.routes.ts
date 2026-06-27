@@ -89,14 +89,6 @@ export const routes: Routes = [
         canActivate: [permissionGuard('manage_employees')],
       },
       {
-        path: 'attendance-logs',
-        loadComponent: () =>
-          import('./pages/attendance-logs/attendance-logs-page.component').then(
-            (m) => m.AttendanceLogsPageComponent,
-          ),
-        canActivate: [permissionGuard('manage_employees')],
-      },
-      {
         path: 'attendance-roster',
         loadComponent: () =>
           import('./pages/attendance-roster/attendance-roster-page.component').then(

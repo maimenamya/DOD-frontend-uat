@@ -27,9 +27,8 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
     icon: 'employees',
     children: [
       { path: '/dashboard/employees', label: 'พนักงาน' },
-      { path: '/dashboard/attendance-roster', label: 'ดูเวลาเข้างาน' },
-      { path: '/dashboard/attendance-logs', label: 'รายการลงเวลา' },
       { path: '/dashboard/master-roles', label: 'ตำแหน่ง' },
+      { path: '/dashboard/attendance-roster', label: 'บันทึกเวลาเข้างาน' },
     ],
   },
   {

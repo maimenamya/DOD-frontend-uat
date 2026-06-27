@@ -19,7 +19,8 @@ export type SidebarIconName =
   | 'help'
   | 'chevron-down'
   | 'chevron-right'
-  | 'attendance';
+  | 'attendance'
+  | 'drink-payout';
 
 @Component({
   selector: 'app-sidebar-icon',
@@ -153,6 +154,14 @@ export type SidebarIconName =
         @case ('attendance') {
           <circle cx="12" cy="12" r="10" />
           <path d="M12 6v6l4 2" />
+        }
+        @case ('drink-payout') {
+          <!-- hand offering banknote -->
+          <path d="M3 19v-4.5a2.5 2.5 0 0 1 2.5-2.5H7" />
+          <path d="M7 12.5c1.4-2.2 4.2-2.8 6.2-1.2" />
+          <path d="M12.8 12 19 9" />
+          <path d="M14 5.5 20.5 9 18.5 16.5 12 13.5 12 13.5" />
+          <circle cx="16.2" cy="12" r="1.75" />
         }
       }
     </svg>

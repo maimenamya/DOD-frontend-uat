@@ -3,7 +3,6 @@
     <div>
       <h1 class="app-page-title">ลงเวลาเข้า-ออกงาน</h1>
     </div>
-    <button type="button" class="app-btn-secondary" (click)="reload()">รีเฟรช</button>
   </div>
 
   @if (loading()) {
@@ -70,34 +69,6 @@
 
           @if (scanError()) {
             <p class="mt-3 text-sm text-red-400" role="alert">{{ scanError() }}</p>
-          }
-        </div>
-      </section>
-
-      <section class="app-card app-card-section">
-        <div class="app-card-body">
-          <h2 class="text-base font-semibold text-text-primary">รายการวันนี้ของฉัน</h2>
-          @if (me.todayPunches.length === 0) {
-            <p class="mt-3 text-sm text-text-secondary">ยังไม่มีการลงเวลาวันนี้</p>
-          } @else {
-            <ul class="mt-3 space-y-2">
-              @for (row of me.todayPunches; track $index) {
-                <li
-                  class="flex items-center justify-between rounded-input border border-theme-border bg-surface px-3 py-2 text-sm"
-                >
-                  <span
-                    [class]="
-                      row.punchType === 'CHECK_IN'
-                        ? 'font-medium text-emerald-300'
-                        : 'font-medium text-amber-300'
-                    "
-                  >
-                    {{ row.punchTypeLabel }}
-                  </span>
-                  <span class="text-text-secondary">{{ row.punchedAtLabel }} น.</span>
-                </li>
-              }
-            </ul>
           }
         </div>
       </section>

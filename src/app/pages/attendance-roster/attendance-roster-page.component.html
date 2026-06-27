@@ -1,10 +1,49 @@
 <div class="app-page">
   <div class="app-page-header">
     <div>
-      <h1 class="app-page-title">ดูเวลาเข้างาน</h1>
+      <h1 class="app-page-title">บันทึกเวลาเข้างาน</h1>
       <p class="app-page-subtitle">รายชื่อพนักงานในเครือ — แตะชื่อเพื่อดูรายละเอียดรายเดือน</p>
     </div>
   </div>
+
+  <section class="app-card mb-4 p-4">
+    <h2 class="mb-2 text-sm font-semibold text-text-primary">จุดลงเวลา (แท็บเล็ต) — แยกตามสาขา</h2>
+    <p class="text-sm text-text-secondary">
+      รูปแบบลิงก์เหมือนหน้า login:
+      <code class="text-xs">/s/&#123;รหัสสาขา&#125;/attendance-kiosk</code>
+      — ไม่ต้องล็อกอิน เปิดทิ้งบนแท็บเล็ตได้เลย แต่ละสาขามี QR คนละชุด
+    </p>
+    @if (branchKiosks().length === 0) {
+      <p class="mt-2 text-sm text-amber-300">ไม่พบลิงก์สาขา — ลองรีเฟรชหรือเข้าสู่ระบบใหม่</p>
+    } @else {
+      <ul class="mt-3 space-y-3">
+        @for (branch of branchKiosks(); track branch.shopId) {
+          <li class="rounded-input border border-theme-border bg-surface px-3 py-3">
+            <p class="font-medium text-text-primary">
+              {{ branch.branchName }}
+              @if (branch.branchCode) {
+                <span class="text-sm font-normal text-text-secondary">({{ branch.branchCode }})</span>
+              }
+            </p>
+            <div class="mt-2 flex flex-wrap items-center gap-2">
+              <a
+                class="app-btn-primary"
+                [href]="branch.url"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                เปิดจุดลงเวลา
+              </a>
+              <button type="button" class="app-btn-secondary" (click)="copyKioskUrl(branch.url)">
+                คัดลอกลิงก์
+              </button>
+            </div>
+            <p class="mt-2 break-all text-xs text-text-secondary">{{ branch.url }}</p>
+          </li>
+        }
+      </ul>
+    }
+  </section>
 
   <div class="app-filter-bar app-role-tabs" role="tablist" aria-label="กลุ่มพนักงาน">
     <button
@@ -38,39 +77,63 @@
   }
 
   @if (loading()) {
-    <p class="text-text-secondary">กำลังโหลด...</p>
+    <p class="app-loading-text">กำลังโหลด...</p>
   } @else if (listView().total === 0) {
-    <div class="app-card p-6 text-center text-text-secondary">ไม่พบพนักงานในกลุ่มนี้</div>
+    <p class="app-empty-state">ไม่พบพนักงานในกลุ่มนี้</p>
   } @else {
-    <div class="app-card overflow-x-auto">
-      <table class="app-table w-full min-w-[36rem]">
-        <thead>
-          <tr>
-            <th class="w-12">#</th>
-            <th>รหัส</th>
-            <th>ชื่อเล่น</th>
-            <th>ตำแหน่ง</th>
-            <th>สถานะวันนี้</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of listView().items; track row.id; let i = $index) {
-            <tr
-              class="cursor-pointer hover:bg-surface-elevated/60"
-              tabindex="0"
-              (click)="openEmployee(row)"
-              (keydown.enter)="openEmployee(row)"
-            >
-              <td>{{ rowNumber(i) }}</td>
-              <td>{{ row.employeeId }}</td>
-              <td>{{ row.nickname }}</td>
-              <td>{{ row.role ? (row.role.displayNameTh || row.role.name) : '—' }}</td>
-              <td>{{ statusLabel(row) }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+    <section class="app-card app-card-flush">
+      <div class="app-data-table-shell">
+        <div class="app-split-table">
+          <div class="app-split-table-header">
+            <table class="app-data-table app-split-table-grid">
+              <colgroup>
+                <col class="app-col-id" />
+                <col />
+                <col />
+                <col />
+                <col />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>รหัส</th>
+                  <th>ชื่อเล่น</th>
+                  <th>ตำแหน่ง</th>
+                  <th>สถานะวันนี้</th>
+                </tr>
+              </thead>
+            </table>
+          </div>
+          <div class="app-split-table-body app-scroll-region">
+            <table class="app-data-table app-split-table-grid">
+              <colgroup>
+                <col class="app-col-id" />
+                <col />
+                <col />
+                <col />
+                <col />
+              </colgroup>
+              <tbody>
+                @for (row of listView().items; track row.id; let i = $index) {
+                  <tr
+                    class="cursor-pointer"
+                    tabindex="0"
+                    (click)="openEmployee(row)"
+                    (keydown.enter)="openEmployee(row)"
+                  >
+                    <td class="app-cell-mono">{{ rowNumber(i) }}</td>
+                    <td class="app-cell-mono">{{ row.employeeId }}</td>
+                    <td class="app-cell-primary">{{ row.nickname }}</td>
+                    <td>{{ row.role ? (row.role.displayNameTh || row.role.name) : '—' }}</td>
+                    <td>{{ statusLabel(row) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <app-list-paginator
       class="mt-4"
@@ -131,14 +194,14 @@
         @if (detail.shifts.length === 0) {
           <p class="text-text-secondary">ไม่มีการลงเวลาในเดือนนี้</p>
         } @else {
-          <div class="max-h-[min(24rem,50vh)] overflow-y-auto">
-            <table class="app-table w-full min-w-[32rem]">
+          <div class="app-data-table-shell max-h-[min(24rem,50vh)] overflow-y-auto">
+            <table class="app-data-table w-full">
               <thead>
                 <tr>
                   <th>วันที่เข้า</th>
                   <th>เข้างาน</th>
                   <th>ออกงาน</th>
-                  <th>สาย (นาที)</th>
+                  <th class="app-cell-right">สาย (นาที)</th>
                 </tr>
               </thead>
               <tbody>
@@ -153,7 +216,7 @@
                         {{ shift.checkOutLabel ?? '—' }}
                       }
                     </td>
-                    <td>
+                    <td class="app-cell-right">
                       @if (shift.lateMinutes != null && shift.lateMinutes > 0) {
                         {{ shift.lateMinutes }}
                       } @else {

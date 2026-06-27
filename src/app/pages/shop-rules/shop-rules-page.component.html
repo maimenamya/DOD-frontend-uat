@@ -181,31 +181,44 @@
             <label class="app-label" for="expected-check-in">เวลาเข้างาน</label>
             <input
               id="expected-check-in"
-              type="time"
+              type="text"
               class="app-input"
               formControlName="expectedCheckInTime"
+              placeholder="เช่น 20:00"
+              inputmode="numeric"
+              maxlength="5"
+              autocomplete="off"
+              (blur)="normalizeTime('expectedCheckInTime')"
               [readonly]="!canManage()"
             />
+            <p class="app-field-hint">รูปแบบ 24 ชม. (ไม่ใช่ AM/PM)</p>
           </div>
           <div class="app-form-group">
             <label class="app-label" for="expected-check-out">เวลาออกงาน</label>
             <input
               id="expected-check-out"
-              type="time"
+              type="text"
               class="app-input"
               formControlName="expectedCheckOutTime"
+              placeholder="เช่น 04:00"
+              inputmode="numeric"
+              maxlength="5"
+              autocomplete="off"
+              (blur)="normalizeTime('expectedCheckOutTime')"
               [readonly]="!canManage()"
             />
+            <p class="app-field-hint">รูปแบบ 24 ชม.</p>
           </div>
         </div>
-        <label class="mt-3 flex items-center gap-2 text-sm text-text-secondary">
+        <label class="app-toggle mt-3">
           <input
             type="checkbox"
-            class="app-checkbox"
+            class="app-toggle-input"
             formControlName="expectedCheckOutNextDay"
             [disabled]="!canManage()"
           />
-          ออกงานวันถัดไป (กะข้ามเที่ยงคืน)
+          <span class="app-toggle-track" aria-hidden="true"></span>
+          <span class="app-toggle-text text-sm">ออกงานวันถัดไป (กะข้ามเที่ยงคืน)</span>
         </label>
       </section>
 

@@ -18,6 +18,7 @@ import {
   highlightInvalidForm,
   resetFormValidationFlag,
 } from '../../utils/form-validation.util';
+import { isValidShopTimeHm, normalizeShopTimeHm } from '../../utils/shop-time.util';
 
 type TierField =
   | 'seatDrinkTier15Drinks'
@@ -92,9 +93,24 @@ export class ShopRulesPageComponent implements OnInit {
     control.markAsDirty();
   }
 
+  normalizeTime(field: 'expectedCheckInTime' | 'expectedCheckOutTime'): void {
+    const control = this.form.controls[field];
+    control.setValue(normalizeShopTimeHm(control.value));
+  }
+
   submit(): void {
     if (!this.canManage()) return;
     resetFormValidationFlag(this.formValidated);
+    this.normalizeTime('expectedCheckInTime');
+    this.normalizeTime('expectedCheckOutTime');
+
+    const checkIn = this.form.controls.expectedCheckInTime.value.trim();
+    const checkOut = this.form.controls.expectedCheckOutTime.value.trim();
+    if (!isValidShopTimeHm(checkIn) || !isValidShopTimeHm(checkOut)) {
+      this.toast.showError('เวลาเข้า-ออกงานต้องเป็นรูปแบบ 24 ชม. เช่น 20:00');
+      return;
+    }
+
     if (highlightInvalidForm(this.form, this.formValidated, this.toast)) return;
 
     this.submitting.set(true);
