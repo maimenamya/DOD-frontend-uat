@@ -70,6 +70,7 @@ import { closeOpenShopFlatpickrCalendars } from '../../utils/flatpickr-shop.util
 import {
   CHECKOUT_PAYMENT_METHOD_OPTIONS,
   billPaymentMethodLabel,
+  isBillPaymentMethod,
   type BillPaymentMethod,
 } from '../../utils/bill-payment-method.util';
 import { compareRolesByThaiLabel, roleOptionLabel } from '../../utils/role-display.util';
@@ -108,6 +109,8 @@ type SeatTile = {
   reservedCreditSaleToShop?: boolean;
   reservedOperatorName?: string | null;
   guestCount?: number | null;
+  creditSaleToShop?: boolean;
+  operatorSaleName?: string | null;
   previewTotalAmount?: number | null;
   openDurationLabel?: string | null;
   reservedTimeLabel?: string | null;
@@ -201,6 +204,11 @@ export class OpenTablePageComponent implements OnInit {
   readonly showEditStaffDrinkModal = signal(false);
   readonly showPackageBottleModal = signal(false);
   readonly showCheckoutModal = signal(false);
+  readonly showEditGuestCountModal = signal(false);
+  readonly showEditCreditSaleModal = signal(false);
+  readonly editGuestCountText = signal('1');
+  readonly editCreditSaleToShop = signal(false);
+  readonly sessionInfoEditTarget = signal<SeatTile | null>(null);
   readonly checkoutAt = signal(currentDatetimeLocalValue());
   readonly checkoutPaymentMethod = signal<BillPaymentMethod>('CASH');
   readonly checkoutPaymentMethodOptions = CHECKOUT_PAYMENT_METHOD_OPTIONS;
@@ -435,7 +443,9 @@ export class OpenTablePageComponent implements OnInit {
       this.showDeleteStaffDrinkModal() ||
       this.showEditStaffDrinkModal() ||
       this.showPackageBottleModal() ||
-      this.showCheckoutModal(),
+      this.showCheckoutModal() ||
+      this.showEditGuestCountModal() ||
+      this.showEditCreditSaleModal(),
   );
 
   /** มีลูกค้า = ยังเปิดบิลอยู่ (ไม่อิง API flag อย่างเดียว) */
@@ -996,6 +1006,8 @@ export class OpenTablePageComponent implements OnInit {
             reservedCreditSaleToShop: s.reservedCreditSaleToShop ?? false,
             reservedOperatorName: s.reservedOperatorName ?? null,
             guestCount: s.guestCount ?? null,
+            creditSaleToShop: s.creditSaleToShop ?? false,
+            operatorSaleName: s.operatorSaleName ?? null,
             previewTotalAmount: s.previewTotalAmount ?? null,
             openDurationLabel: s.openDurationLabel ?? null,
             reservedTimeLabel: s.reservedTimeLabel ?? null,
@@ -1149,6 +1161,9 @@ export class OpenTablePageComponent implements OnInit {
               ...s,
               sessionRevision: detail.revision,
               guestCount: detail.guestCount ?? s.guestCount ?? null,
+              creditSaleToShop: detail.creditSaleToShop ?? s.creditSaleToShop ?? false,
+              saleName: detail.saleName ?? s.saleName,
+              operatorSaleName: detail.operatorSaleName ?? s.operatorSaleName ?? null,
               previewTotalAmount: detail.totalAmount,
             }
           : s,
@@ -1913,6 +1928,119 @@ export class OpenTablePageComponent implements OnInit {
       return `${seat.guestCount} คน`;
     }
     return '—';
+  }
+
+  seatCanEditSessionInfo(seat: SeatTile | null | undefined): boolean {
+    return seat?.status === 'OCCUPIED' && seat.sessionId != null;
+  }
+
+  openEditGuestCountFromSeat(event: Event, seat: SeatTile): void {
+    event.stopPropagation();
+    if (!this.seatCanEditSessionInfo(seat)) return;
+    this.sessionInfoEditTarget.set(seat);
+    this.editGuestCountText.set(
+      seat.guestCount != null && seat.guestCount > 0 ? String(seat.guestCount) : '1',
+    );
+    this.showEditGuestCountModal.set(true);
+  }
+
+  openEditCreditSaleFromSeat(event: Event, seat: SeatTile): void {
+    event.stopPropagation();
+    if (!this.seatCanEditSessionInfo(seat)) return;
+    this.sessionInfoEditTarget.set(seat);
+    this.editCreditSaleToShop.set(seat.creditSaleToShop ?? false);
+    this.showEditCreditSaleModal.set(true);
+  }
+
+  openEditGuestCountFromPanel(): void {
+    const seat = this.selectedSeat();
+    if (!this.seatCanEditSessionInfo(seat)) return;
+    this.sessionInfoEditTarget.set(seat);
+    const count =
+      this.sessionDetail()?.guestCount ?? seat?.guestCount ?? null;
+    this.editGuestCountText.set(count != null && count > 0 ? String(count) : '1');
+    this.showEditGuestCountModal.set(true);
+  }
+
+  openEditCreditSaleFromPanel(): void {
+    const seat = this.selectedSeat();
+    if (!this.seatCanEditSessionInfo(seat)) return;
+    this.sessionInfoEditTarget.set(seat);
+    this.editCreditSaleToShop.set(
+      this.sessionDetail()?.creditSaleToShop ?? seat?.creditSaleToShop ?? false,
+    );
+    this.showEditCreditSaleModal.set(true);
+  }
+
+  closeEditGuestCountModal(): void {
+    this.showEditGuestCountModal.set(false);
+    this.sessionInfoEditTarget.set(null);
+  }
+
+  closeEditCreditSaleModal(): void {
+    this.showEditCreditSaleModal.set(false);
+    this.sessionInfoEditTarget.set(null);
+  }
+
+  onEditGuestCountInput(value: string): void {
+    this.editGuestCountText.set(sanitizeDigitsOnly(value));
+  }
+
+  onEditGuestCountKeydown(event: KeyboardEvent): void {
+    blockNonNumericInputKey(event);
+  }
+
+  submitEditGuestCount(): void {
+    const seat = this.sessionInfoEditTarget() ?? this.selectedSeat();
+    const sessionId = seat?.sessionId;
+    const expectedRevision = seat?.sessionRevision ?? this.expectedRevision();
+    const guestCount = parsePositiveIntFromText(this.editGuestCountText());
+    if (!sessionId || expectedRevision == null) {
+      this.toast.showError('กรุณารอโหลดบิลโต๊ะสักครู่');
+      return;
+    }
+    if (guestCount == null || guestCount < 1) {
+      this.toast.showError('กรุณาระบุจำนวนลูกค้า');
+      return;
+    }
+    this.runAction(
+      this.openTableService.updateSessionInfo({
+        shopId: this.shopId,
+        sessionId,
+        expectedRevision,
+        guestCount,
+      }),
+      'บันทึกจำนวนลูกค้าแล้ว',
+      (detail) => {
+        this.closeEditGuestCountModal();
+        this.applyBillDetailAfterMutation(detail, sessionId);
+        this.refreshFloorPlan(this.selectedSeatKey(), { silent: true });
+      },
+    );
+  }
+
+  submitEditCreditSale(): void {
+    const seat = this.sessionInfoEditTarget() ?? this.selectedSeat();
+    const sessionId = seat?.sessionId;
+    const expectedRevision = seat?.sessionRevision ?? this.expectedRevision();
+    if (!sessionId || expectedRevision == null) {
+      this.toast.showError('กรุณารอโหลดบิลโต๊ะสักครู่');
+      return;
+    }
+    this.runAction(
+      this.openTableService.updateSessionInfo({
+        shopId: this.shopId,
+        sessionId,
+        expectedRevision,
+        creditSaleToShop: this.editCreditSaleToShop(),
+      }),
+      'บันทึกยอดเข้าร้านแล้ว',
+      (detail) => {
+        this.closeEditCreditSaleModal();
+        this.applyBillDetailAfterMutation(detail, sessionId);
+        this.refreshFloorPlan(this.selectedSeatKey(), { silent: true });
+      },
+    );
   }
 
   seatCardShowsStatusDot(status: SeatStatus): boolean {
@@ -2951,7 +3079,7 @@ export class OpenTablePageComponent implements OnInit {
 
   onCheckoutPaymentMethodChange(value: number | string | null): void {
     const method = String(value ?? '').trim().toUpperCase();
-    if (method === 'CASH' || method === 'PROMPTPAY' || method === 'CREDIT_CARD') {
+    if (isBillPaymentMethod(method)) {
       this.checkoutPaymentMethod.set(method);
     }
   }

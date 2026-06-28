@@ -16,6 +16,8 @@ export type FloorPlanSeat = {
   reservedCreditSaleToShop?: boolean;
   reservedOperatorName?: string | null;
   guestCount?: number | null;
+  creditSaleToShop?: boolean;
+  operatorSaleName?: string | null;
   previewTotalAmount?: number | null;
   openDurationLabel?: string | null;
   reservedTimeLabel?: string | null;
@@ -246,6 +248,11 @@ export type CheckInPayload = {
   creditSaleToShop?: boolean;
 };
 
+export type UpdateSessionInfoPayload = SessionMutationBase & {
+  guestCount?: number;
+  creditSaleToShop?: boolean;
+};
+
 export type ReserveSeatPayload = {
   shopId: number;
   seatingId: number;
@@ -306,7 +313,7 @@ export type CheckoutPreviewPayload = {
   checkedOutAt: string;
 };
 
-export type BillPaymentMethod = 'CASH' | 'PROMPTPAY' | 'CREDIT_CARD';
+export type BillPaymentMethod = 'CASH' | 'PROMPTPAY' | 'CREDIT_CARD' | 'PENDING_PAYMENT';
 
 export type CheckoutPayload = SessionMutationBase & {
   checkedOutAt: string;

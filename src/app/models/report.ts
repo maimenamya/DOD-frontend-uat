@@ -24,7 +24,7 @@ export interface ReportBillRow {
   paymentMethodLabel?: string;
 }
 
-export type BillPaymentMethod = 'CASH' | 'PROMPTPAY' | 'CREDIT_CARD';
+export type BillPaymentMethod = 'CASH' | 'PROMPTPAY' | 'CREDIT_CARD' | 'PENDING_PAYMENT';
 
 export interface ReportBillBySale {
   saleEmployeeId: string;

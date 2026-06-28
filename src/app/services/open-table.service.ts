@@ -14,6 +14,7 @@ import type {
   CheckoutPreview,
   CheckoutResult,
   ReleaseCustomerPayload,
+  UpdateSessionInfoPayload,
   OpenTableFloorPlan,
   OpenTableSessionDetail,
   AddRoomChargePayload,
@@ -58,6 +59,13 @@ export class OpenTableService {
   cancelReservation(payload: CancelReservationPayload): Observable<{ ok: boolean }> {
     return this.http.post<{ ok: boolean }>(
       this.api.resource('open-table', 'cancel-reservation'),
+      payload,
+    );
+  }
+
+  updateSessionInfo(payload: UpdateSessionInfoPayload): Observable<OpenTableSessionDetail> {
+    return this.http.post<OpenTableSessionDetail>(
+      this.api.resource('open-table', 'update-session-info'),
       payload,
     );
   }

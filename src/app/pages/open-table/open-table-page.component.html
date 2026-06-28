@@ -208,7 +208,42 @@
                       (click)="selectSeat(seat)"
                     >
                       <div class="open-table-seat-card__head">
-                        <p class="open-table-seat-card__code">{{ seat.code }}</p>
+                        <div class="open-table-seat-card__head-top">
+                          <p class="open-table-seat-card__code">{{ seat.code }}</p>
+                          @if (seatCanEditSessionInfo(seat)) {
+                            <div class="ml-auto inline-flex shrink-0 items-center gap-0.5">
+                              <button
+                                type="button"
+                                class="inline-flex items-center justify-center rounded p-0.5 text-slate-400 hover:bg-white/5 hover:text-slate-200"
+                                aria-label="แก้จำนวนลูกค้า"
+                                title="แก้จำนวนลูกค้า"
+                                (click)="openEditGuestCountFromSeat($event, seat)"
+                              >
+                                <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                  <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+                                </svg>
+                              </button>
+                              <button
+                                type="button"
+                                class="inline-flex items-center justify-center rounded p-0.5 hover:bg-white/5"
+                                [class.text-amber-400]="seat.creditSaleToShop"
+                                [class.text-slate-400]="!seat.creditSaleToShop"
+                                [class.hover:text-slate-200]="!seat.creditSaleToShop"
+                                aria-label="แก้ยอดเข้าร้าน"
+                                title="แก้ยอดเข้าร้าน"
+                                (click)="openEditCreditSaleFromSeat($event, seat)"
+                              >
+                                <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                  <path
+                                    fill-rule="evenodd"
+                                    d="M8.34 1.804A1 1 0 019.82 1h.36a1 1 0 01.98.804l.295 1.473c.497.144.971.361 1.416.629l1.358-1.118a1 1 0 011.27.118l.254.254a1 1 0 01.118 1.27l-1.118 1.358c.268.445.485.919.629 1.416l1.473.294a1 1 0 01.804.98v.361a1 1 0 01-.804.98l-1.473.295a6.47 6.47 0 00-.629 1.416l1.118 1.358a1 1 0 01-.118 1.27l-.254.254a1 1 0 01-1.27.118l-1.358-1.118a6.47 6.47 0 00-1.416.629l-.294 1.473a1 1 0 01-.98.804h-.361a1 1 0 01-.98-.804l-.295-1.473a6.47 6.47 0 00-1.416-.629l-1.358 1.118a1 1 0 01-1.27-.118l-.254-.254a1 1 0 01-.118-1.27l1.118-1.358a6.47 6.47 0 00-.629-1.416l-1.473-.294A1 1 0 012.18 9.82v-.36a1 1 0 01.804-.98l1.473-.295c.144-.497.361-.971.629-1.416L3.964 5.41a1 1 0 01.118-1.27l.254-.254a1 1 0 011.27-.118l1.358 1.118c.445-.268.919-.485 1.416-.629l.294-1.473zM13 9a4 4 0 11-8 0 4 4 0 018 0z"
+                                    clip-rule="evenodd"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                          }
+                        </div>
                         @if (seatCardShowsStatusDot(seat.status)) {
                           <p class="open-table-seat-card__status open-table-seat-card__status--dot">
                             <span class="open-table-status-dot open-table-status-dot--available" aria-hidden="true"></span>
@@ -313,8 +348,41 @@
       @if (selectedSeat(); as seat) {
         <div class="flex items-start justify-between gap-3 border-b border-theme-border pb-3">
           <div class="min-w-0">
-            <h3 class="flex items-center gap-2 text-base font-semibold text-text-primary">
+            <h3 class="flex flex-wrap items-center gap-2 text-base font-semibold text-text-primary">
               <span>{{ seat.zoneLabel }} · {{ seat.code }}</span>
+              @if (seatCanEditSessionInfo(seat)) {
+                <span class="inline-flex items-center gap-0.5">
+                  <button
+                    type="button"
+                    class="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-text-secondary hover:border-primary/35 hover:text-text-primary"
+                    aria-label="แก้จำนวนลูกค้า"
+                    title="แก้จำนวนลูกค้า"
+                    (click)="openEditGuestCountFromPanel()"
+                  >
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    class="inline-flex items-center justify-center rounded-md border border-transparent p-1 hover:border-primary/35"
+                    [class.text-amber-500]="sessionDetail()?.creditSaleToShop ?? seat.creditSaleToShop"
+                    [class.text-text-secondary]="!(sessionDetail()?.creditSaleToShop ?? seat.creditSaleToShop)"
+                    [class.hover:text-text-primary]="!(sessionDetail()?.creditSaleToShop ?? seat.creditSaleToShop)"
+                    aria-label="แก้ยอดเข้าร้าน"
+                    title="แก้ยอดเข้าร้าน"
+                    (click)="openEditCreditSaleFromPanel()"
+                  >
+                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path
+                        fill-rule="evenodd"
+                        d="M8.34 1.804A1 1 0 019.82 1h.36a1 1 0 01.98.804l.295 1.473c.497.144.971.361 1.416.629l1.358-1.118a1 1 0 011.27.118l.254.254a1 1 0 01.118 1.27l-1.118 1.358c.268.445.485.919.629 1.416l1.473.294a1 1 0 01.804.98v.361a1 1 0 01-.804.98l-1.473.295a6.47 6.47 0 00-.629 1.416l1.118 1.358a1 1 0 01-.118 1.27l-.254.254a1 1 0 01-1.27.118l-1.358-1.118a6.47 6.47 0 00-1.416.629l-.294 1.473a1 1 0 01-.98.804h-.361a1 1 0 01-.98-.804l-.295-1.473a6.47 6.47 0 00-1.416-.629l-1.358 1.118a1 1 0 01-1.27-.118l-.254-.254a1 1 0 01-.118-1.27l1.118-1.358a6.47 6.47 0 00-.629-1.416l-1.473-.294A1 1 0 012.18 9.82v-.36a1 1 0 01.804-.98l1.473-.295c.144-.497.361-.971.629-1.416L3.964 5.41a1 1 0 01.118-1.27l.254-.254a1 1 0 011.27-.118l1.358 1.118c.445-.268.919-.485 1.416-.629l.294-1.473zM13 9a4 4 0 11-8 0 4 4 0 018 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </span>
+              }
               <span [ngClass]="statusDotClass(seat.status)" aria-hidden="true"></span>
               <span class="sr-only">{{ statusText(seat.status) }}</span>
             </h3>
@@ -1660,6 +1728,68 @@
       >
         {{ actionBusy() ? 'กำลังบันทึก...' : 'ยืนยันคืน' }}
       </button>
+    </div>
+  </app-modal>
+}
+
+@if (showEditGuestCountModal()) {
+  <app-modal layout="center" [pinCenterOnMobile]="true" (dismiss)="closeEditGuestCountModal()">
+    <div class="app-modal-header">
+      <h2 class="app-modal-title">แก้จำนวนลูกค้า</h2>
+      <button type="button" class="app-btn-ghost" (click)="closeEditGuestCountModal()">✕</button>
+    </div>
+    <div class="app-form-stack">
+      <div class="app-form-group">
+        <label class="app-label" for="edit-guest-count">จำนวนลูกค้า</label>
+        <input
+          id="edit-guest-count"
+          type="text"
+          inputmode="numeric"
+          class="app-input"
+          [value]="editGuestCountText()"
+          (input)="onEditGuestCountInput($any($event.target).value)"
+          (keydown)="onEditGuestCountKeydown($event)"
+          placeholder="เช่น 3"
+        />
+      </div>
+      <div class="app-form-actions">
+        <button type="button" class="app-btn-secondary" (click)="closeEditGuestCountModal()">ยกเลิก</button>
+        <button type="button" class="app-btn-primary" [disabled]="actionBusy()" (click)="submitEditGuestCount()">
+          {{ actionBusy() ? 'กำลังบันทึก...' : 'บันทึก' }}
+        </button>
+      </div>
+    </div>
+  </app-modal>
+}
+
+@if (showEditCreditSaleModal()) {
+  <app-modal layout="center" [pinCenterOnMobile]="true" (dismiss)="closeEditCreditSaleModal()">
+    <div class="app-modal-header">
+      <h2 class="app-modal-title">แก้ยอดเข้าร้าน</h2>
+      <button type="button" class="app-btn-ghost" (click)="closeEditCreditSaleModal()">✕</button>
+    </div>
+    <div class="app-form-stack">
+      <label class="app-toggle">
+        <input
+          type="checkbox"
+          class="app-toggle-input"
+          [ngModel]="editCreditSaleToShop()"
+          (ngModelChange)="editCreditSaleToShop.set($event)"
+        />
+        <span class="app-toggle-track" aria-hidden="true"></span>
+        <span class="app-toggle-text text-sm">
+          ยอดเข้าร้าน (ไม่นับยอดเซลล์ที่เลือก)
+        </span>
+      </label>
+      <p class="app-field-hint">
+        เปิดเมื่อยอดบิลนี้นับเข้าร้าน ไม่นับ KPI เซลล์ที่เปิดโต๊ะ — แก้ได้ก่อนเช็กบิล
+      </p>
+      <div class="app-form-actions">
+        <button type="button" class="app-btn-secondary" (click)="closeEditCreditSaleModal()">ยกเลิก</button>
+        <button type="button" class="app-btn-primary" [disabled]="actionBusy()" (click)="submitEditCreditSale()">
+          {{ actionBusy() ? 'กำลังบันทึก...' : 'บันทึก' }}
+        </button>
+      </div>
     </div>
   </app-modal>
 }
