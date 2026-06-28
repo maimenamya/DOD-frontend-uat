@@ -202,44 +202,6 @@
         </section>
 
         <section class="app-card shop-rules-section">
-          <h2 class="shop-rules-section-title">ค่าดื่ม — ส่วนแบ่งร้าน / พนักงาน</h2>
-        <div class="shop-rules-attendance-grid">
-          <div class="app-form-group">
-            <label class="app-label">หักดื่มเข้าร้าน</label>
-            <div class="app-number-stepper">
-              <button
-                type="button"
-                class="app-number-stepper-btn"
-                [disabled]="!canManage() || submitting()"
-                (click)="stepMoney('drinkShopPortionBaht', -10)"
-                aria-label="ลดหักดื่มเข้าร้าน"
-              >
-                −
-              </button>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                class="app-input app-input-number app-number-stepper-input"
-                formControlName="drinkShopPortionBaht"
-                [readonly]="!canManage()"
-              />
-              <button
-                type="button"
-                class="app-number-stepper-btn"
-                [disabled]="!canManage() || submitting()"
-                (click)="stepMoney('drinkShopPortionBaht', 10)"
-                aria-label="เพิ่มหักดื่มเข้าร้าน"
-              >
-                +
-              </button>
-            </div>
-            <p class="app-field-hint">บาท / ดื่ม</p>
-          </div>
-        </div>
-        </section>
-
-        <section class="app-card shop-rules-section">
           <h2 class="shop-rules-section-title">มาสาย / ขาด</h2>
         <div class="shop-rules-attendance-grid">
           <div class="app-form-group">

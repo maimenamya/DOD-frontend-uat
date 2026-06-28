@@ -61,6 +61,8 @@ function rolesFromEmployees(employees: MstEmployee[]): MstRole[] {
         startDrinks: role.startDrinks ?? 0,
         nextHourDrinks: role.nextHourDrinks ?? 0,
         defaultPricePerDrink: role.defaultPricePerDrink ?? 0,
+        drinkShopPortionBaht: role.drinkShopPortionBaht ?? 60,
+        permissionGroup: role.permissionGroup ?? 'EMPLOYEE',
       });
     }
   }

@@ -40,7 +40,6 @@ export class DrinkPayoutPageComponent implements OnInit {
   readonly customTo = signal('');
   readonly rangeLabelFrom = signal('');
   readonly rangeLabelTo = signal('');
-  readonly drinkShopPortionBaht = signal(60);
 
   readonly freelanceRows = signal<FreelanceDrinkPayoutRow[]>([]);
   readonly tagRows = signal<TagDrinkPayoutRow[]>([]);
@@ -116,7 +115,6 @@ export class DrinkPayoutPageComponent implements OnInit {
         this.tagRows.set(data.tagRows);
         this.freelanceUnpaidTotal.set(data.freelanceUnpaidTotal);
         this.tagUnpaidTotal.set(data.tagUnpaidTotal);
-        this.drinkShopPortionBaht.set(data.drinkShopPortionBaht);
         this.rangeLabelFrom.set(data.fromDate);
         this.rangeLabelTo.set(data.toDate);
         this.loading.set(false);
@@ -189,7 +187,6 @@ export class DrinkPayoutPageComponent implements OnInit {
     tagRows: TagDrinkPayoutRow[];
     freelanceUnpaidTotal: number;
     tagUnpaidTotal: number;
-    drinkShopPortionBaht: number;
     fromDate: string;
     toDate: string;
   }): void {
@@ -197,7 +194,6 @@ export class DrinkPayoutPageComponent implements OnInit {
     this.tagRows.set(data.tagRows);
     this.freelanceUnpaidTotal.set(data.freelanceUnpaidTotal);
     this.tagUnpaidTotal.set(data.tagUnpaidTotal);
-    this.drinkShopPortionBaht.set(data.drinkShopPortionBaht);
     this.rangeLabelFrom.set(data.fromDate);
     this.rangeLabelTo.set(data.toDate);
   }

@@ -41,7 +41,6 @@ export interface TagDrinkPayoutRow {
 export interface DrinkPayoutDashboard {
   freelanceRows: FreelanceDrinkPayoutRow[];
   tagRows: TagDrinkPayoutRow[];
-  drinkShopPortionBaht: number;
   fromDate: string;
   toDate: string;
   freelanceUnpaidTotal: number;

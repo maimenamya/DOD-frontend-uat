@@ -23,6 +23,7 @@ export interface MstEmployee {
     startDrinks?: number;
     nextHourDrinks?: number;
     defaultPricePerDrink?: number;
+    drinkShopPortionBaht?: number;
     createdAt?: string;
   };
   shopId: number;

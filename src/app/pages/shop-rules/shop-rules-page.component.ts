@@ -55,7 +55,6 @@ export class ShopRulesPageComponent implements OnInit {
     expectedCheckOutNextDay: [true],
     autoCloseCutoffTime: [''],
     forgotCheckOutDeductionBaht: [0, [Validators.required, Validators.min(0)]],
-    drinkShopPortionBaht: [60, [Validators.required, Validators.min(0)]],
   });
 
   ngOnInit(): void {
@@ -85,11 +84,7 @@ export class ShopRulesPageComponent implements OnInit {
   }
 
   stepMoney(
-    field:
-      | 'lateFinePerMinuteBaht'
-      | 'absenceDeductionBaht'
-      | 'forgotCheckOutDeductionBaht'
-      | 'drinkShopPortionBaht',
+    field: 'lateFinePerMinuteBaht' | 'absenceDeductionBaht' | 'forgotCheckOutDeductionBaht',
     delta: number,
   ): void {
     if (!this.canManage()) return;
@@ -164,7 +159,6 @@ export class ShopRulesPageComponent implements OnInit {
       expectedCheckOutNextDay: config.expectedCheckOutNextDay ?? true,
       autoCloseCutoffTime: config.autoCloseCutoffTime ?? '',
       forgotCheckOutDeductionBaht: config.forgotCheckOutDeductionBaht ?? 0,
-      drinkShopPortionBaht: config.drinkShopPortionBaht,
     });
     if (!this.canManage()) {
       this.form.disable();

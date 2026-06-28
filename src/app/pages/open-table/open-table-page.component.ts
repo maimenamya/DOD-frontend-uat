@@ -896,6 +896,7 @@ export class OpenTablePageComponent implements OnInit {
         startDrinks: role.startDrinks ?? 0,
         nextHourDrinks: role.nextHourDrinks ?? 0,
         defaultPricePerDrink: role.defaultPricePerDrink ?? 0,
+        drinkShopPortionBaht: role.drinkShopPortionBaht ?? 60,
       });
     }
     return roles.sort(compareRolesByThaiLabel);

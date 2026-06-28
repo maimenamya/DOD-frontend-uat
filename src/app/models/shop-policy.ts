@@ -13,8 +13,6 @@ export interface ShopPolicyConfig {
   expectedCheckOutNextDay: boolean;
   autoCloseCutoffTime: string | null;
   forgotCheckOutDeductionBaht: number;
-  /** บาท/ดื่มที่หักเข้าร้าน */
-  drinkShopPortionBaht: number;
 }
 
 export type ShopPolicyInput = Omit<ShopPolicyConfig, 'shopId'>;

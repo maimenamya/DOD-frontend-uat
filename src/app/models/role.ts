@@ -29,6 +29,7 @@ export interface MstRole {
   startDrinks: number;
   nextHourDrinks: number;
   defaultPricePerDrink: number;
+  drinkShopPortionBaht: number;
   drinkAccrualMode?: DrinkAccrualMode;
   drinkAccrualRounding?: DrinkAccrualRounding;
   createdAt?: string;
@@ -42,6 +43,7 @@ export interface MstRoleWritePayload {
   startDrinks: number;
   nextHourDrinks: number;
   defaultPricePerDrink: number;
+  drinkShopPortionBaht: number;
   drinkAccrualMode?: DrinkAccrualMode;
   drinkAccrualRounding?: DrinkAccrualRounding;
 }

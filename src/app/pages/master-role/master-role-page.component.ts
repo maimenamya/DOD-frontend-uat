@@ -120,6 +120,7 @@ export class MasterRolePageComponent implements OnInit {
       startDrinks: '0',
       nextHourDrinks: '0',
       defaultPricePerDrink: '0',
+      drinkShopPortionBaht: '60',
     });
     this.showCreateModal.set(true);
   }
@@ -140,6 +141,7 @@ export class MasterRolePageComponent implements OnInit {
       startDrinks: String(role.startDrinks),
       nextHourDrinks: String(role.nextHourDrinks),
       defaultPricePerDrink: String(role.defaultPricePerDrink),
+      drinkShopPortionBaht: String(role.drinkShopPortionBaht ?? 60),
     });
     this.editingRole.set(role);
     if (lockPermissionGroup) {
@@ -229,7 +231,7 @@ export class MasterRolePageComponent implements OnInit {
 
   sanitizeIntegerInput(
     form: 'create' | 'edit',
-    controlName: 'startDrinks' | 'nextHourDrinks' | 'defaultPricePerDrink',
+    controlName: 'startDrinks' | 'nextHourDrinks' | 'defaultPricePerDrink' | 'drinkShopPortionBaht',
     event: Event,
   ): void {
     const input = event.target as HTMLInputElement;
@@ -247,6 +249,7 @@ export class MasterRolePageComponent implements OnInit {
       startDrinks: ['0', [Validators.pattern(/^\d+$/)]],
       nextHourDrinks: ['0', [Validators.pattern(/^\d+$/)]],
       defaultPricePerDrink: ['0', [Validators.pattern(/^\d+$/)]],
+      drinkShopPortionBaht: ['60', [Validators.pattern(/^\d+$/)]],
     });
   }
 
@@ -274,6 +277,9 @@ export class MasterRolePageComponent implements OnInit {
     form.controls.defaultPricePerDrink.setValidators(requiredPattern);
     form.controls.defaultPricePerDrink.updateValueAndValidity({ emitEvent: false });
 
+    form.controls.drinkShopPortionBaht.setValidators(requiredPattern);
+    form.controls.drinkShopPortionBaht.updateValueAndValidity({ emitEvent: false });
+
     const startDrinks = form.controls.startDrinks;
     startDrinks.setValidators(isEntertainer ? requiredPattern : optionalPattern);
     startDrinks.updateValueAndValidity({ emitEvent: false });
@@ -296,6 +302,7 @@ export class MasterRolePageComponent implements OnInit {
       startDrinks: Number.parseInt(isEntertainer ? raw.startDrinks : '0', 10),
       nextHourDrinks: Number.parseInt(isEntertainer ? raw.nextHourDrinks : '0', 10),
       defaultPricePerDrink: Number.parseInt(raw.defaultPricePerDrink, 10),
+      drinkShopPortionBaht: Number.parseInt(raw.drinkShopPortionBaht, 10),
     };
   }
 }
