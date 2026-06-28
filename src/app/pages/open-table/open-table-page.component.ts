@@ -1934,24 +1934,6 @@ export class OpenTablePageComponent implements OnInit {
     return seat?.status === 'OCCUPIED' && seat.sessionId != null;
   }
 
-  openEditGuestCountFromSeat(event: Event, seat: SeatTile): void {
-    event.stopPropagation();
-    if (!this.seatCanEditSessionInfo(seat)) return;
-    this.sessionInfoEditTarget.set(seat);
-    this.editGuestCountText.set(
-      seat.guestCount != null && seat.guestCount > 0 ? String(seat.guestCount) : '1',
-    );
-    this.showEditGuestCountModal.set(true);
-  }
-
-  openEditCreditSaleFromSeat(event: Event, seat: SeatTile): void {
-    event.stopPropagation();
-    if (!this.seatCanEditSessionInfo(seat)) return;
-    this.sessionInfoEditTarget.set(seat);
-    this.editCreditSaleToShop.set(seat.creditSaleToShop ?? false);
-    this.showEditCreditSaleModal.set(true);
-  }
-
   openEditGuestCountFromPanel(): void {
     const seat = this.selectedSeat();
     if (!this.seatCanEditSessionInfo(seat)) return;
