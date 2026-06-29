@@ -3,15 +3,20 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ApiConfig } from '../core/api-config';
-import type { MstOtherCharge, MstOtherChargeWritePayload } from '../models/other-charge';
+import type {
+  MstOtherCharge,
+  MstOtherChargeWritePayload,
+  OtherChargeGroup,
+} from '../models/other-charge';
 
 @Injectable({ providedIn: 'root' })
 export class OtherChargeService {
   private readonly http = inject(HttpClient);
   private readonly api = inject(ApiConfig);
 
-  getAll(): Observable<MstOtherCharge[]> {
-    return this.http.get<MstOtherCharge[]>(this.api.resource('other-charges'));
+  getAll(chargeGroup?: OtherChargeGroup): Observable<MstOtherCharge[]> {
+    const params = chargeGroup ? { group: chargeGroup } : undefined;
+    return this.http.get<MstOtherCharge[]>(this.api.resource('other-charges'), { params });
   }
 
   create(payload: MstOtherChargeWritePayload): Observable<MstOtherCharge> {

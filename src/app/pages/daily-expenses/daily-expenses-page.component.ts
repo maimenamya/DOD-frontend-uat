@@ -7,11 +7,18 @@ import {
 import { FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
+import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
 import { ShopDateInputComponent } from '../../components/shop-date-input/shop-date-input.component';
 import type { TxnDailyExpense } from '../../models/daily-expense';
 import { DailyExpenseService } from '../../services/daily-expense.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
+import {
+  MasterListQueryState,
+  createMasterListView,
+  masterListRowNumber,
+} from '../../utils/master-list.util';
 import { shopCalendarTodayInput } from '../open-table/open-table-ledger.util';
 
 function shopCalendarMonthStartInput(): string {
@@ -21,7 +28,15 @@ function shopCalendarMonthStartInput(): string {
 
 @Component({
   selector: 'app-daily-expenses-page',
-  imports: [DecimalPipe, FormsModule, ReactiveFormsModule, AppModalComponent, ShopDateInputComponent],
+  imports: [
+    DecimalPipe,
+    FormsModule,
+    ReactiveFormsModule,
+    AppModalComponent,
+    ShopDateInputComponent,
+    MasterListToolbarComponent,
+    ListPaginatorComponent,
+  ],
   templateUrl: './daily-expenses-page.component.html',
 })
 export class DailyExpensesPageComponent implements OnInit {
@@ -36,6 +51,11 @@ export class DailyExpensesPageComponent implements OnInit {
   readonly rangeLabelTo = signal('');
 
   readonly items = signal<TxnDailyExpense[]>([]);
+  readonly listQuery = new MasterListQueryState();
+  readonly listView = createMasterListView(this.items, this.listQuery, (item) =>
+    `${item.description} ${item.businessDateLabel} ${item.businessDate}`,
+  );
+  readonly masterListRowNumber = masterListRowNumber;
   readonly totalAmount = signal(0);
   readonly loading = signal(true);
   readonly submitting = signal(false);
@@ -79,6 +99,7 @@ export class DailyExpensesPageComponent implements OnInit {
   loadItems(): void {
     this.loading.set(true);
     this.showCreateModal.set(false);
+    this.listQuery.resetPage();
     this.dailyExpenseService.list(this.rangeFrom(), this.rangeTo()).subscribe({
       next: (result) => {
         this.items.set(result.items);

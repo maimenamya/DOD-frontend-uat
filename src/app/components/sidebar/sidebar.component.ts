@@ -78,7 +78,10 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
     id: 'other-charges',
     label: 'เบ็ดเตล็ด',
     icon: 'more',
-    children: [{ path: '/dashboard/master-other-charges', label: 'รายการอื่นๆ' }],
+    children: [
+      { path: '/dashboard/master-other-charges', label: 'เบ็ดเตล็ด' },
+      { path: '/dashboard/master-table-opening-charges', label: 'ค่าเปิดโต๊ะ' },
+    ],
   },
   {
     id: 'stock',

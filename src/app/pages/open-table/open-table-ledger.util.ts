@@ -7,7 +7,8 @@ export type OrderLedgerCategory =
   | 'COCKTAIL'
   | 'PROMOTION'
   | 'MEMBER'
-  | 'OTHER';
+  | 'OTHER'
+  | 'TABLE_OPENING';
 
 export const ORDER_LEDGER_CATEGORY_VALUES: readonly OrderLedgerCategory[] = [
   'FOOD',
@@ -16,6 +17,7 @@ export const ORDER_LEDGER_CATEGORY_VALUES: readonly OrderLedgerCategory[] = [
   'PROMOTION',
   'MEMBER',
   'OTHER',
+  'TABLE_OPENING',
 ];
 
 export const ORDER_LEDGER_CATEGORY_LABELS: Record<OrderLedgerCategory, string> = {
@@ -25,6 +27,7 @@ export const ORDER_LEDGER_CATEGORY_LABELS: Record<OrderLedgerCategory, string> =
   PROMOTION: 'โปร',
   MEMBER: 'เมมเบอร์',
   OTHER: 'เบ็ดเตล็ด',
+  TABLE_OPENING: 'ค่าเปิดโต๊ะ',
 };
 
 export type SessionOrderItemType =
@@ -46,6 +49,7 @@ export function sessionItemTypeForLedgerCategory(
     case 'MEMBER':
       return 'MEMBERSHIP';
     case 'OTHER':
+    case 'TABLE_OPENING':
       return 'OTHER';
     default:
       return null;

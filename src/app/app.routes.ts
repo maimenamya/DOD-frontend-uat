@@ -160,6 +160,13 @@ export const routes: Routes = [
         path: 'master-other-charges',
         component: MasterOtherChargePageComponent,
         canActivate: [permissionGuard('master_data')],
+        data: { otherChargeGroup: 'MISCELLANEOUS' },
+      },
+      {
+        path: 'master-table-opening-charges',
+        component: MasterOtherChargePageComponent,
+        canActivate: [permissionGuard('master_data')],
+        data: { otherChargeGroup: 'TABLE_OPENING' },
       },
       {
         path: 'master-pr-tags',

@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import {
   highlightInvalidForm,
   resetFormValidationFlag,
@@ -13,7 +14,8 @@ import {
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
 import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
 import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
-import type { MstOtherCharge } from '../../models/other-charge';
+import type { MstOtherCharge, OtherChargeGroup } from '../../models/other-charge';
+import { OTHER_CHARGE_GROUP_LABELS } from '../../models/other-charge';
 import { AuthService } from '../../services/auth.service';
 import { OtherChargeService } from '../../services/other-charge.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
@@ -35,6 +37,18 @@ export class MasterOtherChargePageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly route = inject(ActivatedRoute);
+
+  readonly chargeGroup = signal<OtherChargeGroup>('MISCELLANEOUS');
+  readonly pageTitle = computed(() => OTHER_CHARGE_GROUP_LABELS[this.chargeGroup()]);
+  readonly namePlaceholder = computed(() =>
+    this.chargeGroup() === 'TABLE_OPENING'
+      ? 'เช่น ค่าเปิดโต๊ะ VIP, ค่าเปิดโต๊ะธรรมดา'
+      : 'เช่น ผ้าเย็น, สแน็ค 1 จาน',
+  );
+  readonly unitPlaceholder = computed(() =>
+    this.chargeGroup() === 'TABLE_OPENING' ? 'เช่น โต๊ะ, ครั้ง' : 'เช่น จาน, ผืน',
+  );
 
   readonly canManage = computed(() => this.auth.canWriteOnPage('master_data'));
   readonly items = signal<MstOtherCharge[]>([]);
@@ -65,7 +79,11 @@ export class MasterOtherChargePageComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.loadItems();
+    this.route.data.subscribe((data) => {
+      const group = data['otherChargeGroup'] as OtherChargeGroup | undefined;
+      this.chargeGroup.set(group === 'TABLE_OPENING' ? 'TABLE_OPENING' : 'MISCELLANEOUS');
+      this.loadItems();
+    });
   }
 
   activeLabel(value: boolean): string {
@@ -75,20 +93,19 @@ export class MasterOtherChargePageComponent implements OnInit {
   loadItems(): void {
     this.loading.set(true);
     this.showCreateModal.set(false);
-    this.otherChargeService.getAll().subscribe({
+    this.otherChargeService.getAll(this.chargeGroup()).subscribe({
       next: (rows) => {
         this.items.set(rows);
         this.loading.set(false);
       },
       error: (err: { error?: { error?: string } }) => {
-        this.toast.showError(err.error?.error ?? 'ไม่สามารถโหลดรายการอื่นๆ ได้');
+        this.toast.showError(err.error?.error ?? `ไม่สามารถโหลด${this.pageTitle()}ได้`);
         this.loading.set(false);
       },
     });
   }
 
   openCreate(): void {
-    
     resetFormValidationFlag(this.createFormValidated);
     if (this.loading()) return;
     this.createForm.reset({
@@ -105,7 +122,6 @@ export class MasterOtherChargePageComponent implements OnInit {
   }
 
   openEdit(item: MstOtherCharge): void {
-    
     resetFormValidationFlag(this.editFormValidated);
     this.editForm.reset({
       name: item.name,
@@ -127,6 +143,7 @@ export class MasterOtherChargePageComponent implements OnInit {
       price: Number.parseInt(raw.price, 10),
       unitLabelTh: raw.unitLabelTh.trim(),
       isActive: raw.isActive,
+      chargeGroup: this.chargeGroup(),
     };
   }
 

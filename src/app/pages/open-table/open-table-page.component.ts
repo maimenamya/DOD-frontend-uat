@@ -41,6 +41,7 @@ import {
 } from '../../models/room-charge';
 import type { MstBeverage, MstBeverageCategory } from '../../models/beverage';
 import type { MstOtherCharge } from '../../models/other-charge';
+import { isMiscOtherCharge, isTableOpeningOtherCharge } from '../../models/other-charge';
 import { isMixerCategoryKind } from '../../utils/beverage-category-kind.util';
 import { OtherChargeService } from '../../services/other-charge.service';
 import { PackageDepositService } from '../../services/package-deposit.service';
@@ -514,8 +515,14 @@ export class OpenTablePageComponent implements OnInit {
     if (this.membershipsRaw().length > 0) {
       options.push({ value: 'MEMBER', label: ORDER_LEDGER_CATEGORY_LABELS.MEMBER });
     }
-    if (this.activeOtherCharges().length > 0) {
+    if (this.activeMiscOtherCharges().length > 0) {
       options.push({ value: 'OTHER', label: ORDER_LEDGER_CATEGORY_LABELS.OTHER });
+    }
+    if (this.activeTableOpeningCharges().length > 0) {
+      options.push({
+        value: 'TABLE_OPENING',
+        label: ORDER_LEDGER_CATEGORY_LABELS.TABLE_OPENING,
+      });
     }
     return options;
   });
@@ -650,12 +657,23 @@ export class OpenTablePageComponent implements OnInit {
       }));
   });
 
-  readonly activeOtherCharges = computed(() =>
-    this.openTableOtherChargesRaw().filter((c) => c.isActive),
+  readonly activeMiscOtherCharges = computed(() =>
+    this.openTableOtherChargesRaw().filter((c) => c.isActive && isMiscOtherCharge(c)),
   );
 
+  readonly activeTableOpeningCharges = computed(() =>
+    this.openTableOtherChargesRaw().filter((c) => c.isActive && isTableOpeningOtherCharge(c)),
+  );
+
+  readonly otherChargesForSelectedCategory = computed(() => {
+    const category = this.orderLedgerCategory();
+    if (category === 'TABLE_OPENING') return this.activeTableOpeningCharges();
+    if (category === 'OTHER') return this.activeMiscOtherCharges();
+    return [];
+  });
+
   readonly otherChargeDropdownOptions = computed<DropdownOption[]>(() =>
-    this.activeOtherCharges().map((c) => ({
+    this.otherChargesForSelectedCategory().map((c) => ({
       value: c.id,
       label: c.name,
       hint: `${c.price} บาท/${c.unitLabelTh}`,
@@ -1253,7 +1271,9 @@ export class OpenTablePageComponent implements OnInit {
       this.selectedMembershipId.set(this.membershipsRaw()[0]?.id ?? null);
       this.syncPackageDepositSelection();
     } else if (category === 'OTHER') {
-      this.selectedOtherChargeId.set(this.activeOtherCharges()[0]?.id ?? null);
+      this.selectedOtherChargeId.set(this.activeMiscOtherCharges()[0]?.id ?? null);
+    } else if (category === 'TABLE_OPENING') {
+      this.selectedOtherChargeId.set(this.activeTableOpeningCharges()[0]?.id ?? null);
     }
   }
 
@@ -1515,7 +1535,7 @@ export class OpenTablePageComponent implements OnInit {
   onOtherChargeChange(value: number | string | null): void {
     const id = value == null || value === '' ? null : Number(value);
     this.selectedOtherChargeId.set(
-      id != null && this.activeOtherCharges().some((c) => c.id === id) ? id : null,
+      id != null && this.otherChargesForSelectedCategory().some((c) => c.id === id) ? id : null,
     );
   }
 
@@ -1736,11 +1756,16 @@ export class OpenTablePageComponent implements OnInit {
           });
         }
       }
-    } else if (category === 'OTHER') {
+    } else if (category === 'OTHER' || category === 'TABLE_OPENING') {
       const otherId = this.selectedOtherChargeId();
-      if (otherId == null) {
+      const pool = this.otherChargesForSelectedCategory();
+      if (otherId == null || !pool.some((c) => c.id === otherId)) {
         this.flagAddItemValidation();
-        this.toast.showError('กรุณาเลือกรายการเบ็ดเตล็ด');
+        this.toast.showError(
+          category === 'TABLE_OPENING'
+            ? 'กรุณาเลือกค่าเปิดโต๊ะ'
+            : 'กรุณาเลือกรายการเบ็ดเตล็ด',
+        );
         return null;
       }
       items.push({ itemId: otherId, quantity, type: 'OTHER' });

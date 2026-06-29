@@ -1,7 +1,7 @@
 <div class="app-page">
   <div class="app-page-header">
     <div>
-      <h1 class="app-page-title">อื่นๆ</h1>
+      <h1 class="app-page-title">{{ pageTitle() }}</h1>
     </div>
     @if (canManage() && !loading()) {
       <button type="button" (click)="openCreate()" class="app-btn-primary">เพิ่มรายการ</button>
@@ -11,13 +11,13 @@
   @if (showCreateModal() && canManage() && !loading()) {
     <app-modal (dismiss)="closeCreate()">
       <div class="app-modal-header">
-        <h2 class="app-modal-title">เพิ่มรายการอื่นๆ</h2>
+        <h2 class="app-modal-title">เพิ่ม{{ pageTitle() }}</h2>
         <button type="button" class="app-btn-ghost" (click)="closeCreate()">✕</button>
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="createFormValidated()" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
           <label class="app-label">ชื่อรายการ</label>
-          <input type="text" formControlName="name" class="app-input" placeholder="เช่น ผ้าเย็น, สแน็ค 1 จาน" />
+          <input type="text" formControlName="name" class="app-input" [placeholder]="namePlaceholder()" />
         </div>
         <div class="app-form-group">
           <label class="app-label">ราคา (บาท)</label>
@@ -31,7 +31,7 @@
         </div>
         <div class="app-form-group">
           <label class="app-label">หน่วยนับ</label>
-          <input type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" placeholder="เช่น จาน, ผืน" />
+          <input type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" [placeholder]="unitPlaceholder()" />
         </div>
         <div class="app-form-group">
           <label class="app-label">สถานะ</label>
@@ -56,7 +56,7 @@
   @if (editingItem(); as item) {
     <app-modal (dismiss)="closeEdit()">
       <div class="app-modal-header">
-        <h2 class="app-modal-title">แก้ไขรายการอื่นๆ</h2>
+        <h2 class="app-modal-title">แก้ไข{{ pageTitle() }}</h2>
         <button type="button" class="app-btn-ghost" (click)="closeEdit()">✕</button>
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
@@ -76,7 +76,7 @@
         </div>
         <div class="app-form-group">
           <label class="app-label">หน่วยนับ</label>
-          <input type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" placeholder="เช่น จาน, ผืน" />
+          <input type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" [placeholder]="unitPlaceholder()" />
         </div>
         <div class="app-form-group">
           <label class="app-label">สถานะ</label>
@@ -101,7 +101,7 @@
   @if (loading()) {
     <p class="app-loading-text">กำลังโหลด...</p>
   } @else if (items().length === 0) {
-    <p class="app-empty-state">ยังไม่มีรายการอื่นๆ</p>
+    <p class="app-empty-state">ยังไม่มี{{ pageTitle() }}</p>
   } @else {
     <app-master-list-toolbar
       [search]="listQuery.search()"

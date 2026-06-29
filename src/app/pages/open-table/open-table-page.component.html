@@ -1162,6 +1162,18 @@
           </div>
         }
 
+        @if (orderLedgerCategory() === 'TABLE_OPENING') {
+          <div class="app-form-group">
+            <label class="app-label">เลือกค่าเปิดโต๊ะ</label>
+            <app-custom-dropdown
+              [options]="otherChargeDropdownOptions()"
+              [ngModel]="selectedOtherChargeId()"
+              (ngModelChange)="onOtherChargeChange($event)"
+              placeholder="เลือกรายการค่าเปิดโต๊ะ"
+            />
+          </div>
+        }
+
         @if (showOrderQtyField()) {
           <div class="app-form-group">
             <label class="app-label">จำนวน</label>
