@@ -1846,16 +1846,26 @@
         }
       </div>
 
-      <div class="app-form-actions app-form-actions-top">
-        <button type="button" class="app-btn-secondary" (click)="closeCheckoutModal()">ยกเลิก</button>
+      <div class="app-form-actions app-form-actions-top checkout-modal-actions">
         <button
           type="button"
-          class="app-btn-primary"
-          [disabled]="actionBusy() || checkoutPreviewLoading() || !checkoutPreview()"
-          (click)="confirmCheckout()"
+          class="app-btn-secondary"
+          [disabled]="actionBusy() || checkoutPreviewLoading() || checkoutPrintBusy() || !checkoutPreview()"
+          (click)="printPreCheckoutBill()"
         >
-          {{ actionBusy() ? 'กำลังบันทึก...' : 'ยืนยันเช็กบิล' }}
+          {{ checkoutPrintBusy() ? 'กำลังพิมพ์...' : 'พิมพ์บิล' }}
         </button>
+        <div class="checkout-modal-actions-main">
+          <button type="button" class="app-btn-secondary" (click)="closeCheckoutModal()">ยกเลิก</button>
+          <button
+            type="button"
+            class="app-btn-primary"
+            [disabled]="actionBusy() || checkoutPreviewLoading() || !checkoutPreview()"
+            (click)="confirmCheckout()"
+          >
+            {{ actionBusy() ? 'กำลังบันทึก...' : 'ยืนยันเช็กบิล' }}
+          </button>
+        </div>
       </div>
     </div>
   </app-modal>

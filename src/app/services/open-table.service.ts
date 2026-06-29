@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ApiConfig } from '../core/api-config';
+import type { BillReceiptResponse } from '../models/bill-receipt';
 import type {
   TxnActiveSessionRecord,
   AddItemsPayload,
@@ -13,6 +14,7 @@ import type {
   CheckoutPreviewPayload,
   CheckoutPreview,
   CheckoutResult,
+  BillPaymentMethod,
   ReleaseCustomerPayload,
   UpdateSessionInfoPayload,
   OpenTableFloorPlan,
@@ -152,6 +154,18 @@ export class OpenTableService {
   previewCheckout(payload: CheckoutPreviewPayload): Observable<CheckoutPreview> {
     return this.http.post<CheckoutPreview>(
       this.api.resource('open-table', 'checkout-preview'),
+      payload,
+    );
+  }
+
+  previewCheckoutReceipt(
+    payload: CheckoutPreviewPayload & {
+      paymentMethod?: BillPaymentMethod;
+      browserPng?: boolean;
+    },
+  ): Observable<BillReceiptResponse> {
+    return this.http.post<BillReceiptResponse>(
+      this.api.resource('open-table', 'checkout-receipt-preview'),
       payload,
     );
   }

@@ -21,6 +21,7 @@ import type { MstFood, MstFoodCategory, MstMembership, MstPromotion } from '../.
 import { drinkPackageItemsSummary } from '../../utils/drink-package.util';
 import type { PackageDepositRecord, PackageOpenMode } from '../../models/package-deposit';
 import type { MstRole } from '../../models/role';
+import type { BillReceiptResponse } from '../../models/bill-receipt';
 import type {
   AddItemsPayload,
   CheckoutPreview,
@@ -215,6 +216,7 @@ export class OpenTablePageComponent implements OnInit {
   readonly checkoutPaymentMethodOptions = CHECKOUT_PAYMENT_METHOD_OPTIONS;
   readonly checkoutPreview = signal<CheckoutPreview | null>(null);
   readonly checkoutPreviewLoading = signal(false);
+  readonly checkoutPrintBusy = signal(false);
   readonly lastCheckoutBillId = signal<number | null>(null);
   private checkoutPreviewTimer: ReturnType<typeof setTimeout> | null = null;
   readonly stopDrinkTarget = signal<SessionStaffDrink | null>(null);
@@ -3135,6 +3137,51 @@ export class OpenTablePageComponent implements OnInit {
     void this.confirmCheckoutAsync();
   }
 
+  printPreCheckoutBill(): void {
+    const sessionId = this.selectedSeat()?.sessionId;
+    const checkedOutAt = this.checkoutAt().trim();
+    if (!sessionId) {
+      this.toast.showError('ไม่พบบิลที่เปิดอยู่');
+      return;
+    }
+    if (!isValidShopDatetimeLocal(checkedOutAt)) {
+      this.toast.showError('กรุณาระบุเวลาเช็กบิล');
+      return;
+    }
+    if (!this.checkoutPreview()) {
+      this.toast.showError('กรุณารอสรุปยอดก่อนพิมพ์');
+      return;
+    }
+    if (this.checkoutPrintBusy()) return;
+
+    const printFrame = this.billReceiptService.shouldPreparePrintFrame()
+      ? this.billReceiptService.createPrintFrame()
+      : null;
+
+    this.checkoutPrintBusy.set(true);
+    this.openTableService
+      .previewCheckoutReceipt({
+        shopId: this.shopId,
+        sessionId,
+        checkedOutAt,
+        paymentMethod: this.checkoutPaymentMethod(),
+        browserPng: this.billReceiptService.shouldPreparePrintFrame(),
+      })
+      .pipe(
+        finalize(() => this.checkoutPrintBusy.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (response) => {
+          this.tryPrintCheckoutReceipt(response, printFrame);
+        },
+        error: (err: { error?: { error?: string } }) => {
+          this.billReceiptService.removePrintFrame(printFrame);
+          this.toast.showError(err.error?.error ?? 'ไม่สามารถพิมพ์ใบแจ้งยอดได้');
+        },
+      });
+  }
+
   private async confirmCheckoutAsync(): Promise<void> {
     const sessionId = this.selectedSeat()?.sessionId;
     const expectedRevision = this.requireExpectedRevision();
@@ -3180,7 +3227,7 @@ export class OpenTablePageComponent implements OnInit {
       (result) => {
         this.closeCheckoutModal();
         this.lastCheckoutBillId.set(result.billId);
-        this.tryPrintCheckoutReceipt(result, printFrame);
+        this.tryPrintCheckoutReceipt(result.receipt, printFrame);
         const seatKey = this.selectedSeatKey();
         if (result.sessionClosed) {
           this.closeAddModal();
@@ -3205,10 +3252,9 @@ export class OpenTablePageComponent implements OnInit {
 
   /** Railway/cloud API cannot reach printers — print on the device at the shop. */
   private tryPrintCheckoutReceipt(
-    result: CheckoutResult,
+    receiptResponse: BillReceiptResponse | undefined,
     printFrame?: HTMLIFrameElement | null,
   ): void {
-    const receiptResponse = result.receipt;
     if (!receiptResponse) {
       this.billReceiptService.removePrintFrame(printFrame);
       return;

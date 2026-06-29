@@ -938,7 +938,7 @@ export class BillReceiptService {
   <header class="receipt-head">
   <div class="shop-title">${shopTitle}</div>
   ${headerBlock}
-  <div class="bill-title">บิล</div>
+  <div class="bill-title">${escapeHtml(receipt.title?.trim() || 'บิล')}</div>
   ${zoneDash}
   </header>
   <div class="receipt-body">

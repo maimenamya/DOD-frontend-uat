@@ -593,6 +593,17 @@
   max-width: 100%;
 }
 
+.checkout-modal-actions {
+  justify-content: space-between;
+}
+
+.checkout-modal-actions-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
 .checkout-preview-heading {
   margin: 1.25rem 0 0.5rem;
   font-size: 0.8125rem;
