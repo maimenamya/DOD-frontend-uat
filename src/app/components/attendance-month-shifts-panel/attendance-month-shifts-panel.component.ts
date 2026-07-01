@@ -16,23 +16,15 @@ export class AttendanceMonthShiftsPanelComponent {
   readonly waivingRoundDate = input<string | null>(null);
 
   readonly openDeductionModal = output<AttendanceShiftRow>();
-  readonly revokeDeduction = output<AttendanceShiftRow>();
   readonly markAbsent = output<AttendanceShiftRow>();
   readonly unmarkAbsent = output<AttendanceShiftRow>();
 
   canSetDeduction(shift: AttendanceShiftRow): boolean {
-    return this.showWaiveActions() && !shift.deductionAdjusted;
-  }
-
-  canRevokeDeduction(shift: AttendanceShiftRow): boolean {
-    return this.showWaiveActions() && shift.deductionAdjusted;
+    return this.showWaiveActions();
   }
 
   canMarkAbsent(shift: AttendanceShiftRow): boolean {
-    return (
-      this.showAbsentActions() &&
-      (shift.dayStatus === 'NO_RECORD' || shift.dayStatus === 'FUTURE')
-    );
+    return this.showAbsentActions() && shift.dayStatus !== 'ABSENT';
   }
 
   canUnmarkAbsent(shift: AttendanceShiftRow): boolean {

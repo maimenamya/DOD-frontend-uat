@@ -130,7 +130,6 @@
       [showAbsentActions]="canWaiveDeduction()"
       [waivingRoundDate]="waivingRoundDate()"
       (openDeductionModal)="openDeductionModal($event)"
-      (revokeDeduction)="revokeDeduction($event)"
       (markAbsent)="markAbsent($event)"
       (unmarkAbsent)="unmarkAbsent($event)"
     />
@@ -145,7 +144,7 @@
     </div>
     <form class="app-form-stack" [formGroup]="deductionForm" (ngSubmit)="submitDeduction()">
       <p class="text-sm text-text-secondary">
-        ยอดที่ระบบคำนวณ {{ shift.rawDeductionBaht | number: '1.0-0' }} บาท — ใส่ 0 ได้หากอนุโลม
+        ยอดที่ระบบคำนวณ {{ shift.rawDeductionBaht | number: '1.0-0' }} บาท — แก้ยอดได้ หรือใส่ 0 หากอนุโลม
       </p>
       <div class="app-form-group">
         <label class="app-label">ยอดหัก (บาท)</label>

@@ -3659,6 +3659,31 @@
     max-height: none;
   }
 
+  .attendance-shift-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.25rem;
+  }
+
+  @media (min-width: 1000px) {
+    .attendance-roster-modal-table th:last-child,
+    .attendance-roster-modal-table .attendance-shift-actions-cell {
+      min-width: 10.5rem;
+      white-space: nowrap;
+    }
+
+    .attendance-shift-actions {
+      flex-wrap: nowrap;
+    }
+
+    .attendance-shift-actions .app-btn-ghost {
+      flex-shrink: 0;
+      padding-inline: 0.5rem;
+      white-space: nowrap;
+    }
+  }
+
   .app-modal {
     @apply w-full max-w-lg overflow-visible rounded-card border border-theme-border p-0;
     background: var(--card-bg);

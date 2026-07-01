@@ -132,9 +132,10 @@ export class AttendanceRosterPageComponent implements OnInit {
   }
 
   openDeductionModal(shift: AttendanceShiftRow): void {
-    const defaultAmount = shift.deductionAdjusted
-      ? shift.deductionBaht
-      : shift.rawDeductionBaht;
+    const defaultAmount =
+      shift.deductionAdjusted || shift.deductionBaht > 0
+        ? shift.deductionBaht
+        : shift.rawDeductionBaht;
     this.deductionShift.set(shift);
     this.deductionForm.reset({
       deductionBaht: String(defaultAmount),
@@ -174,24 +175,6 @@ export class AttendanceRosterPageComponent implements OnInit {
       error: (err: { error?: { error?: string } }) => {
         this.waivingRoundDate.set(null);
         this.toast.showError(err.error?.error ?? 'บันทึกยอดหักไม่สำเร็จ');
-      },
-    });
-  }
-
-  revokeDeduction(shift: AttendanceShiftRow): void {
-    const employee = this.selectedEmployee();
-    if (!employee || !this.canWaiveDeduction()) return;
-
-    this.waivingRoundDate.set(shift.roundDateIso);
-    this.attendance.revokeShiftDeductionWaiver(employee.employeeId, shift.roundDateIso).subscribe({
-      next: (payload) => {
-        this.monthPayload.set(payload);
-        this.waivingRoundDate.set(null);
-        this.toast.showSuccess('ยกเลิกยอดหักแล้ว');
-      },
-      error: (err: { error?: { error?: string } }) => {
-        this.waivingRoundDate.set(null);
-        this.toast.showError(err.error?.error ?? 'ยกเลิกไม่สำเร็จ');
       },
     });
   }

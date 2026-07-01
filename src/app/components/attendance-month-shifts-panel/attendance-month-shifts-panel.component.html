@@ -70,8 +70,8 @@
                 }
               </td>
               @if (showWaiveActions() || showAbsentActions()) {
-                <td class="app-cell-right">
-                  <div class="flex flex-wrap justify-end gap-1">
+                <td class="app-cell-right attendance-shift-actions-cell">
+                  <div class="attendance-shift-actions">
                     @if (canMarkAbsent(shift)) {
                       <button
                         type="button"
@@ -99,15 +99,6 @@
                         (click)="openDeductionModal.emit(shift)"
                       >
                         {{ isWaiving(shift) ? 'กำลังบันทึก...' : 'หักเงิน' }}
-                      </button>
-                    } @else if (canRevokeDeduction(shift)) {
-                      <button
-                        type="button"
-                        class="app-btn-ghost text-sm text-text-secondary"
-                        [disabled]="isWaiving(shift)"
-                        (click)="revokeDeduction.emit(shift)"
-                      >
-                        {{ isWaiving(shift) ? 'กำลังบันทึก...' : 'ยกเลิกหัก' }}
                       </button>
                     }
                   </div>
