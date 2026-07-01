@@ -62,6 +62,24 @@ export class AttendanceService {
     );
   }
 
+  setShiftDeduction(
+    employeeId: string,
+    roundDateIso: string,
+    deductionBaht: number,
+  ): Observable<AttendanceEmployeeMonthPayload> {
+    return this.http.post<AttendanceEmployeeMonthPayload>(
+      this.api.resource(
+        'attendance',
+        'employee',
+        employeeId,
+        'shift',
+        roundDateIso,
+        'set-deduction',
+      ),
+      { deductionBaht },
+    );
+  }
+
   waiveShiftDeduction(
     employeeId: string,
     roundDateIso: string,

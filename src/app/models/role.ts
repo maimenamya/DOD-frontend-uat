@@ -32,6 +32,7 @@ export interface MstRole {
   drinkShopPortionBaht: number;
   drinkAccrualMode?: DrinkAccrualMode;
   drinkAccrualRounding?: DrinkAccrualRounding;
+  attendanceLeaveQuotaPerMonth?: number;
   createdAt?: string;
 }
 
@@ -46,4 +47,5 @@ export interface MstRoleWritePayload {
   drinkShopPortionBaht: number;
   drinkAccrualMode?: DrinkAccrualMode;
   drinkAccrualRounding?: DrinkAccrualRounding;
+  attendanceLeaveQuotaPerMonth?: number;
 }

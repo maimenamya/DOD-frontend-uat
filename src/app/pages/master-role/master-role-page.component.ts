@@ -87,6 +87,8 @@ export class MasterRolePageComponent implements OnInit {
 
   readonly createIsEntertainer = signal(false);
   readonly editIsEntertainer = signal(false);
+  readonly createIsStaff = signal(true);
+  readonly editIsStaff = signal(true);
 
   ngOnInit(): void {
     this.wireRoleForm(this.createForm, this.createIsEntertainer);
@@ -121,6 +123,7 @@ export class MasterRolePageComponent implements OnInit {
       nextHourDrinks: '0',
       defaultPricePerDrink: '0',
       drinkShopPortionBaht: '60',
+      attendanceLeaveQuotaPerMonth: '0',
     });
     this.showCreateModal.set(true);
   }
@@ -142,6 +145,7 @@ export class MasterRolePageComponent implements OnInit {
       nextHourDrinks: String(role.nextHourDrinks),
       defaultPricePerDrink: String(role.defaultPricePerDrink),
       drinkShopPortionBaht: String(role.drinkShopPortionBaht ?? 60),
+      attendanceLeaveQuotaPerMonth: String(role.attendanceLeaveQuotaPerMonth ?? 0),
     });
     this.editingRole.set(role);
     if (lockPermissionGroup) {
@@ -231,7 +235,7 @@ export class MasterRolePageComponent implements OnInit {
 
   sanitizeIntegerInput(
     form: 'create' | 'edit',
-    controlName: 'startDrinks' | 'nextHourDrinks' | 'defaultPricePerDrink' | 'drinkShopPortionBaht',
+    controlName: 'startDrinks' | 'nextHourDrinks' | 'defaultPricePerDrink' | 'drinkShopPortionBaht' | 'attendanceLeaveQuotaPerMonth',
     event: Event,
   ): void {
     const input = event.target as HTMLInputElement;
@@ -250,6 +254,7 @@ export class MasterRolePageComponent implements OnInit {
       nextHourDrinks: ['0', [Validators.pattern(/^\d+$/)]],
       defaultPricePerDrink: ['0', [Validators.pattern(/^\d+$/)]],
       drinkShopPortionBaht: ['60', [Validators.pattern(/^\d+$/)]],
+      attendanceLeaveQuotaPerMonth: ['0', [Validators.pattern(/^\d+$/)]],
     });
   }
 
@@ -260,6 +265,12 @@ export class MasterRolePageComponent implements OnInit {
     const refresh = () => {
       const category = form.controls.category.value as RoleCategory;
       isEntertainer.set(category === 'ENTERTAINER');
+      const isStaff = category === 'STAFF';
+      if (form === this.createForm) {
+        this.createIsStaff.set(isStaff);
+      } else {
+        this.editIsStaff.set(isStaff);
+      }
       this.applyEntertainerDrinkValidators(form, category === 'ENTERTAINER');
     };
 
@@ -294,6 +305,7 @@ export class MasterRolePageComponent implements OnInit {
   ): import('../../models/role').MstRoleWritePayload {
     const raw = form.getRawValue();
     const isEntertainer = raw.category === 'ENTERTAINER';
+    const isStaff = raw.category === 'STAFF';
     return {
       name: raw.name.trim().toUpperCase(),
       displayNameTh: raw.displayNameTh.trim(),
@@ -303,6 +315,9 @@ export class MasterRolePageComponent implements OnInit {
       nextHourDrinks: Number.parseInt(isEntertainer ? raw.nextHourDrinks : '0', 10),
       defaultPricePerDrink: Number.parseInt(raw.defaultPricePerDrink, 10),
       drinkShopPortionBaht: Number.parseInt(raw.drinkShopPortionBaht, 10),
+      attendanceLeaveQuotaPerMonth: isStaff
+        ? Number.parseInt(raw.attendanceLeaveQuotaPerMonth || '0', 10)
+        : 0,
     };
   }
 }

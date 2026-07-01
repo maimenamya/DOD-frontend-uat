@@ -40,6 +40,20 @@
             placeholder="เลือกประเภท"
           />
         </div>
+        @if (createIsStaff()) {
+          <div class="app-form-group">
+            <label class="app-label">โควต้าลา (วัน/เดือน)</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              formControlName="attendanceLeaveQuotaPerMonth"
+              class="app-input"
+              (input)="sanitizeIntegerInput('create', 'attendanceLeaveQuotaPerMonth', $event)"
+            />
+            <p class="app-field-hint">จำนวนวันลาที่ไม่หักเงินต่อเดือน — เกินโควต้าต้องกดหักเงินที่หน้าบันทึกเวลา</p>
+          </div>
+        }
         <div class="app-form-group">
           <label class="app-label">ราคาต่อดื่ม (บาท)</label>
           <input
@@ -136,6 +150,20 @@
             placeholder="เลือกประเภท"
           />
         </div>
+        @if (editIsStaff()) {
+          <div class="app-form-group">
+            <label class="app-label">โควต้าลา (วัน/เดือน)</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              formControlName="attendanceLeaveQuotaPerMonth"
+              class="app-input"
+              (input)="sanitizeIntegerInput('edit', 'attendanceLeaveQuotaPerMonth', $event)"
+            />
+            <p class="app-field-hint">จำนวนวันลาที่ไม่หักเงินต่อเดือน — เกินโควต้าต้องกดหักเงินที่หน้าบันทึกเวลา</p>
+          </div>
+        }
         <div class="app-form-group">
           <label class="app-label">ราคาต่อดื่ม (บาท)</label>
           <input

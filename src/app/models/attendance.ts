@@ -56,6 +56,10 @@ export interface AttendanceShiftRow {
   rawDeductionBaht: number;
   deductionBaht: number;
   deductionWaived: boolean;
+  deductionAdjusted: boolean;
+  overQuotaAbsent: boolean;
+  leaveWithinQuota: boolean;
+  hasActivePrTag: boolean;
   openShift: boolean;
   autoClosedForgotCheckout: boolean;
   dayStatus: AttendanceShiftDayStatus;
@@ -68,6 +72,8 @@ export interface AttendanceEmployeeMonthPayload {
   roleDisplayNameTh: string;
   year: number;
   month: number;
+  leaveQuotaPerMonth: number;
+  leaveDaysUsed: number;
   expectedCheckInLabel: string | null;
   expectedCheckOutLabel: string | null;
   shifts: AttendanceShiftRow[];

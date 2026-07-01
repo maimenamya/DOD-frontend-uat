@@ -13,6 +13,11 @@
         }
       </p>
     }
+    @if (payload.leaveQuotaPerMonth > 0) {
+      <p class="mb-3 text-sm text-text-secondary">
+        โควต้าลา {{ payload.leaveQuotaPerMonth }} วัน/เดือน · ใช้ไปแล้ว {{ payload.leaveDaysUsed }} วัน
+      </p>
+    }
 
     <div class="attendance-roster-modal-table app-data-table-shell">
       <table class="app-data-table w-full min-w-[36rem]">
@@ -58,10 +63,8 @@
                 }
               </td>
               <td class="app-cell-right">
-                @if (shift.deductionWaived && shift.rawDeductionBaht > 0) {
-                  {{ 0 | number: '1.0-0' }}
-                } @else if (shift.deductionBaht > 0) {
-                  {{ shift.deductionBaht | number: '1.0-0' }}
+                @if (deductionDisplay(shift); as amount) {
+                  {{ amount | number: '1.0-0' }}
                 } @else {
                   —
                 }
@@ -88,23 +91,23 @@
                         {{ isWaiving(shift) ? 'กำลังบันทึก...' : 'ยกเลิกลา' }}
                       </button>
                     }
-                    @if (canWaive(shift)) {
+                    @if (canSetDeduction(shift)) {
                       <button
                         type="button"
-                        class="app-btn-ghost text-sm text-emerald-300"
+                        class="app-btn-ghost text-sm text-amber-300"
                         [disabled]="isWaiving(shift)"
-                        (click)="waiveDeduction.emit(shift)"
+                        (click)="openDeductionModal.emit(shift)"
                       >
-                        {{ isWaiving(shift) ? 'กำลังบันทึก...' : 'ไม่หัก' }}
+                        {{ isWaiving(shift) ? 'กำลังบันทึก...' : 'หักเงิน' }}
                       </button>
-                    } @else if (canRevoke(shift)) {
+                    } @else if (canRevokeDeduction(shift)) {
                       <button
                         type="button"
                         class="app-btn-ghost text-sm text-text-secondary"
                         [disabled]="isWaiving(shift)"
-                        (click)="revokeWaiver.emit(shift)"
+                        (click)="revokeDeduction.emit(shift)"
                       >
-                        {{ isWaiving(shift) ? 'กำลังบันทึก...' : 'ยกเลิก' }}
+                        {{ isWaiving(shift) ? 'กำลังบันทึก...' : 'ยกเลิกหัก' }}
                       </button>
                     }
                   </div>

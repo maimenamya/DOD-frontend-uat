@@ -129,10 +129,41 @@
       [showWaiveActions]="canWaiveDeduction()"
       [showAbsentActions]="canWaiveDeduction()"
       [waivingRoundDate]="waivingRoundDate()"
-      (waiveDeduction)="waiveDeduction($event)"
-      (revokeWaiver)="revokeWaiver($event)"
+      (openDeductionModal)="openDeductionModal($event)"
+      (revokeDeduction)="revokeDeduction($event)"
       (markAbsent)="markAbsent($event)"
       (unmarkAbsent)="unmarkAbsent($event)"
     />
+  </app-modal>
+}
+
+@if (deductionShift(); as shift) {
+  <app-modal (dismiss)="closeDeductionModal()">
+    <div class="app-modal-header">
+      <h2 class="app-modal-title">กำหนดยอดหัก — {{ shift.roundDateLabel }}</h2>
+      <button type="button" class="app-btn-ghost" (click)="closeDeductionModal()">✕</button>
+    </div>
+    <form class="app-form-stack" [formGroup]="deductionForm" (ngSubmit)="submitDeduction()">
+      <p class="text-sm text-text-secondary">
+        ยอดที่ระบบคำนวณ {{ shift.rawDeductionBaht | number: '1.0-0' }} บาท — ใส่ 0 ได้หากอนุโลม
+      </p>
+      <div class="app-form-group">
+        <label class="app-label">ยอดหัก (บาท)</label>
+        <input
+          type="text"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          formControlName="deductionBaht"
+          class="app-input"
+          (input)="sanitizeDeductionInput($event)"
+        />
+      </div>
+      <div class="app-form-actions">
+        <button type="button" class="app-btn-secondary" (click)="closeDeductionModal()">ยกเลิก</button>
+        <button type="submit" class="app-btn-primary" [disabled]="waivingRoundDate() === shift.roundDateIso">
+          {{ waivingRoundDate() === shift.roundDateIso ? 'กำลังบันทึก...' : 'บันทึก' }}
+        </button>
+      </div>
+    </form>
   </app-modal>
 }

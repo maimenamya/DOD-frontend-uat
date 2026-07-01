@@ -1,5 +1,6 @@
-import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
 import { AttendanceMonthPickerComponent } from '../../components/attendance-month-picker/attendance-month-picker.component';
@@ -28,6 +29,8 @@ type RosterCategoryTab = 'STAFF' | 'ENTERTAINER';
 @Component({
   selector: 'app-attendance-roster-page',
   imports: [
+    DecimalPipe,
+    ReactiveFormsModule,
     AppModalComponent,
     AttendanceMonthPickerComponent,
     AttendanceMonthShiftsPanelComponent,
@@ -41,6 +44,7 @@ export class AttendanceRosterPageComponent implements OnInit {
   private readonly employeeService = inject(EmployeeService);
   private readonly attendance = inject(AttendanceService);
   private readonly toast = inject(ToastService);
+  private readonly fb = inject(NonNullableFormBuilder);
 
   readonly loading = signal(true);
   readonly employees = signal<MstEmployee[]>([]);
@@ -52,6 +56,11 @@ export class AttendanceRosterPageComponent implements OnInit {
   readonly monthLoading = signal(false);
   readonly monthPayload = signal<AttendanceEmployeeMonthPayload | null>(null);
   readonly waivingRoundDate = signal<string | null>(null);
+  readonly deductionShift = signal<AttendanceShiftRow | null>(null);
+
+  readonly deductionForm = this.fb.group({
+    deductionBaht: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+  });
 
   readonly canWaiveDeduction = computed(() => this.auth.canWriteOnPage('manage_employees'));
 
@@ -112,6 +121,7 @@ export class AttendanceRosterPageComponent implements OnInit {
   closeModal(): void {
     this.selectedEmployee.set(null);
     this.monthPayload.set(null);
+    this.closeDeductionModal();
   }
 
   onMonthChange(value: string): void {
@@ -121,25 +131,54 @@ export class AttendanceRosterPageComponent implements OnInit {
     }
   }
 
-  waiveDeduction(shift: AttendanceShiftRow): void {
-    const employee = this.selectedEmployee();
-    if (!employee || !this.canWaiveDeduction()) return;
+  openDeductionModal(shift: AttendanceShiftRow): void {
+    const defaultAmount = shift.deductionAdjusted
+      ? shift.deductionBaht
+      : shift.rawDeductionBaht;
+    this.deductionShift.set(shift);
+    this.deductionForm.reset({
+      deductionBaht: String(defaultAmount),
+    });
+  }
 
+  closeDeductionModal(): void {
+    this.deductionShift.set(null);
+  }
+
+  sanitizeDeductionInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const sanitized = input.value.replace(/\D+/g, '');
+    this.deductionForm.controls.deductionBaht.setValue(sanitized, { emitEvent: false });
+  }
+
+  submitDeduction(): void {
+    const employee = this.selectedEmployee();
+    const shift = this.deductionShift();
+    if (!employee || !shift || !this.canWaiveDeduction()) return;
+
+    const raw = this.deductionForm.controls.deductionBaht.value.trim();
+    if (!/^\d+$/.test(raw)) {
+      this.toast.showError('กรุณาระบุยอดหักเป็นจำนวนเต็ม');
+      return;
+    }
+
+    const deductionBaht = Number.parseInt(raw, 10);
     this.waivingRoundDate.set(shift.roundDateIso);
-    this.attendance.waiveShiftDeduction(employee.employeeId, shift.roundDateIso).subscribe({
+    this.attendance.setShiftDeduction(employee.employeeId, shift.roundDateIso, deductionBaht).subscribe({
       next: (payload) => {
         this.monthPayload.set(payload);
         this.waivingRoundDate.set(null);
-        this.toast.showSuccess('ยอดไม่หักแล้ว');
+        this.closeDeductionModal();
+        this.toast.showSuccess('บันทึกยอดหักแล้ว');
       },
       error: (err: { error?: { error?: string } }) => {
         this.waivingRoundDate.set(null);
-        this.toast.showError(err.error?.error ?? 'ยอดไม่หักไม่สำเร็จ');
+        this.toast.showError(err.error?.error ?? 'บันทึกยอดหักไม่สำเร็จ');
       },
     });
   }
 
-  revokeWaiver(shift: AttendanceShiftRow): void {
+  revokeDeduction(shift: AttendanceShiftRow): void {
     const employee = this.selectedEmployee();
     if (!employee || !this.canWaiveDeduction()) return;
 
@@ -148,7 +187,7 @@ export class AttendanceRosterPageComponent implements OnInit {
       next: (payload) => {
         this.monthPayload.set(payload);
         this.waivingRoundDate.set(null);
-        this.toast.showSuccess('ยกเลิกแล้ว');
+        this.toast.showSuccess('ยกเลิกยอดหักแล้ว');
       },
       error: (err: { error?: { error?: string } }) => {
         this.waivingRoundDate.set(null);
