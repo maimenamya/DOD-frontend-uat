@@ -43,6 +43,8 @@ export interface AttendanceLogsResponse {
   items: AttendanceLogRow[];
 }
 
+export type AttendanceShiftDayStatus = 'WORKED' | 'NO_RECORD' | 'ABSENT' | 'FUTURE';
+
 export interface AttendanceShiftRow {
   roundDateIso: string;
   roundDateLabel: string;
@@ -56,6 +58,8 @@ export interface AttendanceShiftRow {
   deductionWaived: boolean;
   openShift: boolean;
   autoClosedForgotCheckout: boolean;
+  dayStatus: AttendanceShiftDayStatus;
+  markedAbsent: boolean;
 }
 
 export interface AttendanceEmployeeMonthPayload {

@@ -14,7 +14,6 @@ import type {
   CheckoutPreviewPayload,
   CheckoutPreview,
   CheckoutResult,
-  BillPaymentMethod,
   ReleaseCustomerPayload,
   UpdateSessionInfoPayload,
   OpenTableFloorPlan,
@@ -160,7 +159,6 @@ export class OpenTableService {
 
   previewCheckoutReceipt(
     payload: CheckoutPreviewPayload & {
-      paymentMethod?: BillPaymentMethod;
       browserPng?: boolean;
     },
   ): Observable<BillReceiptResponse> {

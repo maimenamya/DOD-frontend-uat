@@ -3164,7 +3164,6 @@ export class OpenTablePageComponent implements OnInit {
         shopId: this.shopId,
         sessionId,
         checkedOutAt,
-        paymentMethod: this.checkoutPaymentMethod(),
         browserPng: this.billReceiptService.shouldPreparePrintFrame(),
       })
       .pipe(

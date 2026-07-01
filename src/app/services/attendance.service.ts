@@ -94,4 +94,37 @@ export class AttendanceService {
       ),
     );
   }
+
+  markShiftAbsent(
+    employeeId: string,
+    roundDateIso: string,
+  ): Observable<AttendanceEmployeeMonthPayload> {
+    return this.http.post<AttendanceEmployeeMonthPayload>(
+      this.api.resource(
+        'attendance',
+        'employee',
+        employeeId,
+        'shift',
+        roundDateIso,
+        'mark-absent',
+      ),
+      {},
+    );
+  }
+
+  unmarkShiftAbsent(
+    employeeId: string,
+    roundDateIso: string,
+  ): Observable<AttendanceEmployeeMonthPayload> {
+    return this.http.delete<AttendanceEmployeeMonthPayload>(
+      this.api.resource(
+        'attendance',
+        'employee',
+        employeeId,
+        'shift',
+        roundDateIso,
+        'mark-absent',
+      ),
+    );
+  }
 }

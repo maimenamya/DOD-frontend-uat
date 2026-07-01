@@ -127,9 +127,12 @@
       [detail]="monthPayload()"
       [loading]="monthLoading()"
       [showWaiveActions]="canWaiveDeduction()"
+      [showAbsentActions]="canWaiveDeduction()"
       [waivingRoundDate]="waivingRoundDate()"
       (waiveDeduction)="waiveDeduction($event)"
       (revokeWaiver)="revokeWaiver($event)"
+      (markAbsent)="markAbsent($event)"
+      (unmarkAbsent)="unmarkAbsent($event)"
     />
   </app-modal>
 }

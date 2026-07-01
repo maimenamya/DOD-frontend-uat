@@ -157,6 +157,42 @@ export class AttendanceRosterPageComponent implements OnInit {
     });
   }
 
+  markAbsent(shift: AttendanceShiftRow): void {
+    const employee = this.selectedEmployee();
+    if (!employee || !this.canWaiveDeduction()) return;
+
+    this.waivingRoundDate.set(shift.roundDateIso);
+    this.attendance.markShiftAbsent(employee.employeeId, shift.roundDateIso).subscribe({
+      next: (payload) => {
+        this.monthPayload.set(payload);
+        this.waivingRoundDate.set(null);
+        this.toast.showSuccess('บันทึกลางานแล้ว');
+      },
+      error: (err: { error?: { error?: string } }) => {
+        this.waivingRoundDate.set(null);
+        this.toast.showError(err.error?.error ?? 'บันทึกลางานไม่สำเร็จ');
+      },
+    });
+  }
+
+  unmarkAbsent(shift: AttendanceShiftRow): void {
+    const employee = this.selectedEmployee();
+    if (!employee || !this.canWaiveDeduction()) return;
+
+    this.waivingRoundDate.set(shift.roundDateIso);
+    this.attendance.unmarkShiftAbsent(employee.employeeId, shift.roundDateIso).subscribe({
+      next: (payload) => {
+        this.monthPayload.set(payload);
+        this.waivingRoundDate.set(null);
+        this.toast.showSuccess('ยกเลิกลางานแล้ว');
+      },
+      error: (err: { error?: { error?: string } }) => {
+        this.waivingRoundDate.set(null);
+        this.toast.showError(err.error?.error ?? 'ยกเลิกลางานไม่สำเร็จ');
+      },
+    });
+  }
+
   private loadMonthDetail(): void {
     const employee = this.selectedEmployee();
     const parsed = parseAttendanceMonthValue(this.monthValue());

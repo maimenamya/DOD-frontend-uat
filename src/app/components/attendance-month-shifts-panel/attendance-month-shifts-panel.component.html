@@ -14,55 +14,80 @@
       </p>
     }
 
-    @if (payload.shifts.length === 0) {
-      <p class="text-text-secondary">ไม่มีการลงเวลาในเดือนนี้</p>
-    } @else {
-      <div class="attendance-roster-modal-table app-data-table-shell">
-        <table class="app-data-table w-full min-w-[36rem]">
-          <thead>
-            <tr>
-              <th>วันที่</th>
-              <th>เข้างาน</th>
-              <th>ออกงาน</th>
-              <th class="app-cell-right">สาย (นาที)</th>
-              <th class="app-cell-right">ยอดหัก</th>
-              @if (showWaiveActions()) {
-                <th class="app-cell-right">จัดการ</th>
-              }
-            </tr>
-          </thead>
-          <tbody>
-            @for (shift of payload.shifts; track shift.roundDateIso + shift.checkInLabel) {
-              <tr>
-                <td>{{ shift.roundDateLabel }}</td>
-                <td>{{ shift.checkInLabel ?? '—' }}</td>
-                <td>
-                  @if (shift.autoClosedForgotCheckout) {
-                    <span class="text-amber-300">ลืมแสกนออก</span>
-                  } @else if (shift.openShift) {
-                    <span class="text-amber-300">ยังไม่ออก</span>
-                  } @else {
-                    {{ shift.checkOutLabel ?? '—' }}
-                  }
-                </td>
+    <div class="attendance-roster-modal-table app-data-table-shell">
+      <table class="app-data-table w-full min-w-[36rem]">
+        <thead>
+          <tr>
+            <th>วันที่</th>
+            <th>เข้างาน</th>
+            <th>ออกงาน</th>
+            <th class="app-cell-right">สาย (นาที)</th>
+            <th class="app-cell-right">ยอดหัก</th>
+            @if (showWaiveActions() || showAbsentActions()) {
+              <th class="app-cell-right">จัดการ</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (shift of payload.shifts; track shift.roundDateIso) {
+            <tr [class]="rowClass(shift)">
+              <td>{{ shift.roundDateLabel }}</td>
+              <td>
+                @if (shift.dayStatus === 'ABSENT') {
+                  <span class="font-medium text-rose-300">ลางาน</span>
+                } @else {
+                  {{ shift.checkInLabel ?? '—' }}
+                }
+              </td>
+              <td>
+                @if (shift.dayStatus === 'ABSENT') {
+                  —
+                } @else if (shift.autoClosedForgotCheckout) {
+                  <span class="text-amber-300">ลืมแสกนออก</span>
+                } @else if (shift.openShift) {
+                  <span class="text-amber-300">ยังไม่ออก</span>
+                } @else {
+                  {{ shift.checkOutLabel ?? '—' }}
+                }
+              </td>
+              <td class="app-cell-right">
+                @if (shift.lateMinutes != null && shift.lateMinutes > 0) {
+                  {{ shift.lateMinutes }}
+                } @else {
+                  —
+                }
+              </td>
+              <td class="app-cell-right">
+                @if (shift.deductionWaived && shift.rawDeductionBaht > 0) {
+                  {{ 0 | number: '1.0-0' }}
+                } @else if (shift.deductionBaht > 0) {
+                  {{ shift.deductionBaht | number: '1.0-0' }}
+                } @else {
+                  —
+                }
+              </td>
+              @if (showWaiveActions() || showAbsentActions()) {
                 <td class="app-cell-right">
-                  @if (shift.lateMinutes != null && shift.lateMinutes > 0) {
-                    {{ shift.lateMinutes }}
-                  } @else {
-                    —
-                  }
-                </td>
-                <td class="app-cell-right">
-                  @if (shift.deductionWaived && shift.rawDeductionBaht > 0) {
-                    {{ 0 | number: '1.0-0' }}
-                  } @else if (shift.deductionBaht > 0) {
-                    {{ shift.deductionBaht | number: '1.0-0' }}
-                  } @else {
-                    —
-                  }
-                </td>
-                @if (showWaiveActions()) {
-                  <td class="app-cell-right">
+                  <div class="flex flex-wrap justify-end gap-1">
+                    @if (canMarkAbsent(shift)) {
+                      <button
+                        type="button"
+                        class="app-btn-ghost text-sm text-rose-300"
+                        [disabled]="isWaiving(shift)"
+                        (click)="markAbsent.emit(shift)"
+                      >
+                        {{ isWaiving(shift) ? 'กำลังบันทึก...' : 'ลางาน' }}
+                      </button>
+                    } @else if (canUnmarkAbsent(shift)) {
+                      <button
+                        type="button"
+                        class="app-btn-ghost text-sm text-text-secondary"
+                        [disabled]="isWaiving(shift)"
+                        (click)="unmarkAbsent.emit(shift)"
+                      >
+                        {{ isWaiving(shift) ? 'กำลังบันทึก...' : 'ยกเลิกลา' }}
+                      </button>
+                    }
                     @if (canWaive(shift)) {
                       <button
                         type="button"
@@ -81,16 +106,14 @@
                       >
                         {{ isWaiving(shift) ? 'กำลังบันทึก...' : 'ยกเลิก' }}
                       </button>
-                    } @else {
-                      —
                     }
-                  </td>
-                }
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    }
+                  </div>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   }
 }

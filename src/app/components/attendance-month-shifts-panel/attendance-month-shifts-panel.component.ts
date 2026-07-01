@@ -12,10 +12,13 @@ export class AttendanceMonthShiftsPanelComponent {
   readonly detail = input<AttendanceEmployeeMonthPayload | null>(null);
   readonly loading = input(false);
   readonly showWaiveActions = input(false);
+  readonly showAbsentActions = input(false);
   readonly waivingRoundDate = input<string | null>(null);
 
   readonly waiveDeduction = output<AttendanceShiftRow>();
   readonly revokeWaiver = output<AttendanceShiftRow>();
+  readonly markAbsent = output<AttendanceShiftRow>();
+  readonly unmarkAbsent = output<AttendanceShiftRow>();
 
   canWaive(shift: AttendanceShiftRow): boolean {
     return shift.rawDeductionBaht > 0 && !shift.deductionWaived;
@@ -25,7 +28,22 @@ export class AttendanceMonthShiftsPanelComponent {
     return shift.deductionWaived;
   }
 
+  canMarkAbsent(shift: AttendanceShiftRow): boolean {
+    return this.showAbsentActions() && shift.dayStatus === 'NO_RECORD';
+  }
+
+  canUnmarkAbsent(shift: AttendanceShiftRow): boolean {
+    return this.showAbsentActions() && shift.dayStatus === 'ABSENT';
+  }
+
   isWaiving(shift: AttendanceShiftRow): boolean {
     return this.waivingRoundDate() === shift.roundDateIso;
+  }
+
+  rowClass(shift: AttendanceShiftRow): string {
+    if (shift.dayStatus === 'FUTURE') return 'text-text-secondary/50';
+    if (shift.dayStatus === 'NO_RECORD') return 'text-text-secondary';
+    if (shift.dayStatus === 'ABSENT') return 'text-rose-300';
+    return '';
   }
 }
