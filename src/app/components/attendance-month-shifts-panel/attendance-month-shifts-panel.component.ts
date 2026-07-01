@@ -36,7 +36,12 @@ export class AttendanceMonthShiftsPanelComponent {
   }
 
   deductionDisplay(shift: AttendanceShiftRow): number | null {
-    if (shift.deductionAdjusted) return shift.deductionBaht;
+    if (shift.deductionAdjusted) {
+      return shift.deductionBaht > 0 ? shift.deductionBaht : null;
+    }
+    if (shift.overQuotaAbsent && shift.rawDeductionBaht > 0) {
+      return shift.rawDeductionBaht;
+    }
     if (shift.deductionBaht > 0) return shift.deductionBaht;
     return null;
   }
