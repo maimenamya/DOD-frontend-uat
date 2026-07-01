@@ -37,14 +37,14 @@
           @for (shift of payload.shifts; track shift.roundDateIso) {
             <tr [class]="rowClass(shift)">
               <td>{{ shift.roundDateLabel }}</td>
-              <td>
+              <td class="attendance-shift-time-cell">
                 @if (shift.dayStatus === 'ABSENT') {
                   <span class="font-medium text-rose-300">ลางาน</span>
                 } @else {
                   {{ shift.checkInLabel ?? '—' }}
                 }
               </td>
-              <td>
+              <td class="attendance-shift-time-cell">
                 @if (shift.dayStatus === 'ABSENT') {
                   —
                 } @else if (shift.autoClosedForgotCheckout) {

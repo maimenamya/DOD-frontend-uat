@@ -3636,7 +3636,7 @@
   }
 
   .app-modal-host--wide .app-modal {
-    max-width: min(44rem, 100%);
+    max-width: min(48rem, 100%);
   }
 
   /* บันทึกเวลาเข้างาน — modal รายละเอียดรายเดือน */
@@ -3666,7 +3666,20 @@
     gap: 0.25rem;
   }
 
+  .attendance-roster-modal-table .attendance-shift-time-cell {
+    white-space: nowrap;
+  }
+
   @media (min-width: 1000px) {
+    .attendance-roster-modal-table .attendance-shift-time-cell {
+      min-width: 7.25rem;
+    }
+
+    .attendance-roster-modal-table th:nth-child(2),
+    .attendance-roster-modal-table th:nth-child(3) {
+      min-width: 7.25rem;
+    }
+
     .attendance-roster-modal-table th:last-child,
     .attendance-roster-modal-table .attendance-shift-actions-cell {
       min-width: 10.5rem;
