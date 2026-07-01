@@ -3651,16 +3651,12 @@
     min-height: 0;
     overflow-x: auto;
     overflow-y: auto;
+    max-height: min(24rem, 50vh);
+    --app-scroll-track: var(--table-body-bg);
   }
 
   .app-modal-overlay--mobile-fullscreen .attendance-roster-modal-table {
     max-height: none;
-  }
-
-  @media (min-width: 1000px) {
-    .attendance-roster-modal-table {
-      max-height: min(24rem, 50vh);
-    }
   }
 
   .app-modal {
