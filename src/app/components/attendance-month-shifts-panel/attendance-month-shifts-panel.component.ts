@@ -21,12 +21,7 @@ export class AttendanceMonthShiftsPanelComponent {
   readonly unmarkAbsent = output<AttendanceShiftRow>();
 
   canSetDeduction(shift: AttendanceShiftRow): boolean {
-    if (!this.showWaiveActions()) return false;
-    if (shift.dayStatus === 'FUTURE' || shift.dayStatus === 'NO_RECORD') return false;
-    if (shift.leaveWithinQuota) return false;
-    if (shift.overQuotaAbsent && !shift.deductionAdjusted) return true;
-    if (shift.rawDeductionBaht > 0) return true;
-    return false;
+    return this.showWaiveActions() && !shift.deductionAdjusted;
   }
 
   canRevokeDeduction(shift: AttendanceShiftRow): boolean {
@@ -34,7 +29,10 @@ export class AttendanceMonthShiftsPanelComponent {
   }
 
   canMarkAbsent(shift: AttendanceShiftRow): boolean {
-    return this.showAbsentActions() && shift.dayStatus === 'NO_RECORD';
+    return (
+      this.showAbsentActions() &&
+      (shift.dayStatus === 'NO_RECORD' || shift.dayStatus === 'FUTURE')
+    );
   }
 
   canUnmarkAbsent(shift: AttendanceShiftRow): boolean {
@@ -47,7 +45,7 @@ export class AttendanceMonthShiftsPanelComponent {
 
   deductionDisplay(shift: AttendanceShiftRow): number | null {
     if (shift.deductionAdjusted) return shift.deductionBaht;
-    if (shift.overQuotaAbsent) return null;
+    if (shift.overQuotaAbsent && !shift.leaveWithinQuota) return null;
     if (shift.deductionBaht > 0) return shift.deductionBaht;
     return null;
   }
