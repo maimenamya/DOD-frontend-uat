@@ -1691,14 +1691,6 @@
         · กำลังเปิดอยู่
       }
     </p>
-    @if (
-      editRoomChargeTarget()?.pricingType === 'HOURLY' &&
-      (editRoomChargeTarget()?.quantity ?? 0) >= 4
-    ) {
-      <p class="app-field-hint mb-3 text-theme-accent">
-        เปิดเกิน 4 ชม. — เปลี่ยนเป็น «เหมาทั้งคืน» แล้วระบุราคาเหมาได้
-      </p>
-    }
     <div class="app-form-group">
       <label class="app-label">ประเภทค่าใช้จ่าย</label>
       <app-custom-dropdown
