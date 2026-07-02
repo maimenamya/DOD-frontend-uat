@@ -40,7 +40,7 @@
             placeholder="เลือกประเภท"
           />
         </div>
-        @if (createIsStaff()) {
+        @if (createIsStaff() || createIsEntertainer()) {
           <div class="app-form-group">
             <label class="app-label">โควต้าลา (วัน/เดือน)</label>
             <input
@@ -150,7 +150,7 @@
             placeholder="เลือกประเภท"
           />
         </div>
-        @if (editIsStaff()) {
+        @if (editIsStaff() || editIsEntertainer()) {
           <div class="app-form-group">
             <label class="app-label">โควต้าลา (วัน/เดือน)</label>
             <input

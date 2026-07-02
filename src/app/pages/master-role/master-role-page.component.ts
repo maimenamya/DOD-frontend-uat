@@ -315,9 +315,10 @@ export class MasterRolePageComponent implements OnInit {
       nextHourDrinks: Number.parseInt(isEntertainer ? raw.nextHourDrinks : '0', 10),
       defaultPricePerDrink: Number.parseInt(raw.defaultPricePerDrink, 10),
       drinkShopPortionBaht: Number.parseInt(raw.drinkShopPortionBaht, 10),
-      attendanceLeaveQuotaPerMonth: isStaff
-        ? Number.parseInt(raw.attendanceLeaveQuotaPerMonth || '0', 10)
-        : 0,
+      attendanceLeaveQuotaPerMonth: Number.parseInt(
+        raw.attendanceLeaveQuotaPerMonth || '0',
+        10,
+      ),
     };
   }
 }

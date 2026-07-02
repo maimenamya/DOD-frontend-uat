@@ -17,6 +17,10 @@
       <p class="mb-3 text-sm text-text-secondary">
         โควต้าลา {{ payload.leaveQuotaPerMonth }} วัน/เดือน · ใช้ไปแล้ว {{ payload.leaveDaysUsed }} วัน
       </p>
+    } @else {
+      <p class="mb-3 text-sm text-amber-300">
+        ยังไม่ตั้งโควต้าลาต่อเดือนที่ตำแหน่งนี้ — กดลาไม่หักอัตโนมัติ (ตั้งที่เมนูตำแหน่ง)
+      </p>
     }
 
     <div class="attendance-roster-modal-table app-data-table-shell app-scroll-region">
