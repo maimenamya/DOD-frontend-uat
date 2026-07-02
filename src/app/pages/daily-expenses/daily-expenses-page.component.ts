@@ -82,13 +82,20 @@ export class DailyExpensesPageComponent implements OnInit {
     this.loadItems();
   }
 
-  applyRange(): void {
+  onRangeFromChange(value: string): void {
+    this.rangeFrom.set(value);
+    this.reloadIfRangeValid();
+  }
+
+  onRangeToChange(value: string): void {
+    this.rangeTo.set(value);
+    this.reloadIfRangeValid();
+  }
+
+  private reloadIfRangeValid(): void {
     const from = this.rangeFrom().trim();
     const to = this.rangeTo().trim();
-    if (!from || !to) {
-      this.toast.showError('กรุณาเลือกช่วงวันที่');
-      return;
-    }
+    if (!from || !to) return;
     if (from > to) {
       this.toast.showError('วันเริ่มต้องไม่หลังวันสิ้นสุด');
       return;

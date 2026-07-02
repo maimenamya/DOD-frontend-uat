@@ -15,19 +15,20 @@
         <span class="text-xs text-text-secondary">ตั้งแต่</span>
         <app-shop-date-input
           extraInputClass="dashboard-date-input"
+          [requireConfirm]="false"
           [ngModel]="rangeFrom()"
-          (ngModelChange)="rangeFrom.set($event)"
+          (ngModelChange)="onRangeFromChange($event)"
         />
       </label>
       <label class="flex min-w-[10rem] flex-col gap-1">
         <span class="text-xs text-text-secondary">ถึง</span>
         <app-shop-date-input
           extraInputClass="dashboard-date-input"
+          [requireConfirm]="false"
           [ngModel]="rangeTo()"
-          (ngModelChange)="rangeTo.set($event)"
+          (ngModelChange)="onRangeToChange($event)"
         />
       </label>
-      <button type="button" class="app-btn-secondary" (click)="applyRange()">แสดงรายการ</button>
     </div>
     @if (rangeLabelFrom() && rangeLabelTo()) {
       <p class="mt-2 text-xs text-text-secondary">
@@ -76,7 +77,11 @@
         </div>
         <div class="app-form-group">
           <label class="app-label" for="expense-date-create">วันที่ (เผื่อลืมลง)</label>
-          <app-shop-date-input inputId="expense-date-create" formControlName="businessDate" />
+          <app-shop-date-input
+            inputId="expense-date-create"
+            [requireConfirm]="false"
+            formControlName="businessDate"
+          />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
@@ -111,7 +116,11 @@
         </div>
         <div class="app-form-group">
           <label class="app-label" for="expense-date-edit">วันที่</label>
-          <app-shop-date-input inputId="expense-date-edit" formControlName="businessDate" />
+          <app-shop-date-input
+            inputId="expense-date-edit"
+            [requireConfirm]="false"
+            formControlName="businessDate"
+          />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
