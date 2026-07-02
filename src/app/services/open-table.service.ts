@@ -20,6 +20,8 @@ import type {
   OpenTableSessionDetail,
   AddRoomChargePayload,
   StopRoomChargePayload,
+  UpdateRoomChargePayload,
+  DeleteRoomChargePayload,
   ReturnBeveragePayload,
   AdjustPackageBottlesPayload,
   VoidSessionItemsPayload,
@@ -111,6 +113,20 @@ export class OpenTableService {
   stopRoomCharge(payload: StopRoomChargePayload): Observable<OpenTableSessionDetail> {
     return this.http.post<OpenTableSessionDetail>(
       this.api.resource('open-table', 'stop-room-charge'),
+      payload,
+    );
+  }
+
+  updateRoomCharge(payload: UpdateRoomChargePayload): Observable<OpenTableSessionDetail> {
+    return this.http.post<OpenTableSessionDetail>(
+      this.api.resource('open-table', 'update-room-charge'),
+      payload,
+    );
+  }
+
+  deleteRoomCharge(payload: DeleteRoomChargePayload): Observable<OpenTableSessionDetail> {
+    return this.http.post<OpenTableSessionDetail>(
+      this.api.resource('open-table', 'delete-room-charge'),
       payload,
     );
   }

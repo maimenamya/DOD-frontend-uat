@@ -56,6 +56,16 @@ export function sessionItemTypeForLedgerCategory(
   }
 }
 
+export type StaffLedgerEntryMode = 'REGULAR' | 'OFF_DUTY_PURCHASE';
+
+export const STAFF_LEDGER_ENTRY_MODE_OPTIONS: {
+  value: StaffLedgerEntryMode;
+  label: string;
+}[] = [
+  { value: 'REGULAR', label: 'ลงดื่ม' },
+  { value: 'OFF_DUTY_PURCHASE', label: 'ซื้อดื่มหยุด' },
+];
+
 export function isFixedDrinkStaffRole(role: Pick<MstRole, 'category'>): boolean {
   return role.category === 'STAFF';
 }

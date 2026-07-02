@@ -705,6 +705,26 @@
                         เริ่มใช้ {{ row.seatStartedLabel }}
                       </span>
                     }
+                    @if (ledgerCanMutate() && row.canEditRoomCharge) {
+                      <button
+                        type="button"
+                        class="open-table-bill-item-action shrink-0"
+                        [disabled]="actionBusy()"
+                        (click)="openEditRoomChargeModal(row)"
+                      >
+                        แก้ไข
+                      </button>
+                    }
+                    @if (ledgerCanMutate() && row.canDeleteRoomCharge) {
+                      <button
+                        type="button"
+                        class="open-table-bill-item-action shrink-0"
+                        [disabled]="actionBusy()"
+                        (click)="openDeleteRoomChargeModal(row)"
+                      >
+                        ลบ
+                      </button>
+                    }
                     <span class="ml-auto shrink-0 font-medium text-theme-accent">
                       {{ row.lineAmount | number: '1.0-0' }} บาท
                     </span>
@@ -1193,6 +1213,20 @@
 
       @if (addModalMode() === 'STAFF_LEDGER') {
         <div class="app-form-group">
+          <label class="app-label">ประเภทการลง</label>
+          <app-custom-dropdown
+            [options]="staffLedgerEntryModeOptions"
+            [ngModel]="staffLedgerEntryMode()"
+            (ngModelChange)="onStaffLedgerEntryModeChange($event)"
+          />
+          @if (isStaffLedgerOffDutyPurchase()) {
+            <p class="app-field-hint mt-1">
+              ทุกตำแหน่ง · ลงตามจำนวนดื่ม (ไม่นับเวลานั่ง · ไม่ใช้โควต้าฟรี PR)
+            </p>
+          }
+        </div>
+
+        <div class="app-form-group">
           <label class="app-label">เลือกตำแหน่งพนักงาน</label>
           <app-custom-dropdown
             [options]="staffLedgerRoleOptions()"
@@ -1214,27 +1248,29 @@
           }
         </div>
 
-        <div class="app-form-group open-table-staff-choice">
-          <span class="app-label">โควต้าฟรี PR</span>
-          <label class="app-toggle open-table-staff-start-toggle">
-            <input
-              type="checkbox"
-              class="app-toggle-input"
-              [ngModel]="staffUsePackageFreeDrinks()"
-              (ngModelChange)="staffUsePackageFreeDrinks.set($event)"
-            />
-            <span class="app-toggle-track" aria-hidden="true"></span>
-            <span class="app-toggle-text open-table-staff-start-toggle-label">
-              {{
-                staffUsePackageFreeDrinks()
-                  ? packageFreeDrinksQuota() > 0
-                    ? 'ใช้โควต้าฟรี (เหลือ ' + packageFreeDrinksRemaining() + '/' + packageFreeDrinksQuota() + ' ดื่ม)'
-                    : 'ใช้โควต้าฟรี PR'
-                  : 'คิดเงินตามราคารันดื่ม'
-              }}
-            </span>
-          </label>
-        </div>
+        @if (!isStaffLedgerOffDutyPurchase()) {
+          <div class="app-form-group open-table-staff-choice">
+            <span class="app-label">โควต้าฟรี PR</span>
+            <label class="app-toggle open-table-staff-start-toggle">
+              <input
+                type="checkbox"
+                class="app-toggle-input"
+                [ngModel]="staffUsePackageFreeDrinks()"
+                (ngModelChange)="staffUsePackageFreeDrinks.set($event)"
+              />
+              <span class="app-toggle-track" aria-hidden="true"></span>
+              <span class="app-toggle-text open-table-staff-start-toggle-label">
+                {{
+                  staffUsePackageFreeDrinks()
+                    ? packageFreeDrinksQuota() > 0
+                      ? 'ใช้โควต้าฟรี (เหลือ ' + packageFreeDrinksRemaining() + '/' + packageFreeDrinksQuota() + ' ดื่ม)'
+                      : 'ใช้โควต้าฟรี PR'
+                    : 'คิดเงินตามราคารันดื่ม'
+                }}
+              </span>
+            </label>
+          </div>
+        }
 
         @if (showStaffBillAsTagToggle()) {
           <div class="app-form-group open-table-staff-choice">
@@ -1329,7 +1365,11 @@
               (keydown)="blockNonNumericKey($event)"
               placeholder="1"
             />
-            <p class="app-field-hint">ใส่จำนวนเอง — ไม่คิดรันดื่มอัตโนมัติ</p>
+            @if (isStaffLedgerOffDutyPurchase()) {
+              <p class="app-field-hint">ซื้อดื่มหยุด — ระบุจำนวนดื่มที่ลงบิล</p>
+            } @else {
+              <p class="app-field-hint">ใส่จำนวนเอง — ไม่คิดรันดื่มอัตโนมัติ</p>
+            }
           </div>
         }
       }
@@ -1593,6 +1633,98 @@
     <div class="app-form-actions app-form-actions-top">
       <button type="button" class="app-btn-secondary" (click)="closeEditStaffDrinkModal()">ยกเลิก</button>
       <button type="button" class="app-btn-primary" [disabled]="actionBusy()" (click)="confirmEditStaffDrink()">
+        {{ actionBusy() ? 'กำลังบันทึก...' : 'บันทึก' }}
+      </button>
+    </div>
+  </app-modal>
+}
+
+@if (showDeleteRoomChargeModal()) {
+  <app-modal layout="center" [pinCenterOnMobile]="true" (dismiss)="closeDeleteRoomChargeModal()">
+    <div class="app-modal-header">
+      <h2 class="app-modal-title">
+        ลบค่าห้อง — {{ deleteRoomChargeTarget()?.roomCode }}
+      </h2>
+      <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeDeleteRoomChargeModal()">
+        ✕
+      </button>
+    </div>
+    <p class="app-field-hint mb-3">
+      {{ deleteRoomChargeTarget()?.roomCode }}
+      · {{ deleteRoomChargeTarget()?.quantity }} {{ deleteRoomChargeTarget()?.unitLabel }}
+      · {{ deleteRoomChargeTarget()?.lineAmount | number: '1.0-0' }} บาท
+      @if (deleteRoomChargeTarget()?.canStop) {
+        — ห้องยังเปิดอยู่ การลบจะยกเลิกค่าห้องทั้งหมดของที่นั่งนี้
+      } @else {
+        — ลบแล้วเพิ่มใหม่ได้จาก «เพิ่มรายการ»
+      }
+    </p>
+    <div class="app-form-actions app-form-actions-top">
+      <button type="button" class="app-btn-secondary" (click)="closeDeleteRoomChargeModal()">ยกเลิก</button>
+      <button
+        type="button"
+        class="app-btn-danger"
+        [disabled]="actionBusy()"
+        (click)="confirmDeleteRoomCharge()"
+      >
+        {{ actionBusy() ? 'กำลังบันทึก...' : 'ยืนยันลบ' }}
+      </button>
+    </div>
+  </app-modal>
+}
+
+@if (showEditRoomChargeModal()) {
+  <app-modal layout="center" [pinCenterOnMobile]="true" (dismiss)="closeEditRoomChargeModal()">
+    <div class="app-modal-header">
+      <h2 class="app-modal-title">
+        แก้ไขค่าห้อง — {{ editRoomChargeTarget()?.roomCode }}
+      </h2>
+      <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeEditRoomChargeModal()">✕</button>
+    </div>
+    <p class="app-field-hint mb-3">
+      ปัจจุบัน {{ editRoomChargeTarget()?.roomCode }}
+      · {{ editRoomChargeTarget()?.quantity }} {{ editRoomChargeTarget()?.unitLabel }}
+      · {{ editRoomChargeTarget()?.lineAmount | number: '1.0-0' }} บาท
+      @if (editRoomChargeTarget()?.seatStoppedLabel) {
+        · สต็อป {{ editRoomChargeTarget()?.seatStoppedLabel }}
+      } @else if (editRoomChargeTarget()?.canStop) {
+        · กำลังเปิดอยู่
+      }
+    </p>
+    @if (
+      editRoomChargeTarget()?.pricingType === 'HOURLY' &&
+      (editRoomChargeTarget()?.quantity ?? 0) >= 4
+    ) {
+      <p class="app-field-hint mb-3 text-theme-accent">
+        เปิดเกิน 4 ชม. — เปลี่ยนเป็น «เหมาทั้งคืน» แล้วระบุราคาเหมาได้
+      </p>
+    }
+    <div class="app-form-group">
+      <label class="app-label">ประเภทค่าใช้จ่าย</label>
+      <app-custom-dropdown
+        [options]="roomChargeRateTypeOptions"
+        [ngModel]="editRoomChargeRateType()"
+        (ngModelChange)="onEditRoomChargeRateTypeChange($event)"
+      />
+    </div>
+    @if (editRoomChargeShowsPriceInput()) {
+      <div class="app-form-group">
+        <label class="app-label" for="edit-room-charge-price">ราคา (บาท)</label>
+        <input
+          id="edit-room-charge-price"
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+          class="app-input"
+          [ngModel]="editRoomChargeUnitPriceText()"
+          (ngModelChange)="onEditRoomChargeUnitPriceChange($event)"
+          (keydown)="blockNonNumericKey($event)"
+        />
+      </div>
+    }
+    <div class="app-form-actions app-form-actions-top">
+      <button type="button" class="app-btn-secondary" (click)="closeEditRoomChargeModal()">ยกเลิก</button>
+      <button type="button" class="app-btn-primary" [disabled]="actionBusy()" (click)="confirmEditRoomCharge()">
         {{ actionBusy() ? 'กำลังบันทึก...' : 'บันทึก' }}
       </button>
     </div>

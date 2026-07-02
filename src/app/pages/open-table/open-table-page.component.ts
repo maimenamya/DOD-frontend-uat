@@ -49,6 +49,7 @@ import { PackageDepositService } from '../../services/package-deposit.service';
 import {
   ORDER_LEDGER_CATEGORY_LABELS,
   ORDER_LEDGER_CATEGORY_VALUES,
+  STAFF_LEDGER_ENTRY_MODE_OPTIONS,
   currentDatetimeLocalValue,
   formatShopDateLabelBe,
   isEntertainmentStaffRole,
@@ -56,6 +57,7 @@ import {
   isFixedDrinkStaffRole,
   splitShopDatetimeLocal,
   type OrderLedgerCategory,
+  type StaffLedgerEntryMode,
 } from './open-table-ledger.util';
 import { AuthService } from '../../services/auth.service';
 import { BeverageService } from '../../services/beverage.service';
@@ -204,6 +206,8 @@ export class OpenTablePageComponent implements OnInit {
   readonly showVoidItemModal = signal(false);
   readonly showDeleteStaffDrinkModal = signal(false);
   readonly showEditStaffDrinkModal = signal(false);
+  readonly showDeleteRoomChargeModal = signal(false);
+  readonly showEditRoomChargeModal = signal(false);
   readonly showPackageBottleModal = signal(false);
   readonly showCheckoutModal = signal(false);
   readonly showEditGuestCountModal = signal(false);
@@ -224,6 +228,10 @@ export class OpenTablePageComponent implements OnInit {
   readonly stopDrinkPreviewLoading = signal(false);
   private stopDrinkPreviewTimer: ReturnType<typeof setTimeout> | null = null;
   readonly stopRoomTarget = signal<SessionRoomCharge | null>(null);
+  readonly deleteRoomChargeTarget = signal<SessionRoomCharge | null>(null);
+  readonly editRoomChargeTarget = signal<SessionRoomCharge | null>(null);
+  readonly editRoomChargeRateType = signal<RoomChargeRateMode>('NONE');
+  readonly editRoomChargeUnitPriceText = signal('');
   readonly returnBeverageTarget = signal<SessionOrderItem | null>(null);
   readonly returnBeverageQtyText = signal('1');
   readonly voidItemTarget = signal<SessionOrderItem | null>(null);
@@ -277,6 +285,10 @@ export class OpenTablePageComponent implements OnInit {
   readonly packageCustomerName = signal('');
   readonly selectedPackageDepositId = signal<number | null>(null);
 
+  readonly staffLedgerEntryMode = signal<StaffLedgerEntryMode>('REGULAR');
+  readonly staffLedgerEntryModeOptions: DropdownOption[] = STAFF_LEDGER_ENTRY_MODE_OPTIONS.map(
+    (o) => ({ value: o.value, label: o.label }),
+  );
   readonly staffLedgerRoleId = signal<number | null>(null);
   readonly staffLedgerEmployeeId = signal<number | null>(null);
   readonly staffLedgerQtyText = signal('1');
@@ -309,6 +321,9 @@ export class OpenTablePageComponent implements OnInit {
   }));
   readonly roomChargeShowsPriceInput = computed(
     () => this.roomChargeRateType() === 'HOURLY' || this.roomChargeRateType() === 'FLAT_RATE',
+  );
+  readonly editRoomChargeShowsPriceInput = computed(
+    () => this.editRoomChargeRateType() === 'HOURLY' || this.editRoomChargeRateType() === 'FLAT_RATE',
   );
 
   /** Destination seat key: `seating-12`. */
@@ -445,6 +460,8 @@ export class OpenTablePageComponent implements OnInit {
       this.showVoidItemModal() ||
       this.showDeleteStaffDrinkModal() ||
       this.showEditStaffDrinkModal() ||
+      this.showDeleteRoomChargeModal() ||
+      this.showEditRoomChargeModal() ||
       this.showPackageBottleModal() ||
       this.showCheckoutModal() ||
       this.showEditGuestCountModal() ||
@@ -708,6 +725,10 @@ export class OpenTablePageComponent implements OnInit {
     })),
   );
 
+  readonly isStaffLedgerOffDutyPurchase = computed(
+    () => this.staffLedgerEntryMode() === 'OFF_DUTY_PURCHASE',
+  );
+
   readonly selectedStaffLedgerEmployee = computed(() => {
     const id = this.staffLedgerEmployeeId();
     if (id == null) return null;
@@ -726,11 +747,13 @@ export class OpenTablePageComponent implements OnInit {
   });
 
   readonly showStaffFixedDrinkQty = computed(() => {
+    if (this.isStaffLedgerOffDutyPurchase()) return true;
     const role = this.selectedStaffLedgerRole();
     return role != null && isFixedDrinkStaffRole(role);
   });
 
   readonly showStaffSeatStartTime = computed(() => {
+    if (this.isStaffLedgerOffDutyPurchase()) return false;
     const role = this.selectedStaffLedgerRole();
     return role != null && isEntertainmentStaffRole(role);
   });
@@ -745,12 +768,14 @@ export class OpenTablePageComponent implements OnInit {
   });
 
   readonly showStaffReopenChoice = computed(() => {
+    if (this.isStaffLedgerOffDutyPurchase()) return false;
     const role = this.selectedStaffLedgerRole();
     if (role == null || !isEntertainmentStaffRole(role)) return false;
     return this.staffReopenStoppedRowOnSession() != null;
   });
 
   readonly showStaffApplyStartToggle = computed(() => {
+    if (this.isStaffLedgerOffDutyPurchase()) return false;
     const role = this.selectedStaffLedgerRole();
     if (role == null || !isEntertainmentStaffRole(role)) return false;
     if ((role.startDrinks ?? 0) < 1) return false;
@@ -886,6 +911,9 @@ export class OpenTablePageComponent implements OnInit {
     employee: MstEmployee,
     role: MstRole | undefined,
   ): boolean {
+    if (this.staffLedgerEntryMode() === 'OFF_DUTY_PURCHASE') {
+      return true;
+    }
     if (!isEmployeeOnDutyForDrinkEntry(employee)) {
       return false;
     }
@@ -1309,6 +1337,7 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   private resetStaffLedgerForm(): void {
+    this.staffLedgerEntryMode.set('REGULAR');
     this.syncStaffLedgerRoles();
     this.staffLedgerQtyText.set('1');
     this.staffApplyStartDrinks.set(true);
@@ -1543,6 +1572,17 @@ export class OpenTablePageComponent implements OnInit {
 
   onOrderQtyTextChange(value: string): void {
     this.orderQtyText.set(sanitizeDigitsOnly(value));
+  }
+
+  onStaffLedgerEntryModeChange(value: number | string | null): void {
+    const mode = String(value ?? 'REGULAR') as StaffLedgerEntryMode;
+    if (mode !== 'REGULAR' && mode !== 'OFF_DUTY_PURCHASE') return;
+    this.staffLedgerEntryMode.set(mode);
+    if (mode === 'OFF_DUTY_PURCHASE') {
+      this.staffUsePackageFreeDrinks.set(false);
+    }
+    this.staffLedgerEmployeeId.set(null);
+    this.syncStaffLedgerEmployee();
   }
 
   onStaffLedgerRoleChange(value: number | string | null): void {
@@ -1796,6 +1836,19 @@ export class OpenTablePageComponent implements OnInit {
       this.flagAddItemValidation();
       this.toast.showError('กรุณาเลือกตำแหน่งพนักงาน');
       return null;
+    }
+
+    if (this.staffLedgerEntryMode() === 'OFF_DUTY_PURCHASE') {
+      const quantity = parsePositiveIntFromText(this.staffLedgerQtyText());
+      if (quantity == null || quantity < 1) {
+        this.flagAddItemValidation();
+        this.toast.showError('กรุณาระบุจำนวนดื่ม');
+        return null;
+      }
+      const emp = this.selectedStaffLedgerEmployee();
+      const billAsTag =
+        emp?.hasActivePrTag === true ? this.staffBillAsTag() : undefined;
+      return [{ employeeId, quantity, billAsTag, usePackageFreeDrinks: false }];
     }
 
     if (isEntertainmentStaffRole(role)) {
@@ -2429,10 +2482,17 @@ export class OpenTablePageComponent implements OnInit {
     const successMessage =
       this.addModalMode() === 'ORDER_LEDGER'
         ? 'เพิ่มรายการลงโต๊ะสำเร็จ'
-        : 'บันทึกรันดื่มพนักงานสำเร็จ';
+        : this.staffLedgerEntryMode() === 'OFF_DUTY_PURCHASE'
+          ? 'บันทึกซื้อดื่มหยุดสำเร็จ'
+          : 'บันทึกรันดื่มพนักงานสำเร็จ';
 
     const ok = await this.confirmDialog.confirm({
-      title: this.addModalMode() === 'ORDER_LEDGER' ? 'บันทึกรายการ' : 'บันทึกรันดื่ม',
+      title:
+        this.addModalMode() === 'ORDER_LEDGER'
+          ? 'บันทึกรายการ'
+          : this.staffLedgerEntryMode() === 'OFF_DUTY_PURCHASE'
+            ? 'บันทึกซื้อดื่มหยุด'
+            : 'บันทึกรันดื่ม',
       message:
         this.addModalMode() === 'ORDER_LEDGER'
           ? 'เพิ่มรายการลงโต๊ะนี้ ใช่หรือไม่?'
@@ -2571,6 +2631,116 @@ export class OpenTablePageComponent implements OnInit {
       'สต็อปห้องสำเร็จ',
       sessionId,
       () => this.closeStopRoomModal(),
+    );
+  }
+
+  openDeleteRoomChargeModal(row: SessionRoomCharge): void {
+    this.deleteRoomChargeTarget.set(row);
+    this.showDeleteRoomChargeModal.set(true);
+    this.showMobileSheet.set(false);
+  }
+
+  closeDeleteRoomChargeModal(): void {
+    this.showDeleteRoomChargeModal.set(false);
+    this.deleteRoomChargeTarget.set(null);
+    this.schedulePortaledModalPurge();
+    if (this.selectedSeatKey()) {
+      this.showMobileSheet.set(true);
+    }
+  }
+
+  confirmDeleteRoomCharge(): void {
+    if (!this.ledgerCanMutate()) {
+      this.toast.showError('โต๊ะนี้ถูกเช็กบิลแล้ว ไม่สามารถแก้รายการได้');
+      this.closeDeleteRoomChargeModal();
+      return;
+    }
+    const sessionId = this.selectedSeat()?.sessionId;
+    const expectedRevision = this.requireExpectedRevision();
+    const row = this.deleteRoomChargeTarget();
+    if (!sessionId || !row || expectedRevision == null) {
+      this.toast.showError('ไม่พบรายการค่าห้อง');
+      return;
+    }
+    this.submitBillPanelMutation(
+      this.openTableService.deleteRoomCharge({
+        shopId: this.shopId,
+        sessionId,
+        expectedRevision,
+        roomChargeId: row.roomChargeId,
+      }),
+      'ลบค่าห้องสำเร็จ',
+      sessionId,
+      () => this.closeDeleteRoomChargeModal(),
+    );
+  }
+
+  openEditRoomChargeModal(row: SessionRoomCharge): void {
+    this.editRoomChargeTarget.set(row);
+    this.editRoomChargeRateType.set(row.pricingType as RoomChargeRateMode);
+    this.editRoomChargeUnitPriceText.set(
+      row.pricingType === 'NONE' ? '' : String(Math.max(0, row.unitPrice)),
+    );
+    this.showEditRoomChargeModal.set(true);
+    this.showMobileSheet.set(false);
+  }
+
+  closeEditRoomChargeModal(): void {
+    this.showEditRoomChargeModal.set(false);
+    this.editRoomChargeTarget.set(null);
+    this.schedulePortaledModalPurge();
+    if (this.selectedSeatKey()) {
+      this.showMobileSheet.set(true);
+    }
+  }
+
+  onEditRoomChargeRateTypeChange(value: string | number | null): void {
+    const rate = String(value ?? 'NONE') as RoomChargeRateMode;
+    this.editRoomChargeRateType.set(rate);
+    if (rate === 'NONE') {
+      this.editRoomChargeUnitPriceText.set('');
+    }
+  }
+
+  onEditRoomChargeUnitPriceChange(value: string): void {
+    this.editRoomChargeUnitPriceText.set(sanitizeDigitsOnly(value));
+  }
+
+  confirmEditRoomCharge(): void {
+    if (!this.ledgerCanMutate()) {
+      this.toast.showError('โต๊ะนี้ถูกเช็กบิลแล้ว ไม่สามารถแก้รายการได้');
+      this.closeEditRoomChargeModal();
+      return;
+    }
+    const sessionId = this.selectedSeat()?.sessionId;
+    const expectedRevision = this.requireExpectedRevision();
+    const row = this.editRoomChargeTarget();
+    if (!sessionId || !row || expectedRevision == null) {
+      this.toast.showError('ไม่พบรายการค่าห้อง');
+      return;
+    }
+    const rateType = this.editRoomChargeRateType();
+    let unitPrice = 0;
+    if (rateType === 'HOURLY' || rateType === 'FLAT_RATE') {
+      const parsed = parsePositiveIntFromText(this.editRoomChargeUnitPriceText());
+      if (parsed == null) {
+        this.toast.showError('กรุณาใส่ราคา (บาท)');
+        return;
+      }
+      unitPrice = parsed;
+    }
+    this.submitBillPanelMutation(
+      this.openTableService.updateRoomCharge({
+        shopId: this.shopId,
+        sessionId,
+        expectedRevision,
+        roomChargeId: row.roomChargeId,
+        rateType,
+        unitPrice,
+      }),
+      'แก้ไขค่าห้องสำเร็จ',
+      sessionId,
+      () => this.closeEditRoomChargeModal(),
     );
   }
 
@@ -3405,6 +3575,10 @@ export class OpenTablePageComponent implements OnInit {
     const employee = this.selectedStaffLedgerEmployee();
     const name = employee?.nickname ?? '—';
     const role = this.selectedStaffLedgerRole();
+    if (this.staffLedgerEntryMode() === 'OFF_DUTY_PURCHASE') {
+      const qty = parsePositiveIntFromText(this.staffLedgerQtyText()) ?? 0;
+      return `บันทึกซื้อดื่มหยุด ${name} · ${qty.toLocaleString('th-TH')} ดื่ม ใช่หรือไม่?`;
+    }
     if (role && isEntertainmentStaffRole(role)) {
       const seatLocal = this.staffSeatStartedAt().trim();
       return `บันทึกรันดื่ม ${name} · เริ่มนั่ง ${this.formatShopDatetimeLabel(seatLocal)} ใช่หรือไม่?`;

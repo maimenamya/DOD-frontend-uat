@@ -141,11 +141,23 @@ export type SessionRoomCharge = {
   seatStartedLabel: string;
   seatStoppedLabel?: string;
   canStop: boolean;
+  canEditRoomCharge?: boolean;
+  canDeleteRoomCharge?: boolean;
 };
 
 export type StopRoomChargePayload = SessionMutationBase & {
   roomChargeId: number;
   seatStoppedAt: string;
+};
+
+export type UpdateRoomChargePayload = SessionMutationBase & {
+  roomChargeId: number;
+  rateType: 'NONE' | 'HOURLY' | 'FLAT_RATE';
+  unitPrice: number;
+};
+
+export type DeleteRoomChargePayload = SessionMutationBase & {
+  roomChargeId: number;
 };
 
 export type DrinkBillingMode = 'TAG' | 'FREELANCE';
