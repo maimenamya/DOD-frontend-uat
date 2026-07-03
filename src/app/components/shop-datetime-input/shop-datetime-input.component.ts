@@ -27,6 +27,7 @@ import {
   setupShopFlatpickrMobileKeyboardGuard,
   shopFlatpickrConfirmDatePlugins,
   syncShopFlatpickrOnOpen,
+  scheduleShopFlatpickrAltOverride,
   unmountShopFlatpickrMobileTimeWheels,
   unwatchShopFlatpickrKeyboardOverlap,
   watchShopFlatpickrKeyboardOverlap,
@@ -139,6 +140,10 @@ export class ShopDatetimeInputComponent
           });
         }
         watchShopFlatpickrKeyboardOverlap(instance);
+        this.scheduleBeAltDisplay(instance);
+      },
+      onValueUpdate: () => {
+        this.scheduleBeAltDisplay();
       },
       onClose: () => {
         unwatchShopFlatpickrKeyboardOverlap();
@@ -149,10 +154,10 @@ export class ShopDatetimeInputComponent
             this.pendingValue = this.committedShopValue;
             if (isValidShopDatetimeLocal(this.committedShopValue)) {
               this.fp.setDate(this.shopToFlatpickrDisplay(this.committedShopValue), false);
-              this.updateAltDisplay(this.fp);
             }
           }
         }
+        this.scheduleBeAltDisplay();
         this.onTouched();
       },
       onKeyDown: (_dates, _str, instance, e) => {
@@ -166,7 +171,7 @@ export class ShopDatetimeInputComponent
       onChange: (_dates, dateStr, instance) => {
         const shop = this.flatpickrDisplayToShop(dateStr);
         this.pendingValue = shop;
-        this.updateAltDisplay(instance);
+        this.scheduleBeAltDisplay(instance);
         if (isShopFlatpickrMobileViewport()) {
           requestAnimationFrame(() => blurShopFlatpickrTypingFocus(instance));
           globalThis.setTimeout(() => blurShopFlatpickrTypingFocus(instance), 50);
@@ -215,6 +220,10 @@ export class ShopDatetimeInputComponent
     const fp = instance ?? this.fp;
     if (!fp?.altInput || !isValidShopDatetimeLocal(this.pendingValue)) return;
     fp.altInput.value = formatShopDatetimeLabelBe(this.pendingValue);
+  }
+
+  private scheduleBeAltDisplay(instance?: flatpickr.Instance): void {
+    scheduleShopFlatpickrAltOverride(() => this.updateAltDisplay(instance));
   }
 
   registerOnChange(fn: (value: string) => void): void {

@@ -18,6 +18,7 @@ import {
 import {
   bindShopFlatpickrConfirmButton,
   closeShopFlatpickrMobileChrome,
+  scheduleShopFlatpickrAltOverride,
   shopFlatpickrConfirmDatePlugins,
   syncShopFlatpickrOnOpen,
 } from '../../utils/flatpickr-shop.util';
@@ -97,10 +98,14 @@ export class ShopDateInputComponent implements ControlValueAccessor, AfterViewIn
         if (isValidShopDateInput(this.pendingValue)) {
           instance.jumpToDate(this.pendingValue, false);
         }
+        this.scheduleBeAltDisplay();
+      },
+      onValueUpdate: () => {
+        this.scheduleBeAltDisplay();
       },
       onChange: (_dates, dateStr) => {
         this.pendingValue = dateStr.trim();
-        this.updateAltDisplay();
+        this.scheduleBeAltDisplay();
         if (!needsConfirm) {
           this.onChange(this.pendingValue);
         }
@@ -114,6 +119,7 @@ export class ShopDateInputComponent implements ControlValueAccessor, AfterViewIn
             this.syncPickerFromPending();
           }
         }
+        this.scheduleBeAltDisplay();
         this.onTouched();
       },
       ...(needsConfirm
@@ -173,6 +179,10 @@ export class ShopDateInputComponent implements ControlValueAccessor, AfterViewIn
   private updateAltDisplay(): void {
     if (!this.fp?.altInput || !isValidShopDateInput(this.pendingValue)) return;
     this.fp.altInput.value = formatShopDateLabelBe(this.pendingValue);
+  }
+
+  private scheduleBeAltDisplay(): void {
+    scheduleShopFlatpickrAltOverride(() => this.updateAltDisplay());
   }
 
   private styleAltInput(instance: flatpickr.Instance): void {

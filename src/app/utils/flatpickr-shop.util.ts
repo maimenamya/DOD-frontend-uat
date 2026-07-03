@@ -23,6 +23,14 @@ export function shopFlatpickrConfirmDatePlugins(): ReturnType<typeof confirmDate
   ];
 }
 
+/** flatpickr altFormat uses ค.ศ.; re-apply พ.ศ. label after its internal alt refresh. */
+export function scheduleShopFlatpickrAltOverride(apply: () => void): void {
+  apply();
+  requestAnimationFrame(apply);
+  globalThis.setTimeout(apply, 0);
+  globalThis.setTimeout(apply, 50);
+}
+
 /** Mark confirm before flatpickr plugin calls close(). */
 export function bindShopFlatpickrConfirmButton(
   instance: flatpickr.Instance,
