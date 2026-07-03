@@ -31,6 +31,46 @@ export function scheduleShopFlatpickrAltOverride(apply: () => void): void {
   globalThis.setTimeout(apply, 50);
 }
 
+const SHOP_BE_YEAR_OFFSET = 543;
+
+type ShopFlatpickrBeYearHooked = flatpickr.Instance & { __shopBeYearHook?: boolean };
+
+/** Show Buddhist era year in flatpickr calendar header (internal date stays ค.ศ.). */
+export function applyShopFlatpickrBeYearDisplay(instance: flatpickr.Instance): void {
+  const yearEl = instance.currentYearElement;
+  if (!yearEl) return;
+  yearEl.readOnly = true;
+  yearEl.setAttribute('inputmode', 'none');
+  yearEl.value = String(instance.currentYear + SHOP_BE_YEAR_OFFSET);
+}
+
+export function scheduleShopFlatpickrBeYearDisplay(instance: flatpickr.Instance): void {
+  scheduleShopFlatpickrAltOverride(() => applyShopFlatpickrBeYearDisplay(instance));
+}
+
+function wrapFlatpickrHook(
+  instance: flatpickr.Instance,
+  hookName: 'onMonthChange' | 'onYearChange' | 'onValueUpdate',
+  after: () => void,
+): void {
+  const userHook = instance.config[hookName];
+  const wrapped: Hook = (selectedDates, dateStr, fp) => {
+    callShopFlatpickrHooks(userHook, selectedDates, dateStr, fp);
+    after();
+  };
+  instance.set(hookName, wrapped);
+}
+
+function ensureShopFlatpickrBeYearDisplayHook(instance: flatpickr.Instance): void {
+  const tagged = instance as ShopFlatpickrBeYearHooked;
+  if (tagged.__shopBeYearHook) return;
+  tagged.__shopBeYearHook = true;
+  const apply = (): void => scheduleShopFlatpickrBeYearDisplay(instance);
+  wrapFlatpickrHook(instance, 'onMonthChange', apply);
+  wrapFlatpickrHook(instance, 'onYearChange', apply);
+  wrapFlatpickrHook(instance, 'onValueUpdate', apply);
+}
+
 /** Mark confirm before flatpickr plugin calls close(). */
 export function bindShopFlatpickrConfirmButton(
   instance: flatpickr.Instance,
@@ -641,6 +681,8 @@ function ensureShopFlatpickrCloseCleanupHook(instance: flatpickr.Instance): void
 /** Bottom-sheet layout on phone; floating position on desktop. */
 export function syncShopFlatpickrOnOpen(instance: flatpickr.Instance): void {
   ensureShopFlatpickrCloseCleanupHook(instance);
+  ensureShopFlatpickrBeYearDisplayHook(instance);
+  scheduleShopFlatpickrBeYearDisplay(instance);
   const cal = instance.calendarContainer;
   const mobile = isShopFlatpickrMobileViewport();
   cal.classList.toggle('app-flatpickr-calendar--mobile', mobile);
