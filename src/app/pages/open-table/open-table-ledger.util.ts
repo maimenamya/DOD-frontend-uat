@@ -91,19 +91,23 @@ export function isValidShopDateInput(value: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(value.trim());
 }
 
-/** Display shop date as `DD/MM/BBBB` (พ.ศ.) for UI labels and pickers. */
-export function formatShopDateLabelBe(value: string): string {
+/** Display shop date as `DD/MM/YYYY` (shop calendar, ค.ศ.). */
+export function formatShopDateLabel(value: string): string {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
   if (!match) return value.trim();
-  const yearBe = Number(match[1]) + 543;
-  return `${match[3]}/${match[2]}/${yearBe}`;
+  return `${match[3]}/${match[2]}/${match[1]}`;
 }
 
-/** Parse `YYYY-MM-DD` to local Date parts (no timezone shift). */
+/** @deprecated Use formatShopDateLabel — kept for existing imports. */
+export const formatShopDateLabelBe = formatShopDateLabel;
+
+/** Parse `YYYY-MM-DD` for flatpickr — UTC wall-clock noon avoids device TZ day/year shift. */
 export function shopDateInputToLocalDate(value: string): Date | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
   if (!match) return null;
-  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  return new Date(
+    Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12, 0, 0, 0),
+  );
 }
 
 /** Current shop wall clock for datetime pickers (Asia/Bangkok). */

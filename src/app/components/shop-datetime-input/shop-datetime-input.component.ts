@@ -124,6 +124,9 @@ export class ShopDatetimeInputComponent
         this.closeConfirmed = false;
         syncShopFlatpickrOnOpen(instance);
         this.syncPickerFromPending(instance);
+        if (isValidShopDatetimeLocal(this.pendingValue)) {
+          instance.jumpToDate(this.shopToFlatpickrDisplay(this.pendingValue), false);
+        }
         this.timeWheelTeardown?.();
         if (isShopFlatpickrMobileViewport()) {
           requestAnimationFrame(() => {

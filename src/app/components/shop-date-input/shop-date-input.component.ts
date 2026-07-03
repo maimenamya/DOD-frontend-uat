@@ -12,9 +12,8 @@ import flatpickr from 'flatpickr';
 import { Thai } from 'flatpickr/dist/l10n/th.js';
 
 import {
-  formatShopDateLabelBe,
+  formatShopDateLabel,
   isValidShopDateInput,
-  shopDateInputToLocalDate,
 } from '../../pages/open-table/open-table-ledger.util';
 import {
   bindShopFlatpickrConfirmButton,
@@ -95,6 +94,9 @@ export class ShopDateInputComponent implements ControlValueAccessor, AfterViewIn
           this.closeConfirmed = false;
         }
         syncShopFlatpickrOnOpen(instance);
+        if (isValidShopDateInput(this.pendingValue)) {
+          instance.jumpToDate(this.pendingValue, false);
+        }
       },
       onChange: (_dates, dateStr) => {
         this.pendingValue = dateStr.trim();
@@ -161,11 +163,8 @@ export class ShopDateInputComponent implements ControlValueAccessor, AfterViewIn
   private syncPickerFromPending(): void {
     if (!this.fp) return;
     if (isValidShopDateInput(this.pendingValue)) {
-      const local = shopDateInputToLocalDate(this.pendingValue);
-      if (local) {
-        this.fp.setDate(local, false);
-        this.updateAltDisplay();
-      }
+      this.fp.setDate(this.pendingValue, false);
+      this.updateAltDisplay();
     } else {
       this.fp.clear(false);
     }
@@ -173,7 +172,7 @@ export class ShopDateInputComponent implements ControlValueAccessor, AfterViewIn
 
   private updateAltDisplay(): void {
     if (!this.fp?.altInput || !isValidShopDateInput(this.pendingValue)) return;
-    this.fp.altInput.value = formatShopDateLabelBe(this.pendingValue);
+    this.fp.altInput.value = formatShopDateLabel(this.pendingValue);
   }
 
   private styleAltInput(instance: flatpickr.Instance): void {
