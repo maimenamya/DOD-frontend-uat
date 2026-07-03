@@ -91,15 +91,23 @@ export function isValidShopDateInput(value: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(value.trim());
 }
 
-/** Display shop date as `DD/MM/YYYY` (shop calendar, ค.ศ.). */
-export function formatShopDateLabel(value: string): string {
+/** Display shop date as `DD/MM/BBBB` (พ.ศ.) for operators. ISO value stays ค.ศ. */
+export function formatShopDateLabelBe(value: string): string {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
   if (!match) return value.trim();
-  return `${match[3]}/${match[2]}/${match[1]}`;
+  const yearBe = Number(match[1]) + 543;
+  return `${match[3]}/${match[2]}/${yearBe}`;
 }
 
-/** @deprecated Use formatShopDateLabel — kept for existing imports. */
-export const formatShopDateLabelBe = formatShopDateLabel;
+/** Display shop datetime as `DD/MM/BBBB HH:mm` (พ.ศ.). */
+export function formatShopDatetimeLabelBe(value: string): string {
+  const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})/.exec(value.trim());
+  if (!match) return value.trim();
+  return `${formatShopDateLabelBe(match[1])} ${match[2]}:${match[3]}`;
+}
+
+/** @deprecated Use formatShopDateLabelBe */
+export const formatShopDateLabel = formatShopDateLabelBe;
 
 /** Parse `YYYY-MM-DD` for flatpickr — UTC wall-clock noon avoids device TZ day/year shift. */
 export function shopDateInputToLocalDate(value: string): Date | null {

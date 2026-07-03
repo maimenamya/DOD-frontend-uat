@@ -13,6 +13,7 @@ import { Thai } from 'flatpickr/dist/l10n/th.js';
 
 import {
   currentDatetimeLocalValue,
+  formatShopDatetimeLabelBe,
   isValidShopDatetimeLocal,
   splitShopDatetimeLocal,
 } from '../../pages/open-table/open-table-ledger.util';
@@ -148,6 +149,7 @@ export class ShopDatetimeInputComponent
             this.pendingValue = this.committedShopValue;
             if (isValidShopDatetimeLocal(this.committedShopValue)) {
               this.fp.setDate(this.shopToFlatpickrDisplay(this.committedShopValue), false);
+              this.updateAltDisplay(this.fp);
             }
           }
         }
@@ -164,6 +166,7 @@ export class ShopDatetimeInputComponent
       onChange: (_dates, dateStr, instance) => {
         const shop = this.flatpickrDisplayToShop(dateStr);
         this.pendingValue = shop;
+        this.updateAltDisplay(instance);
         if (isShopFlatpickrMobileViewport()) {
           requestAnimationFrame(() => blurShopFlatpickrTypingFocus(instance));
           globalThis.setTimeout(() => blurShopFlatpickrTypingFocus(instance), 50);
@@ -202,9 +205,16 @@ export class ShopDatetimeInputComponent
     if (!fp) return;
     if (isValidShopDatetimeLocal(this.pendingValue)) {
       fp.setDate(this.shopToFlatpickrDisplay(this.pendingValue), false);
+      this.updateAltDisplay(fp);
     } else {
       fp.clear(false);
     }
+  }
+
+  private updateAltDisplay(instance?: flatpickr.Instance): void {
+    const fp = instance ?? this.fp;
+    if (!fp?.altInput || !isValidShopDatetimeLocal(this.pendingValue)) return;
+    fp.altInput.value = formatShopDatetimeLabelBe(this.pendingValue);
   }
 
   registerOnChange(fn: (value: string) => void): void {
@@ -248,6 +258,7 @@ export class ShopDatetimeInputComponent
     const shop = this.flatpickrDisplayToShop(display);
     if (isValidShopDatetimeLocal(shop)) {
       this.pendingValue = shop;
+      this.updateAltDisplay(instance);
     }
   }
 }

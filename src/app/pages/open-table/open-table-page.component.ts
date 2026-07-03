@@ -51,7 +51,7 @@ import {
   ORDER_LEDGER_CATEGORY_VALUES,
   STAFF_LEDGER_ENTRY_MODE_OPTIONS,
   currentDatetimeLocalValue,
-  formatShopDateLabel,
+  formatShopDatetimeLabelBe,
   isEntertainmentStaffRole,
   isValidShopDatetimeLocal,
   isFixedDrinkStaffRole,
@@ -3552,7 +3552,7 @@ export class OpenTablePageComponent implements OnInit {
 
   private formatShopDatetimeLabel(shopDatetime: string): string {
     const { datePart, hour, minute } = splitShopDatetimeLocal(shopDatetime);
-    return `${formatShopDateLabel(datePart)} ${hour}:${minute} น.`;
+    return `${formatShopDatetimeLabelBe(`${datePart}T${hour}:${minute}`)} น.`;
   }
 
   private buildRoomChargeConfirmMessage(

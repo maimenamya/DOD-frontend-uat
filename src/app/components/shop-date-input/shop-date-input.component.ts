@@ -12,7 +12,7 @@ import flatpickr from 'flatpickr';
 import { Thai } from 'flatpickr/dist/l10n/th.js';
 
 import {
-  formatShopDateLabel,
+  formatShopDateLabelBe,
   isValidShopDateInput,
 } from '../../pages/open-table/open-table-ledger.util';
 import {
@@ -172,7 +172,7 @@ export class ShopDateInputComponent implements ControlValueAccessor, AfterViewIn
 
   private updateAltDisplay(): void {
     if (!this.fp?.altInput || !isValidShopDateInput(this.pendingValue)) return;
-    this.fp.altInput.value = formatShopDateLabel(this.pendingValue);
+    this.fp.altInput.value = formatShopDateLabelBe(this.pendingValue);
   }
 
   private styleAltInput(instance: flatpickr.Instance): void {
