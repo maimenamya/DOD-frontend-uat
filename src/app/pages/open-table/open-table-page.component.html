@@ -568,10 +568,12 @@
               }
             </div>
             <div class="app-skeleton h-16 w-full rounded-input"></div>
-            <div class="grid grid-cols-3 gap-2">
-              <div class="app-skeleton h-10 rounded-input"></div>
-              <div class="app-skeleton h-10 rounded-input"></div>
-              <div class="app-skeleton h-10 rounded-input"></div>
+            <div class="open-table-ledger-actions flex flex-col gap-2">
+              <div class="grid grid-cols-2 gap-2">
+                <div class="app-skeleton h-11 rounded-input"></div>
+                <div class="app-skeleton h-11 rounded-input"></div>
+              </div>
+              <div class="app-skeleton h-11 w-full rounded-input"></div>
             </div>
           </div>
         } @else if (seatAwaitingClear()) {
@@ -811,26 +813,28 @@
           </div>
 
           @if (ledgerCanMutate()) {
-            <div class="app-action-bar grid w-full grid-cols-3 gap-2">
+            <div class="open-table-ledger-actions app-action-bar flex w-full flex-col gap-2">
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  class="app-btn-secondary"
+                  [disabled]="actionBusy()"
+                  (click)="openAddItemModal()"
+                >
+                  เพิ่มรายการ
+                </button>
+                <button
+                  type="button"
+                  class="app-btn-secondary"
+                  [disabled]="actionBusy()"
+                  (click)="handleSeatTransfer()"
+                >
+                  ย้าย
+                </button>
+              </div>
               <button
                 type="button"
-                class="app-btn-primary"
-                [disabled]="actionBusy()"
-                (click)="openAddItemModal()"
-              >
-                เพิ่มรายการ
-              </button>
-              <button
-                type="button"
-                class="app-btn-accent"
-                [disabled]="actionBusy()"
-                (click)="handleSeatTransfer()"
-              >
-                ย้าย
-              </button>
-              <button
-                type="button"
-                class="app-btn-checkout"
+                class="app-btn-primary w-full"
                 [disabled]="actionBusy()"
                 (click)="openCheckoutModal()"
               >

@@ -688,3 +688,11 @@
 .open-table-bill-skeleton {
   min-height: 14rem;
 }
+
+.open-table-ledger-actions .app-btn-secondary {
+  font-weight: 600;
+}
+
+.open-table-ledger-actions > .app-btn-primary {
+  font-weight: 700;
+}
