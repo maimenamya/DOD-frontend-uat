@@ -27,7 +27,9 @@
         class="login-form"
         [class.app-form-was-validated]="formValidated()"
         [formGroup]="form"
+        method="post"
         novalidate
+        onsubmit="return false"
         (ngSubmit)="submit()"
       >
         @if (error()) {
