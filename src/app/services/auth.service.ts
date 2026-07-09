@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { map, Observable, tap } from 'rxjs';
 
 import type {
@@ -25,10 +26,13 @@ import {
   type AppFeature,
 } from '../utils/permission-group.util';
 import { roleDisplayNameTh } from '../utils/role-display.util';
+import { hasWorkDuty, type WorkDuty } from '../models/work-duty';
 import {
   readStoredShopPublicId,
   writeStoredShopPublicId,
 } from '../core/shop-public-id.storage';
+import { isJwtExpired } from '../utils/jwt-expiry.util';
+import { ToastService } from './toast.service';
 
 const STORAGE_KEY = 'dod_auth_session';
 
@@ -38,6 +42,10 @@ const STORAGE_KEY = 'dod_auth_session';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly api = inject(ApiConfig);
+  private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
+
+  private sessionExpiryInProgress = false;
 
   private readonly sessionSignal = signal<AuthSession | null>(this.readStoredSession());
 
@@ -95,8 +103,42 @@ export class AuthService {
     this.sessionSignal.set(null);
   }
 
+  redirectToLogin(): void {
+    const shopPublicId = readStoredShopPublicId();
+    void this.router.navigate(
+      shopPublicId ? ['/s', shopPublicId, 'login'] : ['/login'],
+    );
+  }
+
+  /** Clear session, toast, and send user back to branch login. */
+  handleSessionExpired(): void {
+    if (this.sessionExpiryInProgress) {
+      return;
+    }
+    this.sessionExpiryInProgress = true;
+
+    const hadSession = !!this.getToken();
+    this.logout();
+    if (hadSession) {
+      this.toast.showError('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่');
+    }
+    this.redirectToLogin();
+  }
+
+  isTokenExpired(token: string): boolean {
+    return isJwtExpired(token);
+  }
+
   isAuthenticated(): boolean {
-    return !!this.getToken();
+    const token = this.getToken();
+    if (!token) {
+      return false;
+    }
+    if (this.isTokenExpired(token)) {
+      this.logout();
+      return false;
+    }
+    return true;
   }
 
   getToken(): string | null {
@@ -155,6 +197,10 @@ export class AuthService {
 
   getPermissionGroup(): PermissionGroup | null {
     return this.getUser()?.permissionGroup ?? null;
+  }
+
+  hasWorkDuty(duty: WorkDuty): boolean {
+    return hasWorkDuty(this.getUser(), duty);
   }
 
   hasFeature(feature: AppFeature): boolean {
@@ -277,6 +323,7 @@ export class AuthService {
     if (publicId) {
       writeStoredShopPublicId(publicId);
     }
+    this.sessionExpiryInProgress = false;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
     this.sessionSignal.set(session);
   }
@@ -367,6 +414,7 @@ export class AuthService {
           ),
           roleCategory: employee.role!.category,
           permissionGroup: employee.role!.permissionGroup,
+          workDuties: employee.role!.workDuties ?? [],
           shop: employee.shop,
         });
     return { token, user };
@@ -395,6 +443,7 @@ export class AuthService {
         roleDisplayNameTh: user.roleDisplayNameTh?.trim() || 'กำลังตั้งค่าตำแหน่ง',
         roleCategory: 'STAFF',
         permissionGroup: 'OWNER',
+        workDuties: [],
         shop:
           user.shop ??
           ({
@@ -440,6 +489,7 @@ export class AuthService {
       roleDisplayNameTh,
       roleCategory,
       permissionGroup,
+      workDuties: user.workDuties ?? [],
       shop:
         user.shop ??
         (user.shopId

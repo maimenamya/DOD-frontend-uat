@@ -1,0 +1,39 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">รับของส่งโต๊ะ</h1>
+      <p class="app-page-subtitle">อาหาร/เครื่องดื่มพร้อมแล้ว — มารับที่ครัวหรือบาร์</p>
+    </div>
+  </div>
+
+  @if (loading() && tickets().length === 0) {
+    <p class="app-loading-text">กำลังโหลด...</p>
+  } @else if (tickets().length === 0) {
+    <p class="app-empty-state">ยังไม่มีของรอรับ</p>
+  } @else {
+    <section class="app-card app-form-stack">
+      <div class="station-ticket-list">
+        @for (ticket of tickets(); track ticket.id) {
+          <article class="station-ticket-card station-ticket-card--ready">
+            <div class="station-ticket-card-head">
+              <span class="station-ticket-table">โต๊ะ {{ ticket.tableName }}</span>
+              <span class="app-badge">{{ kindLabel[ticket.kind] }}</span>
+            </div>
+            <p class="station-ticket-lines">{{ ticket.linesLabel }}</p>
+            @if (ticket.readyAtLabel) {
+              <p class="station-ticket-meta">พร้อม {{ ticket.readyAtLabel }} น.</p>
+            }
+            <button
+              type="button"
+              class="app-btn-primary w-full"
+              [disabled]="actingId() === ticket.id"
+              (click)="markPickedUp(ticket)"
+            >
+              {{ actingId() === ticket.id ? 'กำลังบันทึก...' : 'รับแล้ว — ไปส่งโต๊ะ' }}
+            </button>
+          </article>
+        }
+      </div>
+    </section>
+  }
+</div>

@@ -11,11 +11,13 @@ import { Router } from '@angular/router';
 
 import type { AuthBranchOption } from '../../models/auth';
 import { AuthService } from '../../services/auth.service';
+import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 import { ThemeService } from '../../services/theme.service';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-header',
+  imports: [NotificationBellComponent],
   templateUrl: './app-header.component.html',
 })
 export class AppHeaderComponent implements OnInit {

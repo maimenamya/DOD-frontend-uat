@@ -1,4 +1,5 @@
 import type { PermissionGroup } from './permission-group';
+import type { WorkDuty } from './work-duty';
 
 export const EMPLOYEE_ROLES = ['OWNER', 'ADMIN', 'MANAGER', 'SALE', 'PR'] as const;
 
@@ -33,6 +34,7 @@ export interface MstRole {
   drinkAccrualMode?: DrinkAccrualMode;
   drinkAccrualRounding?: DrinkAccrualRounding;
   attendanceLeaveQuotaPerMonth?: number;
+  workDuties?: WorkDuty[];
   createdAt?: string;
 }
 
@@ -48,4 +50,5 @@ export interface MstRoleWritePayload {
   drinkAccrualMode?: DrinkAccrualMode;
   drinkAccrualRounding?: DrinkAccrualRounding;
   attendanceLeaveQuotaPerMonth?: number;
+  workDuties?: WorkDuty[];
 }

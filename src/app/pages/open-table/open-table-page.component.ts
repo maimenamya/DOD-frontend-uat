@@ -3,6 +3,7 @@ import { Component, DestroyRef, OnInit, computed, effect, inject, signal } from 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
 import { catchError, finalize, forkJoin, of } from 'rxjs';
 
 import { AppModalComponent, type AppModalLayout } from '../../components/app-modal/app-modal.component';
@@ -83,7 +84,6 @@ import {
   employeeMatchesBranchRole,
   sortEmployeesByCode,
 } from '../../utils/employee-option.util';
-import { isEmployeeOnDutyForDrinkEntry } from '../../utils/employee-status-label.util';
 import {
   blockNonNumericInputKey,
   parsePositiveIntFromText,
@@ -147,6 +147,7 @@ export class OpenTablePageComponent implements OnInit {
   private readonly employeeService = inject(EmployeeService);
   private readonly roleService = inject(RoleService);
   private readonly auth = inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
 
@@ -197,6 +198,7 @@ export class OpenTablePageComponent implements OnInit {
   /** Stable keys for `@for` in bill skeleton (avoid allocating each change detection). */
   readonly billSkeletonLines = [1, 2, 3] as const;
   private sessionDetailRequestSeq = 0;
+  private pendingSessionFocus: number | null = null;
 
   readonly showAddModal = signal(false);
   readonly showTransferModal = signal(false);
@@ -609,9 +611,7 @@ export class OpenTablePageComponent implements OnInit {
     if (roleId == null) return [];
     const role = this.masterRolesForDropdown().find((r) => r.id === roleId);
     return sortEmployeesByCode(
-      this.staffEmployees().filter(
-        (e) => employeeMatchesBranchRole(e, role) && isEmployeeOnDutyForDrinkEntry(e),
-      ),
+      this.staffEmployees().filter((e) => employeeMatchesBranchRole(e, role)),
     ).map(
       (e) => ({
         value: e.id,
@@ -841,6 +841,11 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const sessionParam = this.route.snapshot.queryParamMap.get('sessionId');
+    const sessionId = sessionParam != null ? Number(sessionParam) : Number.NaN;
+    if (Number.isFinite(sessionId) && sessionId > 0) {
+      this.pendingSessionFocus = sessionId;
+    }
     this.refreshFloorPlan();
     if (!this.openTableSelfBillOnly()) {
       this.loadMasterData();
@@ -904,8 +909,8 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   /**
-   * PR/entertainer: hide when actively seated elsewhere; allow reopen on this session
-   * even if employee list is stale (tableSeatStatus still ON_TABLE until refresh).
+   * PR/entertainer (ลงดื่ม): one table at a time until stop — hide if seated elsewhere.
+   * ซื้อดื่มหยุด: no seat-time row — show everyone matching role (attendance not checked).
    */
   private isStaffLedgerEmployeeSelectable(
     employee: MstEmployee,
@@ -913,9 +918,6 @@ export class OpenTablePageComponent implements OnInit {
   ): boolean {
     if (this.staffLedgerEntryMode() === 'OFF_DUTY_PURCHASE') {
       return true;
-    }
-    if (!isEmployeeOnDutyForDrinkEntry(employee)) {
-      return false;
     }
     if (!role || !isEntertainmentStaffRole(role)) {
       return true;
@@ -1004,6 +1006,15 @@ export class OpenTablePageComponent implements OnInit {
     this.sessionDetailLoading.set(false);
   }
 
+  private tryFocusPendingSession(): void {
+    const sessionId = this.pendingSessionFocus;
+    if (sessionId == null) return;
+    const seat = this.seats().find((row) => row.sessionId === sessionId);
+    if (!seat) return;
+    this.pendingSessionFocus = null;
+    this.selectSeat(seat);
+  }
+
   private refreshFloorPlan(
     selectKey?: string | null,
     opts?: { silent?: boolean; skeleton?: boolean; onDone?: () => void },
@@ -1062,6 +1073,7 @@ export class OpenTablePageComponent implements OnInit {
           })),
         );
         this.seats.set(tiles);
+        this.tryFocusPendingSession();
         const key = selectKey ?? this.selectedSeatKey();
         if (key && this.selectedSeatKey() === key) {
           const seat = tiles.find((s) => s.key === key);

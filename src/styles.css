@@ -963,6 +963,133 @@
     outline-offset: 2px;
   }
 
+  /* ── In-app notification bell ── */
+  .app-notification-bell-root {
+    @apply relative shrink-0;
+  }
+
+  .app-notification-trigger {
+    @apply relative flex h-10 w-10 items-center justify-center rounded-full border border-theme-border text-text-secondary transition-colors duration-200;
+    cursor: pointer;
+  }
+
+  .app-notification-trigger:hover {
+    border-color: var(--primary-light);
+    color: var(--text-accent);
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+  }
+
+  .app-notification-trigger:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  .app-notification-icon {
+    @apply h-5 w-5;
+  }
+
+  .app-notification-badge {
+    @apply absolute -right-0.5 -top-0.5 flex min-h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full px-1 text-[0.625rem] font-bold leading-none text-white;
+    background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+    box-shadow: 0 0 0 2px var(--card-bg);
+  }
+
+  .app-notification-menu {
+    @apply absolute right-0 top-[calc(100%+0.5rem)] z-50 flex w-[min(22rem,calc(100vw-2rem))] max-h-[min(24rem,70dvh)] flex-col overflow-hidden rounded-glass border border-theme-border shadow-lg;
+    background: var(--dropdown-menu-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+  }
+
+  .app-notification-menu-header {
+    @apply flex items-center justify-between gap-3 border-b border-theme-border px-3 py-2.5;
+  }
+
+  .app-notification-menu-title {
+    @apply text-sm font-semibold text-text-primary;
+  }
+
+  .app-notification-mark-all {
+    @apply text-xs font-medium;
+    color: var(--text-accent);
+    cursor: pointer;
+  }
+
+  .app-notification-mark-all:hover {
+    text-decoration: underline;
+  }
+
+  .app-notification-empty {
+    @apply px-4 py-8 text-center text-sm text-text-secondary;
+  }
+
+  .app-notification-list {
+    @apply m-0 list-none overflow-y-auto p-1;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .app-notification-item {
+    @apply flex w-full flex-col gap-0.5 rounded-input px-3 py-2.5 text-left transition-colors duration-200;
+    cursor: pointer;
+  }
+
+  .app-notification-item:hover {
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+  }
+
+  .app-notification-item--unread {
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
+  }
+
+  .app-notification-item-title {
+    @apply text-sm font-semibold text-text-primary;
+  }
+
+  .app-notification-item-body {
+    @apply text-sm text-text-secondary;
+  }
+
+  .app-notification-item-meta {
+    @apply text-xs text-text-secondary;
+  }
+
+  /* ── Station ticket queue (kitchen / bar / service) ── */
+  .station-ticket-list {
+    @apply flex flex-col gap-3;
+  }
+
+  .station-ticket-card {
+    @apply rounded-glass border border-theme-border p-4;
+    background: color-mix(in srgb, var(--card-bg) 92%, transparent);
+  }
+
+  .station-ticket-card--pending {
+    border-color: color-mix(in srgb, var(--primary) 35%, var(--theme-border));
+  }
+
+  .station-ticket-card--ready {
+    border-color: color-mix(in srgb, #22c55e 40%, var(--theme-border));
+    background: color-mix(in srgb, #22c55e 8%, var(--card-bg));
+  }
+
+  .station-ticket-card-head {
+    @apply mb-2 flex items-center justify-between gap-2;
+  }
+
+  .station-ticket-table {
+    @apply text-base font-semibold text-text-primary;
+  }
+
+  .station-ticket-time,
+  .station-ticket-meta {
+    @apply text-xs text-text-secondary;
+  }
+
+  .station-ticket-lines {
+    @apply mb-3 text-sm text-text-primary;
+  }
+
   /* ── Sidebar icons (uniform stroke + active pill) ── */
   .app-sidebar-icon {
     @apply inline-flex shrink-0 items-center justify-center leading-none;

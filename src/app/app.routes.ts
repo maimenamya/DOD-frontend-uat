@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard, guestGuard } from './guards/auth.guard';
+import { workDutyGuard } from './guards/work-duty.guard';
 import { mustChangePasswordChildGuard } from './guards/must-change-password.guard';
 import { permissionGuard } from './guards/permission.guard';
 import { openTableGuard } from './guards/open-table.guard';
@@ -63,7 +64,7 @@ export const routes: Routes = [
     path: 'dashboard',
     component: MainShellComponent,
     canActivate: [authGuard],
-    canActivateChild: [mustChangePasswordChildGuard],
+    canActivateChild: [authGuard, mustChangePasswordChildGuard],
     children: [
       { path: '', component: DashboardPageComponent },
       {
@@ -82,6 +83,32 @@ export const routes: Routes = [
         path: 'open-table',
         component: OpenTablePageComponent,
         canActivate: [openTableGuard],
+      },
+      {
+        path: 'kitchen-queue',
+        loadComponent: () =>
+          import('./pages/station-queue/station-queue-page.component').then(
+            (m) => m.StationQueuePageComponent,
+          ),
+        canActivate: [workDutyGuard('CHEF')],
+        data: { kind: 'FOOD' },
+      },
+      {
+        path: 'bar-queue',
+        loadComponent: () =>
+          import('./pages/station-queue/station-queue-page.component').then(
+            (m) => m.StationQueuePageComponent,
+          ),
+        canActivate: [workDutyGuard('BARTENDER')],
+        data: { kind: 'DRINK' },
+      },
+      {
+        path: 'service-pickup',
+        loadComponent: () =>
+          import('./pages/service-pickup/service-pickup-page.component').then(
+            (m) => m.ServicePickupPageComponent,
+          ),
+        canActivate: [workDutyGuard('SERVER')],
       },
       {
         path: 'employees',

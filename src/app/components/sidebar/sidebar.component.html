@@ -64,6 +64,48 @@
       </a>
     }
 
+    @if (showKitchenQueue()) {
+      <a
+        routerLink="/dashboard/kitchen-queue"
+        routerLinkActive="app-sidebar-link-active"
+        (click)="collapseAllSubmenus(); mobileClose.emit()"
+        class="app-sidebar-link"
+      >
+        <span class="app-sidebar-icon-slot">
+          <app-sidebar-icon name="food" />
+        </span>
+        <span class="app-sidebar-label">คิวครัว</span>
+      </a>
+    }
+
+    @if (showBarQueue()) {
+      <a
+        routerLink="/dashboard/bar-queue"
+        routerLinkActive="app-sidebar-link-active"
+        (click)="collapseAllSubmenus(); mobileClose.emit()"
+        class="app-sidebar-link"
+      >
+        <span class="app-sidebar-icon-slot">
+          <app-sidebar-icon name="drinks" />
+        </span>
+        <span class="app-sidebar-label">คิวบาร์</span>
+      </a>
+    }
+
+    @if (showServicePickup()) {
+      <a
+        routerLink="/dashboard/service-pickup"
+        routerLinkActive="app-sidebar-link-active"
+        (click)="collapseAllSubmenus(); mobileClose.emit()"
+        class="app-sidebar-link"
+      >
+        <span class="app-sidebar-icon-slot">
+          <app-sidebar-icon name="employees" />
+        </span>
+        <span class="app-sidebar-label">รับของส่งโต๊ะ</span>
+      </a>
+    }
+
     @if (showFullOpenTableNav()) {
       @if (showPackageDepositsNav()) {
         <a

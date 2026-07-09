@@ -1,5 +1,6 @@
 ﻿import type { PermissionGroup } from './permission-group';
 import type { RoleCategory } from './role';
+import type { WorkDuty } from './work-duty';
 
 export interface LoginRequest {
   shopPublicId: string;
@@ -41,6 +42,8 @@ export interface AuthUser {
   roleDisplayNameTh: string;
   roleCategory: RoleCategory;
   permissionGroup: PermissionGroup;
+  /** Station duties for in-app notifications (from MstRole.workDuties). */
+  workDuties?: WorkDuty[];
   shop: {
     id: number;
     name: string;
@@ -72,6 +75,7 @@ export interface AuthResponse {
       displayNameTh?: string | null;
       category: RoleCategory;
       permissionGroup: PermissionGroup;
+      workDuties?: WorkDuty[];
     } | null;
     shop: {
       id: number;

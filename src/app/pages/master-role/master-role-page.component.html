@@ -40,6 +40,26 @@
             placeholder="เลือกประเภท"
           />
         </div>
+        @if (showWorkDutiesForForm('create')) {
+          <div class="app-form-group">
+            <span class="app-label">หน้าที่รับแจ้งเตือน</span>
+            <div class="flex flex-col gap-2">
+              @for (option of workDutyOptions; track option.value) {
+                <label class="app-toggle">
+                  <input
+                    type="checkbox"
+                    class="app-toggle-input"
+                    [checked]="isWorkDutySelected('create', option.value)"
+                    (change)="toggleWorkDuty('create', option.value)"
+                  />
+                  <span class="app-toggle-track" aria-hidden="true"></span>
+                  <span class="app-toggle-text text-sm">{{ option.label }}</span>
+                </label>
+              }
+            </div>
+            <p class="app-field-hint">เลือกสถานีที่ตำแหน่งนี้จะได้รับแจ้งเตือนในแอป (เช่น ครัว, บาร์น้ำ)</p>
+          </div>
+        }
         @if (createIsStaff() || createIsEntertainer()) {
           <div class="app-form-group">
             <label class="app-label">โควต้าลา (วัน/เดือน)</label>
@@ -150,6 +170,26 @@
             placeholder="เลือกประเภท"
           />
         </div>
+        @if (showWorkDutiesForForm('edit')) {
+          <div class="app-form-group">
+            <span class="app-label">หน้าที่รับแจ้งเตือน</span>
+            <div class="flex flex-col gap-2">
+              @for (option of workDutyOptions; track option.value) {
+                <label class="app-toggle">
+                  <input
+                    type="checkbox"
+                    class="app-toggle-input"
+                    [checked]="isWorkDutySelected('edit', option.value)"
+                    (change)="toggleWorkDuty('edit', option.value)"
+                  />
+                  <span class="app-toggle-track" aria-hidden="true"></span>
+                  <span class="app-toggle-text text-sm">{{ option.label }}</span>
+                </label>
+              }
+            </div>
+            <p class="app-field-hint">เลือกสถานีที่ตำแหน่งนี้จะได้รับแจ้งเตือนในแอป (เช่น ครัว, บาร์น้ำ)</p>
+          </div>
+        }
         @if (editIsStaff() || editIsEntertainer()) {
           <div class="app-form-group">
             <label class="app-label">โควต้าลา (วัน/เดือน)</label>
@@ -256,6 +296,7 @@
                 <col />
                 <col />
                 <col />
+                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -267,6 +308,7 @@
                   <th>ชื่อแสดง</th>
                   <th>กลุ่มสิทธิ์</th>
                   <th>ประเภท</th>
+                  <th>รับแจ้งเตือน</th>
                   <th class="app-cell-right">สตาร์ทดื่ม</th>
                   <th class="app-cell-right">รันดื่ม/ชม.</th>
                   <th class="app-cell-right">ราคา</th>
@@ -290,6 +332,7 @@
                 <col />
                 <col />
                 <col />
+                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -302,6 +345,7 @@
                     <td>{{ roleDisplayNameTh(role) }}</td>
                     <td>{{ permissionGroupLabel(role.permissionGroup) }}</td>
                     <td>{{ categoryLabel(role.category) }}</td>
+                    <td>{{ workDutyLabels(role.workDuties) }}</td>
                     <td class="app-cell-right">{{ role.startDrinks }}</td>
                     <td class="app-cell-right">{{ role.nextHourDrinks }}</td>
                     <td class="app-cell-right app-cell-highlight-violet">

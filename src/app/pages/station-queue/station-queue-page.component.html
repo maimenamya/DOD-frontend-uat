@@ -1,0 +1,62 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">{{ pageTitle() }}</h1>
+      <p class="app-page-subtitle">คิว{{ kindLabel() }}แบบ Grab — กดพร้อมเสิร์ฟเมื่อทำเสร็จ</p>
+    </div>
+  </div>
+
+  @if (loading() && tickets().length === 0) {
+    <p class="app-loading-text">กำลังโหลด...</p>
+  } @else if (tickets().length === 0) {
+    <p class="app-empty-state">ยังไม่มีคิว{{ kindLabel() }}</p>
+  } @else {
+    @if (pendingTickets().length > 0) {
+      <section class="app-card app-form-stack">
+        <h2 class="app-section-title">รอทำ ({{ pendingTickets().length }})</h2>
+        <div class="station-ticket-list">
+          @for (ticket of pendingTickets(); track ticket.id) {
+            <article class="station-ticket-card station-ticket-card--pending">
+              <div class="station-ticket-card-head">
+                <span class="station-ticket-table">โต๊ะ {{ ticket.tableName }}</span>
+                <span class="station-ticket-time">{{ ticket.createdAtLabel }} น.</span>
+              </div>
+              <p class="station-ticket-lines">{{ ticket.linesLabel }}</p>
+              @if (ticket.createdByNickname) {
+                <p class="station-ticket-meta">สั่งโดย {{ ticket.createdByNickname }}</p>
+              }
+              <button
+                type="button"
+                class="app-btn-primary w-full"
+                [disabled]="actingId() === ticket.id"
+                (click)="markReady(ticket)"
+              >
+                {{ actingId() === ticket.id ? 'กำลังบันทึก...' : 'พร้อมเสิร์ฟ' }}
+              </button>
+            </article>
+          }
+        </div>
+      </section>
+    }
+
+    @if (readyTickets().length > 0) {
+      <section class="app-card app-form-stack">
+        <h2 class="app-section-title">รอเสิร์ฟมารับ ({{ readyTickets().length }})</h2>
+        <div class="station-ticket-list">
+          @for (ticket of readyTickets(); track ticket.id) {
+            <article class="station-ticket-card station-ticket-card--ready">
+              <div class="station-ticket-card-head">
+                <span class="station-ticket-table">โต๊ะ {{ ticket.tableName }}</span>
+                <span class="app-badge app-badge--success">{{ statusLabel.READY }}</span>
+              </div>
+              <p class="station-ticket-lines">{{ ticket.linesLabel }}</p>
+              @if (ticket.readyAtLabel) {
+                <p class="station-ticket-meta">พร้อม {{ ticket.readyAtLabel }} น.</p>
+              }
+            </article>
+          }
+        </div>
+      </section>
+    }
+  }
+</div>

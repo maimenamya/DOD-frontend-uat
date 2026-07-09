@@ -28,6 +28,13 @@ import { ToastService } from '../../services/toast.service';
 import { roleDisplayNameTh, compareRolesByThaiLabel } from '../../utils/role-display.util';
 import { canMutateRoleRecord } from '../../utils/permission-group.util';
 import {
+  WORK_DUTY_OPTIONS,
+  canConfigureWorkDuties,
+  parseWorkDuties,
+  workDutyLabels,
+  type WorkDuty,
+} from '../../models/work-duty';
+import {
   MasterListQueryState,
   createMasterListView,
   masterListRowNumber,
@@ -51,6 +58,8 @@ export class MasterRolePageComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
   readonly categoryDropdownOptions = CATEGORY_DROPDOWN_OPTIONS;
+  readonly workDutyOptions = WORK_DUTY_OPTIONS;
+  readonly workDutyLabels = workDutyLabels;
   readonly roleDisplayNameTh = roleDisplayNameTh;
 
   readonly canManage = computed(() => this.auth.canWriteOnPage('manage_roles'));
@@ -124,6 +133,7 @@ export class MasterRolePageComponent implements OnInit {
       defaultPricePerDrink: '0',
       drinkShopPortionBaht: '60',
       attendanceLeaveQuotaPerMonth: '0',
+      workDuties: [],
     });
     this.showCreateModal.set(true);
   }
@@ -146,6 +156,7 @@ export class MasterRolePageComponent implements OnInit {
       defaultPricePerDrink: String(role.defaultPricePerDrink),
       drinkShopPortionBaht: String(role.drinkShopPortionBaht ?? 60),
       attendanceLeaveQuotaPerMonth: String(role.attendanceLeaveQuotaPerMonth ?? 0),
+      workDuties: [...(role.workDuties ?? [])],
     });
     this.editingRole.set(role);
     if (lockPermissionGroup) {
@@ -233,6 +244,27 @@ export class MasterRolePageComponent implements OnInit {
     return category === 'ENTERTAINER' ? 'เด็กนั่งดริ้ง' : 'พนักงาน';
   }
 
+  showWorkDutiesForForm(form: 'create' | 'edit'): boolean {
+    const targetForm = form === 'create' ? this.createForm : this.editForm;
+    const role = form === 'edit' ? this.editingRole() : null;
+    if (role?.permissionGroup === 'OWNER') return false;
+    return canConfigureWorkDuties(targetForm.controls.permissionGroup.value);
+  }
+
+  isWorkDutySelected(form: 'create' | 'edit', duty: WorkDuty): boolean {
+    const targetForm = form === 'create' ? this.createForm : this.editForm;
+    return targetForm.controls.workDuties.value.includes(duty);
+  }
+
+  toggleWorkDuty(form: 'create' | 'edit', duty: WorkDuty): void {
+    const targetForm = form === 'create' ? this.createForm : this.editForm;
+    const control = targetForm.controls.workDuties;
+    const current = control.value;
+    control.setValue(
+      current.includes(duty) ? current.filter((item) => item !== duty) : [...current, duty],
+    );
+  }
+
   sanitizeIntegerInput(
     form: 'create' | 'edit',
     controlName: 'startDrinks' | 'nextHourDrinks' | 'defaultPricePerDrink' | 'drinkShopPortionBaht' | 'attendanceLeaveQuotaPerMonth',
@@ -255,6 +287,7 @@ export class MasterRolePageComponent implements OnInit {
       defaultPricePerDrink: ['0', [Validators.pattern(/^\d+$/)]],
       drinkShopPortionBaht: ['60', [Validators.pattern(/^\d+$/)]],
       attendanceLeaveQuotaPerMonth: ['0', [Validators.pattern(/^\d+$/)]],
+      workDuties: [[] as WorkDuty[]],
     });
   }
 
@@ -275,6 +308,13 @@ export class MasterRolePageComponent implements OnInit {
     };
 
     form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => refresh());
+    form.controls.permissionGroup.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((group) => {
+        if (!canConfigureWorkDuties(group)) {
+          form.controls.workDuties.setValue([], { emitEvent: false });
+        }
+      });
     refresh();
   }
 
@@ -319,6 +359,9 @@ export class MasterRolePageComponent implements OnInit {
         raw.attendanceLeaveQuotaPerMonth || '0',
         10,
       ),
+      workDuties: canConfigureWorkDuties(raw.permissionGroup)
+        ? parseWorkDuties(raw.workDuties)
+        : [],
     };
   }
 }

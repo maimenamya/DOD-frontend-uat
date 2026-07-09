@@ -24,10 +24,3 @@ export function attendanceStatusLabel(
   if (!value) return '—';
   return ATTENDANCE_STATUS_LABELS[value] ?? value;
 }
-
-/** Drink ledger / host selection — only employees who checked in (not OFF_DUTY). */
-export function isEmployeeOnDutyForDrinkEntry(
-  employee: { attendanceStatus?: EmployeeAttendanceStatus },
-): boolean {
-  return employee.attendanceStatus !== 'OFF_DUTY';
-}

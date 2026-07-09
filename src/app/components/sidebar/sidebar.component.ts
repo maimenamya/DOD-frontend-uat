@@ -2,7 +2,6 @@
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter } from 'rxjs';
 
-import { readStoredShopPublicId } from '../../core/shop-public-id.storage';
 import { AuthService } from '../../services/auth.service';
 import { SystemGuideModalComponent } from '../system-guide/system-guide-modal.component';
 import { DodBrandWordmarkComponent } from './dod-brand-wordmark.component';
@@ -129,6 +128,9 @@ export class SidebarComponent implements OnInit {
   readonly showReports = computed(() => this.auth.hasFeature('reports'));
   readonly showDailyExpenses = computed(() => this.auth.hasFeature('daily_expenses'));
   readonly showMasterNav = computed(() => this.auth.hasFeature('master_data'));
+  readonly showKitchenQueue = computed(() => this.auth.hasWorkDuty('CHEF'));
+  readonly showBarQueue = computed(() => this.auth.hasWorkDuty('BARTENDER'));
+  readonly showServicePickup = computed(() => this.auth.hasWorkDuty('SERVER'));
 
   readonly navGroups = MANAGEMENT_NAV_GROUPS;
   readonly activeSubmenu = signal<string | null>(this.getGroupIdByCurrentRoute());
@@ -175,10 +177,7 @@ export class SidebarComponent implements OnInit {
 
   logout(): void {
     this.auth.logout();
-    const shopPublicId = readStoredShopPublicId();
-    void this.router.navigate(
-      shopPublicId ? ['/s', shopPublicId, 'login'] : ['/login'],
-    );
+    this.auth.redirectToLogin();
   }
 
   private syncSubmenuToRoute(): void {
