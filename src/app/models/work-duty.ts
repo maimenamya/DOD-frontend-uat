@@ -44,8 +44,8 @@ export function receivesShopNotifications(user: {
   pendingRoleSetup?: boolean;
 }): boolean {
   if (user.pendingRoleSetup) return false;
-  if (!canConfigureWorkDuties(user.permissionGroup)) return false;
-  return (user.workDuties?.length ?? 0) > 0;
+  if (user.permissionGroup === 'OWNER' || user.permissionGroup === 'MANAGER') return false;
+  return true;
 }
 
 export function hasWorkDuty(

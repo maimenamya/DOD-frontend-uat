@@ -29,7 +29,6 @@ export interface AuthUser {
   employeeId: string;
   username: string;
   email: string | null;
-  lineUserId: string | null;
   nickname: string;
   organizationId: number;
   shopId: number;
@@ -62,7 +61,6 @@ export interface AuthResponse {
     employeeId: string;
     username: string;
     email: string | null;
-    lineUserId: string | null;
     nickname: string;
     organizationId: number;
     shopId: number;
@@ -95,7 +93,6 @@ export interface AuthSession {
 
 export interface UpdateProfileRequest {
   email?: string | null;
-  lineUserId?: string | null;
   nickname?: string;
   password?: string;
 }

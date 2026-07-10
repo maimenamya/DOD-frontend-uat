@@ -2978,6 +2978,23 @@
     color: var(--text-accent-strong);
   }
 
+  .app-dropdown-menu--multiple .app-dropdown-item {
+    @apply flex items-center gap-2;
+  }
+
+  .app-dropdown-item-check {
+    @apply inline-flex w-4 shrink-0 justify-center text-xs font-semibold;
+    color: var(--text-accent-strong);
+  }
+
+  .app-dropdown-item-label {
+    @apply min-w-0 flex-1 text-left;
+  }
+
+  .app-dropdown-root--multiple .app-dropdown-trigger-label {
+    @apply line-clamp-2 whitespace-normal;
+  }
+
   .app-combobox-menu {
     display: flex;
     flex-direction: column;

@@ -200,6 +200,7 @@ export class AuthService {
   }
 
   hasWorkDuty(duty: WorkDuty): boolean {
+    this.sessionSignal();
     return hasWorkDuty(this.getUser(), duty);
   }
 
@@ -382,7 +383,6 @@ export class AuthService {
           employeeId: employee.employeeId,
           username: employee.username,
           email: employee.email,
-          lineUserId: employee.lineUserId ?? null,
           nickname: employee.nickname,
           organizationId: employee.organizationId,
           shopId: employee.shopId,
@@ -400,7 +400,6 @@ export class AuthService {
           employeeId: employee.employeeId,
           username: employee.username,
           email: employee.email,
-          lineUserId: employee.lineUserId ?? null,
           nickname: employee.nickname,
           organizationId: employee.organizationId,
           shopId: employee.shopId,
@@ -432,7 +431,6 @@ export class AuthService {
         employeeId: user.employeeId,
         username,
         email: user.email ?? null,
-        lineUserId: user.lineUserId ?? null,
         nickname,
         organizationId,
         shopId: user.shopId,
@@ -478,7 +476,6 @@ export class AuthService {
       employeeId: user.employeeId,
       username,
       email: user.email ?? null,
-      lineUserId: user.lineUserId ?? null,
       nickname,
       organizationId,
       shopId: user.shopId,

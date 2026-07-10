@@ -21,12 +21,16 @@ const MENU_GAP_PX = 8;
 export const DROPDOWN_MENU_MAX_HEIGHT_PX = 280;
 const DROPDOWN_MENU_Z_INDEX = 9999;
 
+type DropdownScalar = number | string;
+type DropdownValue = DropdownScalar | DropdownScalar[] | null;
+
 @Component({
   selector: 'app-custom-dropdown',
   templateUrl: './custom-dropdown.component.html',
   host: {
     class: 'app-dropdown-root',
     '[class.app-dropdown-root--open]': 'isOpen()',
+    '[class.app-dropdown-root--multiple]': 'multiple',
   },
   providers: [
     {
@@ -42,13 +46,15 @@ export class CustomDropdownComponent implements ControlValueAccessor {
 
   @Input({ required: true }) options: DropdownOption[] = [];
   @Input() placeholder = 'เลือก...';
+  @Input() multiple = false;
 
   readonly isOpen = signal(false);
-  readonly value = signal<number | string | null>(null);
+  readonly value = signal<DropdownScalar | null>(null);
+  readonly values = signal<DropdownScalar[]>([]);
   readonly disabled = signal(false);
 
   private overlayMenu: HTMLDivElement | null = null;
-  private onChange: (value: number | string | null) => void = () => {};
+  private onChange: (value: DropdownValue) => void = () => {};
   private onTouched: () => void = () => {};
   private scrollListenerActive = false;
   private suppressCloseUntil = 0;
@@ -70,14 +76,22 @@ export class CustomDropdownComponent implements ControlValueAccessor {
   }
 
   readonly selectedLabel = () => {
+    if (this.multiple) {
+      const selected = this.values();
+      if (selected.length === 0) {
+        return this.placeholder;
+      }
+      const labels = selected
+        .map((item) => this.optionLabel(item))
+        .filter((label): label is string => !!label);
+      return labels.length > 0 ? labels.join(', ') : this.placeholder;
+    }
+
     const current = this.value();
     if (current == null || current === '' || current === 0) {
       return this.placeholder;
     }
-    const match = this.options.find(
-      (o) => o.value === current || String(o.value) === String(current),
-    );
-    return match?.label ?? this.placeholder;
+    return this.optionLabel(current) ?? this.placeholder;
   };
 
   toggleDropdown(event: MouseEvent): void {
@@ -126,11 +140,15 @@ export class CustomDropdownComponent implements ControlValueAccessor {
     this.onScrollReposition();
   }
 
-  writeValue(value: number | string | null): void {
-    this.value.set(value);
+  writeValue(value: DropdownValue): void {
+    if (this.multiple) {
+      this.values.set(this.normalizeMultiValue(value));
+      return;
+    }
+    this.value.set(this.normalizeScalarValue(value));
   }
 
-  registerOnChange(fn: (value: number | string | null) => void): void {
+  registerOnChange(fn: (value: DropdownValue) => void): void {
     this.onChange = fn;
   }
 
@@ -140,6 +158,40 @@ export class CustomDropdownComponent implements ControlValueAccessor {
 
   setDisabledState(isDisabled: boolean): void {
     this.disabled.set(isDisabled);
+  }
+
+  private normalizeScalarValue(value: DropdownValue): DropdownScalar | null {
+    if (Array.isArray(value)) {
+      return value[0] ?? null;
+    }
+    if (value == null || value === '') {
+      return null;
+    }
+    return value;
+  }
+
+  private normalizeMultiValue(value: DropdownValue): DropdownScalar[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+    return value.filter((item) => item != null && item !== '');
+  }
+
+  private optionLabel(value: DropdownScalar): string | undefined {
+    const match = this.options.find(
+      (option) => option.value === value || String(option.value) === String(value),
+    );
+    return match?.label;
+  }
+
+  private isSelected(value: DropdownScalar): boolean {
+    if (this.multiple) {
+      return this.values().some(
+        (item) => item === value || String(item) === String(value),
+      );
+    }
+    const current = this.value();
+    return current === value || String(current) === String(value);
   }
 
   private buildAndOpenMenu(): void {
@@ -156,7 +208,11 @@ export class CustomDropdownComponent implements ControlValueAccessor {
 
     const menu = document.createElement('div');
     menu.className = 'app-dropdown-menu app-dropdown-menu--visible';
+    if (this.multiple) {
+      menu.classList.add('app-dropdown-menu--multiple');
+    }
     menu.setAttribute('role', 'listbox');
+    menu.setAttribute('aria-multiselectable', this.multiple ? 'true' : 'false');
     menu.addEventListener('click', (e) => e.stopPropagation());
 
     if (this.options.length === 0) {
@@ -170,17 +226,30 @@ export class CustomDropdownComponent implements ControlValueAccessor {
         btn.type = 'button';
         btn.className = 'app-dropdown-item';
         btn.setAttribute('role', 'option');
-        if (
-          this.value() === option.value ||
-          String(this.value()) === String(option.value)
-        ) {
+        if (this.isSelected(option.value)) {
           btn.classList.add('app-dropdown-item-selected');
           btn.setAttribute('aria-selected', 'true');
         }
-        btn.textContent = option.label;
+        if (this.multiple) {
+          const mark = document.createElement('span');
+          mark.className = 'app-dropdown-item-check';
+          mark.setAttribute('aria-hidden', 'true');
+          mark.textContent = this.isSelected(option.value) ? '✓' : '';
+          btn.appendChild(mark);
+          const label = document.createElement('span');
+          label.className = 'app-dropdown-item-label';
+          label.textContent = option.label;
+          btn.appendChild(label);
+        } else {
+          btn.textContent = option.label;
+        }
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
-          this.selectValue(option.value);
+          if (this.multiple) {
+            this.toggleMultiValue(option.value);
+          } else {
+            this.selectValue(option.value);
+          }
         });
         menu.appendChild(btn);
       }
@@ -192,11 +261,45 @@ export class CustomDropdownComponent implements ControlValueAccessor {
     this.addScrollListener();
   }
 
-  private selectValue(value: number | string): void {
+  private selectValue(value: DropdownScalar): void {
     this.value.set(value);
     this.onChange(value);
     this.onTouched();
     this.closeMenu();
+  }
+
+  private toggleMultiValue(value: DropdownScalar): void {
+    const current = this.values();
+    const exists = current.some(
+      (item) => item === value || String(item) === String(value),
+    );
+    const next = exists
+      ? current.filter((item) => item !== value && String(item) !== String(value))
+      : [...current, value];
+    this.values.set(next);
+    this.onChange(next);
+    this.onTouched();
+    this.refreshOpenMenuSelection();
+  }
+
+  private refreshOpenMenuSelection(): void {
+    if (!this.overlayMenu) {
+      return;
+    }
+    const buttons = this.overlayMenu.querySelectorAll<HTMLButtonElement>('.app-dropdown-item');
+    buttons.forEach((btn, index) => {
+      const option = this.options[index];
+      if (!option) return;
+      const selected = this.isSelected(option.value);
+      btn.classList.toggle('app-dropdown-item-selected', selected);
+      btn.setAttribute('aria-selected', selected ? 'true' : 'false');
+      if (this.multiple) {
+        const mark = btn.querySelector('.app-dropdown-item-check');
+        if (mark) {
+          mark.textContent = selected ? '✓' : '';
+        }
+      }
+    });
   }
 
   private closeMenu(): void {

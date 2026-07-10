@@ -4,36 +4,17 @@ import { Observable, from, switchMap } from 'rxjs';
 
 import { ApiConfig } from '../core/api-config';
 import { parseExcelDownloadResponse } from '../utils/excel-download.util';
-import type {
-  ReportMeta,
-  ReportPreview,
-  ReportPreviewParams,
-  SendReportLinePayload,
-  SendReportLineResult,
-} from '../models/report';
+import type { ReportPreview, ReportPreviewParams } from '../models/report';
 
 @Injectable({ providedIn: 'root' })
 export class ReportService {
   private readonly http = inject(HttpClient);
   private readonly api = inject(ApiConfig);
 
-  getMeta(shopId: number): Observable<ReportMeta> {
-    return this.http.get<ReportMeta>(this.api.resource('reports', 'meta'), {
-      params: { shopId: shopId.toString() },
-    });
-  }
-
   getPreview(params: ReportPreviewParams): Observable<ReportPreview> {
     return this.http.get<ReportPreview>(this.api.resource('reports', 'preview'), {
       params: this.buildParams(params),
     });
-  }
-
-  sendLine(payload: SendReportLinePayload): Observable<SendReportLineResult> {
-    return this.http.post<SendReportLineResult>(
-      this.api.resource('reports', 'send-line'),
-      payload,
-    );
   }
 
   downloadExcel(

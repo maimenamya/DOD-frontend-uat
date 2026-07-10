@@ -2,18 +2,6 @@ export type ReportPreset = 'daily' | 'weekly' | 'monthly' | 'custom';
 
 export type ReportSection = 'bills' | 'drinks' | 'expenses' | 'sale_breakdown';
 
-export interface ReportOwnerRecipient {
-  nickname: string;
-  lineUserId: string;
-  lineUserIdMasked: string;
-}
-
-export interface ReportMeta {
-  owner: ReportOwnerRecipient | null;
-  ownerLineUserIdMissing: boolean;
-  lineConfigured: boolean;
-}
-
 export interface ReportBillRow {
   businessDate: string;
   billReference: string;
@@ -84,8 +72,6 @@ export interface ReportPreview {
   fromDateIso: string;
   toDateIso: string;
   generatedAtLabel: string;
-  owner: ReportOwnerRecipient | null;
-  ownerLineUserIdMissing: boolean;
   sections: ReportSection[];
   bills: {
     totalAmount: number;
@@ -120,15 +106,4 @@ export interface ReportPreviewParams {
   from?: string;
   to?: string;
   sections?: ReportSection[];
-}
-
-export interface SendReportLinePayload extends ReportPreviewParams {
-  shopId: number;
-}
-
-export interface SendReportLineResult {
-  ok: boolean;
-  sentTo: string;
-  filename?: string;
-  downloadLinkSent?: boolean;
 }

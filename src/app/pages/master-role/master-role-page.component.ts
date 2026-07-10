@@ -58,7 +58,10 @@ export class MasterRolePageComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
   readonly categoryDropdownOptions = CATEGORY_DROPDOWN_OPTIONS;
-  readonly workDutyOptions = WORK_DUTY_OPTIONS;
+  readonly workDutyDropdownOptions: DropdownOption[] = WORK_DUTY_OPTIONS.map((option) => ({
+    value: option.value,
+    label: option.label,
+  }));
   readonly workDutyLabels = workDutyLabels;
   readonly roleDisplayNameTh = roleDisplayNameTh;
 
@@ -246,23 +249,7 @@ export class MasterRolePageComponent implements OnInit {
 
   showWorkDutiesForForm(form: 'create' | 'edit'): boolean {
     const targetForm = form === 'create' ? this.createForm : this.editForm;
-    const role = form === 'edit' ? this.editingRole() : null;
-    if (role?.permissionGroup === 'OWNER') return false;
     return canConfigureWorkDuties(targetForm.controls.permissionGroup.value);
-  }
-
-  isWorkDutySelected(form: 'create' | 'edit', duty: WorkDuty): boolean {
-    const targetForm = form === 'create' ? this.createForm : this.editForm;
-    return targetForm.controls.workDuties.value.includes(duty);
-  }
-
-  toggleWorkDuty(form: 'create' | 'edit', duty: WorkDuty): void {
-    const targetForm = form === 'create' ? this.createForm : this.editForm;
-    const control = targetForm.controls.workDuties;
-    const current = control.value;
-    control.setValue(
-      current.includes(duty) ? current.filter((item) => item !== duty) : [...current, duty],
-    );
   }
 
   sanitizeIntegerInput(

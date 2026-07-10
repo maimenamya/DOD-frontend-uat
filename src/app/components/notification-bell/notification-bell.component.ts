@@ -4,12 +4,14 @@ import {
   HostListener,
   OnInit,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { receivesShopNotifications } from '../../models/work-duty';
+import type { WorkDuty } from '../../models/work-duty';
 import type { ShopNotificationItem } from '../../services/notification.service';
 import { NotificationService } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
@@ -29,7 +31,7 @@ export class NotificationBellComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly visible = computed(() => {
-    const user = this.auth.getUser();
+    const user = this.auth.session()?.user;
     if (!user) return false;
     return receivesShopNotifications(user);
   });
@@ -42,12 +44,27 @@ export class NotificationBellComponent implements OnInit {
   private unchangedPolls = 0;
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   private lastSnapshot = '';
+  private pollStarted = false;
+
+  constructor() {
+    effect(() => {
+      const show = this.visible();
+      if (show && !this.pollStarted) {
+        this.pollStarted = true;
+        this.schedulePoll(0);
+      }
+      if (!show) {
+        this.pollStarted = false;
+        this.clearPollTimer();
+        this.menuOpen.set(false);
+      }
+    });
+
+    this.destroyRef.onDestroy(() => this.clearPollTimer());
+  }
 
   ngOnInit(): void {
-    if (!this.visible()) return;
-    this.schedulePoll(0);
     this.bindVisibilityRefresh();
-    this.destroyRef.onDestroy(() => this.clearPollTimer());
   }
 
   @HostListener('document:keydown.escape')
@@ -158,11 +175,25 @@ export class NotificationBellComponent implements OnInit {
     return this.unchangedPolls >= UNCHANGED_POLLS_BEFORE_IDLE ? POLL_IDLE_MS : POLL_ACTIVE_MS;
   }
 
+  private syncRecipientDuties(duties: WorkDuty[]): void {
+    const user = this.auth.getUser();
+    if (!user || duties.length === 0) return;
+    const current = user.workDuties ?? [];
+    if (
+      current.length === duties.length &&
+      current.every((duty, index) => duty === duties[index])
+    ) {
+      return;
+    }
+    this.auth.updateSessionUser({ ...user, workDuties: duties });
+  }
+
   private fetchNotifications(): void {
     if (!this.visible()) return;
     this.loading.set(true);
     this.notifications.list().subscribe({
       next: (result) => {
+        this.syncRecipientDuties(result.recipientDuties ?? []);
         const snapshot = `${result.unreadCount}:${result.items[0]?.id ?? 'none'}`;
         if (snapshot === this.lastSnapshot) {
           this.unchangedPolls += 1;

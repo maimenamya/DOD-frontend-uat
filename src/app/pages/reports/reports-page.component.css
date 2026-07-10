@@ -43,30 +43,6 @@
   margin-bottom: 1rem;
 }
 
-.reports-subtitle {
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-}
-
-.reports-recipient {
-  font-size: 0.8125rem;
-  color: var(--text-secondary);
-  text-align: right;
-  line-height: 1.5;
-}
-
-.reports-recipient--warn {
-  color: var(--stat-revenue, #dc2626);
-}
-
-.reports-recipient-smtp {
-  display: block;
-  margin-top: 0.25rem;
-  font-size: 0.75rem;
-  opacity: 0.9;
-}
-
 .reports-panel {
   display: flex;
   flex-direction: column;

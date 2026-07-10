@@ -20,6 +20,7 @@ export interface ShopNotificationItem {
 export interface ShopNotificationListResult {
   unreadCount: number;
   items: ShopNotificationItem[];
+  recipientDuties: WorkDuty[];
 }
 
 @Injectable({
