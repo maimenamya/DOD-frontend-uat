@@ -2866,7 +2866,8 @@
   }
 
   .shop-rules-form {
-    max-width: 56rem;
+    width: 100%;
+    max-width: none;
     gap: 1.25rem;
   }
 
@@ -2880,11 +2881,18 @@
   @media (min-width: 900px) {
     .shop-rules-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-auto-rows: minmax(0, 1fr);
     }
   }
 
   .shop-rules-work-hours-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 640px) {
+    .shop-rules-work-hours-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
 
   .shop-rules-section {
@@ -2912,19 +2920,20 @@
     grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
   }
 
+  @media (min-width: 900px) {
+    .shop-rules-attendance-grid:not(.shop-rules-work-hours-grid) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
   .shop-rules-rounding {
     max-width: 100%;
   }
 
   .shop-rules-actions {
     display: flex;
-    justify-content: flex-start;
-  }
-
-  @media (min-width: 900px) {
-    .shop-rules-actions {
-      grid-column: 1 / -1;
-    }
+    align-items: flex-end;
+    justify-content: flex-end;
   }
 
   /**
