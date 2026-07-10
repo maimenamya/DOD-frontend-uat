@@ -2926,8 +2926,14 @@
     }
   }
 
+  .shop-rules-section .app-input[type='text'] {
+    max-width: 9rem;
+    width: 100%;
+  }
+
   .shop-rules-rounding {
-    max-width: 100%;
+    max-width: 12rem;
+    width: 100%;
   }
 
   .shop-rules-actions {
