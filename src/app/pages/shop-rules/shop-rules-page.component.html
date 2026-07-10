@@ -156,6 +156,22 @@
               />
             </div>
             <div class="app-form-group">
+              <label class="app-label" for="expected-on-floor">เวลา on floor (PR)</label>
+              <input
+                id="expected-on-floor"
+                type="text"
+                class="app-input"
+                formControlName="expectedOnFloorTime"
+                placeholder="เช่น 21:00"
+                inputmode="numeric"
+                maxlength="5"
+                autocomplete="off"
+                (blur)="normalizeTime('expectedOnFloorTime')"
+                [readonly]="!canManage()"
+              />
+              <p class="app-field-hint">ใช้คิดมาสายเด็กที่ลงแท็ก — ว่างไว้ใช้เวลาเข้างานแทน</p>
+            </div>
+            <div class="app-form-group">
               <label class="app-label" for="expected-check-out">เวลาออกงาน</label>
               <input
                 id="expected-check-out"

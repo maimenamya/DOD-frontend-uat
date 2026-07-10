@@ -51,6 +51,7 @@ export class ShopRulesPageComponent implements OnInit {
     lateFinePerMinuteBaht: [5, [Validators.required, Validators.min(0)]],
     absenceDeductionBaht: [500, [Validators.required, Validators.min(0)]],
     expectedCheckInTime: [''],
+    expectedOnFloorTime: [''],
     expectedCheckOutTime: [''],
     expectedCheckOutNextDay: [true],
     autoCloseCutoffTime: [''],
@@ -95,7 +96,7 @@ export class ShopRulesPageComponent implements OnInit {
   }
 
   normalizeTime(
-    field: 'expectedCheckInTime' | 'expectedCheckOutTime' | 'autoCloseCutoffTime',
+    field: 'expectedCheckInTime' | 'expectedOnFloorTime' | 'expectedCheckOutTime' | 'autoCloseCutoffTime',
   ): void {
     const control = this.form.controls[field];
     control.setValue(normalizeShopTimeHm(control.value));
@@ -105,14 +106,20 @@ export class ShopRulesPageComponent implements OnInit {
     if (!this.canManage()) return;
     resetFormValidationFlag(this.formValidated);
     this.normalizeTime('expectedCheckInTime');
+    this.normalizeTime('expectedOnFloorTime');
     this.normalizeTime('expectedCheckOutTime');
     this.normalizeTime('autoCloseCutoffTime');
 
     const checkIn = this.form.controls.expectedCheckInTime.value.trim();
+    const onFloor = this.form.controls.expectedOnFloorTime.value.trim();
     const checkOut = this.form.controls.expectedCheckOutTime.value.trim();
     const autoClose = this.form.controls.autoCloseCutoffTime.value.trim();
-    if (!isValidShopTimeHm(checkIn) || !isValidShopTimeHm(checkOut)) {
-      this.toast.showError('เวลาเข้า-ออกงานต้องเป็นรูปแบบ 24 ชม. เช่น 20:00');
+    if (
+      !isValidShopTimeHm(checkIn) ||
+      (onFloor && !isValidShopTimeHm(onFloor)) ||
+      !isValidShopTimeHm(checkOut)
+    ) {
+      this.toast.showError('เวลาเข้า-ออกงานและ on floor ต้องเป็นรูปแบบ 24 ชม. เช่น 20:00');
       return;
     }
     if (autoClose && !isValidShopTimeHm(autoClose)) {
@@ -127,6 +134,7 @@ export class ShopRulesPageComponent implements OnInit {
     const value = {
       ...raw,
       autoCloseCutoffTime: raw.autoCloseCutoffTime.trim() || null,
+      expectedOnFloorTime: raw.expectedOnFloorTime.trim() || null,
     };
     this.policyService.save(value).subscribe({
       next: (config) => {
@@ -155,6 +163,7 @@ export class ShopRulesPageComponent implements OnInit {
       lateFinePerMinuteBaht: config.lateFinePerMinuteBaht,
       absenceDeductionBaht: config.absenceDeductionBaht,
       expectedCheckInTime: config.expectedCheckInTime ?? '',
+      expectedOnFloorTime: config.expectedOnFloorTime ?? '',
       expectedCheckOutTime: config.expectedCheckOutTime ?? '',
       expectedCheckOutNextDay: config.expectedCheckOutNextDay ?? true,
       autoCloseCutoffTime: config.autoCloseCutoffTime ?? '',

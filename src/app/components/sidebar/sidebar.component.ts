@@ -3,7 +3,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/ro
 import { filter } from 'rxjs';
 
 import { AuthService } from '../../services/auth.service';
-import { hasStationWorkMenu } from '../../models/work-duty';
+import { hasStationWorkMenu, showDashboardNav } from '../../models/work-duty';
 import { SystemGuideModalComponent } from '../system-guide/system-guide-modal.component';
 import { DodBrandWordmarkComponent } from './dod-brand-wordmark.component';
 import { SidebarIconComponent, type SidebarIconName } from './sidebar-icon.component';
@@ -118,6 +118,10 @@ export class SidebarComponent implements OnInit {
   readonly mobileOpen = input(false);
   readonly mobileClose = output<void>();
 
+  readonly showDashboardNav = computed(() => {
+    this.auth.session();
+    return showDashboardNav(this.auth.getUser());
+  });
   readonly showSaleSelfBillNav = computed(() => {
     this.auth.session();
     return this.auth.openTableSelfBillOnly();

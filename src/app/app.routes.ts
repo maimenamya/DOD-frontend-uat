@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard, guestGuard } from './guards/auth.guard';
+import { dashboardHomeGuard } from './guards/dashboard-home.guard';
 import { stationWorkGuard, stationWorkTabGuard } from './guards/station-work.guard';
 import { mustChangePasswordChildGuard } from './guards/must-change-password.guard';
 import { permissionGuard } from './guards/permission.guard';
@@ -66,7 +67,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     canActivateChild: [authGuard, mustChangePasswordChildGuard],
     children: [
-      { path: '', component: DashboardPageComponent },
+      { path: '', component: DashboardPageComponent, canActivate: [dashboardHomeGuard] },
       {
         path: 'attendance',
         loadComponent: () =>

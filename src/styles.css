@@ -1008,6 +1008,7 @@
 
   .app-notification-menu {
     --app-notification-row-height: 4.75rem;
+    --app-scroll-track: var(--dropdown-menu-bg);
     @apply absolute right-0 top-[calc(100%+0.5rem)] z-[70] flex w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-glass border border-theme-border shadow-lg;
     max-height: min(
       calc(3.25rem + 5 * var(--app-notification-row-height)),
@@ -1069,11 +1070,10 @@
   }
 
   .app-notification-list {
-    @apply m-0 list-none overflow-y-auto p-0;
+    @apply app-scroll-region m-0 list-none overflow-y-auto p-0;
     max-height: calc(5 * var(--app-notification-row-height, 4.75rem));
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
-    scrollbar-gutter: stable;
   }
 
   .app-notification-list > li {

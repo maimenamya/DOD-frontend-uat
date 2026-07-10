@@ -1,4 +1,4 @@
-export type EmployeeTimePunchType = 'CHECK_IN' | 'CHECK_OUT';
+export type EmployeeTimePunchType = 'CHECK_IN' | 'CHECK_OUT' | 'ON_FLOOR';
 
 export interface AttendanceKioskPayload {
   shopPublicId: string;
@@ -50,7 +50,9 @@ export interface AttendanceShiftRow {
   roundDateLabel: string;
   checkInLabel: string | null;
   checkOutLabel: string | null;
+  onFloorLabel: string | null;
   expectedCheckInLabel: string | null;
+  expectedOnFloorLabel: string | null;
   expectedCheckOutLabel: string | null;
   lateMinutes: number | null;
   rawDeductionBaht: number;
@@ -75,6 +77,7 @@ export interface AttendanceEmployeeMonthPayload {
   leaveQuotaPerMonth: number;
   leaveDaysUsed: number;
   expectedCheckInLabel: string | null;
+  expectedOnFloorLabel: string | null;
   expectedCheckOutLabel: string | null;
   shifts: AttendanceShiftRow[];
 }

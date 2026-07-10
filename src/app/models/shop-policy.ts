@@ -9,6 +9,7 @@ export interface ShopPolicyConfig {
   lateFinePerMinuteBaht: number;
   absenceDeductionBaht: number;
   expectedCheckInTime: string | null;
+  expectedOnFloorTime: string | null;
   expectedCheckOutTime: string | null;
   expectedCheckOutNextDay: boolean;
   autoCloseCutoffTime: string | null;

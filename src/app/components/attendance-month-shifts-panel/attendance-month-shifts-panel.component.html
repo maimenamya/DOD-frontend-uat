@@ -2,11 +2,14 @@
   <p class="text-text-secondary">กำลังโหลดรายการ...</p>
 } @else {
   @if (detail(); as payload) {
-    @if (payload.expectedCheckInLabel || payload.expectedCheckOutLabel) {
+    @if (payload.expectedCheckInLabel || payload.expectedOnFloorLabel || payload.expectedCheckOutLabel) {
       <p class="mb-3 text-sm text-text-secondary">
         เวลากำหนด:
         @if (payload.expectedCheckInLabel) {
           เข้า {{ payload.expectedCheckInLabel }}
+        }
+        @if (showOnFloorColumn() && payload.expectedOnFloorLabel) {
+          · on floor {{ payload.expectedOnFloorLabel }}
         }
         @if (payload.expectedCheckOutLabel) {
           · ออก {{ payload.expectedCheckOutLabel }}
@@ -29,6 +32,9 @@
           <tr>
             <th>วันที่</th>
             <th>เข้างาน</th>
+            @if (showOnFloorColumn()) {
+              <th>on floor</th>
+            }
             <th>ออกงาน</th>
             <th class="app-cell-right">สาย (นาที)</th>
             <th class="app-cell-right">ยอดหัก</th>
@@ -48,6 +54,15 @@
                   {{ shift.checkInLabel ?? '—' }}
                 }
               </td>
+              @if (showOnFloorColumn()) {
+                <td class="attendance-shift-time-cell">
+                  @if (shift.dayStatus === 'ABSENT') {
+                    —
+                  } @else {
+                    {{ shift.onFloorLabel ?? '—' }}
+                  }
+                </td>
+              }
               <td class="attendance-shift-time-cell">
                 @if (shift.dayStatus === 'ABSENT') {
                   —

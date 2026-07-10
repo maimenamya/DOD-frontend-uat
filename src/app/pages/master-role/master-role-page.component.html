@@ -42,15 +42,19 @@
         </div>
         @if (showWorkDutiesForForm('create')) {
           <div class="app-form-group">
-            <label class="app-label">หน้าที่รับแจ้งเตือน</label>
+            <label class="app-label">หน้าที่ทำงาน</label>
             <app-custom-dropdown
               formControlName="workDuties"
               [options]="workDutyDropdownOptions"
               [multiple]="true"
-              placeholder="เลือกหน้าที่รับแจ้งเตือน (ไม่บังคับ)"
+              placeholder="เลือกหน้าที่ (เช่น เซลล์, เซอร์วิส, ครัว, บาร์)"
             />
-            <p class="app-field-hint">เลือกสถานีที่ตำแหน่งนี้จะได้รับแจ้งเตือนในแอป (เช่น ครัว, บาร์น้ำ)</p>
+            <p class="app-field-hint">
+              กำหนดเมนูที่เห็น — เซลล์=บิลของฉัน · ครัว/บาร์/เซอร์วิส=คิวงาน (ไม่มีแดชบอร์ด)
+            </p>
           </div>
+        } @else if (showEntertainerMenuHint('create')) {
+          <p class="app-field-hint">เด็กนั่งดริ้ง — เห็นแดชบอร์ดและลงเวลา (ไม่มีบิลของฉัน/คิวงาน)</p>
         }
         @if (createIsStaff() || createIsEntertainer()) {
           <div class="app-form-group">
@@ -164,15 +168,19 @@
         </div>
         @if (showWorkDutiesForForm('edit')) {
           <div class="app-form-group">
-            <label class="app-label">หน้าที่รับแจ้งเตือน</label>
+            <label class="app-label">หน้าที่ทำงาน</label>
             <app-custom-dropdown
               formControlName="workDuties"
               [options]="workDutyDropdownOptions"
               [multiple]="true"
-              placeholder="เลือกหน้าที่รับแจ้งเตือน (ไม่บังคับ)"
+              placeholder="เลือกหน้าที่ (เช่น เซลล์, เซอร์วิส, ครัว, บาร์)"
             />
-            <p class="app-field-hint">เลือกสถานีที่ตำแหน่งนี้จะได้รับแจ้งเตือนในแอป (เช่น ครัว, บาร์น้ำ)</p>
+            <p class="app-field-hint">
+              กำหนดเมนูที่เห็น — เซลล์=บิลของฉัน · ครัว/บาร์/เซอร์วิส=คิวงาน (ไม่มีแดชบอร์ด)
+            </p>
           </div>
+        } @else if (showEntertainerMenuHint('edit')) {
+          <p class="app-field-hint">เด็กนั่งดริ้ง — เห็นแดชบอร์ดและลงเวลา (ไม่มีบิลของฉัน/คิวงาน)</p>
         }
         @if (editIsStaff() || editIsEntertainer()) {
           <div class="app-form-group">

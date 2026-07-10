@@ -21,12 +21,11 @@ import {
   canManageRoles,
   canMutateEmployeeWithRoleGroup,
   hasFeature,
-  openTableSelfBillOnly,
   usesSelfOnlyDashboard,
   type AppFeature,
 } from '../utils/permission-group.util';
 import { roleDisplayNameTh } from '../utils/role-display.util';
-import { hasWorkDuty, type WorkDuty } from '../models/work-duty';
+import { hasWorkDuty, homeRouteSegmentsForUser, showMyBillsNav, type WorkDuty } from '../models/work-duty';
 import {
   readStoredShopPublicId,
   writeStoredShopPublicId,
@@ -212,9 +211,7 @@ export class AuthService {
 
   /** Sale read-only: own open bills on open-table page. */
   openTableSelfBillOnly(): boolean {
-    const group = this.getPermissionGroup();
-    if (!group) return false;
-    return openTableSelfBillOnly(group, this.getRole(), this.getRoleCategory());
+    return showMyBillsNav(this.getUser());
   }
 
   canAccessOpenTable(): boolean {
@@ -238,11 +235,12 @@ export class AuthService {
 
   /** First screen after login. */
   homePathAfterLogin(): string {
-    return '/dashboard';
+    const segments = homeRouteSegmentsForUser(this.getUser());
+    return segments.join('/');
   }
 
   homeRouteSegments(): string[] {
-    return ['/dashboard'];
+    return homeRouteSegmentsForUser(this.getUser());
   }
 
   isOwner(): boolean {

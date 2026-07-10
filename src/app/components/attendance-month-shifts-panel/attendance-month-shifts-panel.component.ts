@@ -13,6 +13,7 @@ export class AttendanceMonthShiftsPanelComponent {
   readonly loading = input(false);
   readonly showWaiveActions = input(false);
   readonly showAbsentActions = input(false);
+  readonly showOnFloorColumn = input(false);
   readonly waivingRoundDate = input<string | null>(null);
 
   readonly openDeductionModal = output<AttendanceShiftRow>();

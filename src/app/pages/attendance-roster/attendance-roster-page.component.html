@@ -128,6 +128,7 @@
       [loading]="monthLoading()"
       [showWaiveActions]="canWaiveDeduction()"
       [showAbsentActions]="canWaiveDeduction()"
+      [showOnFloorColumn]="categoryTab() === 'ENTERTAINER'"
       [waivingRoundDate]="waivingRoundDate()"
       (openDeductionModal)="openDeductionModal($event)"
       (markAbsent)="markAbsent($event)"
