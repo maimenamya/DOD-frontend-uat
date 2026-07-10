@@ -39,11 +39,6 @@
       <div class="app-notification-menu" #menu role="menu" (click)="$event.stopPropagation()">
         <div class="app-notification-menu-header">
           <span class="app-notification-menu-title">การแจ้งเตือน</span>
-          @if (unreadCount() > 0) {
-            <button type="button" class="app-notification-mark-all" (click)="markAllRead()">
-              อ่านทั้งหมด
-            </button>
-          }
         </div>
 
         @if (loading() && items().length === 0) {

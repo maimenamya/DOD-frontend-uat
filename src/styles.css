@@ -1007,7 +1007,12 @@
   }
 
   .app-notification-menu {
-    @apply absolute right-0 top-[calc(100%+0.5rem)] z-[70] flex w-[min(22rem,calc(100vw-2rem))] max-h-[min(24rem,70dvh)] flex-col overflow-hidden rounded-glass border border-theme-border shadow-lg;
+    --app-notification-row-height: 4.75rem;
+    @apply absolute right-0 top-[calc(100%+0.5rem)] z-[70] flex w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-glass border border-theme-border shadow-lg;
+    max-height: min(
+      calc(3.25rem + 5 * var(--app-notification-row-height)),
+      calc(100dvh - var(--app-top-header-offset, 3.5rem) - 1.25rem)
+    );
     background: var(--dropdown-menu-bg);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
@@ -1023,13 +1028,17 @@
     }
 
     .app-notification-menu {
+      --app-notification-row-height: 5.25rem;
       position: fixed;
       top: calc(var(--app-top-header-offset, 3.5rem) + 0.5rem);
       right: max(0.75rem, env(safe-area-inset-right, 0px));
       left: max(0.75rem, env(safe-area-inset-left, 0px));
       width: auto;
       max-width: none;
-      max-height: min(28rem, calc(100dvh - var(--app-top-header-offset, 3.5rem) - 1.25rem));
+      max-height: min(
+        calc(3.5rem + 5 * var(--app-notification-row-height)),
+        calc(100dvh - var(--app-top-header-offset, 3.5rem) - 1.25rem)
+      );
       box-shadow: 0 16px 40px rgb(0 0 0 / 0.35);
     }
 
@@ -1055,28 +1064,28 @@
     @apply text-sm font-semibold text-text-primary;
   }
 
-  .app-notification-mark-all {
-    @apply text-xs font-medium;
-    color: var(--text-accent);
-    cursor: pointer;
-  }
-
-  .app-notification-mark-all:hover {
-    text-decoration: underline;
-  }
-
   .app-notification-empty {
     @apply px-4 py-8 text-center text-sm text-text-secondary;
   }
 
   .app-notification-list {
-    @apply m-0 list-none overflow-y-auto p-1;
+    @apply m-0 list-none overflow-y-auto p-0;
+    max-height: calc(5 * var(--app-notification-row-height, 4.75rem));
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable;
+  }
+
+  .app-notification-list > li {
+    @apply border-b border-theme-border;
+  }
+
+  .app-notification-list > li:last-child {
+    @apply border-b-0;
   }
 
   .app-notification-item {
-    @apply flex w-full flex-col gap-0.5 rounded-input px-3 py-2.5 text-left transition-colors duration-200;
+    @apply flex w-full flex-col gap-0.5 px-3 py-2.5 text-left transition-colors duration-200;
     cursor: pointer;
   }
 
@@ -1105,39 +1114,110 @@
   }
 
   /* ── Station ticket queue (kitchen / bar / service) ── */
+  .station-work-queue-host {
+    @apply min-w-0;
+  }
+
+  .station-work-tabs {
+    @apply mb-5;
+  }
+
+  .station-work-panel {
+    @apply min-w-0;
+  }
+
+  .station-work-queue {
+    @apply flex flex-col gap-6;
+  }
+
+  .station-work-section {
+    @apply flex flex-col gap-4 rounded-glass border border-theme-border p-4 sm:p-5;
+    background: color-mix(in srgb, var(--card-bg) 94%, transparent);
+  }
+
+  .station-work-section--pending {
+    border-color: color-mix(in srgb, var(--primary) 28%, var(--theme-border));
+  }
+
+  .station-work-section--ready,
+  .station-work-section--pickup {
+    border-color: color-mix(in srgb, #22c55e 30%, var(--theme-border));
+  }
+
+  .station-work-section-head {
+    @apply flex items-center justify-between gap-3 border-b border-theme-border pb-3;
+  }
+
+  .station-work-section-title {
+    @apply text-base font-semibold text-text-primary sm:text-lg;
+  }
+
+  .station-work-section-count {
+    @apply inline-flex min-h-[1.75rem] min-w-[1.75rem] items-center justify-center rounded-full px-2 text-xs font-bold text-white;
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+  }
+
+  .station-work-section-count--ready {
+    background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%);
+  }
+
   .station-ticket-list {
-    @apply flex flex-col gap-3;
+    @apply flex flex-col gap-4;
   }
 
   .station-ticket-card {
-    @apply rounded-glass border border-theme-border p-4;
-    background: color-mix(in srgb, var(--card-bg) 92%, transparent);
+    @apply flex flex-col gap-2 rounded-input border border-theme-border p-4 sm:p-5;
+    background: var(--bg-secondary);
   }
 
   .station-ticket-card--pending {
-    border-color: color-mix(in srgb, var(--primary) 35%, var(--theme-border));
+    border-color: color-mix(in srgb, var(--primary) 22%, var(--theme-border));
   }
 
   .station-ticket-card--ready {
-    border-color: color-mix(in srgb, #22c55e 40%, var(--theme-border));
-    background: color-mix(in srgb, #22c55e 8%, var(--card-bg));
+    border-color: color-mix(in srgb, #22c55e 28%, var(--theme-border));
+    background: color-mix(in srgb, #22c55e 6%, var(--bg-secondary));
   }
 
   .station-ticket-card-head {
-    @apply mb-2 flex items-center justify-between gap-2;
+    @apply flex items-start justify-between gap-3;
   }
 
   .station-ticket-table {
-    @apply text-base font-semibold text-text-primary;
+    @apply text-base font-semibold leading-snug text-text-primary sm:text-lg;
   }
 
   .station-ticket-time,
   .station-ticket-meta {
-    @apply text-xs text-text-secondary;
+    @apply text-xs text-text-secondary sm:text-sm;
   }
 
   .station-ticket-lines {
-    @apply mb-3 text-sm text-text-primary;
+    @apply text-sm leading-relaxed text-text-primary sm:text-base;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .station-ticket-card-action {
+    @apply mt-2 border-t border-theme-border pt-4;
+  }
+
+  @media (max-width: 639px) {
+    .station-work-queue {
+      @apply gap-5;
+    }
+
+    .station-work-section {
+      @apply p-4;
+    }
+
+    .station-ticket-card {
+      @apply p-4;
+    }
+
+    .station-ticket-card-action .app-btn-primary {
+      min-height: 3rem;
+    }
   }
 
   /* ── Sidebar icons (uniform stroke + active pill) ── */

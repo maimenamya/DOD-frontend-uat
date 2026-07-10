@@ -1,4 +1,4 @@
-<div [class.app-page]="!embedded()">
+<div [class.app-page]="!embedded()" [class.station-work-queue-host]="embedded()">
   @if (!embedded()) {
     <div class="app-page-header">
       <div>
@@ -12,52 +12,64 @@
   } @else if (tickets().length === 0) {
     <p class="app-empty-state">ยังไม่มีคิว{{ kindLabel() }}</p>
   } @else {
-    @if (pendingTickets().length > 0) {
-      <section class="app-card app-form-stack">
-        <h2 class="app-section-title">รอทำ ({{ pendingTickets().length }})</h2>
-        <div class="station-ticket-list">
-          @for (ticket of pendingTickets(); track ticket.id) {
-            <article class="station-ticket-card station-ticket-card--pending">
-              <div class="station-ticket-card-head">
-                <span class="station-ticket-table">โต๊ะ {{ ticket.tableName }}</span>
-                <span class="station-ticket-time">{{ ticket.createdAtLabel }} น.</span>
-              </div>
-              <p class="station-ticket-lines">{{ ticket.linesLabel }}</p>
-              @if (ticket.createdByNickname) {
-                <p class="station-ticket-meta">สั่งโดย {{ ticket.createdByNickname }}</p>
-              }
-              <button
-                type="button"
-                class="app-btn-primary w-full"
-                [disabled]="actingId() === ticket.id"
-                (click)="markReady(ticket)"
-              >
-                {{ actingId() === ticket.id ? 'กำลังบันทึก...' : 'พร้อมเสิร์ฟ' }}
-              </button>
-            </article>
-          }
-        </div>
-      </section>
-    }
+    <div class="station-work-queue">
+      @if (pendingTickets().length > 0) {
+        <section class="station-work-section station-work-section--pending">
+          <header class="station-work-section-head">
+            <h2 class="station-work-section-title">รอทำ</h2>
+            <span class="station-work-section-count">{{ pendingTickets().length }}</span>
+          </header>
+          <div class="station-ticket-list">
+            @for (ticket of pendingTickets(); track ticket.id) {
+              <article class="station-ticket-card station-ticket-card--pending">
+                <div class="station-ticket-card-head">
+                  <span class="station-ticket-table">โต๊ะ {{ ticket.tableName }}</span>
+                  <span class="station-ticket-time">{{ ticket.createdAtLabel }} น.</span>
+                </div>
+                <p class="station-ticket-lines">{{ ticket.linesLabel }}</p>
+                @if (ticket.createdByNickname) {
+                  <p class="station-ticket-meta">สั่งโดย {{ ticket.createdByNickname }}</p>
+                }
+                <div class="station-ticket-card-action">
+                  <button
+                    type="button"
+                    class="app-btn-primary w-full"
+                    [disabled]="actingId() === ticket.id"
+                    (click)="markReady(ticket)"
+                  >
+                    {{ actingId() === ticket.id ? 'กำลังบันทึก...' : 'พร้อมเสิร์ฟ' }}
+                  </button>
+                </div>
+              </article>
+            }
+          </div>
+        </section>
+      }
 
-    @if (readyTickets().length > 0) {
-      <section class="app-card app-form-stack">
-        <h2 class="app-section-title">รอเสิร์ฟมารับ ({{ readyTickets().length }})</h2>
-        <div class="station-ticket-list">
-          @for (ticket of readyTickets(); track ticket.id) {
-            <article class="station-ticket-card station-ticket-card--ready">
-              <div class="station-ticket-card-head">
-                <span class="station-ticket-table">โต๊ะ {{ ticket.tableName }}</span>
-                <span class="app-badge app-badge--success">{{ statusLabel.READY }}</span>
-              </div>
-              <p class="station-ticket-lines">{{ ticket.linesLabel }}</p>
-              @if (ticket.readyAtLabel) {
-                <p class="station-ticket-meta">พร้อม {{ ticket.readyAtLabel }} น.</p>
-              }
-            </article>
-          }
-        </div>
-      </section>
-    }
+      @if (readyTickets().length > 0) {
+        <section class="station-work-section station-work-section--ready">
+          <header class="station-work-section-head">
+            <h2 class="station-work-section-title">รอเสิร์ฟมารับ</h2>
+            <span class="station-work-section-count station-work-section-count--ready">
+              {{ readyTickets().length }}
+            </span>
+          </header>
+          <div class="station-ticket-list">
+            @for (ticket of readyTickets(); track ticket.id) {
+              <article class="station-ticket-card station-ticket-card--ready">
+                <div class="station-ticket-card-head">
+                  <span class="station-ticket-table">โต๊ะ {{ ticket.tableName }}</span>
+                  <span class="app-badge app-badge--success">{{ statusLabel.READY }}</span>
+                </div>
+                <p class="station-ticket-lines">{{ ticket.linesLabel }}</p>
+                @if (ticket.readyAtLabel) {
+                  <p class="station-ticket-meta">พร้อม {{ ticket.readyAtLabel }} น.</p>
+                }
+              </article>
+            }
+          </div>
+        </section>
+      }
+    </div>
   }
 </div>

@@ -1,4 +1,4 @@
-<div [class.app-page]="!embedded()">
+<div [class.app-page]="!embedded()" [class.station-work-queue-host]="embedded()">
   @if (!embedded()) {
     <div class="app-page-header">
       <div>
@@ -13,29 +13,39 @@
   } @else if (tickets().length === 0) {
     <p class="app-empty-state">ยังไม่มีของรอรับ</p>
   } @else {
-    <section class="app-card app-form-stack">
-      <div class="station-ticket-list">
-        @for (ticket of tickets(); track ticket.id) {
-          <article class="station-ticket-card station-ticket-card--ready">
-            <div class="station-ticket-card-head">
-              <span class="station-ticket-table">โต๊ะ {{ ticket.tableName }}</span>
-              <span class="app-badge">{{ kindLabel[ticket.kind] }}</span>
-            </div>
-            <p class="station-ticket-lines">{{ ticket.linesLabel }}</p>
-            @if (ticket.readyAtLabel) {
-              <p class="station-ticket-meta">พร้อม {{ ticket.readyAtLabel }} น.</p>
-            }
-            <button
-              type="button"
-              class="app-btn-primary w-full"
-              [disabled]="actingId() === ticket.id"
-              (click)="markPickedUp(ticket)"
-            >
-              {{ actingId() === ticket.id ? 'กำลังบันทึก...' : 'รับแล้ว — ไปส่งโต๊ะ' }}
-            </button>
-          </article>
-        }
-      </div>
-    </section>
+    <div class="station-work-queue">
+      <section class="station-work-section station-work-section--pickup">
+        <header class="station-work-section-head">
+          <h2 class="station-work-section-title">รอรับไปส่งโต๊ะ</h2>
+          <span class="station-work-section-count station-work-section-count--ready">
+            {{ tickets().length }}
+          </span>
+        </header>
+        <div class="station-ticket-list">
+          @for (ticket of tickets(); track ticket.id) {
+            <article class="station-ticket-card station-ticket-card--ready">
+              <div class="station-ticket-card-head">
+                <span class="station-ticket-table">โต๊ะ {{ ticket.tableName }}</span>
+                <span class="app-badge">{{ kindLabel[ticket.kind] }}</span>
+              </div>
+              <p class="station-ticket-lines">{{ ticket.linesLabel }}</p>
+              @if (ticket.readyAtLabel) {
+                <p class="station-ticket-meta">พร้อม {{ ticket.readyAtLabel }} น.</p>
+              }
+              <div class="station-ticket-card-action">
+                <button
+                  type="button"
+                  class="app-btn-primary w-full"
+                  [disabled]="actingId() === ticket.id"
+                  (click)="markPickedUp(ticket)"
+                >
+                  {{ actingId() === ticket.id ? 'กำลังบันทึก...' : 'รับแล้ว — ไปส่งโต๊ะ' }}
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+    </div>
   }
 </div>

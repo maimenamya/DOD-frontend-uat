@@ -116,17 +116,6 @@ export class NotificationBellComponent implements OnInit {
     this.menuOpen.set(false);
   }
 
-  markAllRead(): void {
-    if (this.unreadCount() === 0) return;
-    this.notifications.markAllRead().subscribe({
-      next: () => {
-        this.items.update((rows) => rows.map((row) => ({ ...row, isRead: true })));
-        this.unreadCount.set(0);
-        this.unchangedPolls = 0;
-      },
-    });
-  }
-
   openItem(item: ShopNotificationItem): void {
     this.closeMenu();
     if (!item.isRead) {

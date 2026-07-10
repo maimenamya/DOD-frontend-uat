@@ -2,18 +2,11 @@
   <div class="app-page-header">
     <div>
       <h1 class="app-page-title">คิวงาน</h1>
-      <p class="app-page-subtitle">
-        @if (activeTab() === 'pickup') {
-          อาหาร/เครื่องดื่มพร้อมแล้ว — มารับที่ครัวหรือบาร์
-        } @else {
-          คิวแบบ Grab — กดพร้อมเสิร์ฟเมื่อทำเสร็จ
-        }
-      </p>
     </div>
   </div>
 
   @if (showTabs()) {
-    <div class="app-segmented-control mb-4" role="tablist" aria-label="ประเภทคิวงาน">
+    <div class="app-segmented-control station-work-tabs" role="tablist" aria-label="ประเภทคิวงาน">
       @for (tab of tabs(); track tab) {
         <button
           type="button"
@@ -31,13 +24,19 @@
 
   @switch (activeTab()) {
     @case ('food') {
-      <app-station-queue-page [embedded]="true" kind="FOOD" />
+      <div class="station-work-panel">
+        <app-station-queue-page [embedded]="true" kind="FOOD" />
+      </div>
     }
     @case ('drink') {
-      <app-station-queue-page [embedded]="true" kind="DRINK" />
+      <div class="station-work-panel">
+        <app-station-queue-page [embedded]="true" kind="DRINK" />
+      </div>
     }
     @case ('pickup') {
-      <app-service-pickup-page [embedded]="true" />
+      <div class="station-work-panel">
+        <app-service-pickup-page [embedded]="true" />
+      </div>
     }
   }
 </div>
