@@ -3,6 +3,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/ro
 import { filter } from 'rxjs';
 
 import { AuthService } from '../../services/auth.service';
+import { hasStationWorkMenu } from '../../models/work-duty';
 import { SystemGuideModalComponent } from '../system-guide/system-guide-modal.component';
 import { DodBrandWordmarkComponent } from './dod-brand-wordmark.component';
 import { SidebarIconComponent, type SidebarIconName } from './sidebar-icon.component';
@@ -128,9 +129,10 @@ export class SidebarComponent implements OnInit {
   readonly showReports = computed(() => this.auth.hasFeature('reports'));
   readonly showDailyExpenses = computed(() => this.auth.hasFeature('daily_expenses'));
   readonly showMasterNav = computed(() => this.auth.hasFeature('master_data'));
-  readonly showKitchenQueue = computed(() => this.auth.hasWorkDuty('CHEF'));
-  readonly showBarQueue = computed(() => this.auth.hasWorkDuty('BARTENDER'));
-  readonly showServicePickup = computed(() => this.auth.hasWorkDuty('SERVER'));
+  readonly showStationWork = computed(() => {
+    this.auth.session();
+    return hasStationWorkMenu(this.auth.getUser());
+  });
 
   readonly navGroups = MANAGEMENT_NAV_GROUPS;
   readonly activeSubmenu = signal<string | null>(this.getGroupIdByCurrentRoute());

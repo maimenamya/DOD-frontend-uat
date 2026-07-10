@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard, guestGuard } from './guards/auth.guard';
-import { workDutyGuard } from './guards/work-duty.guard';
+import { stationWorkGuard, stationWorkTabGuard } from './guards/station-work.guard';
 import { mustChangePasswordChildGuard } from './guards/must-change-password.guard';
 import { permissionGuard } from './guards/permission.guard';
 import { openTableGuard } from './guards/open-table.guard';
@@ -85,31 +85,24 @@ export const routes: Routes = [
         canActivate: [openTableGuard],
       },
       {
-        path: 'kitchen-queue',
+        path: 'station-work',
         loadComponent: () =>
-          import('./pages/station-queue/station-queue-page.component').then(
-            (m) => m.StationQueuePageComponent,
+          import('./pages/station-work/station-work-page.component').then(
+            (m) => m.StationWorkPageComponent,
           ),
-        canActivate: [workDutyGuard('CHEF')],
-        data: { kind: 'FOOD' },
+        canActivate: [stationWorkGuard],
       },
       {
-        path: 'bar-queue',
+        path: 'station-work/:tab',
         loadComponent: () =>
-          import('./pages/station-queue/station-queue-page.component').then(
-            (m) => m.StationQueuePageComponent,
+          import('./pages/station-work/station-work-page.component').then(
+            (m) => m.StationWorkPageComponent,
           ),
-        canActivate: [workDutyGuard('BARTENDER')],
-        data: { kind: 'DRINK' },
+        canActivate: [stationWorkGuard, stationWorkTabGuard],
       },
-      {
-        path: 'service-pickup',
-        loadComponent: () =>
-          import('./pages/service-pickup/service-pickup-page.component').then(
-            (m) => m.ServicePickupPageComponent,
-          ),
-        canActivate: [workDutyGuard('SERVER')],
-      },
+      { path: 'kitchen-queue', redirectTo: 'station-work/food', pathMatch: 'full' },
+      { path: 'bar-queue', redirectTo: 'station-work/drink', pathMatch: 'full' },
+      { path: 'service-pickup', redirectTo: 'station-work/pickup', pathMatch: 'full' },
       {
         path: 'employees',
         component: EmployeeManagementPageComponent,

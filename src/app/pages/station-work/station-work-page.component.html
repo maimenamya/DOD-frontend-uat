@@ -1,0 +1,43 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">คิวงาน</h1>
+      <p class="app-page-subtitle">
+        @if (activeTab() === 'pickup') {
+          อาหาร/เครื่องดื่มพร้อมแล้ว — มารับที่ครัวหรือบาร์
+        } @else {
+          คิวแบบ Grab — กดพร้อมเสิร์ฟเมื่อทำเสร็จ
+        }
+      </p>
+    </div>
+  </div>
+
+  @if (showTabs()) {
+    <div class="app-segmented-control mb-4" role="tablist" aria-label="ประเภทคิวงาน">
+      @for (tab of tabs(); track tab) {
+        <button
+          type="button"
+          class="app-segmented-chip"
+          role="tab"
+          [class.app-segmented-chip-active]="activeTab() === tab"
+          [attr.aria-selected]="activeTab() === tab"
+          (click)="selectTab(tab)"
+        >
+          {{ tabLabels[tab] }}
+        </button>
+      }
+    </div>
+  }
+
+  @switch (activeTab()) {
+    @case ('food') {
+      <app-station-queue-page [embedded]="true" kind="FOOD" />
+    }
+    @case ('drink') {
+      <app-station-queue-page [embedded]="true" kind="DRINK" />
+    }
+    @case ('pickup') {
+      <app-service-pickup-page [embedded]="true" />
+    }
+  }
+</div>

@@ -59,3 +59,47 @@ export function hasWorkDuty(
   if (!user || !receivesShopNotifications(user)) return false;
   return (user.workDuties ?? []).includes(duty);
 }
+
+/** Station queue tabs shown on the bell sidebar menu. */
+export const STATION_WORK_DUTIES = ['CHEF', 'BARTENDER', 'SERVER'] as const;
+export type StationWorkDuty = (typeof STATION_WORK_DUTIES)[number];
+
+export type StationWorkTab = 'food' | 'drink' | 'pickup';
+
+export const STATION_WORK_TAB_LABEL: Record<StationWorkTab, string> = {
+  food: 'คิวครัว',
+  drink: 'คิวบาร์',
+  pickup: 'รับของ',
+};
+
+export const STATION_WORK_TAB_DUTY: Record<StationWorkTab, StationWorkDuty> = {
+  food: 'CHEF',
+  drink: 'BARTENDER',
+  pickup: 'SERVER',
+};
+
+export function stationWorkTabsForUser(
+  user: {
+    permissionGroup: string;
+    workDuties?: WorkDuty[] | null;
+    pendingRoleSetup?: boolean;
+  } | null | undefined,
+): StationWorkTab[] {
+  if (!user || !receivesShopNotifications(user)) return [];
+  const duties = new Set(user.workDuties ?? []);
+  const tabs: StationWorkTab[] = [];
+  if (duties.has('CHEF')) tabs.push('food');
+  if (duties.has('BARTENDER')) tabs.push('drink');
+  if (duties.has('SERVER')) tabs.push('pickup');
+  return tabs;
+}
+
+export function hasStationWorkMenu(
+  user: {
+    permissionGroup: string;
+    workDuties?: WorkDuty[] | null;
+    pendingRoleSetup?: boolean;
+  } | null | undefined,
+): boolean {
+  return stationWorkTabsForUser(user).length > 0;
+}

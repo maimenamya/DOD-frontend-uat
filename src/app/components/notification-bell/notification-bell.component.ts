@@ -1,12 +1,14 @@
 import {
   Component,
   DestroyRef,
+  ElementRef,
   HostListener,
   OnInit,
   computed,
   effect,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { Router } from '@angular/router';
 
@@ -19,6 +21,7 @@ import { AuthService } from '../../services/auth.service';
 const POLL_ACTIVE_MS = 15_000;
 const POLL_IDLE_MS = 30_000;
 const UNCHANGED_POLLS_BEFORE_IDLE = 2;
+const MOBILE_MENU_MQL = '(max-width: 999px)';
 
 @Component({
   selector: 'app-notification-bell',
@@ -41,6 +44,10 @@ export class NotificationBellComponent implements OnInit {
   readonly unreadCount = signal(0);
   readonly loading = signal(false);
 
+  private readonly bellRoot = viewChild<ElementRef<HTMLElement>>('bellRoot');
+  private readonly backdropRef = viewChild<ElementRef<HTMLButtonElement>>('backdrop');
+  private readonly menuRef = viewChild<ElementRef<HTMLElement>>('menu');
+
   private unchangedPolls = 0;
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   private lastSnapshot = '';
@@ -56,11 +63,23 @@ export class NotificationBellComponent implements OnInit {
       if (!show) {
         this.pollStarted = false;
         this.clearPollTimer();
-        this.menuOpen.set(false);
+        this.closeMenu();
       }
     });
 
-    this.destroyRef.onDestroy(() => this.clearPollTimer());
+    effect(() => {
+      if (this.menuOpen()) {
+        queueMicrotask(() => this.syncMenuPortal());
+      } else {
+        this.restoreMenuPortal();
+      }
+    });
+
+    this.destroyRef.onDestroy(() => {
+      this.clearPollTimer();
+      this.restoreMenuPortal();
+      document.body.classList.remove('app-notification-sheet-open');
+    });
   }
 
   ngOnInit(): void {
@@ -69,15 +88,20 @@ export class NotificationBellComponent implements OnInit {
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    this.menuOpen.set(false);
+    this.closeMenu();
   }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement | null;
-    if (!target?.closest('.app-notification-bell-root')) {
-      this.menuOpen.set(false);
+    if (
+      target?.closest('.app-notification-bell-root') ||
+      target?.closest('.app-notification-menu') ||
+      target?.closest('.app-notification-backdrop')
+    ) {
+      return;
     }
+    this.closeMenu();
   }
 
   toggleMenu(): void {
@@ -86,6 +110,10 @@ export class NotificationBellComponent implements OnInit {
     if (next) {
       this.fetchNotifications();
     }
+  }
+
+  closeMenu(): void {
+    this.menuOpen.set(false);
   }
 
   markAllRead(): void {
@@ -100,7 +128,7 @@ export class NotificationBellComponent implements OnInit {
   }
 
   openItem(item: ShopNotificationItem): void {
-    this.menuOpen.set(false);
+    this.closeMenu();
     if (!item.isRead) {
       this.notifications.markRead(item.id).subscribe({
         next: () => {
@@ -117,15 +145,15 @@ export class NotificationBellComponent implements OnInit {
     const type = item.type;
 
     if (type === 'FOOD_ORDER') {
-      void this.router.navigate(['/dashboard/kitchen-queue']);
+      void this.router.navigate(['/dashboard/station-work', 'food']);
       return;
     }
     if (type === 'DRINK_ORDER') {
-      void this.router.navigate(['/dashboard/bar-queue']);
+      void this.router.navigate(['/dashboard/station-work', 'drink']);
       return;
     }
     if (type === 'FOOD_READY' || type === 'DRINK_READY') {
-      void this.router.navigate(['/dashboard/service-pickup']);
+      void this.router.navigate(['/dashboard/station-work', 'pickup']);
       return;
     }
 
@@ -173,6 +201,43 @@ export class NotificationBellComponent implements OnInit {
 
   private pollIntervalMs(): number {
     return this.unchangedPolls >= UNCHANGED_POLLS_BEFORE_IDLE ? POLL_IDLE_MS : POLL_ACTIVE_MS;
+  }
+
+  private isMobileViewport(): boolean {
+    return window.matchMedia(MOBILE_MENU_MQL).matches;
+  }
+
+  private syncMenuPortal(): void {
+    if (!this.isMobileViewport()) return;
+
+    const root = this.bellRoot()?.nativeElement;
+    const backdrop = this.backdropRef()?.nativeElement;
+    const menu = this.menuRef()?.nativeElement;
+    if (!root || !backdrop || !menu) return;
+
+    if (backdrop.parentElement !== document.body) {
+      document.body.appendChild(backdrop);
+    }
+    if (menu.parentElement !== document.body) {
+      document.body.appendChild(menu);
+    }
+    document.body.classList.add('app-notification-sheet-open');
+  }
+
+  private restoreMenuPortal(): void {
+    document.body.classList.remove('app-notification-sheet-open');
+
+    const root = this.bellRoot()?.nativeElement;
+    const backdrop = this.backdropRef()?.nativeElement;
+    const menu = this.menuRef()?.nativeElement;
+    if (!root) return;
+
+    if (backdrop && backdrop.parentElement !== root) {
+      root.appendChild(backdrop);
+    }
+    if (menu && menu.parentElement !== root) {
+      root.appendChild(menu);
+    }
   }
 
   private syncRecipientDuties(duties: WorkDuty[]): void {

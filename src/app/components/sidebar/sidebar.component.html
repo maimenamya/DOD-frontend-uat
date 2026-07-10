@@ -64,45 +64,18 @@
       </a>
     }
 
-    @if (showKitchenQueue()) {
+    @if (showStationWork()) {
       <a
-        routerLink="/dashboard/kitchen-queue"
+        routerLink="/dashboard/station-work"
         routerLinkActive="app-sidebar-link-active"
+        [routerLinkActiveOptions]="{ paths: 'subset', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' }"
         (click)="collapseAllSubmenus(); mobileClose.emit()"
         class="app-sidebar-link"
       >
         <span class="app-sidebar-icon-slot">
-          <app-sidebar-icon name="food" />
+          <app-sidebar-icon name="bell" />
         </span>
-        <span class="app-sidebar-label">คิวครัว</span>
-      </a>
-    }
-
-    @if (showBarQueue()) {
-      <a
-        routerLink="/dashboard/bar-queue"
-        routerLinkActive="app-sidebar-link-active"
-        (click)="collapseAllSubmenus(); mobileClose.emit()"
-        class="app-sidebar-link"
-      >
-        <span class="app-sidebar-icon-slot">
-          <app-sidebar-icon name="drinks" />
-        </span>
-        <span class="app-sidebar-label">คิวบาร์</span>
-      </a>
-    }
-
-    @if (showServicePickup()) {
-      <a
-        routerLink="/dashboard/service-pickup"
-        routerLinkActive="app-sidebar-link-active"
-        (click)="collapseAllSubmenus(); mobileClose.emit()"
-        class="app-sidebar-link"
-      >
-        <span class="app-sidebar-icon-slot">
-          <app-sidebar-icon name="employees" />
-        </span>
-        <span class="app-sidebar-label">รับของส่งโต๊ะ</span>
+        <span class="app-sidebar-label">คิวงาน</span>
       </a>
     }
 

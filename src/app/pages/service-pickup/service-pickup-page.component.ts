@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, input, signal } from '@angular/core';
 
 import {
   STATION_TICKET_KIND_LABEL,
@@ -17,6 +17,8 @@ export class ServicePickupPageComponent implements OnInit {
   private readonly stationTickets = inject(StationTicketService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
+
+  readonly embedded = input(false);
 
   readonly tickets = signal<StationTicket[]>([]);
   readonly loading = signal(true);

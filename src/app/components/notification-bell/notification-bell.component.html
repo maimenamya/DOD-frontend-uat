@@ -1,5 +1,5 @@
 @if (visible()) {
-  <div class="app-notification-bell-root">
+  <div class="app-notification-bell-root" #bellRoot>
     <button
       type="button"
       class="app-notification-trigger"
@@ -29,7 +29,14 @@
     </button>
 
     @if (menuOpen()) {
-      <div class="app-notification-menu" role="menu" (click)="$event.stopPropagation()">
+      <button
+        type="button"
+        class="app-notification-backdrop"
+        #backdrop
+        aria-label="ปิดการแจ้งเตือน"
+        (click)="closeMenu()"
+      ></button>
+      <div class="app-notification-menu" #menu role="menu" (click)="$event.stopPropagation()">
         <div class="app-notification-menu-header">
           <span class="app-notification-menu-title">การแจ้งเตือน</span>
           @if (unreadCount() > 0) {

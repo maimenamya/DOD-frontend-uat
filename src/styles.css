@@ -994,11 +994,57 @@
     box-shadow: 0 0 0 2px var(--card-bg);
   }
 
+  .app-notification-backdrop {
+    @apply fixed inset-0 z-[60] border-0 bg-black/45 p-0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (min-width: 1000px) {
+    .app-notification-backdrop {
+      display: none;
+    }
+  }
+
   .app-notification-menu {
-    @apply absolute right-0 top-[calc(100%+0.5rem)] z-50 flex w-[min(22rem,calc(100vw-2rem))] max-h-[min(24rem,70dvh)] flex-col overflow-hidden rounded-glass border border-theme-border shadow-lg;
+    @apply absolute right-0 top-[calc(100%+0.5rem)] z-[70] flex w-[min(22rem,calc(100vw-2rem))] max-h-[min(24rem,70dvh)] flex-col overflow-hidden rounded-glass border border-theme-border shadow-lg;
     background: var(--dropdown-menu-bg);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
+  }
+
+  @media (max-width: 999px) {
+    body.app-notification-sheet-open {
+      overflow: hidden;
+    }
+
+    .app-notification-backdrop {
+      background: color-mix(in srgb, var(--bg-primary) 35%, black 65%);
+    }
+
+    .app-notification-menu {
+      position: fixed;
+      top: calc(var(--app-top-header-offset, 3.5rem) + 0.5rem);
+      right: max(0.75rem, env(safe-area-inset-right, 0px));
+      left: max(0.75rem, env(safe-area-inset-left, 0px));
+      width: auto;
+      max-width: none;
+      max-height: min(28rem, calc(100dvh - var(--app-top-header-offset, 3.5rem) - 1.25rem));
+      box-shadow: 0 16px 40px rgb(0 0 0 / 0.35);
+    }
+
+    .app-notification-menu-header {
+      @apply px-4 py-3;
+    }
+
+    .app-notification-empty {
+      @apply px-4 py-10;
+    }
+
+    .app-notification-item {
+      @apply px-4 py-3;
+      min-height: 3.25rem;
+    }
   }
 
   .app-notification-menu-header {
@@ -1044,10 +1090,14 @@
 
   .app-notification-item-title {
     @apply text-sm font-semibold text-text-primary;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .app-notification-item-body {
     @apply text-sm text-text-secondary;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .app-notification-item-meta {

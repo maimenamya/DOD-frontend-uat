@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, input, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 import {
@@ -22,6 +22,9 @@ export class StationQueuePageComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly embedded = input(false);
+  readonly kindInput = input<StationTicketKind | undefined>(undefined, { alias: 'kind' });
+
   readonly kind = signal<StationTicketKind>('FOOD');
   readonly tickets = signal<StationTicket[]>([]);
   readonly loading = signal(true);
@@ -40,9 +43,14 @@ export class StationQueuePageComponent implements OnInit {
   readonly statusLabel = STATION_TICKET_STATUS_LABEL;
 
   ngOnInit(): void {
-    const dataKind = this.route.snapshot.data['kind'] as StationTicketKind | undefined;
-    if (dataKind === 'FOOD' || dataKind === 'DRINK') {
-      this.kind.set(dataKind);
+    const fromInput = this.kindInput();
+    if (fromInput === 'FOOD' || fromInput === 'DRINK') {
+      this.kind.set(fromInput);
+    } else {
+      const dataKind = this.route.snapshot.data['kind'] as StationTicketKind | undefined;
+      if (dataKind === 'FOOD' || dataKind === 'DRINK') {
+        this.kind.set(dataKind);
+      }
     }
     this.load();
     this.startPolling();
