@@ -6,12 +6,19 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { finalize } from 'rxjs';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
+import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
 import { ShopDateInputComponent } from '../../components/shop-date-input/shop-date-input.component';
 import type { BillHistoryListResponse, BillHistoryRow } from '../../models/bill-history';
 import type { BillReceiptPayload } from '../../models/bill-receipt';
 import { BillHistoryService } from '../../services/bill-history.service';
 import { BillReceiptService } from '../../services/bill-receipt.service';
 import { ToastService } from '../../services/toast.service';
+import {
+  MasterListQueryState,
+  createMasterListView,
+  masterListRowNumber,
+} from '../../utils/master-list.util';
 import { shopCalendarTodayInput } from '../open-table/open-table-ledger.util';
 
 function shopCalendarMonthStartInput(): string {
@@ -21,7 +28,14 @@ function shopCalendarMonthStartInput(): string {
 
 @Component({
   selector: 'app-bill-history-page',
-  imports: [DecimalPipe, FormsModule, ShopDateInputComponent, AppModalComponent],
+  imports: [
+    DecimalPipe,
+    FormsModule,
+    ShopDateInputComponent,
+    AppModalComponent,
+    MasterListToolbarComponent,
+    ListPaginatorComponent,
+  ],
   templateUrl: './bill-history-page.component.html',
   styleUrl: './bill-history-page.component.css',
 })
@@ -41,7 +55,26 @@ export class BillHistoryPageComponent implements OnInit {
   readonly selectedRow = signal<BillHistoryRow | null>(null);
   readonly receipt = signal<BillReceiptPayload | null>(null);
 
-  readonly hasItems = computed(() => (this.payload()?.items.length ?? 0) > 0);
+  readonly items = computed(() => this.payload()?.items ?? []);
+  readonly listQuery = new MasterListQueryState();
+  readonly listView = createMasterListView(this.items, this.listQuery, (row) =>
+    [
+      row.billReference,
+      row.businessDateLabel,
+      row.checkedOutLabel,
+      row.dineInLabel ?? '',
+      row.saleNickname,
+      row.paymentMethodLabel,
+      String(row.billAmount),
+    ].join(' '),
+  );
+  readonly masterListRowNumber = masterListRowNumber;
+
+  readonly hasItems = computed(() => this.items().length > 0);
+  readonly totalAmount = computed(() => this.payload()?.totalAmount ?? 0);
+  readonly billCount = computed(() => this.payload()?.billCount ?? 0);
+  readonly rangeLabelFrom = computed(() => this.payload()?.fromDate ?? '');
+  readonly rangeLabelTo = computed(() => this.payload()?.toDate ?? '');
   readonly selfOnly = computed(() => this.payload()?.selfOnly ?? false);
 
   ngOnInit(): void {
@@ -50,12 +83,12 @@ export class BillHistoryPageComponent implements OnInit {
 
   onRangeFromChange(value: string): void {
     this.rangeFrom.set(value);
-    this.loadList();
+    this.reloadIfRangeValid();
   }
 
   onRangeToChange(value: string): void {
     this.rangeTo.set(value);
-    this.loadList();
+    this.reloadIfRangeValid();
   }
 
   applyRange(): void {
@@ -134,6 +167,17 @@ export class BillHistoryPageComponent implements OnInit {
     }
   }
 
+  private reloadIfRangeValid(): void {
+    const from = this.rangeFrom().trim();
+    const to = this.rangeTo().trim();
+    if (!from || !to) return;
+    if (from > to) {
+      this.toast.showError('ตั้งแต่วันที่ต้องไม่เกินวันถึง');
+      return;
+    }
+    this.loadList();
+  }
+
   private loadList(): void {
     if (this.rangeFrom() > this.rangeTo()) {
       this.loading.set(false);
@@ -141,6 +185,7 @@ export class BillHistoryPageComponent implements OnInit {
     }
 
     this.loading.set(true);
+    this.listQuery.resetPage();
     this.billHistoryService
       .list({ from: this.rangeFrom(), to: this.rangeTo() })
       .pipe(

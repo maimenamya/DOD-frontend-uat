@@ -2,14 +2,17 @@
   <header class="app-page-header">
     <div>
       <h1 class="app-page-title">บิลย้อนหลัง</h1>
+      @if (selfOnly()) {
+        <p class="mt-1 text-sm text-text-secondary">แสดงเฉพาะบิลที่คุณเป็นเซลล์</p>
+      }
     </div>
   </header>
 
-  <section class="app-card bill-history-filters">
-    <h2 class="bill-history-section-title">ช่วงวันที่</h2>
-    <div class="bill-history-date-row">
-      <label class="bill-history-date-field">
-        <span class="bill-history-date-label">ตั้งแต่</span>
+  <section class="app-card mb-4 p-4">
+    <h2 class="mb-3 text-sm font-semibold text-text-primary">ช่วงวันที่</h2>
+    <div class="flex flex-wrap items-end gap-3">
+      <label class="flex min-w-[10rem] flex-col gap-1">
+        <span class="text-xs text-text-secondary">ตั้งแต่</span>
         <app-shop-date-input
           extraInputClass="dashboard-date-input"
           [requireConfirm]="false"
@@ -17,8 +20,8 @@
           (ngModelChange)="onRangeFromChange($event)"
         />
       </label>
-      <label class="bill-history-date-field">
-        <span class="bill-history-date-label">ถึง</span>
+      <label class="flex min-w-[10rem] flex-col gap-1">
+        <span class="text-xs text-text-secondary">ถึง</span>
         <app-shop-date-input
           extraInputClass="dashboard-date-input"
           [requireConfirm]="false"
@@ -26,64 +29,136 @@
           (ngModelChange)="onRangeToChange($event)"
         />
       </label>
-      <button type="button" class="app-btn-secondary bill-history-apply" (click)="applyRange()">
+      <button type="button" class="app-btn-secondary min-h-[2.75rem]" (click)="applyRange()">
         ค้นหา
       </button>
     </div>
-    @if (payload(); as data) {
-      <p class="bill-history-range-meta">
-        {{ data.fromDate }} – {{ data.toDate }} · {{ data.billCount }} บิล · รวม
-        {{ data.totalAmount | number: '1.0-0' }} บาท
+    @if (rangeLabelFrom() && rangeLabelTo()) {
+      <p class="mt-2 text-xs text-text-secondary">
+        แสดง {{ rangeLabelFrom() }} – {{ rangeLabelTo() }} · {{ billCount() }} บิล
       </p>
     }
   </section>
 
-  @if (loading()) {
-    <p class="app-muted">กำลังโหลด...</p>
-  } @else if (!hasItems()) {
-    <section class="app-card bill-history-empty">
-      <p>ไม่พบบิลในช่วงวันที่ที่เลือก</p>
-    </section>
-  } @else {
-    <div class="app-data-table-shell app-scroll-region bill-history-table-shell">
-      <table class="app-data-table bill-history-table">
-        <thead>
-          <tr>
-            <th>วันที่</th>
-            <th>เวลาเช็กเอาต์</th>
-            <th>เลขบิล</th>
-            <th>โต๊ะ / โซน</th>
-            <th>เซลล์</th>
-            <th class="app-cell-right">ยอด</th>
-            <th>ชำระ</th>
-            <th class="app-cell-right">จัดการ</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of payload()!.items; track row.id) {
-            <tr>
-              <td>{{ row.businessDateLabel }}</td>
-              <td>{{ row.checkedOutLabel }}</td>
-              <td class="bill-history-ref">{{ row.billReference }}</td>
-              <td>{{ row.dineInLabel ?? '—' }}</td>
-              <td>{{ row.saleNickname }}</td>
-              <td class="app-cell-right">{{ row.billAmount | number: '1.0-0' }}</td>
-              <td>{{ row.paymentMethodLabel }}</td>
-              <td class="app-cell-right">
-                <button
-                  type="button"
-                  class="app-btn-ghost text-sm text-theme-accent-strong"
-                  [disabled]="!row.hasReceipt"
-                  (click)="openDetail(row)"
-                >
-                  ดูบิล
-                </button>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+  @if (!loading() && hasItems()) {
+    <div class="mb-4 rounded-input border border-theme-border bg-surface px-4 py-3">
+      <p class="text-sm text-text-secondary">
+        ยอดรวมในช่วงที่เลือก:
+        <span class="ml-1 text-lg font-semibold text-theme-accent-strong">
+          {{ totalAmount() | number: '1.0-0' }} บาท
+        </span>
+      </p>
     </div>
+  }
+
+  @if (loading()) {
+    <p class="app-loading-text">กำลังโหลด...</p>
+  } @else if (!hasItems()) {
+    <p class="app-empty-state">ไม่พบบิลในช่วงวันที่ที่เลือก</p>
+  } @else {
+    <app-master-list-toolbar
+      [search]="listQuery.search()"
+      placeholder="ค้นหาเลขบิล โต๊ะ เซลล์ ช่องทางชำระ..."
+      (searchChange)="listQuery.onSearchChange($event)"
+    />
+    @if (listView().total === 0) {
+      <p class="app-empty-state">ไม่พบบิลที่ตรงกับคำค้น</p>
+    } @else {
+      <section class="app-card app-card-flush">
+        <div class="app-data-table-shell">
+          <div class="app-split-table app-split-table--wide app-split-table--mobile-stack">
+            <div class="app-split-table-header">
+              <table class="app-data-table app-split-table-grid bill-history-table">
+                <colgroup>
+                  <col class="app-col-id" />
+                  <col class="app-col-narrow" />
+                  <col class="app-col-narrow" />
+                  <col />
+                  <col />
+                  <col />
+                  <col class="app-col-narrow" />
+                  <col class="app-col-narrow" />
+                  <col class="app-col-actions" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>No.</th>
+                    <th>วันที่</th>
+                    <th>เวลาเช็กเอาต์</th>
+                    <th>เลขบิล</th>
+                    <th>โต๊ะ / โซน</th>
+                    <th>เซลล์</th>
+                    <th class="app-cell-right">ยอด</th>
+                    <th>ชำระ</th>
+                    <th class="app-cell-right">จัดการ</th>
+                  </tr>
+                </thead>
+              </table>
+            </div>
+            <div class="app-split-table-body app-scroll-region">
+              <table class="app-data-table app-split-table-grid bill-history-table">
+                <colgroup>
+                  <col class="app-col-id" />
+                  <col class="app-col-narrow" />
+                  <col class="app-col-narrow" />
+                  <col />
+                  <col />
+                  <col />
+                  <col class="app-col-narrow" />
+                  <col class="app-col-narrow" />
+                  <col class="app-col-actions" />
+                </colgroup>
+                <tbody>
+                  @for (row of listView().items; track row.id; let i = $index) {
+                    <tr>
+                      <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
+                      <td class="whitespace-nowrap text-text-secondary" data-label="วันที่">
+                        {{ row.businessDateLabel }}
+                      </td>
+                      <td class="whitespace-nowrap text-text-secondary" data-label="เวลาเช็กเอาต์">
+                        {{ row.checkedOutLabel }}
+                      </td>
+                      <td class="bill-history-ref app-cell-mono" data-label="เลขบิล">
+                        {{ row.billReference }}
+                      </td>
+                      <td data-label="โต๊ะ / โซน">{{ row.dineInLabel ?? '—' }}</td>
+                      <td class="app-cell-primary" data-label="เซลล์">{{ row.saleNickname }}</td>
+                      <td class="app-cell-right app-cell-highlight-violet" data-label="ยอด">
+                        {{ row.billAmount | number: '1.0-0' }}
+                      </td>
+                      <td data-label="ชำระ">{{ row.paymentMethodLabel }}</td>
+                      <td class="app-cell-right" data-label="จัดการ">
+                        <div class="app-table-actions">
+                          <button
+                            type="button"
+                            class="app-btn-secondary-sm"
+                            [disabled]="!row.hasReceipt"
+                            (click)="openDetail(row)"
+                          >
+                            ดูบิล
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+      <app-list-paginator
+        class="mt-4"
+        [page]="listView().page"
+        [totalPages]="listView().totalPages"
+        [total]="listView().total"
+        [limit]="listView().limit"
+        [rangeStart]="listView().rangeStart"
+        [rangeEnd]="listView().rangeEnd"
+        (pageChange)="listQuery.goToPage($event)"
+        (limitChange)="listQuery.onLimitChange($event)"
+      />
+    }
   }
 </div>
 
@@ -140,12 +215,6 @@
                 </tr>
               }
             </tbody>
-            <tfoot>
-              <tr>
-                <th colspan="2" class="app-cell-right">รวม</th>
-                <th class="app-cell-right">{{ detail.grandTotal | number: '1.0-0' }}</th>
-              </tr>
-            </tfoot>
           </table>
         </div>
 
