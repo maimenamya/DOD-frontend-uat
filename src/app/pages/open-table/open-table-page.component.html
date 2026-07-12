@@ -1455,6 +1455,7 @@
     <div class="app-form-group">
       <label class="app-label" for="stop-seat-time">เวลาสต็อป</label>
       <app-shop-datetime-input
+        #stopDatetimeInput
         inputId="stop-seat-time"
         class="block w-full"
         [class.app-field-invalid]="stopSeatTimeValidated() && stopSeatTimeMissing()"
@@ -1526,6 +1527,7 @@
     <div class="app-form-group">
       <label class="app-label" for="stop-room-time">เวลาสต็อป</label>
       <app-shop-datetime-input
+        #stopDatetimeInput
         inputId="stop-room-time"
         class="block w-full"
         [class.app-field-invalid]="stopSeatTimeValidated() && stopSeatTimeMissing()"
@@ -1906,6 +1908,7 @@
       <div class="app-form-group">
         <label class="app-label" for="checkout-at">เวลาเช็กบิล</label>
         <app-shop-datetime-input
+          #checkoutDatetimeInput
           inputId="checkout-at"
           [ngModel]="checkoutAt()"
           (ngModelChange)="onCheckoutAtChange($event)"

@@ -31,6 +31,7 @@ import {
   unmountShopFlatpickrMobileTimeWheels,
   unwatchShopFlatpickrKeyboardOverlap,
   watchShopFlatpickrKeyboardOverlap,
+  applyShopFlatpickrTimeFromInputs,
 } from '../../utils/flatpickr-shop.util';
 
 /** Date + time field — opens a popup calendar on click (appendTo body for modals). */
@@ -117,7 +118,7 @@ export class ShopDatetimeInputComponent
         this.timeInputTeardown?.();
         if (!isShopFlatpickrMobileViewport()) {
           this.timeInputTeardown = bindShopFlatpickrTimeInputsWithConfirm(instance, {
-            onTimeApplied: () => this.syncPendingFromFlatpickr(instance),
+            onTimeApplied: () => this.syncPendingFromFlatpickr(instance, true),
           });
         }
       },
@@ -133,7 +134,7 @@ export class ShopDatetimeInputComponent
         if (isShopFlatpickrMobileViewport()) {
           requestAnimationFrame(() => {
             this.timeWheelTeardown = mountShopFlatpickrMobileTimeWheels(instance, {
-              onTimeApplied: () => this.syncPendingFromFlatpickr(instance),
+              onTimeApplied: () => this.syncPendingFromFlatpickr(instance, true),
               shopDatetime: this.pendingValue,
             });
             blurShopFlatpickrTypingFocus(instance);
@@ -142,19 +143,23 @@ export class ShopDatetimeInputComponent
         watchShopFlatpickrKeyboardOverlap(instance);
         this.scheduleBeAltDisplay(instance);
       },
-      onValueUpdate: () => {
-        this.scheduleBeAltDisplay();
+      onValueUpdate: (_dates, _str, instance) => {
+        if (instance.isOpen) {
+          this.syncPendingFromFlatpickr(instance, true);
+        }
+        this.scheduleBeAltDisplay(instance);
       },
       onClose: () => {
         unwatchShopFlatpickrKeyboardOverlap();
         if (this.fp) {
           if (this.closeConfirmed && isValidShopDatetimeLocal(this.pendingValue)) {
-            this.onChange(this.pendingValue);
+            this.emitModelValue(this.pendingValue);
           } else {
             this.pendingValue = this.committedShopValue;
             if (isValidShopDatetimeLocal(this.committedShopValue)) {
               this.fp.setDate(this.shopToFlatpickrDisplay(this.committedShopValue), false);
             }
+            this.emitModelValue(this.committedShopValue);
           }
         }
         this.scheduleBeAltDisplay();
@@ -165,12 +170,15 @@ export class ShopDatetimeInputComponent
         const target = e.target;
         if (!(target instanceof HTMLElement)) return;
         if (!target.classList.contains('flatpickr-confirm')) return;
-        this.syncPendingFromFlatpickr(instance);
+        this.syncPendingFromFlatpickr(instance, true);
         this.closeConfirmed = true;
       },
       onChange: (_dates, dateStr, instance) => {
         const shop = this.flatpickrDisplayToShop(dateStr);
         this.pendingValue = shop;
+        if (instance.isOpen && isValidShopDatetimeLocal(shop)) {
+          this.emitModelValue(shop);
+        }
         this.scheduleBeAltDisplay(instance);
         if (isShopFlatpickrMobileViewport()) {
           requestAnimationFrame(() => blurShopFlatpickrTypingFocus(instance));
@@ -202,7 +210,22 @@ export class ShopDatetimeInputComponent
 
   writeValue(value: string | null): void {
     this.pendingValue = value?.trim() ?? '';
+    this.committedShopValue = this.pendingValue;
     this.syncPickerFromPending();
+  }
+
+  /** Flush open picker edits into ngModel before form submit (PC hour arrows may skip close confirm). */
+  commitPendingToModel(): string {
+    const fp = this.fp;
+    if (fp?.isOpen) {
+      applyShopFlatpickrTimeFromInputs(fp);
+      this.syncPendingFromFlatpickr(fp, true);
+    }
+    if (isValidShopDatetimeLocal(this.pendingValue)) {
+      this.committedShopValue = this.pendingValue;
+      this.emitModelValue(this.pendingValue);
+    }
+    return this.pendingValue;
   }
 
   private syncPickerFromPending(instance?: flatpickr.Instance): void {
@@ -260,7 +283,10 @@ export class ShopDatetimeInputComponent
   }
 
   /** After flatpickr updates time inputs (Enter / arrows), read selected date into pending. */
-  private syncPendingFromFlatpickr(instance: flatpickr.Instance): void {
+  private syncPendingFromFlatpickr(
+    instance: flatpickr.Instance,
+    emitModel = false,
+  ): void {
     const selected = instance.selectedDates[0];
     if (!selected) return;
     const display = instance.formatDate(selected, instance.config.dateFormat);
@@ -268,6 +294,14 @@ export class ShopDatetimeInputComponent
     if (isValidShopDatetimeLocal(shop)) {
       this.pendingValue = shop;
       this.updateAltDisplay(instance);
+      if (emitModel) {
+        this.emitModelValue(shop);
+      }
     }
+  }
+
+  private emitModelValue(shop: string): void {
+    if (!isValidShopDatetimeLocal(shop)) return;
+    this.onChange(shop);
   }
 }

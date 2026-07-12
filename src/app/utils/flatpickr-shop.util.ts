@@ -192,16 +192,25 @@ export function bindShopFlatpickrTimeInputsWithConfirm(
     hooks.onTimeApplied();
   };
 
+  const onTimeInput = (): void => {
+    applyShopFlatpickrTimeFromInputs(instance);
+    hooks.onTimeApplied();
+  };
+
   hour.addEventListener('keydown', onTimeKeyDown, { capture: true });
   minute.addEventListener('keydown', onTimeKeyDown, { capture: true });
   hour.addEventListener('blur', onTimeBlur);
   minute.addEventListener('blur', onTimeBlur);
+  hour.addEventListener('input', onTimeInput);
+  minute.addEventListener('input', onTimeInput);
 
   return () => {
     hour.removeEventListener('keydown', onTimeKeyDown, { capture: true });
     minute.removeEventListener('keydown', onTimeKeyDown, { capture: true });
     hour.removeEventListener('blur', onTimeBlur);
     minute.removeEventListener('blur', onTimeBlur);
+    hour.removeEventListener('input', onTimeInput);
+    minute.removeEventListener('input', onTimeInput);
   };
 }
 

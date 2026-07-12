@@ -1,5 +1,5 @@
 ﻿import { CommonModule, DecimalPipe } from '@angular/common';
-import { Component, DestroyRef, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -246,6 +246,12 @@ export class OpenTablePageComponent implements OnInit {
   readonly packageBottleDisplayNameText = signal('');
   readonly packageBottleQtyText = signal('1');
   readonly stopSeatTime = signal(currentDatetimeLocalValue());
+  private readonly stopDatetimeInput = viewChild('stopDatetimeInput', {
+    read: ShopDatetimeInputComponent,
+  });
+  private readonly checkoutDatetimeInput = viewChild('checkoutDatetimeInput', {
+    read: ShopDatetimeInputComponent,
+  });
   readonly addModalMode = signal<AddModalMode>('ORDER_LEDGER');
 
   readonly seats = signal<SeatTile[]>([]);
@@ -2625,7 +2631,7 @@ export class OpenTablePageComponent implements OnInit {
       this.toast.showError('ไม่พบรายการห้อง');
       return;
     }
-    const seatStoppedAt = this.stopSeatTime().trim();
+    const seatStoppedAt = this.resolvedStopSeatTime();
     this.stopSeatTimeValidated.set(true);
     if (!isValidShopDatetimeLocal(seatStoppedAt)) {
       this.toast.showError('กรุณาระบุเวลาสต็อป');
@@ -2841,7 +2847,7 @@ export class OpenTablePageComponent implements OnInit {
       this.toast.showError('ไม่พบรายการรันดื่ม');
       return;
     }
-    const seatStoppedAt = this.stopSeatTime().trim();
+    const seatStoppedAt = this.resolvedStopSeatTime();
     this.stopSeatTimeValidated.set(true);
     if (!isValidShopDatetimeLocal(seatStoppedAt)) {
       this.toast.showError('กรุณาระบุเวลาสต็อป');
@@ -3321,7 +3327,7 @@ export class OpenTablePageComponent implements OnInit {
 
   printPreCheckoutBill(): void {
     const sessionId = this.selectedSeat()?.sessionId;
-    const checkedOutAt = this.checkoutAt().trim();
+    const checkedOutAt = this.resolvedCheckoutAt();
     if (!sessionId) {
       this.toast.showError('ไม่พบบิลที่เปิดอยู่');
       return;
@@ -3370,7 +3376,7 @@ export class OpenTablePageComponent implements OnInit {
       this.toast.showError('ไม่พบบิลที่เปิดอยู่');
       return;
     }
-    const checkedOutAt = this.checkoutAt().trim();
+    const checkedOutAt = this.resolvedCheckoutAt();
     if (!isValidShopDatetimeLocal(checkedOutAt)) {
       this.toast.showError('กรุณาระบุเวลาเช็กบิล');
       return;
@@ -3565,6 +3571,20 @@ export class OpenTablePageComponent implements OnInit {
   private formatShopDatetimeLabel(shopDatetime: string): string {
     const { datePart, hour, minute } = splitShopDatetimeLocal(shopDatetime);
     return `${formatShopDatetimeLabelBe(`${datePart}T${hour}:${minute}`)} น.`;
+  }
+
+  private resolvedStopSeatTime(): string {
+    const picker = this.stopDatetimeInput();
+    const value = picker?.commitPendingToModel() ?? this.stopSeatTime();
+    this.stopSeatTime.set(value);
+    return value.trim();
+  }
+
+  private resolvedCheckoutAt(): string {
+    const picker = this.checkoutDatetimeInput();
+    const value = picker?.commitPendingToModel() ?? this.checkoutAt();
+    this.checkoutAt.set(value);
+    return value.trim();
   }
 
   private buildRoomChargeConfirmMessage(
