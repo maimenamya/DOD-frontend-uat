@@ -4201,15 +4201,13 @@
     width: 7.5rem;
   }
 
-  .dashboard-rank-split .app-split-table-body.dashboard-rank-split-body {
+  .dashboard-rank-split .app-split-table-body.dashboard-rank-split-body--scroll {
     height: var(--dashboard-rank-body);
-    min-height: var(--dashboard-rank-body);
     max-height: var(--dashboard-rank-body);
   }
 
   .dashboard-rank-table-empty {
-    @apply flex h-full items-center justify-center px-5 text-center text-sm text-text-secondary;
-    min-height: var(--dashboard-rank-body);
+    @apply flex items-center justify-center px-5 py-8 text-center text-sm text-text-secondary;
   }
 
   .app-profile-card {

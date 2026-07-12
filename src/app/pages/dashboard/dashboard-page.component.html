@@ -206,7 +206,11 @@
                   <p class="dashboard-rank-table-empty">ไม่พบชื่อที่ตรงกับการค้นหา</p>
                 </div>
               } @else {
-                <div class="app-split-table-body app-scroll-region dashboard-rank-split-body">
+                <div
+                  class="app-split-table-body dashboard-rank-split-body"
+                  [class.app-scroll-region]="filteredTopStaff().length > 5"
+                  [class.dashboard-rank-split-body--scroll]="filteredTopStaff().length > 5"
+                >
                   <table class="app-data-table app-split-table-grid">
                     <colgroup>
                       <col class="dashboard-rank-col-rank" />
@@ -273,7 +277,11 @@
                   <p class="dashboard-rank-table-empty">ไม่พบชื่อที่ตรงกับการค้นหา</p>
                 </div>
               } @else {
-                <div class="app-split-table-body app-scroll-region dashboard-rank-split-body">
+                <div
+                  class="app-split-table-body dashboard-rank-split-body"
+                  [class.app-scroll-region]="filteredTopEntertainers().length > 5"
+                  [class.dashboard-rank-split-body--scroll]="filteredTopEntertainers().length > 5"
+                >
                   <table class="app-data-table app-split-table-grid">
                     <colgroup>
                       <col class="dashboard-rank-col-rank" />
