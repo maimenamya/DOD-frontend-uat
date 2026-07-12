@@ -104,11 +104,16 @@ export type SidebarIconName =
           <path d="M13 16h3" />
         }
         @case ('history') {
-          <!-- open folder archive — centered standing open -->
-          <path d="M10 6.5h5l1.25 1.5H17.25v10.75a1.75 1.75 0 0 1-1.75 1.75H10z" />
-          <path d="M9 6.5h7.75" />
-          <path d="M9 6.5 7 18.25" />
-          <path d="M7 18.25H15.5" />
+          <!-- folder archive: back tab + front flap + list lines (reference style) -->
+          <path
+            d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-5l-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"
+          />
+          <path
+            d="M6 12h11a1.5 1.5 0 0 1 1.5 1.5v4.75a1.5 1.5 0 0 1-1.5 1.5H6a1.5 1.5 0 0 1-1.5-1.5v-4.75A1.5 1.5 0 0 1 6 12z"
+          />
+          <path d="M12.5 16.75h4.25" />
+          <path d="M12.5 17.75h4.25" />
+          <path d="M12.5 18.75h4.25" />
         }
         @case ('more') {
           <circle cx="5" cy="12" r="1.75" fill="currentColor" stroke="none" />
