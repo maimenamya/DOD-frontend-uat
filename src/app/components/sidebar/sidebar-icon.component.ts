@@ -104,12 +104,11 @@ export type SidebarIconName =
           <path d="M13 16h3" />
         }
         @case ('history') {
-          <!-- open folder archive — past bills (distinct from attendance clock and package box) -->
-          <path d="M4 8h5l2 2h9a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8z" />
-          <path d="M11 10H4" />
-          <path d="M8 13.5h8" />
-          <path d="M8 16.5h8" />
-          <path d="M8 19.5h5.5" />
+          <!-- open folder archive — centered standing open -->
+          <path d="M10 6.5h5l1.25 1.5H17.25v10.75a1.75 1.75 0 0 1-1.75 1.75H10z" />
+          <path d="M9 6.5h7.75" />
+          <path d="M9 6.5 7 18.25" />
+          <path d="M7 18.25H15.5" />
         }
         @case ('more') {
           <circle cx="5" cy="12" r="1.75" fill="currentColor" stroke="none" />
