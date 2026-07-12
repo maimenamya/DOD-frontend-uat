@@ -104,17 +104,12 @@ export type SidebarIconName =
           <path d="M13 16h3" />
         }
         @case ('history') {
-          <!-- document + list lines; history clock (arrow + hands) badge top-left -->
-          <rect x="8.25" y="6" width="11" height="15.5" rx="2.25" ry="2.25" />
-          <path d="M10.25 11.25h6.5" />
-          <path d="M10.25 14.25h6.5" />
-          <path d="M10.25 17.25h6.5" />
-          <circle cx="7.25" cy="7.25" r="5.25" />
-          <g transform="translate(7.25 7.25) scale(0.46) translate(-12 -12)">
-            <path d="M3 12a9 9 0 1 0 3 6.7" />
-            <path d="M3 3v5h5" />
-            <path d="M12 7v5l4 2" />
-          </g>
+          <!-- open folder archive — past bills (distinct from attendance clock and package box) -->
+          <path d="M4 8h5l2 2h9a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8z" />
+          <path d="M11 10H4" />
+          <path d="M8 13.5h8" />
+          <path d="M8 16.5h8" />
+          <path d="M8 19.5h5.5" />
         }
         @case ('more') {
           <circle cx="5" cy="12" r="1.75" fill="currentColor" stroke="none" />
