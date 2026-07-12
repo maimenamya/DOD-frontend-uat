@@ -60,6 +60,7 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  min-height: 0;
 }
 
 .bill-history-detail-meta {
@@ -67,6 +68,7 @@
   gap: 0.75rem 1rem;
   grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
   margin: 0;
+  flex-shrink: 0;
 }
 
 .bill-history-detail-meta div {
@@ -86,10 +88,22 @@
 }
 
 .bill-history-lines-shell {
-  max-height: min(45vh, 24rem);
+  flex: 1;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: min(42vh, 22rem);
+  --app-scroll-track: var(--table-body-bg);
+}
+
+.bill-history-lines-shell .bill-history-lines-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .bill-history-detail-actions {
+  flex-shrink: 0;
   margin-top: 0.25rem;
 }
 

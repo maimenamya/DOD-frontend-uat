@@ -10,6 +10,7 @@ export type SidebarIconName =
   | 'seatings'
   | 'marketing'
   | 'receipt'
+  | 'history'
   | 'more'
   | 'report'
   | 'package'
@@ -101,6 +102,11 @@ export type SidebarIconName =
           <path d="M9 10h7" />
           <path d="M9 13h7" />
           <path d="M13 16h3" />
+        }
+        @case ('history') {
+          <path d="M3 12a9 9 0 1 0 3 6.7" />
+          <path d="M3 3v5h5" />
+          <path d="M12 7v5l4 2" />
         }
         @case ('more') {
           <circle cx="5" cy="12" r="1.75" fill="currentColor" stroke="none" />

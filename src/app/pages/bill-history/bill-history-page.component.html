@@ -2,12 +2,6 @@
   <header class="app-page-header">
     <div>
       <h1 class="app-page-title">บิลย้อนหลัง</h1>
-      <p class="app-page-subtitle">
-        ดูบิลที่เช็กเอาต์แล้วจากข้อมูลที่เก็บไว้ในระบบ
-        @if (selfOnly()) {
-          — แสดงเฉพาะบิลของคุณ
-        }
-      </p>
     </div>
   </header>
 
@@ -129,7 +123,7 @@
         </dl>
 
         <div class="app-data-table-shell app-scroll-region bill-history-lines-shell">
-          <table class="app-data-table bill-history-lines-table">
+          <table class="app-data-table bill-history-lines-table app-data-table-sticky-head">
             <thead>
               <tr>
                 <th>รายการ</th>

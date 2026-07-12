@@ -935,6 +935,7 @@
         <div class="app-form-group">
           <label class="app-label" for="room-seat-start">เวลาเริ่มใช้</label>
           <app-shop-datetime-input
+            #roomSeatDatetimeInput
             inputId="room-seat-start"
             [ngModel]="roomSeatStartedAt()"
             (ngModelChange)="roomSeatStartedAt.set($event)"
@@ -1346,6 +1347,7 @@
           <div class="app-form-group">
             <label class="app-label">เวลาเริ่มนั่งโต๊ะ</label>
             <app-shop-datetime-input
+              #staffSeatDatetimeInput
               inputId="staff-seat-started-at"
               [ngModel]="staffSeatStartedAt()"
               (ngModelChange)="staffSeatStartedAt.set($event)"

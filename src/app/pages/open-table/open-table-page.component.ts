@@ -252,6 +252,12 @@ export class OpenTablePageComponent implements OnInit {
   private readonly checkoutDatetimeInput = viewChild('checkoutDatetimeInput', {
     read: ShopDatetimeInputComponent,
   });
+  private readonly staffSeatDatetimeInput = viewChild('staffSeatDatetimeInput', {
+    read: ShopDatetimeInputComponent,
+  });
+  private readonly roomSeatDatetimeInput = viewChild('roomSeatDatetimeInput', {
+    read: ShopDatetimeInputComponent,
+  });
   readonly addModalMode = signal<AddModalMode>('ORDER_LEDGER');
 
   readonly seats = signal<SeatTile[]>([]);
@@ -2422,6 +2428,7 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   private async submitAddItemsAsync(): Promise<void> {
+    this.flushAddModalDatetimes();
     if (!this.ledgerCanMutate()) {
       this.toast.showError(
         'โต๊ะนี้ถูกเช็กบิลแล้ว ไม่สามารถเพิ่มรายการได้ — ถ้าลูกค้าออกจากโต๊ะแล้วให้กดลูกค้ากลับ',
@@ -3585,6 +3592,17 @@ export class OpenTablePageComponent implements OnInit {
     const value = picker?.commitPendingToModel() ?? this.checkoutAt();
     this.checkoutAt.set(value);
     return value.trim();
+  }
+
+  private flushAddModalDatetimes(): void {
+    const staffValue = this.staffSeatDatetimeInput()?.commitPendingToModel();
+    if (staffValue) {
+      this.staffSeatStartedAt.set(staffValue);
+    }
+    const roomValue = this.roomSeatDatetimeInput()?.commitPendingToModel();
+    if (roomValue) {
+      this.roomSeatStartedAt.set(roomValue);
+    }
   }
 
   private buildRoomChargeConfirmMessage(
