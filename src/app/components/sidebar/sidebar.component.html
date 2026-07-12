@@ -52,6 +52,20 @@
       </a>
     }
 
+    @if (showBillHistoryNav()) {
+      <a
+        routerLink="/dashboard/bill-history"
+        routerLinkActive="app-sidebar-link-active"
+        (click)="collapseAllSubmenus(); mobileClose.emit()"
+        class="app-sidebar-link"
+      >
+        <span class="app-sidebar-icon-slot">
+          <app-sidebar-icon name="receipt" />
+        </span>
+        <span class="app-sidebar-label">บิลย้อนหลัง</span>
+      </a>
+    }
+
     @if (showFullOpenTableNav()) {
       <a
         routerLink="/dashboard/open-table"

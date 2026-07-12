@@ -7,6 +7,7 @@ import { mustChangePasswordChildGuard } from './guards/must-change-password.guar
 import { permissionGuard } from './guards/permission.guard';
 import { openTableGuard } from './guards/open-table.guard';
 import { saleSelfBillGuard } from './guards/sale-self-bill.guard';
+import { billHistoryGuard } from './guards/bill-history.guard';
 import { MainShellComponent } from './layouts/main-shell/main-shell.component';
 import { DashboardPageComponent } from './pages/dashboard/dashboard-page.component';
 import { EmployeeManagementPageComponent } from './pages/employee-management/employee-management-page.component';
@@ -79,6 +80,14 @@ export const routes: Routes = [
         path: 'my-bills',
         component: OpenTablePageComponent,
         canActivate: [saleSelfBillGuard],
+      },
+      {
+        path: 'bill-history',
+        loadComponent: () =>
+          import('./pages/bill-history/bill-history-page.component').then(
+            (m) => m.BillHistoryPageComponent,
+          ),
+        canActivate: [billHistoryGuard],
       },
       {
         path: 'open-table',

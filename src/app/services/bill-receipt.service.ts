@@ -29,10 +29,16 @@ export class BillReceiptService {
   private readonly http = inject(HttpClient);
   private readonly api = inject(ApiConfig);
 
-  getBillReceipt(billId: number): Observable<BillReceiptResponse> {
+  getBillReceipt(
+    billId: number,
+    options?: { dispatchPrint?: boolean },
+  ): Observable<BillReceiptResponse> {
     let params = new HttpParams();
     if (this.shouldPreparePrintFrame()) {
       params = params.set('browserPng', '1');
+    }
+    if (options?.dispatchPrint === false) {
+      params = params.set('dispatchPrint', '0');
     }
     return this.http.get<BillReceiptResponse>(
       this.api.resource('open-table', 'bills', String(billId), 'receipt'),

@@ -1,0 +1,173 @@
+<div class="app-page bill-history-page">
+  <header class="app-page-header">
+    <div>
+      <h1 class="app-page-title">บิลย้อนหลัง</h1>
+      <p class="app-page-subtitle">
+        ดูบิลที่เช็กเอาต์แล้วจากข้อมูลที่เก็บไว้ในระบบ
+        @if (selfOnly()) {
+          — แสดงเฉพาะบิลของคุณ
+        }
+      </p>
+    </div>
+  </header>
+
+  <section class="app-card bill-history-filters">
+    <h2 class="bill-history-section-title">ช่วงวันที่</h2>
+    <div class="bill-history-date-row">
+      <label class="bill-history-date-field">
+        <span class="bill-history-date-label">ตั้งแต่</span>
+        <app-shop-date-input
+          extraInputClass="dashboard-date-input"
+          [requireConfirm]="false"
+          [ngModel]="rangeFrom()"
+          (ngModelChange)="onRangeFromChange($event)"
+        />
+      </label>
+      <label class="bill-history-date-field">
+        <span class="bill-history-date-label">ถึง</span>
+        <app-shop-date-input
+          extraInputClass="dashboard-date-input"
+          [requireConfirm]="false"
+          [ngModel]="rangeTo()"
+          (ngModelChange)="onRangeToChange($event)"
+        />
+      </label>
+      <button type="button" class="app-btn-secondary bill-history-apply" (click)="applyRange()">
+        ค้นหา
+      </button>
+    </div>
+    @if (payload(); as data) {
+      <p class="bill-history-range-meta">
+        {{ data.fromDate }} – {{ data.toDate }} · {{ data.billCount }} บิล · รวม
+        {{ data.totalAmount | number: '1.0-0' }} บาท
+      </p>
+    }
+  </section>
+
+  @if (loading()) {
+    <p class="app-muted">กำลังโหลด...</p>
+  } @else if (!hasItems()) {
+    <section class="app-card bill-history-empty">
+      <p>ไม่พบบิลในช่วงวันที่ที่เลือก</p>
+    </section>
+  } @else {
+    <div class="app-data-table-shell app-scroll-region bill-history-table-shell">
+      <table class="app-data-table bill-history-table">
+        <thead>
+          <tr>
+            <th>วันที่</th>
+            <th>เวลาเช็กเอาต์</th>
+            <th>เลขบิล</th>
+            <th>โต๊ะ / โซน</th>
+            <th>เซลล์</th>
+            <th class="app-cell-right">ยอด</th>
+            <th>ชำระ</th>
+            <th class="app-cell-right">จัดการ</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of payload()!.items; track row.id) {
+            <tr>
+              <td>{{ row.businessDateLabel }}</td>
+              <td>{{ row.checkedOutLabel }}</td>
+              <td class="bill-history-ref">{{ row.billReference }}</td>
+              <td>{{ row.dineInLabel ?? '—' }}</td>
+              <td>{{ row.saleNickname }}</td>
+              <td class="app-cell-right">{{ row.billAmount | number: '1.0-0' }}</td>
+              <td>{{ row.paymentMethodLabel }}</td>
+              <td class="app-cell-right">
+                <button
+                  type="button"
+                  class="app-btn-ghost text-sm text-theme-accent-strong"
+                  [disabled]="!row.hasReceipt"
+                  (click)="openDetail(row)"
+                >
+                  ดูบิล
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+@if (selectedRow(); as row) {
+  <app-modal layout="center" (dismiss)="closeDetail()">
+    <div class="app-modal-header">
+      <h2 class="app-modal-title">บิล {{ row.billReference }}</h2>
+      <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeDetail()">✕</button>
+    </div>
+
+    @if (receiptLoading()) {
+      <p class="app-muted">กำลังโหลดรายละเอียด...</p>
+    } @else {
+      @if (receipt(); as detail) {
+      <div class="bill-history-detail">
+        <dl class="bill-history-detail-meta">
+          <div>
+            <dt>โต๊ะ / โซน</dt>
+            <dd>{{ detail.dineInLabel }}</dd>
+          </div>
+          <div>
+            <dt>เซลล์</dt>
+            <dd>{{ detail.staffLabel }}</dd>
+          </div>
+          <div>
+            <dt>เข้าโต๊ะ</dt>
+            <dd>{{ detail.checkedInLabel }}</dd>
+          </div>
+          <div>
+            <dt>เช็กเอาต์</dt>
+            <dd>{{ detail.printedAtLabel }}</dd>
+          </div>
+          <div>
+            <dt>ชำระ</dt>
+            <dd>{{ detail.paymentMethodLabel ?? '—' }}</dd>
+          </div>
+        </dl>
+
+        <div class="app-data-table-shell app-scroll-region bill-history-lines-shell">
+          <table class="app-data-table bill-history-lines-table">
+            <thead>
+              <tr>
+                <th>รายการ</th>
+                <th class="app-cell-right">จำนวน</th>
+                <th class="app-cell-right">ยอด</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (line of detail.lines; track $index) {
+                <tr>
+                  <td>{{ line.name }}</td>
+                  <td class="app-cell-right">{{ line.quantity }}</td>
+                  <td class="app-cell-right">{{ line.lineTotal | number: '1.0-0' }}</td>
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr>
+                <th colspan="2" class="app-cell-right">รวม</th>
+                <th class="app-cell-right">{{ detail.grandTotal | number: '1.0-0' }}</th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="app-form-actions bill-history-detail-actions">
+          <button type="button" class="app-btn-secondary" (click)="closeDetail()">ปิด</button>
+          <button
+            type="button"
+            class="app-btn-primary"
+            [disabled]="printing()"
+            (click)="printSelected()"
+          >
+            {{ printing() ? 'กำลังพิมพ์...' : 'พิมพ์ใบเสร็จ' }}
+          </button>
+        </div>
+      </div>
+      }
+    }
+  </app-modal>
+}
