@@ -66,7 +66,7 @@
     } @else {
       <section class="app-card app-card-flush">
         <div class="app-data-table-shell">
-          <div class="app-split-table app-split-table--wide app-split-table--mobile-stack">
+          <div class="app-split-table app-split-table--wide">
             <div class="app-split-table-header">
               <table class="app-data-table app-split-table-grid bill-history-table">
                 <colgroup>
@@ -112,22 +112,22 @@
                   @for (row of listView().items; track row.id; let i = $index) {
                     <tr>
                       <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
-                      <td class="whitespace-nowrap text-text-secondary" data-label="วันที่">
+                      <td class="whitespace-nowrap text-text-secondary">
                         {{ row.businessDateLabel }}
                       </td>
-                      <td class="whitespace-nowrap text-text-secondary" data-label="เวลาเช็กเอาต์">
+                      <td class="whitespace-nowrap text-text-secondary">
                         {{ row.checkedOutLabel }}
                       </td>
-                      <td class="bill-history-ref app-cell-mono" data-label="เลขบิล">
+                      <td class="bill-history-ref app-cell-mono">
                         {{ row.billReference }}
                       </td>
-                      <td data-label="โต๊ะ / โซน">{{ row.dineInLabel ?? '—' }}</td>
-                      <td class="app-cell-primary" data-label="เซลล์">{{ row.saleNickname }}</td>
-                      <td class="app-cell-right app-cell-highlight-violet" data-label="ยอด">
+                      <td>{{ row.dineInLabel ?? '—' }}</td>
+                      <td class="app-cell-primary">{{ row.saleNickname }}</td>
+                      <td class="app-cell-right app-cell-highlight-violet">
                         {{ row.billAmount | number: '1.0-0' }}
                       </td>
-                      <td data-label="ชำระ">{{ row.paymentMethodLabel }}</td>
-                      <td class="app-cell-right" data-label="จัดการ">
+                      <td>{{ row.paymentMethodLabel }}</td>
+                      <td class="app-cell-right">
                         <div class="app-table-actions">
                           <button
                             type="button"
