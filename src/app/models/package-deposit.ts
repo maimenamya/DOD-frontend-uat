@@ -32,3 +32,12 @@ export interface PackageDepositPayload {
   quantity: number;
   remainderNote?: string | null;
 }
+
+export interface PackageDepositCreatePayload {
+  sourceType: PackageDepositSourceType;
+  sourceId: number;
+  customerCode: string;
+  customerName?: string;
+  bottlesRemaining: number;
+  remainderNote?: string | null;
+}

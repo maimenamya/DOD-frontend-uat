@@ -6,20 +6,38 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import {
+  CustomDropdownComponent,
+  type DropdownOption,
+} from '../../components/custom-dropdown/custom-dropdown.component';
 import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
+import type { MstMembership, MstPromotion } from '../../models/master-data';
 import type { PackageDepositRecord, PackageDepositSourceType } from '../../models/package-deposit';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { PackageDepositService } from '../../services/package-deposit.service';
+import { ShopMasterService } from '../../services/shop-master.service';
 import { ToastService } from '../../services/toast.service';
 import { APP_MOBILE_MEDIA_QUERY, isAppMobileViewport } from '../../utils/app-viewport.util';
 import {
   highlightInvalidForm,
   resetFormValidationFlag,
 } from '../../utils/form-validation.util';
+import {
+  LOCAL_CODE_MAX_LENGTH,
+  LOCAL_CODE_PATTERN,
+  LOCAL_CODE_VALIDATORS_HINT,
+  normalizeLocalCodeForSubmit,
+  trimLocalCodeInput,
+} from '../../utils/local-code.util';
 
 type DepositSourceTab = PackageDepositSourceType;
+
+function packageBottleTotal(items: Array<{ quantity: number }>): number {
+  return items.reduce((sum, row) => sum + row.quantity, 0);
+}
 
 @Component({
   selector: 'app-package-deposit-page',
@@ -28,6 +46,7 @@ type DepositSourceTab = PackageDepositSourceType;
     FormsModule,
     ReactiveFormsModule,
     AppModalComponent,
+    CustomDropdownComponent,
     MasterListToolbarComponent,
   ],
   templateUrl: './package-deposit-page.component.html',
@@ -35,18 +54,23 @@ type DepositSourceTab = PackageDepositSourceType;
 })
 export class PackageDepositPageComponent implements OnInit {
   private readonly packageDeposits = inject(PackageDepositService);
+  private readonly shopMaster = inject(ShopMasterService);
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly items = signal<PackageDepositRecord[]>([]);
+  readonly memberships = signal<MstMembership[]>([]);
+  readonly promotions = signal<MstPromotion[]>([]);
   readonly loading = signal(true);
   readonly submitting = signal(false);
   readonly depositFormValidated = signal(false);
   readonly deleteFormValidated = signal(false);
+  readonly createFormValidated = signal(false);
   readonly depositTarget = signal<PackageDepositRecord | null>(null);
   readonly deleteTarget = signal<PackageDepositRecord | null>(null);
+  readonly createModalOpen = signal(false);
   readonly sourceTab = signal<DepositSourceTab>('MEMBERSHIP');
   readonly searchQuery = signal('');
   readonly expandedId = signal<number | null>(null);
@@ -59,6 +83,44 @@ export class PackageDepositPageComponent implements OnInit {
 
   readonly deleteForm = this.fb.group({
     note: ['', [Validators.required, Validators.maxLength(500)]],
+  });
+
+  readonly createForm = this.fb.group({
+    sourceId: [null as number | null, Validators.required],
+    customerCode: [
+      '',
+      [Validators.required, Validators.maxLength(LOCAL_CODE_MAX_LENGTH), Validators.pattern(LOCAL_CODE_PATTERN)],
+    ],
+    customerName: [''],
+    bottlesRemaining: ['', [Validators.required, Validators.pattern(/^[1-9]\d*$/)]],
+    remainderNote: [''],
+  });
+
+  readonly createPackageOptions = computed((): DropdownOption[] => {
+    const tab = this.sourceTab();
+    const list =
+      tab === 'MEMBERSHIP'
+        ? this.memberships().filter((row) => row.allowDeposit)
+        : this.promotions().filter((row) => row.allowDeposit);
+    return list.map((row) => ({
+      value: row.id,
+      label: `${row.name} (${packageBottleTotal(row.items)} ขวด)`,
+    }));
+  });
+
+  readonly selectedCreatePackage = computed(() => {
+    const sourceId = this.createForm.controls.sourceId.value;
+    if (sourceId == null) return null;
+    const tab = this.sourceTab();
+    if (tab === 'MEMBERSHIP') {
+      return this.memberships().find((row) => row.id === sourceId) ?? null;
+    }
+    return this.promotions().find((row) => row.id === sourceId) ?? null;
+  });
+
+  readonly selectedCreatePackageBottlesTotal = computed(() => {
+    const pkg = this.selectedCreatePackage();
+    return pkg ? packageBottleTotal(pkg.items) : null;
   });
 
   readonly visibleItems = computed(() => {
@@ -105,14 +167,20 @@ export class PackageDepositPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadItems();
+    this.loadPageData();
   }
 
-  loadItems(): void {
+  loadPageData(): void {
     this.loading.set(true);
-    this.packageDeposits.list().subscribe({
-      next: (rows) => {
-        this.items.set(rows);
+    forkJoin({
+      deposits: this.packageDeposits.list(),
+      memberships: this.shopMaster.getMemberships(),
+      promotions: this.shopMaster.getPromotions(),
+    }).subscribe({
+      next: ({ deposits, memberships, promotions }) => {
+        this.items.set(deposits);
+        this.memberships.set(memberships);
+        this.promotions.set(promotions);
         this.loading.set(false);
       },
       error: (err: { error?: { error?: string } }) => {
@@ -122,9 +190,114 @@ export class PackageDepositPageComponent implements OnInit {
     });
   }
 
+  loadItems(): void {
+    this.packageDeposits.list().subscribe({
+      next: (rows) => this.items.set(rows),
+      error: (err: { error?: { error?: string } }) => {
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถโหลดรายการฝากได้');
+      },
+    });
+  }
+
   selectSourceTab(tab: DepositSourceTab): void {
     this.sourceTab.set(tab);
     this.expandedId.set(null);
+    if (this.createModalOpen()) {
+      this.createForm.controls.sourceId.setValue(null);
+    }
+  }
+
+  openCreateModal(): void {
+    this.createForm.reset({
+      sourceId: null,
+      customerCode: '',
+      customerName: '',
+      bottlesRemaining: '',
+      remainderNote: '',
+    });
+    resetFormValidationFlag(this.createFormValidated);
+    this.createModalOpen.set(true);
+  }
+
+  closeCreateModal(): void {
+    this.createModalOpen.set(false);
+    resetFormValidationFlag(this.createFormValidated);
+  }
+
+  onCreatePackageChange(value: number | string | null): void {
+    const id = typeof value === 'number' ? value : value != null ? Number(value) : null;
+    this.createForm.controls.sourceId.setValue(
+      id != null && Number.isFinite(id) && id > 0 ? id : null,
+    );
+  }
+
+  readonly localCodeHint = LOCAL_CODE_VALIDATORS_HINT;
+
+  onCreateCustomerCodeInput(event: Event): void {
+    const el = event.target as HTMLInputElement;
+    const trimmed = trimLocalCodeInput(el.value);
+    this.createForm.controls.customerCode.setValue(trimmed);
+    if (el.value !== trimmed) {
+      el.value = trimmed;
+    }
+  }
+
+  submitCreate(): void {
+    if (!this.createForm.controls.sourceId.value) {
+      this.toast.showError('กรุณาเลือกแพ็กเกจ');
+      resetFormValidationFlag(this.createFormValidated);
+      this.createFormValidated.set(true);
+      return;
+    }
+    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
+
+    const pkg = this.selectedCreatePackage();
+    const bottlesTotal = this.selectedCreatePackageBottlesTotal();
+    if (!pkg || bottlesTotal == null) {
+      this.toast.showError('กรุณาเลือกแพ็กเกจ');
+      return;
+    }
+
+    const bottlesRemaining = Number(this.createForm.controls.bottlesRemaining.value);
+    if (!Number.isFinite(bottlesRemaining) || bottlesRemaining < 1) {
+      this.toast.showError('กรุณาระบุจำนวนขวดคงเหลืออย่างน้อย 1 ขวด');
+      return;
+    }
+    if (bottlesRemaining > bottlesTotal) {
+      this.toast.showError(`จำนวนคงเหลือต้องไม่เกิน ${bottlesTotal} ขวด (ขวดทั้งหมดของแพ็กเกจ)`);
+      return;
+    }
+
+    const customerCode = normalizeLocalCodeForSubmit(this.createForm.controls.customerCode.value);
+    if (!customerCode) {
+      this.toast.showError('กรุณาระบุรหัสลูกค้า 1–10 ตัวอักษร (ตัวอักษร/ตัวเลข)');
+      return;
+    }
+    const customerName = this.createForm.controls.customerName.value.trim();
+    const remainderNote = this.createForm.controls.remainderNote.value.trim();
+
+    this.submitting.set(true);
+    this.packageDeposits
+      .createOpeningBalance({
+        sourceType: this.sourceTab(),
+        sourceId: pkg.id,
+        customerCode,
+        customerName: customerName || undefined,
+        bottlesRemaining,
+        remainderNote: remainderNote || null,
+      })
+      .subscribe({
+        next: (created) => {
+          this.items.update((rows) => [created, ...rows]);
+          this.toast.showSuccess('เพิ่มรายการฝากแล้ว');
+          this.closeCreateModal();
+          this.submitting.set(false);
+        },
+        error: (err: { error?: { error?: string } }) => {
+          this.toast.showError(err.error?.error ?? 'ไม่สามารถเพิ่มรายการฝากได้');
+          this.submitting.set(false);
+        },
+      });
   }
 
   onSearchChange(value: string): void {

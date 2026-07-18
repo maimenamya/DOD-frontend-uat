@@ -26,6 +26,11 @@ import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
 import { MIN_PASSWORD_LENGTH } from '../../utils/password-policy.util';
 import {
+  LOCAL_CODE_MAX_LENGTH,
+  LOCAL_CODE_PATTERN,
+  LOCAL_CODE_VALIDATORS_HINT,
+} from '../../utils/local-code.util';
+import {
   isRoleMutableByViewer,
   compareRolesByThaiLabel,
   roleBadgeClass,
@@ -111,8 +116,18 @@ export class EmployeeManagementPageComponent implements OnInit {
     { value: 'Inactive', label: 'ไม่ใช้งาน' },
   ];
 
+  readonly localCodeHint = LOCAL_CODE_VALIDATORS_HINT;
+
   readonly createForm = this.fb.group({
-    employeeId: ['', [Validators.required, Validators.minLength(2)]],
+    employeeId: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(1),
+        Validators.maxLength(LOCAL_CODE_MAX_LENGTH),
+        Validators.pattern(LOCAL_CODE_PATTERN),
+      ],
+    ],
     password: ['', [Validators.required, Validators.minLength(MIN_PASSWORD_LENGTH)]],
     nickname: ['', [Validators.required, Validators.minLength(1)]],
     email: [''],

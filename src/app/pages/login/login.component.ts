@@ -15,6 +15,10 @@ import { map } from 'rxjs';
 import { readStoredShopPublicId, writeStoredShopPublicId } from '../../core/shop-public-id.storage';
 import { AuthService } from '../../services/auth.service';
 import {
+  LOCAL_CODE_MAX_LENGTH,
+  LOCAL_CODE_PATTERN,
+} from '../../utils/local-code.util';
+import {
   ShopPublicService,
   type ShopPublicInfo,
 } from '../../services/shop-public.service';
@@ -47,7 +51,15 @@ export class LoginComponent implements OnInit {
   readonly missingShopLink = signal(false);
 
   readonly form = this.fb.group({
-    employeeId: ['', [Validators.required, Validators.minLength(2)]],
+    employeeId: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(1),
+        Validators.maxLength(LOCAL_CODE_MAX_LENGTH),
+        Validators.pattern(LOCAL_CODE_PATTERN),
+      ],
+    ],
     password: ['', [Validators.required]],
   });
 

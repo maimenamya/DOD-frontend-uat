@@ -1097,18 +1097,16 @@
             </div>
             @if (selectedPackageAllowsDeposit()) {
               <div class="app-form-group">
-                <label class="app-label">รหัสลูกค้า (3 หลัก)</label>
+                <label class="app-label">รหัสลูกค้า</label>
                 <input
                   type="text"
                   class="app-input font-mono tracking-widest"
-                  maxlength="3"
-                  inputmode="numeric"
-                  pattern="[0-9]{3}"
+                  maxlength="10"
                   [ngModel]="packageCustomerCode()"
                   (ngModelChange)="onPackageCustomerCodeChange($event)"
-                  placeholder="เช่น 042"
+                  placeholder="เช่น 042, A1"
                 />
-                <p class="app-hint">รหัสเดิม + โปรเดิม → รวมเข้าฝากเดิมอัตโนมัติ</p>
+                <p class="app-hint">{{ packageCustomerCodeHint }} · รหัสเดิม + โปรเดิม → รวมเข้าฝากเดิมอัตโนมัติ</p>
               </div>
               <div class="app-form-group">
                 <label class="app-label">ชื่อลูกค้า (ไม่บังคับ)</label>
@@ -1148,18 +1146,16 @@
             </div>
             @if (selectedPackageAllowsDeposit()) {
               <div class="app-form-group">
-                <label class="app-label">รหัสลูกค้า (3 หลัก)</label>
+                <label class="app-label">รหัสลูกค้า</label>
                 <input
                   type="text"
                   class="app-input font-mono tracking-widest"
-                  maxlength="3"
-                  inputmode="numeric"
-                  pattern="[0-9]{3}"
+                  maxlength="10"
                   [ngModel]="packageCustomerCode()"
                   (ngModelChange)="onPackageCustomerCodeChange($event)"
-                  placeholder="เช่น 042"
+                  placeholder="เช่น 042, A1"
                 />
-                <p class="app-hint">รหัสเดิม + เมมเดิม → รวมเข้าฝากเดิมอัตโนมัติ</p>
+                <p class="app-hint">{{ packageCustomerCodeHint }} · รหัสเดิม + เมมเดิม → รวมเข้าฝากเดิมอัตโนมัติ</p>
               </div>
               <div class="app-form-group">
                 <label class="app-label">ชื่อลูกค้า (ไม่บังคับ)</label>

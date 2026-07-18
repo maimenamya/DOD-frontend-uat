@@ -73,6 +73,11 @@ import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
 import { closeOpenShopFlatpickrCalendars } from '../../utils/flatpickr-shop.util';
 import {
+  LOCAL_CODE_VALIDATORS_HINT,
+  normalizeLocalCodeForSubmit,
+  trimLocalCodeInput,
+} from '../../utils/local-code.util';
+import {
   CHECKOUT_PAYMENT_METHOD_OPTIONS,
   billPaymentMethodLabel,
   isBillPaymentMethod,
@@ -1536,8 +1541,7 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   onPackageCustomerCodeChange(value: string): void {
-    const digits = value.replace(/\D/g, '').slice(0, 3);
-    this.packageCustomerCode.set(digits);
+    this.packageCustomerCode.set(trimLocalCodeInput(value));
   }
 
   private packageDepositOptionLabel(row: PackageDepositRecord): string {
@@ -1550,9 +1554,10 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   private normalizePackageCustomerCode(value: string): string | null {
-    const digits = value.trim().replace(/\D/g, '');
-    return digits.length === 3 ? digits : null;
+    return normalizeLocalCodeForSubmit(value);
   }
+
+  readonly packageCustomerCodeHint = LOCAL_CODE_VALIDATORS_HINT;
 
   /** @returns true when deposit is already on an open table (blocks save). */
   private rejectPackageDepositIfOnOpenTable(deposit: PackageDepositRecord): boolean {
@@ -1740,7 +1745,7 @@ export class OpenTablePageComponent implements OnInit {
           const customerCode = this.normalizePackageCustomerCode(this.packageCustomerCode());
           if (!customerCode) {
             this.flagAddItemValidation();
-            this.toast.showError('กรุณาระบุรหัสลูกค้า 3 หลัก');
+            this.toast.showError('กรุณาระบุรหัสลูกค้า 1–10 ตัวอักษร (ตัวอักษร/ตัวเลข)');
             return null;
           }
           const customerName = this.packageCustomerName().trim();
@@ -1801,7 +1806,7 @@ export class OpenTablePageComponent implements OnInit {
           const customerCode = this.normalizePackageCustomerCode(this.packageCustomerCode());
           if (!customerCode) {
             this.flagAddItemValidation();
-            this.toast.showError('กรุณาระบุรหัสลูกค้า 3 หลัก');
+            this.toast.showError('กรุณาระบุรหัสลูกค้า 1–10 ตัวอักษร (ตัวอักษร/ตัวเลข)');
             return null;
           }
           const customerName = this.packageCustomerName().trim();

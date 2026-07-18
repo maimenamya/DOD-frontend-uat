@@ -58,14 +58,15 @@
               formControlName="employeeId"
               autocomplete="username"
               class="glass-input"
+              maxlength="10"
               placeholder="รหัสพนักงาน"
             />
           </div>
           @if (showControlError(form.controls.employeeId, formValidated()) && form.controls.employeeId.errors?.['required']) {
             <p class="login-field-error">กรุณาระบุรหัสพนักงาน</p>
           }
-          @if (showControlError(form.controls.employeeId, formValidated()) && form.controls.employeeId.errors?.['minlength']) {
-            <p class="login-field-error">อย่างน้อย 2 ตัวอักษร</p>
+          @if (showControlError(form.controls.employeeId, formValidated()) && (form.controls.employeeId.errors?.['minlength'] || form.controls.employeeId.errors?.['maxlength'] || form.controls.employeeId.errors?.['pattern'])) {
+            <p class="login-field-error">รหัสพนักงาน 1–10 ตัวอักษร (ตัวอักษร/ตัวเลข)</p>
           }
         </div>
 

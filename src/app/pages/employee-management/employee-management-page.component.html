@@ -60,8 +60,10 @@
             type="text"
             formControlName="employeeId"
             class="app-input"
-            placeholder="เช่น 1001"
+            maxlength="10"
+            placeholder="เช่น 1001, A1"
           />
+          <p class="app-hint">{{ localCodeHint }}</p>
         </div>
         <div class="app-form-group">
           <label class="app-label">ชื่อเล่น</label>

@@ -3,6 +3,11 @@
     <div>
       <h1 class="app-page-title">ฝากเมม / โปร</h1>
     </div>
+    @if (!loading()) {
+      <button type="button" class="app-btn-primary" (click)="openCreateModal()">
+        เพิ่มรายการฝาก
+      </button>
+    }
   </div>
 
   @if (!loading()) {
@@ -214,6 +219,111 @@
         <button type="button" class="app-btn-secondary" (click)="closeDepositModal()">ยกเลิก</button>
         <button type="submit" class="app-btn-primary" [disabled]="submitting()">
           {{ submitting() ? 'กำลังบันทึก...' : 'บันทึกการฝาก' }}
+        </button>
+      </div>
+    </form>
+  </app-modal>
+}
+
+@if (createModalOpen()) {
+  <app-modal layout="center" (dismiss)="closeCreateModal()">
+    <div class="app-modal-header">
+      <h2 class="app-modal-title">เพิ่มรายการฝาก</h2>
+      <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeCreateModal()">
+        ✕
+      </button>
+    </div>
+    <form
+      class="app-modal-body space-y-4"
+      [class.app-form-was-validated]="createFormValidated()"
+      [formGroup]="createForm"
+      (ngSubmit)="submitCreate()"
+    >
+      <p class="app-hint">
+        สำหรับลูกค้าที่มีเมม/โปรค้างก่อนใช้ระบบ — ไม่คิดเงิน ไม่ตัดสต็อก
+        · ประเภทตามแท็บ {{ sourceTab() === 'MEMBERSHIP' ? 'เมม' : 'โปร' }} ด้านบน
+      </p>
+
+      <div class="app-form-group">
+        <label class="app-label">เลือกแพ็กเกจ</label>
+        @if (createPackageOptions().length === 0) {
+          <p class="app-hint text-text-secondary">
+            ยังไม่มี{{ sourceTab() === 'MEMBERSHIP' ? 'เมม' : 'โปร' }}ที่เปิดใช้ระบบฝาก
+          </p>
+        } @else {
+          <app-custom-dropdown
+            [options]="createPackageOptions()"
+            [ngModel]="createForm.controls.sourceId.value"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onCreatePackageChange($event)"
+            [placeholder]="sourceTab() === 'MEMBERSHIP' ? 'เลือกเมมเบอร์' : 'เลือกโปรโมชั่น'"
+          />
+          @if (selectedCreatePackageBottlesTotal(); as total) {
+            <p class="app-hint">แพ็กเกจนี้มีทั้งหมด {{ total }} ขวด</p>
+          }
+        }
+      </div>
+
+      <div class="app-form-group">
+        <label class="app-label" for="create-customer-code">รหัสลูกค้า</label>
+        <input
+          id="create-customer-code"
+          type="text"
+          class="app-input font-mono tracking-widest"
+          maxlength="10"
+          formControlName="customerCode"
+          (input)="onCreateCustomerCodeInput($event)"
+          placeholder="เช่น 042, A1"
+          [class.app-input-invalid]="createFormValidated() && createForm.controls.customerCode.invalid"
+        />
+        <p class="app-hint">{{ localCodeHint }}</p>
+      </div>
+
+      <div class="app-form-group">
+        <label class="app-label" for="create-customer-name">ชื่อลูกค้า (ไม่บังคับ)</label>
+        <input
+          id="create-customer-name"
+          type="text"
+          class="app-input"
+          formControlName="customerName"
+          placeholder="ชื่อที่จำง่าย เช่น ต้น, พี่เอ"
+        />
+      </div>
+
+      <div class="app-form-group">
+        <label class="app-label" for="create-bottles-remaining">จำนวนขวดคงเหลือ</label>
+        <input
+          id="create-bottles-remaining"
+          type="number"
+          min="1"
+          step="1"
+          class="app-input"
+          formControlName="bottlesRemaining"
+          [attr.max]="selectedCreatePackageBottlesTotal()"
+          [class.app-input-invalid]="createFormValidated() && createForm.controls.bottlesRemaining.invalid"
+        />
+        <p class="app-hint">นับเป็นขวดเต็ม — เหลือครึ่งขวดให้ใส่ 1 แล้วระบุในหมายเหตุ</p>
+      </div>
+
+      <div class="app-form-group">
+        <label class="app-label" for="create-remainder-note">หมายเหตุ (ไม่บังคับ)</label>
+        <input
+          id="create-remainder-note"
+          type="text"
+          class="app-input"
+          formControlName="remainderNote"
+          placeholder="เช่น เหลือครึ่งขวด, เหลือ 3 ส่วน"
+        />
+      </div>
+
+      <div class="app-modal-footer">
+        <button type="button" class="app-btn-secondary" (click)="closeCreateModal()">ยกเลิก</button>
+        <button
+          type="submit"
+          class="app-btn-primary"
+          [disabled]="submitting() || createPackageOptions().length === 0"
+        >
+          {{ submitting() ? 'กำลังบันทึก...' : 'บันทึกรายการฝาก' }}
         </button>
       </div>
     </form>

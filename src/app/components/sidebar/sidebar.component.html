@@ -52,19 +52,6 @@
       </a>
     }
 
-    @if (showBillHistoryNav()) {
-      <a
-        routerLink="/dashboard/bill-history"
-        routerLinkActive="app-sidebar-link-active"
-        (click)="collapseAllSubmenus(); mobileClose.emit()"
-        class="app-sidebar-link"
-      >
-        <span class="app-sidebar-icon-slot">
-          <app-sidebar-icon name="history" />
-        </span>
-        <span class="app-sidebar-label">บิลย้อนหลัง</span>
-      </a>
-    }
 
     @if (showFullOpenTableNav()) {
       <a
@@ -136,6 +123,20 @@
           <app-sidebar-icon name="drink-payout" />
         </span>
         <span class="app-sidebar-label">จ่ายค่าดื่ม PR</span>
+      </a>
+    }
+
+    @if (showBillHistoryNav()) {
+      <a
+        routerLink="/dashboard/bill-history"
+        routerLinkActive="app-sidebar-link-active"
+        (click)="collapseAllSubmenus(); mobileClose.emit()"
+        class="app-sidebar-link"
+      >
+        <span class="app-sidebar-icon-slot">
+          <app-sidebar-icon name="history" />
+        </span>
+        <span class="app-sidebar-label">บิลย้อนหลัง</span>
       </a>
     }
 
