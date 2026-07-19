@@ -169,6 +169,7 @@
     }
 
     @if (showMasterNav()) {
+      <div class="app-sidebar-section-label" aria-hidden="true">ตั้งค่าร้าน</div>
       @for (group of navGroups; track group.id) {
         <div class="app-sidebar-group" [class.app-sidebar-group--active]="isGroupActive(group)">
           <button
