@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DOD · Redesign Mockups (de-neon)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================
+   DOD redesign — "designed by a human" dark theme
+   Single accent (warm amber, bar-appropriate) · no neon · no glow
+   Neutral gray ramp does the layout work · 2 radii · real type scale
+   ============================================================ */
+:root{
+  /* neutral ramp — warm charcoal, not pure black */
+  --bg:#101217;
+  --surface:#171a21;
+  --raised:#1e222b;
+  --raised-2:#252a34;
+  --border:#2b303b;
+  --border-strong:#3b4250;
+
+  /* text */
+  --tx:#eceae4;         /* primary, warm off-white (not #fff) */
+  --tx-2:#9aa0ab;       /* secondary */
+  --tx-3:#6b707b;       /* muted / captions */
+
+  /* ONE accent — warm amber (whisky / bar lighting) */
+  --accent:#e0a23c;
+  --accent-hover:#efb45a;
+  --accent-press:#c98a26;
+  --on-accent:#1a1305;  /* dark text on amber */
+  --accent-soft:rgba(224,162,60,.14);
+  --accent-line:rgba(224,162,60,.42);
+
+  /* muted semantic (not neon) */
+  --success:#5fa877; --success-soft:rgba(95,168,119,.14);
+  --warning:#d6a13f; --warning-soft:rgba(214,161,63,.14);
+  --danger:#cf6b60;  --danger-soft:rgba(207,107,96,.14);
+  --info:#6f8fb4;    --info-soft:rgba(111,143,180,.14);
+
+  /* seat semantics — muted + dot/icon carries meaning */
+  --seat-free:#2a3038; --seat-free-tx:#c3c8d0;
+  --seat-guest:#3a2f18; --seat-guest-line:var(--accent); --seat-guest-tx:#f0c477;
+  --seat-reserved:#26313d; --seat-reserved-line:var(--info); --seat-reserved-tx:#a7c1de;
+  --seat-await:#2d2622; --seat-await-line:#8a7a5f; --seat-await-tx:#c9b48f;
+
+  /* 2 radii only */
+  --r-sm:6px;   /* inputs, buttons, chips */
+  --r-md:10px;  /* cards, panels */
+
+  /* type scale — deliberate jumps */
+  --t-page:30px; --t-kpi:42px; --t-h2:18px; --t-body:14px; --t-cap:12.5px;
+
+  /* spacing rhythm — section > intra > tight */
+  --s-section:30px; --s-block:16px; --s-tight:8px;
+
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --sans:'Sarabun','Inter',system-ui,sans-serif;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg);
+  color:var(--tx);
+  font-family:var(--sans);
+  font-size:var(--t-body);
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,p{margin:0}
+button{font-family:inherit;cursor:pointer}
+.mono{font-family:var(--mono)}
+
+/* ---- top switcher (mockup chrome, not part of product) ---- */
+.mk-bar{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:10px 16px;background:#0b0d11;border-bottom:1px solid var(--border);
+}
+.mk-bar .mk-brand{font-weight:700;letter-spacing:.04em;margin-right:8px}
+.mk-bar .mk-brand b{color:var(--accent)}
+.mk-tab{
+  padding:6px 12px;font-size:13px;color:var(--tx-2);
+  background:transparent;border:1px solid transparent;border-radius:var(--r-sm);
+}
+.mk-tab:hover{color:var(--tx);background:var(--raised)}
+.mk-tab.is-active{color:var(--on-accent);background:var(--accent);border-color:var(--accent)}
+.mk-note{margin-left:auto;font-size:12px;color:var(--tx-3)}
+
+.mk-screen{display:none}
+.mk-screen.is-active{display:block}
+
+/* ============================================================
+   APP SHELL (sidebar + content)
+   ============================================================ */
+.shell{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 49px)}
+.sidebar{
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;padding:18px 12px;gap:4px;
+}
+.sb-brand{display:flex;align-items:center;gap:10px;padding:6px 8px 18px}
+.sb-logo{width:32px;height:32px;border-radius:var(--r-sm);background:var(--accent);
+  color:var(--on-accent);display:grid;place-items:center;font-weight:700}
+.sb-wordmark{font-weight:700;letter-spacing:.02em}
+.sb-wordmark span{color:var(--tx-3);font-weight:500;font-size:11px;display:block;letter-spacing:.14em}
+.sb-link{
+  display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:var(--r-sm);
+  color:var(--tx-2);font-size:13.5px;text-decoration:none;position:relative;
+}
+.sb-link .ico{width:18px;height:18px;flex:0 0 18px;color:currentColor}
+.sb-link:hover{background:var(--raised);color:var(--tx)}
+/* active = solid left-edge marker + subtle fill (pick ONE, no glow) */
+.sb-link.is-active{background:var(--raised-2);color:var(--tx)}
+.sb-link.is-active::before{
+  content:"";position:absolute;left:-12px;top:7px;bottom:7px;width:3px;
+  background:var(--accent);border-radius:0 3px 3px 0;
+}
+.sb-group-label{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--tx-3);padding:16px 11px 6px}
+.sb-foot{margin-top:auto;padding-top:12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:2px}
+.sb-logout{color:var(--danger);background:transparent;border:0;text-align:left}
+
+.content{padding:26px 30px;min-width:0}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:var(--s-section)}
+.page-title{font-size:var(--t-page);font-weight:700;letter-spacing:-.01em}
+.page-sub{color:var(--tx-2);font-size:13px;margin-top:4px}
+
+/* segmented control (quiet, not glowing pills) */
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:3px}
+.seg button{border:0;background:transparent;color:var(--tx-2);padding:6px 14px;font-size:13px;border-radius:4px}
+.seg button.is-active{background:var(--raised-2);color:var(--tx)}
+
+/* cards / panels */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md)}
+.card-h{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)}
+.card-title{font-size:var(--t-h2);font-weight:600}
+.card-b{padding:16px}
+
+/* buttons */
+.btn{border-radius:var(--r-sm);padding:9px 16px;font-size:13.5px;font-weight:600;border:1px solid transparent}
+.btn-primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-ghost{background:transparent;color:var(--tx-2);border-color:var(--border-strong)}
+.btn-ghost:hover{color:var(--tx);background:var(--raised)}
+.btn-danger{background:transparent;color:var(--danger);border-color:var(--danger-soft)}
+.btn-danger:hover{background:var(--danger-soft)}
+.btn-sm{padding:5px 11px;font-size:12.5px}
+
+/* inputs */
+.input{
+  width:100%;background:var(--bg);border:1px solid var(--border-strong);color:var(--tx);
+  border-radius:var(--r-sm);padding:9px 12px;font-size:13.5px;
+}
+.input::placeholder{color:var(--tx-3)}
+.input:focus{outline:none;border-color:var(--accent-line);box-shadow:0 0 0 3px var(--accent-soft)}
+.field-label{font-size:12px;color:var(--tx-2);margin-bottom:5px;display:block}
+
+/* KPI cards — hero. big number, muted label, no decoration */
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s-block);margin-bottom:var(--s-section)}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:18px 20px}
+.kpi.hero{background:linear-gradient(180deg,var(--raised) 0%,var(--surface) 100%);border-color:var(--border-strong)}
+.kpi .lbl{font-size:var(--t-cap);color:var(--tx-2);font-weight:500}
+.kpi .val{font-size:var(--t-kpi);font-weight:700;line-height:1.05;margin:8px 0 2px;letter-spacing:-.02em}
+.kpi.hero .val{color:var(--accent)}
+.kpi .hint{font-size:11.5px;color:var(--tx-3)}
+
+/* tables */
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl thead th{
+  position:sticky;top:0;text-align:left;font-weight:600;font-size:12px;
+  color:var(--tx-2);background:var(--raised);padding:11px 14px;border-bottom:1px solid var(--border)
+}
+.tbl tbody td{padding:11px 14px;border-bottom:1px solid var(--border);color:var(--tx)}
+.tbl tbody tr:hover{background:var(--raised)}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums}
+.tbl .rank{color:var(--tx-3);font-family:var(--mono);width:44px}
+.amount{color:var(--accent);font-weight:600;font-variant-numeric:tabular-nums}
+
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:var(--s-block)}
+.chip{padding:6px 13px;border-radius:var(--r-sm);font-size:12.5px;background:var(--surface);border:1px solid var(--border);color:var(--tx-2)}
+.chip.is-active{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent-hover)}
+
+.pager{display:flex;align-items:center;justify-content:space-between;margin-top:var(--s-block);font-size:12.5px;color:var(--tx-2)}
+.pager .pages{display:flex;gap:6px}
+.pager .pg{width:30px;height:30px;display:grid;place-items:center;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);color:var(--tx-2)}
+.pager .pg.is-active{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+
+.empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:44px 16px;color:var(--tx-3)}
+.empty .ico{width:34px;height:34px;opacity:.6}
+
+/* ---- open table ---- */
+.ot-grid{display:grid;grid-template-columns:1fr 340px;gap:var(--s-block)}
+.floor{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:12px}
+.seat{border-radius:var(--r-md);border:1px solid var(--border);padding:14px 12px;background:var(--surface);min-height:92px;display:flex;flex-direction:column;gap:6px}
+.seat .st{display:flex;align-items:center;gap:6px;font-size:11.5px}
+.seat .dot{width:8px;height:8px;border-radius:50%}
+.seat .no{font-size:18px;font-weight:700}
+.seat .meta{font-size:11px;color:var(--tx-3);margin-top:auto}
+.seat.free{background:var(--seat-free)}
+.seat.free .dot{background:var(--tx-3)} .seat.free .st{color:var(--seat-free-tx)}
+.seat.guest{background:var(--seat-guest);border-color:var(--accent-line)}
+.seat.guest .dot{background:var(--accent)} .seat.guest .st{color:var(--seat-guest-tx)}
+.seat.reserved{background:var(--seat-reserved);border-color:var(--seat-reserved-line)}
+.seat.reserved .dot{background:var(--info)} .seat.reserved .st{color:var(--seat-reserved-tx)}
+.seat.await{background:var(--seat-await);border-color:var(--seat-await-line)}
+.seat.await .dot{background:var(--seat-await-line)} .seat.await .st{color:var(--seat-await-tx)}
+
+.order{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);display:flex;flex-direction:column}
+.order-h{padding:14px 16px;border-bottom:1px solid var(--border)}
+.order-h .t{font-size:16px;font-weight:700}
+.order-h .s{font-size:12px;color:var(--tx-2)}
+.order-b{padding:8px 16px;flex:1}
+.oline{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.oline .q{color:var(--tx-3);font-family:var(--mono)}
+.order-actions{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;border-top:1px solid var(--border)}
+.order-foot{padding:14px 16px;border-top:1px solid var(--border);background:var(--raised);border-radius:0 0 var(--r-md) var(--r-md)}
+.order-foot .row{display:flex;justify-content:space-between;font-size:13px;color:var(--tx-2);padding:3px 0}
+.order-foot .total{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px}
+.order-foot .total .big{font-size:26px;font-weight:700;color:var(--accent)}
+.btn-checkout{width:100%;margin-top:12px;padding:13px;font-size:15px;font-weight:700;background:var(--accent);color:var(--on-accent);border:0;border-radius:var(--r-sm)}
+.btn-checkout:hover{background:var(--accent-hover)}
+
+/* ---- login ---- */
+.auth{min-height:calc(100vh - 49px);display:grid;place-items:center;padding:24px;
+  background:radial-gradient(1200px 600px at 30% -10%,#1a1d25 0%,var(--bg) 55%)}
+.auth-card{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:30px 28px}
+.auth-logo{width:44px;height:44px;border-radius:var(--r-sm);background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-weight:700;font-size:20px;margin-bottom:18px}
+.auth h1{font-size:22px;font-weight:700}
+.auth .sub{color:var(--tx-2);font-size:13px;margin:4px 0 22px}
+.auth .field{margin-bottom:14px}
+.auth-foot{margin-top:20px;text-align:center;font-size:12px;color:var(--tx-3)}
+
+/* ---- modal ---- */
+.modal-wrap{position:relative;min-height:calc(100vh - 49px);display:grid;place-items:center;padding:24px;
+  background:repeating-linear-gradient(45deg,#12141a,#12141a 12px,#14161d 12px,#14161d 24px)}
+.scrim-note{position:absolute;top:16px;left:0;right:0;text-align:center;color:var(--tx-3);font-size:12px}
+.modal{width:100%;max-width:460px;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--r-md);
+  box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.modal-h{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border)}
+.modal-h h2{font-size:16px;font-weight:700}
+.modal-x{background:transparent;border:0;color:var(--tx-3);font-size:16px}
+.modal-b{padding:18px}
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;margin-bottom:16px}
+.meta-grid dt{font-size:11.5px;color:var(--tx-3)}
+.meta-grid dd{margin:2px 0 0;font-size:13.5px;color:var(--tx)}
+.modal-f{display:flex;justify-content:flex-end;gap:10px;padding:14px 18px;border-top:1px solid var(--border)}
+
+/* ---- reports ---- */
+.rep-grid{display:grid;grid-template-columns:340px 1fr;gap:var(--s-block);align-items:start}
+.check-row{display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:8px;background:var(--bg)}
+.check-row .box{width:18px;height:18px;border-radius:4px;border:1px solid var(--border-strong);display:grid;place-items:center;color:var(--on-accent)}
+.check-row.on .box{background:var(--accent);border-color:var(--accent)}
+.check-row .tx{font-size:13.5px}
+.check-row .tx small{display:block;color:var(--tx-3);font-size:11.5px}
+
+/* ---- kiosk ---- */
+.kiosk{min-height:calc(100vh - 49px);display:grid;place-items:center;text-align:center;padding:24px;background:var(--bg)}
+.kiosk .ey{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--tx-3)}
+.kiosk h1{font-size:32px;font-weight:700;margin:8px 0 26px}
+.qr{width:300px;height:300px;background:#fff;border-radius:var(--r-md);display:grid;place-items:center;margin:0 auto}
+.qr svg{width:240px;height:240px}
+.kiosk .cap{color:var(--tx-2);margin-top:20px;font-size:15px}
+.kiosk .cap2{color:var(--tx-3);font-size:12.5px;margin-top:6px}
+
+.badge{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:600}
+.badge.staff{background:var(--info-soft);color:#9db9d8}
+.badge.ent{background:var(--accent-soft);color:var(--accent-hover)}
+
+@media(max-width:900px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .kpi-row{grid-template-columns:1fr}
+  .ot-grid,.rep-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ mockup switcher ============ -->
+<div class="mk-bar">
+  <span class="mk-brand">DO<b>D</b> · redesign</span>
+  <button class="mk-tab is-active" data-s="login">1 · เข้าสู่ระบบ</button>
+  <button class="mk-tab" data-s="dashboard">2 · แดชบอร์ด</button>
+  <button class="mk-tab" data-s="master">3 · หน้า master</button>
+  <button class="mk-tab" data-s="opentable">4 · เปิดโต๊ะ</button>
+  <button class="mk-tab" data-s="modal">5 · ฟอร์ม/modal</button>
+  <button class="mk-tab" data-s="reports">6 · ออกรายงาน</button>
+  <button class="mk-tab" data-s="kiosk">7 · ลงเวลา (kiosk)</button>
+  <span class="mk-note">accent เดียว (amber) · ไม่มี neon/glow</span>
+</div>
+
+<!-- ============ 1. LOGIN ============ -->
+<section class="mk-screen is-active" id="login">
+  <div class="auth">
+    <div class="auth-card">
+      <div class="auth-logo">D</div>
+      <h1>บาร์เดอะดอส สุขุมวิท</h1>
+      <p class="sub">กรอกรหัสพนักงานและรหัสผ่าน</p>
+      <div class="field">
+        <label class="field-label">รหัสพนักงาน</label>
+        <input class="input" placeholder="เช่น 1024" />
+      </div>
+      <div class="field">
+        <label class="field-label">รหัสผ่าน</label>
+        <input class="input" type="password" placeholder="••••••••" />
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:6px">เข้าสู่ระบบ</button>
+      <p class="auth-foot">ติดต่อเจ้าของร้านหากลืมรหัสเข้าระบบ</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. DASHBOARD ============ -->
+<section class="mk-screen" id="dashboard">
+  <div class="shell">
+    <!-- sidebar -->
+    <aside class="sidebar" data-sidebar></aside>
+    <main class="content">
+      <div class="page-head">
+        <div><h1 class="page-title">แดชบอร์ด</h1></div>
+        <div class="seg">
+          <button class="is-active">วันนี้</button>
+          <button>เมื่อวาน</button>
+          <button>กำหนดเอง</button>
+        </div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi hero">
+          <p class="lbl">ยอดดื่มรวม</p>
+          <p class="val">1,284</p>
+          <p class="hint">รวมทั้งพนักงานและเด็กนั่งดริ๊งค์</p>
+        </div>
+        <div class="kpi">
+          <p class="lbl">ยอดดื่มพนักงาน</p>
+          <p class="val" style="color:var(--tx)">412</p>
+          <p class="hint">Sale, Admin, Manager</p>
+        </div>
+        <div class="kpi">
+          <p class="lbl">ยอดดื่มพีอาร์</p>
+          <p class="val" style="color:var(--tx)">872</p>
+          <p class="hint">เด็กนั่งดริ๊งค์ / PR</p>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--s-block)">
+        <section class="card">
+          <div class="card-h"><h2 class="card-title">อันดับพนักงาน</h2>
+            <span class="badge staff">พนักงาน</span></div>
+          <div class="card-b" style="padding:0">
+            <div style="padding:12px 16px;border-bottom:1px solid var(--border)">
+              <input class="input" placeholder="ค้นหาชื่อ" style="max-width:220px" />
+            </div>
+            <table class="tbl">
+              <thead><tr><th class="rank">#</th><th>ชื่อ</th><th class="num">ดื่ม</th></tr></thead>
+              <tbody>
+                <tr><td class="rank">1</td><td>เบนซ์</td><td class="num amount">96</td></tr>
+                <tr><td class="rank">2</td><td>ต้นน้ำ</td><td class="num amount">83</td></tr>
+                <tr><td class="rank">3</td><td>มาย</td><td class="num amount">71</td></tr>
+                <tr><td class="rank">4</td><td>ปอนด์</td><td class="num amount">64</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-h"><h2 class="card-title">อันดับเด็กนั่งดริ๊งค์</h2>
+            <span class="badge ent">PR</span></div>
+          <div class="card-b" style="padding:0">
+            <div style="padding:12px 16px;border-bottom:1px solid var(--border)">
+              <input class="input" placeholder="ค้นหาชื่อ" style="max-width:220px" />
+            </div>
+            <table class="tbl">
+              <thead><tr><th class="rank">#</th><th>ชื่อ</th><th class="num">ดื่ม</th></tr></thead>
+              <tbody>
+                <tr><td class="rank">1</td><td>ฟ้า</td><td class="num amount">142</td></tr>
+                <tr><td class="rank">2</td><td>อิ๊งค์</td><td class="num amount">128</td></tr>
+                <tr><td class="rank">3</td><td>เจน</td><td class="num amount">119</td></tr>
+                <tr><td class="rank">4</td><td>น้ำหวาน</td><td class="num amount">97</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ============ 3. MASTER LIST ============ -->
+<section class="mk-screen" id="master">
+  <div class="shell">
+    <aside class="sidebar" data-sidebar></aside>
+    <main class="content">
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">บิลย้อนหลัง</h1>
+          <p class="page-sub">แสดง 1 – 20 จาก 248 บิล · 12 พ.ค. 2569 – 19 พ.ค. 2569</p>
+        </div>
+        <button class="btn btn-ghost btn-sm">เลือกช่วงวันที่</button>
+      </div>
+
+      <div class="chips">
+        <span class="chip is-active">ทั้งหมด</span>
+        <span class="chip">เงินสด</span>
+        <span class="chip">โอน</span>
+        <span class="chip">บัตร</span>
+      </div>
+
+      <div style="margin-bottom:var(--s-block)">
+        <input class="input" placeholder="ค้นหาเลขบิล โต๊ะ เซลล์ ช่องทางชำระ…" style="max-width:420px" />
+      </div>
+
+      <section class="card">
+        <table class="tbl">
+          <thead><tr>
+            <th class="rank">No.</th><th>วันที่</th><th>เวลาเช็กเอาต์</th><th>เลขบิล</th>
+            <th>โต๊ะ / โซน</th><th>เซลล์</th><th class="num">ยอด</th><th>ชำระ</th><th class="num">จัดการ</th>
+          </tr></thead>
+          <tbody>
+            <tr><td class="rank">1</td><td>19 พ.ค.</td><td>23:41</td><td class="mono">B-250519-018</td><td>A12 / โซน VIP</td><td>เบนซ์</td><td class="num amount">8,450</td><td>โอน</td><td class="num"><button class="btn btn-ghost btn-sm">ดูบิล</button></td></tr>
+            <tr><td class="rank">2</td><td>19 พ.ค.</td><td>23:12</td><td class="mono">B-250519-017</td><td>C03 / โซนบาร์</td><td>ต้นน้ำ</td><td class="num amount">3,120</td><td>เงินสด</td><td class="num"><button class="btn btn-ghost btn-sm">ดูบิล</button></td></tr>
+            <tr><td class="rank">3</td><td>19 พ.ค.</td><td>22:58</td><td class="mono">B-250519-016</td><td>A07 / โซน VIP</td><td>มาย</td><td class="num amount">12,900</td><td>บัตร</td><td class="num"><button class="btn btn-ghost btn-sm">ดูบิล</button></td></tr>
+            <tr><td class="rank">4</td><td>19 พ.ค.</td><td>22:30</td><td class="mono">B-250519-015</td><td>B02 / โซนกลาง</td><td>ปอนด์</td><td class="num amount">5,600</td><td>โอน</td><td class="num"><button class="btn btn-ghost btn-sm">ดูบิล</button></td></tr>
+            <tr><td class="rank">5</td><td>19 พ.ค.</td><td>21:47</td><td class="mono">B-250519-014</td><td>D01 / ระเบียง</td><td>เบนซ์</td><td class="num amount">2,300</td><td>เงินสด</td><td class="num"><button class="btn btn-ghost btn-sm">ดูบิล</button></td></tr>
+          </tbody>
+        </table>
+        <div class="pager" style="padding:12px 16px">
+          <span>แสดง 1–20 จาก 248</span>
+          <div class="pages">
+            <span class="pg is-active">1</span><span class="pg">2</span><span class="pg">3</span><span class="pg">…</span><span class="pg">13</span>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</section>
+
+<!-- ============ 4. OPEN TABLE ============ -->
+<section class="mk-screen" id="opentable">
+  <div class="shell">
+    <aside class="sidebar" data-sidebar></aside>
+    <main class="content">
+      <div class="page-head"><div><h1 class="page-title">เปิดโต๊ะ</h1></div>
+        <input class="input" placeholder="ค้นหาเลขโต๊ะ, เซลล์ผู้ดูแล" style="max-width:280px" />
+      </div>
+
+      <div class="kpi-row" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi"><p class="lbl">โต๊ะว่าง</p><p class="val" style="color:var(--tx)">14</p><p class="hint">48%</p></div>
+        <div class="kpi"><p class="lbl">กำลังใช้งาน</p><p class="val" style="color:var(--tx)">11</p><p class="hint">38%</p></div>
+        <div class="kpi"><p class="lbl">จอง</p><p class="val" style="color:var(--tx)">4</p><p class="hint">14%</p></div>
+        <div class="kpi hero"><p class="lbl">ยอดขายวันนี้</p><p class="val" style="font-size:30px">92,400</p><p class="hint" style="color:var(--success)">▲ 12% จากเมื่อวาน</p></div>
+      </div>
+
+      <div class="ot-grid">
+        <div class="floor">
+          <div class="seat free"><div class="st"><span class="dot"></span>ว่าง</div><div class="no">A01</div><div class="meta">4 ที่นั่ง</div></div>
+          <div class="seat guest"><div class="st"><span class="dot"></span>มีแขก</div><div class="no">A02</div><div class="meta">เบนซ์ · 6,450฿</div></div>
+          <div class="seat guest"><div class="st"><span class="dot"></span>มีแขก</div><div class="no">A03</div><div class="meta">มาย · 12,900฿</div></div>
+          <div class="seat reserved"><div class="st"><span class="dot"></span>จอง</div><div class="no">A04</div><div class="meta">21:30 · คุณโอ</div></div>
+          <div class="seat free"><div class="st"><span class="dot"></span>ว่าง</div><div class="no">A05</div><div class="meta">2 ที่นั่ง</div></div>
+          <div class="seat await"><div class="st"><span class="dot"></span>รอกลับ</div><div class="no">B01</div><div class="meta">ต้นน้ำ</div></div>
+          <div class="seat guest"><div class="st"><span class="dot"></span>มีแขก</div><div class="no">B02</div><div class="meta">ปอนด์ · 5,600฿</div></div>
+          <div class="seat free"><div class="st"><span class="dot"></span>ว่าง</div><div class="no">B03</div><div class="meta">4 ที่นั่ง</div></div>
+          <div class="seat free"><div class="st"><span class="dot"></span>ว่าง</div><div class="no">B04</div><div class="meta">4 ที่นั่ง</div></div>
+          <div class="seat reserved"><div class="st"><span class="dot"></span>จอง</div><div class="no">C01</div><div class="meta">22:00 · คุณกลอย</div></div>
+        </div>
+
+        <aside class="order">
+          <div class="order-h"><div class="t">โต๊ะ A03 · โซน VIP</div><div class="s">เซลล์: มาย · เข้าโต๊ะ 20:15</div></div>
+          <div class="order-b">
+            <div class="oline"><span>Chivas 12y</span><span><span class="q">×1</span>  4,500</span></div>
+            <div class="oline"><span>โซดา</span><span><span class="q">×6</span>  360</span></div>
+            <div class="oline"><span>รันดื่ม — ฟ้า</span><span><span class="q">×8</span>  1,600</span></div>
+            <div class="oline"><span>ค่าห้อง VIP</span><span><span class="q">×1</span>  2,000</span></div>
+            <div class="oline"><span>ทับทิมกรอบ</span><span><span class="q">×2</span>  240</span></div>
+          </div>
+          <div class="order-actions">
+            <button class="btn btn-ghost btn-sm">+ เครื่องดื่ม</button>
+            <button class="btn btn-ghost btn-sm">+ รันดื่ม</button>
+            <button class="btn btn-ghost btn-sm">+ ค่าห้อง</button>
+            <button class="btn btn-ghost btn-sm">ย้ายโต๊ะ</button>
+          </div>
+          <div class="order-foot">
+            <div class="row"><span>ยอดรวม</span><span>8,700</span></div>
+            <div class="row"><span>ส่วนลด</span><span>-250</span></div>
+            <div class="total"><span style="color:var(--tx-2);font-size:13px">ยอดสุทธิ</span><span class="big">฿8,450</span></div>
+            <button class="btn-checkout">เช็กบิล</button>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ============ 5. MODAL / FORM ============ -->
+<section class="mk-screen" id="modal">
+  <div class="modal-wrap">
+    <p class="scrim-note">พื้นหลัง = หน้าที่อยู่ด้านหลัง modal (จำลอง)</p>
+    <div class="modal">
+      <div class="modal-h"><h2>บิล B-250519-018</h2><button class="modal-x">✕</button></div>
+      <div class="modal-b">
+        <dl class="meta-grid">
+          <div><dt>โต๊ะ / โซน</dt><dd>A12 / โซน VIP</dd></div>
+          <div><dt>เซลล์</dt><dd>เบนซ์</dd></div>
+          <div><dt>เข้าโต๊ะ</dt><dd>20:15</dd></div>
+          <div><dt>เช็กเอาต์</dt><dd>23:41</dd></div>
+          <div><dt>ชำระ</dt><dd>โอนพร้อมเพย์</dd></div>
+          <div><dt>ยอดสุทธิ</dt><dd class="amount">8,450 บาท</dd></div>
+        </dl>
+        <div class="card" style="border-radius:var(--r-sm)">
+          <table class="tbl">
+            <thead><tr><th>รายการ</th><th class="num">จำนวน</th><th class="num">ยอด</th></tr></thead>
+            <tbody>
+              <tr><td>Chivas 12y</td><td class="num">1</td><td class="num">4,500</td></tr>
+              <tr><td>โซดา</td><td class="num">6</td><td class="num">360</td></tr>
+              <tr><td>รันดื่ม — ฟ้า</td><td class="num">8</td><td class="num">1,600</td></tr>
+              <tr><td>ค่าห้อง VIP</td><td class="num">1</td><td class="num">2,000</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-f">
+        <button class="btn btn-ghost">ปิด</button>
+        <button class="btn btn-primary">พิมพ์ใบเสร็จ</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6. REPORTS ============ -->
+<section class="mk-screen" id="reports">
+  <div class="shell">
+    <aside class="sidebar" data-sidebar></aside>
+    <main class="content">
+      <div class="page-head"><div>
+        <h1 class="page-title">ออกรายงาน</h1>
+        <p class="page-sub">เลือกช่วงวันที่และหัวข้อ แล้วดาวน์โหลด Excel</p>
+      </div></div>
+
+      <div class="rep-grid">
+        <section class="card"><div class="card-b">
+          <h2 class="card-title" style="margin-bottom:14px">ช่วงเวลา</h2>
+          <div style="display:flex;gap:10px;margin-bottom:20px">
+            <div style="flex:1"><label class="field-label">ตั้งแต่</label><input class="input" value="12 พ.ค. 2569" /></div>
+            <div style="flex:1"><label class="field-label">ถึง</label><input class="input" value="19 พ.ค. 2569" /></div>
+          </div>
+          <h2 class="card-title" style="margin-bottom:6px">หัวข้อในไฟล์</h2>
+          <p style="color:var(--tx-3);font-size:12px;margin-bottom:12px">เลือกว่าจะใส่อะไรในรายงาน</p>
+          <label class="check-row on"><span class="box">✓</span><span class="tx">สรุปยอดขายรายวัน<small>ยอดบิล จำนวนลูกค้า ยอดเฉลี่ย</small></span></label>
+          <label class="check-row on"><span class="box">✓</span><span class="tx">ยอดดื่มพนักงาน / PR<small>แยกตามคน</small></span></label>
+          <label class="check-row"><span class="box"></span><span class="tx">ค่าใช้จ่ายประจำวัน<small>รายจ่ายที่บันทึกไว้</small></span></label>
+          <label class="check-row"><span class="box"></span><span class="tx">สรุปโปรโมชัน<small>โปรที่ใช้ในช่วงนี้</small></span></label>
+        </div></section>
+
+        <section class="card">
+          <div class="card-h"><h2 class="card-title">ตัวอย่างข้อมูล</h2>
+            <button class="btn btn-primary btn-sm">ดาวน์โหลด Excel</button></div>
+          <table class="tbl">
+            <thead><tr><th>วันที่</th><th class="num">บิล</th><th class="num">ลูกค้า</th><th class="num">ยอดขาย</th></tr></thead>
+            <tbody>
+              <tr><td>19 พ.ค.</td><td class="num">42</td><td class="num">168</td><td class="num amount">92,400</td></tr>
+              <tr><td>18 พ.ค.</td><td class="num">38</td><td class="num">142</td><td class="num amount">82,150</td></tr>
+              <tr><td>17 พ.ค.</td><td class="num">51</td><td class="num">203</td><td class="num amount">118,900</td></tr>
+              <tr><td>16 พ.ค.</td><td class="num">29</td><td class="num">98</td><td class="num amount">61,200</td></tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ============ 7. KIOSK ============ -->
+<section class="mk-screen" id="kiosk">
+  <div class="kiosk">
+    <div>
+      <p class="ey">ลงเวลาเข้า-ออกงาน</p>
+      <h1>บาร์เดอะดอส สุขุมวิท</h1>
+      <div class="qr">
+        <svg viewBox="0 0 100 100" shape-rendering="crispEdges">
+          <rect width="100" height="100" fill="#fff"/>
+          <g fill="#111">
+            <rect x="6" y="6" width="24" height="24"/><rect x="12" y="12" width="12" height="12" fill="#fff"/>
+            <rect x="70" y="6" width="24" height="24"/><rect x="76" y="12" width="12" height="12" fill="#fff"/>
+            <rect x="6" y="70" width="24" height="24"/><rect x="12" y="76" width="12" height="12" fill="#fff"/>
+            <rect x="40" y="10" width="6" height="6"/><rect x="52" y="10" width="6" height="6"/>
+            <rect x="40" y="22" width="6" height="6"/><rect x="58" y="22" width="6" height="6"/>
+            <rect x="10" y="40" width="6" height="6"/><rect x="22" y="40" width="6" height="6"/>
+            <rect x="40" y="40" width="6" height="6"/><rect x="52" y="46" width="6" height="6"/>
+            <rect x="64" y="40" width="6" height="6"/><rect x="76" y="46" width="6" height="6"/>
+            <rect x="88" y="40" width="6" height="6"/><rect x="40" y="58" width="6" height="6"/>
+            <rect x="70" y="70" width="6" height="6"/><rect x="82" y="70" width="6" height="6"/>
+            <rect x="70" y="82" width="6" height="6"/><rect x="88" y="88" width="6" height="6"/>
+            <rect x="46" y="70" width="6" height="6"/><rect x="46" y="82" width="6" height="6"/>
+            <rect x="58" y="76" width="6" height="6"/>
+          </g>
+        </svg>
+      </div>
+      <p class="cap">สแกน QR ด้วยมือถือหลังเข้าสู่ระบบ</p>
+      <p class="cap2">QR จะเปลี่ยนทุก 5 นาที · รีเฟรชใน 248 วินาที</p>
+    </div>
+  </div>
+</section>
+
+<script>
+// sidebar markup injected into every shell (one canonical sidebar)
+const SIDEBAR = `
+  <div class="sb-brand">
+    <div class="sb-logo">D</div>
+    <div class="sb-wordmark">DOD<span>POS · เดอะดอส</span></div>
+  </div>
+  <a class="sb-link __dashboard" href="#">${ico('grid')}<span>แดชบอร์ด</span></a>
+  <a class="sb-link" href="#">${ico('clock')}<span>ลงเวลา</span></a>
+  <a class="sb-link __opentable" href="#">${ico('layout')}<span>เปิดโต๊ะ</span></a>
+  <a class="sb-link" href="#">${ico('bell')}<span>คิวงาน</span></a>
+  <a class="sb-link" href="#">${ico('box')}<span>ฝาก</span></a>
+  <a class="sb-link __master" href="#">${ico('receipt')}<span>บิลย้อนหลัง</span></a>
+  <a class="sb-link __reports" href="#">${ico('report')}<span>ออกรายงาน</span></a>
+  <div class="sb-group-label">ตั้งค่าร้าน</div>
+  <a class="sb-link" href="#">${ico('users')}<span>จัดการพนักงาน</span></a>
+  <a class="sb-link" href="#">${ico('tag')}<span>เมนู & ราคา</span></a>
+  <div class="sb-foot">
+    <a class="sb-link" href="#">${ico('help')}<span>คู่มือใช้งาน</span></a>
+    <button class="sb-link sb-logout">${ico('logout')}<span>ออกจากระบบ</span></button>
+  </div>`;
+
+function ico(n){
+  const p={
+    grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+    clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    layout:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>',
+    bell:'<path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/>',
+    box:'<path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8"/>',
+    receipt:'<path d="M4 3h16v18l-3-2-3 2-3-2-3 2z"/><path d="M8 8h8M8 12h8"/>',
+    report:'<path d="M4 4h16v16H4z"/><path d="M8 15v-3M12 15V9M16 15v-6"/>',
+    users:'<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0112 0M16 6a3 3 0 010 6M21 20a5 5 0 00-4-5"/>',
+    tag:'<path d="M12 2H2v10l10 10 10-10z"/><circle cx="7" cy="7" r="1.4"/>',
+    help:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 114 2c-1 .7-1.5 1.3-1.5 2.5"/><circle cx="12" cy="17" r=".6"/>',
+    logout:'<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/>'
+  }[n]||'';
+  return `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+}
+
+document.querySelectorAll('[data-sidebar]').forEach(sb=>sb.innerHTML=SIDEBAR);
+
+// set active link per screen
+function setActive(screen){
+  document.querySelectorAll('#'+screen+' .sb-link').forEach(l=>l.classList.remove('is-active'));
+  const map={dashboard:'.__dashboard',master:'.__master',opentable:'.__opentable',reports:'.__reports'};
+  const sel=map[screen];
+  if(sel){const el=document.querySelector('#'+screen+' '+sel); if(el)el.classList.add('is-active');}
+}
+['dashboard','master','opentable','reports'].forEach(setActive);
+
+// tab switching
+document.querySelectorAll('.mk-tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.mk-tab').forEach(x=>x.classList.remove('is-active'));
+    document.querySelectorAll('.mk-screen').forEach(x=>x.classList.remove('is-active'));
+    t.classList.add('is-active');
+    document.getElementById(t.dataset.s).classList.add('is-active');
+    window.scrollTo(0,0);
+  });
+});
+</script>
+</body>
+</html>

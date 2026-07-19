@@ -8,7 +8,13 @@
   }
 
   @if (loading() && tickets().length === 0) {
-    <p class="app-loading-text">กำลังโหลด...</p>
+    <div class="app-skeleton-list" aria-busy="true" aria-label="กำลังโหลด">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
   } @else if (tickets().length === 0) {
     <p class="app-empty-state">ยังไม่มีคิว{{ kindLabel() }}</p>
   } @else {

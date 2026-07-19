@@ -133,7 +133,7 @@
   }
 
   @if (loading()) {
-    <p class="app-loading-text">กำลังโหลด...</p>
+    <app-master-list-skeleton [columns]="4" ariaLabel="กำลังโหลดรายจ่าย" />
   } @else if (!hasItems()) {
     <p class="app-empty-state">ยังไม่มีรายการในช่วงวันที่เลือก</p>
   } @else {

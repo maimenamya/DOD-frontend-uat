@@ -88,7 +88,7 @@
   }
 
   @if (loading()) {
-    <p class="app-loading-text">กำลังโหลด...</p>
+    <app-master-list-skeleton [columns]="4" ariaLabel="กำลังโหลดสต็อก" />
   } @else if (items().length === 0) {
     <p class="app-empty-state">ยังไม่มีรายการสต็อก — กด «เพิ่มรายการสต็อก» เช่น โซดา, น้ำ, เอส</p>
   } @else {

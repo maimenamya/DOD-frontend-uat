@@ -7,7 +7,13 @@
   </div>
 
   @if (loading()) {
-    <p class="app-loading-text">กำลังโหลดข้อมูล...</p>
+    <div class="app-skeleton-list" aria-busy="true" aria-label="กำลังโหลดข้อมูล">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
   } @else if (error()) {
     <div class="app-alert-error">{{ error() }}</div>
   } @else {

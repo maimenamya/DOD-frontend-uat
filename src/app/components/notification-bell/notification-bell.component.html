@@ -42,7 +42,11 @@
         </div>
 
         @if (loading() && items().length === 0) {
-          <p class="app-notification-empty">กำลังโหลด...</p>
+          <div class="app-skeleton-list app-skeleton-list--tight" aria-busy="true" aria-label="กำลังโหลด">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
         } @else if (items().length === 0) {
           <p class="app-notification-empty">ยังไม่มีการแจ้งเตือน</p>
         } @else {

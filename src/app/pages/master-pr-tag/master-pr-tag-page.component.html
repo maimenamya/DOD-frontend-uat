@@ -179,7 +179,7 @@
   }
 
   @if (loading()) {
-    <p class="app-loading-text">กำลังโหลด...</p>
+    <app-master-list-skeleton [columns]="4" ariaLabel="กำลังโหลดแท็ก PR" />
   } @else if (items().length === 0) {
     <p class="app-empty-state">ยังไม่มีแพ็กเกจแท็ก</p>
   } @else {

@@ -113,16 +113,7 @@
           [disabled]="previewLoading()"
           (click)="loadPreview()"
         >
-          {{ previewLoading() ? 'กำลังโหลด...' : 'ดูตัวอย่าง' }}
-        </button>
-
-        <button
-          type="button"
-          class="app-btn-primary-sm"
-          [disabled]="!canDownload()"
-          (click)="downloadReport()"
-        >
-          {{ downloading() ? 'กำลังสร้างไฟล์...' : 'ดาวน์โหลด Excel' }}
+          ดูตัวอย่าง
         </button>
 
       </div>
@@ -141,29 +132,76 @@
 
 
 
-      @if (previewLoading() && !preview()) {
+      @if (previewLoading()) {
 
-        <section class="reports-preview app-card">
+        <section class="reports-preview app-card" aria-hidden="true">
 
-          <div class="app-skeleton h-5 w-48 rounded"></div>
+          <div class="reports-preview-head">
 
-          <div class="app-skeleton mt-3 h-16 w-full rounded"></div>
+            <div class="reports-preview-head-info">
+
+              <div class="app-skeleton h-4 w-28 rounded"></div>
+
+              <div class="app-skeleton mt-2 h-3 w-40 rounded"></div>
+
+            </div>
+
+            <div class="app-skeleton reports-download-btn h-9 w-36 rounded-input"></div>
+
+          </div>
+
+          <div class="reports-kpi-grid">
+
+            <div class="app-skeleton h-[4.5rem] w-full rounded"></div>
+
+            <div class="app-skeleton h-[4.5rem] w-full rounded"></div>
+
+            <div class="app-skeleton h-[4.5rem] w-full rounded"></div>
+
+          </div>
+
+          <div class="reports-block">
+
+            <div class="app-skeleton h-3.5 w-44 rounded"></div>
+
+            <div class="reports-skeleton-rows">
+
+              @for (row of [1, 2, 3, 4, 5]; track row) {
+
+                <div class="app-skeleton h-6 w-full rounded"></div>
+
+              }
+
+            </div>
+
+          </div>
 
         </section>
 
       }
 
-
-
-      @if (preview(); as p) {
+      @if (!previewLoading() && preview(); as p) {
 
         <section class="reports-preview app-card">
 
           <div class="reports-preview-head">
 
-            <h2 class="reports-panel-title">ตัวอย่าง</h2>
+            <div class="reports-preview-head-info">
 
-            <p class="reports-range">{{ p.fromDate }} – {{ p.toDate }}</p>
+              <h2 class="reports-panel-title">ตัวอย่าง</h2>
+
+              <p class="reports-range">{{ p.fromDate }} – {{ p.toDate }}</p>
+
+            </div>
+
+            <button
+              type="button"
+              class="app-btn-primary-sm reports-download-btn"
+              [disabled]="!canDownload()"
+              (click)="downloadReport()"
+            >
+              {{ downloading() ? 'กำลังสร้างไฟล์...' : 'ดาวน์โหลด Excel' }}
+            </button>
 
           </div>
 
@@ -521,7 +559,9 @@
 
         </section>
 
-      } @else if (!previewLoading() && !error()) {
+      }
+
+      @if (!previewLoading() && !preview() && !error()) {
 
         <section class="reports-preview reports-preview--empty app-card">
 

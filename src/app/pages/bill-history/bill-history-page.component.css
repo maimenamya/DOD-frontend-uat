@@ -45,6 +45,9 @@
   overflow-y: auto;
   max-height: min(42vh, 22rem);
   --app-scroll-track: var(--table-body-bg);
+  /* framed item table */
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
 }
 
 .bill-history-lines-shell .bill-history-lines-table thead th {
@@ -55,7 +58,7 @@
 
 .bill-history-detail-actions {
   flex-shrink: 0;
-  margin-top: 0.25rem;
+  /* full-bleed footer divider is handled globally via `.app-modal .app-form-actions` */
 }
 
 @media (min-width: 1000px) {

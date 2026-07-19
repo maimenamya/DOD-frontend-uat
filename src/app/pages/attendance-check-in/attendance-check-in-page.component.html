@@ -6,7 +6,12 @@
   </div>
 
   @if (loading()) {
-    <p class="text-text-secondary">กำลังโหลด...</p>
+    <div class="app-skeleton-list" aria-busy="true" aria-label="กำลังโหลด">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
   } @else {
     @if (payload(); as me) {
       <section class="app-card app-card-section mb-4">

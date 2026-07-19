@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { MasterListSkeletonComponent } from '../../components/master-list-skeleton/master-list-skeleton.component';
 import { DecimalPipe } from '@angular/common';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -28,7 +29,7 @@ type RosterCategoryTab = 'STAFF' | 'ENTERTAINER';
 
 @Component({
   selector: 'app-attendance-roster-page',
-  imports: [
+  imports: [MasterListSkeletonComponent, 
     DecimalPipe,
     ReactiveFormsModule,
     AppModalComponent,

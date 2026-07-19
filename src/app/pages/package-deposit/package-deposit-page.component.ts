@@ -1,5 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { MasterListSkeletonComponent } from '../../components/master-list-skeleton/master-list-skeleton.component';
 import {
   FormsModule,
   NonNullableFormBuilder,
@@ -41,7 +42,7 @@ function packageBottleTotal(items: Array<{ quantity: number }>): number {
 
 @Component({
   selector: 'app-package-deposit-page',
-  imports: [
+  imports: [MasterListSkeletonComponent, 
     NgTemplateOutlet,
     FormsModule,
     ReactiveFormsModule,

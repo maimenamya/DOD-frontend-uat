@@ -979,7 +979,7 @@ export class BillReceiptService {
   <footer class="receipt-foot">
   <div class="receipt-foot-inner">
   ${footerBlock}
-  <div class="powered">Powered by DOD</div>
+  <div class="powered">Powered by D-rink</div>
   </div>
   </footer>
   </div>

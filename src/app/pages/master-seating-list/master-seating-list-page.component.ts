@@ -1,4 +1,5 @@
 ﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { MasterListSkeletonComponent } from '../../components/master-list-skeleton/master-list-skeleton.component';
 import {
   highlightInvalidForm,
   resetFormValidationFlag,
@@ -27,7 +28,7 @@ import {
 
 @Component({
   selector: 'app-master-seating-list-page',
-  imports: [ReactiveFormsModule, AppModalComponent, RouterLink, MasterListToolbarComponent, ListPaginatorComponent],
+  imports: [MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent, RouterLink, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './master-seating-list-page.component.html',
 })
 export class MasterSeatingListPageComponent implements OnInit {

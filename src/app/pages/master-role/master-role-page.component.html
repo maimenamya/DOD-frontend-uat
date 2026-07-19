@@ -262,7 +262,7 @@
   }
 
   @if (loading()) {
-    <p class="app-loading-text">กำลังโหลด...</p>
+    <app-master-list-skeleton [columns]="4" ariaLabel="กำลังโหลดตำแหน่ง" />
   } @else if (roles().length === 0) {
     <p class="app-empty-state">ยังไม่มีข้อมูลตำแหน่ง</p>
   } @else {

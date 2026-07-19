@@ -69,7 +69,7 @@ export async function parseExcelDownloadResponse(
   await assertExcelBlob(body);
 
   const filename =
-    parseContentDisposition(res.headers.get('Content-Disposition')) ?? 'DOD-report.xlsx';
+    parseContentDisposition(res.headers.get('Content-Disposition')) ?? 'D-rink-report.xlsx';
 
   const blob = new Blob([await body.arrayBuffer()], { type: XLSX_MIME });
   return { blob, filename };

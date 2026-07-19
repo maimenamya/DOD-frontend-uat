@@ -208,23 +208,11 @@
                       (click)="selectSeat(seat)"
                     >
                       <div class="open-table-seat-card__head">
+                        <p class="open-table-seat-card__status">
+                          <span [ngClass]="statusDotClass(seat.status)" aria-hidden="true"></span>
+                          <span>{{ statusText(seat.status) }}</span>
+                        </p>
                         <p class="open-table-seat-card__code">{{ seat.code }}</p>
-                        @if (seatCardShowsStatusDot(seat.status)) {
-                          <p class="open-table-seat-card__status open-table-seat-card__status--dot">
-                            <span class="open-table-status-dot open-table-status-dot--available" aria-hidden="true"></span>
-                            ว่าง
-                          </p>
-                        }
-                        @if (seatCardShowsStatusBadge(seat.status)) {
-                          <span
-                            class="open-table-seat-card__badge"
-                            [class.open-table-seat-card__badge--reserved]="seat.status === 'RESERVED'"
-                            [class.open-table-seat-card__badge--occupied]="seat.status === 'OCCUPIED'"
-                            [class.open-table-seat-card__badge--awaiting]="seat.status === 'AWAITING_CLEAR'"
-                          >
-                            {{ statusText(seat.status) }}
-                          </span>
-                        }
                       </div>
                       <div class="open-table-seat-card__meta-row">
                         <span class="open-table-seat-card__meta">
@@ -801,47 +789,47 @@
             </div>
           </div>
 
-          <div class="rounded-input border border-theme-border bg-surface px-3 py-2">
-            <p class="text-sm text-text-secondary">
-              รวมยอดดื่มรวม:
-              <span class="font-semibold text-text-primary">{{ totalDrinks() }} ดื่ม</span>
-            </p>
-            <p class="mt-1 text-sm text-text-secondary">
-              ยอดบิลรวม:
-              <span class="font-semibold text-theme-accent-strong">{{ totalAmount() | number: '1.0-0' }} บาท</span>
-            </p>
-          </div>
-
           @if (ledgerCanMutate()) {
-            <div class="open-table-ledger-actions app-action-bar flex w-full flex-col gap-2">
-              <div class="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  class="app-btn-secondary"
-                  [disabled]="actionBusy()"
-                  (click)="openAddItemModal()"
-                >
-                  เพิ่มรายการ
-                </button>
-                <button
-                  type="button"
-                  class="app-btn-secondary"
-                  [disabled]="actionBusy()"
-                  (click)="handleSeatTransfer()"
-                >
-                  ย้าย
-                </button>
-              </div>
+            <div class="open-table-order-actions">
               <button
                 type="button"
-                class="app-btn-primary w-full"
+                class="app-btn-secondary"
+                [disabled]="actionBusy()"
+                (click)="openAddItemModal()"
+              >
+                เพิ่มรายการ
+              </button>
+              <button
+                type="button"
+                class="app-btn-secondary"
+                [disabled]="actionBusy()"
+                (click)="handleSeatTransfer()"
+              >
+                ย้ายโต๊ะ
+              </button>
+            </div>
+          }
+
+          <div class="open-table-bill-summary open-table-order-foot">
+            <div class="open-table-bill-summary-row">
+              <span class="open-table-bill-summary-label">ยอดดื่มรวม</span>
+              <span class="open-table-bill-summary-value">{{ totalDrinks() }} ดื่ม</span>
+            </div>
+            <div class="open-table-bill-summary-row open-table-bill-summary-row--total">
+              <span class="open-table-bill-summary-label">ยอดบิลรวม</span>
+              <span class="open-table-bill-summary-net">฿{{ totalAmount() | number: '1.0-0' }}</span>
+            </div>
+            @if (ledgerCanMutate()) {
+              <button
+                type="button"
+                class="app-btn-primary open-table-checkout-btn"
                 [disabled]="actionBusy()"
                 (click)="openCheckoutModal()"
               >
                 เช็กบิล
               </button>
-            </div>
-          }
+            }
+          </div>
         }
       }
     </div>
@@ -862,7 +850,7 @@
         [class.app-filter-chip-active]="addModalMode() === 'ORDER_LEDGER'"
         (click)="setAddModalMode('ORDER_LEDGER')"
       >
-        รายการลงโต๊ะ
+        รายการ
       </button>
       <button
         type="button"

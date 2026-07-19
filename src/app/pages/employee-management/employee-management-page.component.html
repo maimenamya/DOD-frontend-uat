@@ -142,7 +142,7 @@
   }
 
   @if (loading()) {
-    <p class="app-loading-text">กำลังโหลด...</p>
+    <app-master-list-skeleton [tabs]="4" [columns]="5" ariaLabel="กำลังโหลดพนักงาน" />
   } @else if (employeesByRole().length === 0 && !listQuery.search().trim()) {
     <p class="app-empty-state">ยังไม่มีพนักงานในตำแหน่งนี้</p>
   } @else if (listView().total === 0) {

@@ -1,5 +1,9 @@
 @if (loading()) {
-  <p class="text-text-secondary">กำลังโหลดรายการ...</p>
+  <div class="app-skeleton-list app-skeleton-list--tight" aria-busy="true" aria-label="กำลังโหลดรายการ">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
 } @else {
   @if (detail(); as payload) {
     @if (payload.expectedCheckInLabel || payload.expectedOnFloorLabel || payload.expectedCheckOutLabel) {

@@ -79,7 +79,7 @@
   }
 
   @if (loading()) {
-    <p class="app-loading-text">กำลังโหลด...</p>
+    <app-master-list-skeleton [columns]="4" ariaLabel="กำลังโหลดค็อกเทล" />
   } @else if (cocktails().length === 0) {
     <p class="app-empty-state">ยังไม่มีค็อกเทลในเมนู</p>
   } @else {

@@ -102,13 +102,23 @@
     grid-row: 2;
     width: 100%;
     max-width: none;
-    align-self: stretch;
+    /* height follows the panel's own content — footer sits flush after the list */
+    align-self: start;
   }
 }
 
 .open-table-drawer__scroll {
   width: 100%;
 }
+
+/* Drop the panel's bottom padding when the raised footer is present, so the footer
+   background reaches the very bottom edge of the card/sheet (no leftover gap). */
+.open-table-session-panel > div:has(.open-table-bill-summary) {
+  padding-bottom: 0;
+}
+
+/* Desktop: let the drawer height follow its own content (no forced stretch),
+   so the footer sits right after the list instead of being pinned to a taller card. */
 
 /* KPI row — single row on desktop like mockup */
 .open-table-kpi-grid {
@@ -311,24 +321,12 @@
   box-sizing: border-box;
   overflow: hidden;
   border-radius: 0.5rem;
-  border: 1px solid rgba(var(--seat-card-accent-rgb), var(--open-table-seat-border-alpha));
-  background:
-    radial-gradient(
-      circle at top left,
-      rgba(var(--seat-card-accent-rgb), var(--open-table-seat-radial-alpha)),
-      transparent 45%
-    ),
-    linear-gradient(
-      135deg,
-      var(--open-table-seat-fill-top),
-      var(--open-table-seat-fill-bottom)
-    );
+  /* Flat tile: solid surface + faint status tint + status-colored border, no glow/gradient */
+  border: 1px solid color-mix(in srgb, rgb(var(--seat-card-accent-rgb)) 38%, var(--border));
+  background: color-mix(in srgb, rgb(var(--seat-card-accent-rgb)) 7%, var(--card-bg));
   color: var(--text-primary);
   text-align: left;
-  box-shadow:
-    0 0 10px rgba(var(--seat-card-accent-rgb), var(--open-table-seat-glow-inner-alpha)),
-    0 0 var(--open-table-seat-glow-spread)
-      rgba(var(--seat-card-accent-rgb), var(--open-table-seat-glow-alpha));
+  box-shadow: none;
   transition:
     border-color var(--transition-smooth),
     box-shadow var(--transition-smooth),
@@ -352,10 +350,8 @@
 
 .open-table-seat-card:hover {
   transform: translateY(-1px);
-  box-shadow:
-    0 0 12px rgba(var(--seat-card-accent-rgb), calc(var(--open-table-seat-glow-inner-alpha) + 0.06)),
-    0 0 calc(var(--open-table-seat-glow-spread) + 4px)
-      rgba(var(--seat-card-accent-rgb), calc(var(--open-table-seat-glow-alpha) + 0.04));
+  border-color: color-mix(in srgb, rgb(var(--seat-card-accent-rgb)) 55%, var(--border));
+  background: color-mix(in srgb, rgb(var(--seat-card-accent-rgb)) 12%, var(--card-bg));
 }
 
 .open-table-seat-card--available {
@@ -375,29 +371,107 @@
 }
 
 .open-table-seat-card--selected {
-  --seat-card-accent-rgb: 124, 127, 255;
-  --open-table-seat-border-alpha: 0.72;
-  --open-table-seat-glow-inner-alpha: 0.45;
-  --open-table-seat-glow-alpha: 0.3;
-  box-shadow:
-    0 0 0 1px rgba(var(--seat-card-accent-rgb), 0.28),
-    0 0 12px rgba(var(--seat-card-accent-rgb), var(--open-table-seat-glow-inner-alpha)),
-    0 0 calc(var(--open-table-seat-glow-spread) + 6px)
-      rgba(var(--seat-card-accent-rgb), var(--open-table-seat-glow-alpha));
+  --seat-card-accent-rgb: 59, 130, 246;
+  border-color: rgb(var(--seat-card-accent-rgb));
+  background: color-mix(in srgb, rgb(var(--seat-card-accent-rgb)) 14%, var(--card-bg));
+  box-shadow: inset 0 0 0 1px rgb(var(--seat-card-accent-rgb));
 }
 
 :host-context([data-theme='light']) .open-table-seat-card--selected {
-  --seat-card-accent-rgb: 93, 95, 239;
-  --open-table-seat-border-alpha: 0.55;
-  --open-table-seat-glow-inner-alpha: 0.34;
-  --open-table-seat-glow-alpha: 0.2;
+  --seat-card-accent-rgb: 37, 99, 235;
+}
+
+/* Bill totals — full-bleed raised footer section (mockup .order-foot):
+   different background + top divider, reaching the drawer edges (not a bordered box) */
+.open-table-bill-summary {
+  display: flex;
+  flex-direction: column;
+  /* cancel the drawer's p-4 (1rem) horizontally; the container drops its own bottom padding
+     (see the :has rule below) so the foot sits flush at the bottom without relying on
+     a negative margin cancelling the padding (which browsers don't always honour here).
+     top margin gives breathing room when the foot stands alone (no action row above it) */
+  margin: 1.5rem -1rem 0;
+  padding: 0.95rem 1rem 1.05rem;
+  border-top: 1px solid var(--border);
+  /* raised tone — lighter than the card behind it */
+  background: var(--surface);
+  border-bottom-left-radius: var(--radius-card);
+  border-bottom-right-radius: var(--radius-card);
+}
+
+.open-table-bill-summary-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.875rem;
+}
+
+.open-table-bill-summary-row + .open-table-bill-summary-row {
+  margin-top: 0.35rem;
+}
+
+.open-table-bill-summary-label {
+  color: var(--text-secondary);
+}
+
+.open-table-bill-summary-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.open-table-bill-summary-row--total {
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.open-table-bill-summary-row--total .open-table-bill-summary-label {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.open-table-bill-summary-net {
+  font-size: 1.65rem;
+  font-weight: 800;
+  line-height: 1;
+  /* use the system primary accent */
+  color: var(--primary-light);
+}
+
+/* Quick actions — full-bleed section with a top divider (mockup .order-actions) */
+.open-table-order-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  /* extra breathing room so the list above doesn't crowd the divider line */
+  margin: 1.5rem -1rem 0;
+  padding: 1.1rem 1rem 0.9rem;
+  border-top: 1px solid var(--border);
+}
+
+.open-table-order-actions .app-btn-secondary {
+  width: 100%;
+  font-weight: 600;
+}
+
+/* When the action row is present, the foot sits flush right below it */
+.open-table-order-actions + .open-table-bill-summary {
+  margin-top: 0;
+}
+
+/* Checkout lives inside the foot panel (mockup order-foot) */
+.open-table-order-foot .open-table-checkout-btn {
+  width: 100%;
+  margin-top: 0.9rem;
+  font-weight: 700;
 }
 
 .open-table-seat-card__head {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.1rem;
+  gap: 0.15rem;
   flex-shrink: 0;
   min-height: 0;
 }
@@ -405,27 +479,45 @@
 .open-table-seat-card__code {
   margin: 0;
   min-width: 0;
-  font-size: 0.8125rem;
+  font-size: 1rem;
   font-weight: 700;
-  line-height: 1.15;
+  line-height: 1.1;
   letter-spacing: 0.01em;
+  color: var(--text-primary);
 }
 
 @media (min-width: 640px) {
   .open-table-seat-card__code {
-    font-size: 0.875rem;
+    font-size: 1.125rem;
   }
 }
 
+/* Status line (dot + text) sits at the very top of the card (mockup .seat .st) */
 .open-table-seat-card__status {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.3rem;
   margin: 0;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 500;
-  color: #10b981;
+  color: var(--text-secondary);
   white-space: nowrap;
+}
+
+.open-table-seat-card--available .open-table-seat-card__status {
+  color: #10b981;
+}
+
+.open-table-seat-card--reserved .open-table-seat-card__status {
+  color: #d4a054;
+}
+
+.open-table-seat-card--occupied .open-table-seat-card__status {
+  color: #e08a8a;
+}
+
+.open-table-seat-card--awaiting-clear .open-table-seat-card__status {
+  color: #a8b4c4;
 }
 
 .open-table-seat-card__meta-row {
@@ -436,38 +528,6 @@
   gap: 0.1rem;
   flex: 1 1 auto;
   min-height: 0;
-}
-
-.open-table-seat-card__badge {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-  border-radius: 9999px;
-  padding: 0.05rem 0.35rem;
-  font-size: 0.5rem;
-  font-weight: 600;
-  line-height: 1.25;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  border: 1px solid transparent;
-}
-
-.open-table-seat-card__badge--reserved {
-  background: rgba(245, 158, 11, 0.14);
-  color: #d4a054;
-  border: 1px solid rgba(245, 158, 11, 0.28);
-}
-
-.open-table-seat-card__badge--occupied {
-  background: rgba(239, 68, 68, 0.12);
-  color: #e08a8a;
-  border: 1px solid rgba(239, 68, 68, 0.26);
-}
-
-.open-table-seat-card__badge--awaiting {
-  background: rgba(148, 163, 184, 0.12);
-  color: #a8b4c4;
-  border: 1px solid rgba(148, 163, 184, 0.24);
 }
 
 .open-table-seat-card__meta {
@@ -482,11 +542,6 @@
 }
 
 @media (min-width: 640px) {
-  .open-table-seat-card__badge {
-    padding: 0.05rem 0.4rem;
-    font-size: 0.5625rem;
-  }
-
   .open-table-seat-card__meta {
     font-size: 0.6875rem;
     gap: 0.25rem;

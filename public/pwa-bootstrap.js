@@ -40,8 +40,8 @@
   function installManifest(shopPublicId) {
     var startUrl = shopPublicId ? '/s/' + encodeURIComponent(shopPublicId) + '/login' : '/login';
     var manifest = {
-      name: 'DOD',
-      short_name: 'DOD',
+      name: 'D-rink',
+      short_name: 'D-rink',
       description: 'ระบบ POS ร้านบาร์',
       start_url: startUrl,
       scope: '/',
@@ -52,16 +52,22 @@
       lang: 'th',
       icons: [
         {
-          src: '/favicon.svg',
-          sizes: 'any',
-          type: 'image/svg+xml',
+          src: '/icon-192.png',
+          sizes: '192x192',
+          type: 'image/png',
           purpose: 'any',
         },
         {
-          src: '/apple-touch-icon.svg',
-          sizes: '180x180',
-          type: 'image/svg+xml',
-          purpose: 'any maskable',
+          src: '/app-icon.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'any',
+        },
+        {
+          src: '/app-icon.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'maskable',
         },
       ],
     };

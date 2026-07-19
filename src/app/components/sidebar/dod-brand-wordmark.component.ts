@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
 
-/** Sidebar brand — neon DODs wordmark. */
+/** Sidebar brand — D-rink wordmark (gold→purple gradient). */
 @Component({
   selector: 'app-dod-brand-wordmark',
   standalone: true,
   host: {
     class: 'app-sidebar-brand-wordmark',
-    'aria-label': 'DODs',
+    'aria-label': 'D-rink',
   },
-  template: `DODs`,
+  template: `D-rink`,
 })
 export class DodBrandWordmarkComponent {}

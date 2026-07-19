@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { MasterListSkeletonComponent } from '../../components/master-list-skeleton/master-list-skeleton.component';
 import {
   highlightInvalidForm,
   resetFormValidationFlag,
@@ -28,7 +29,7 @@ const PRICING_TYPE_OPTIONS: DropdownOption[] = [
 
 @Component({
   selector: 'app-master-room-page',
-  imports: [DecimalPipe, ReactiveFormsModule, AppModalComponent, CustomDropdownComponent],
+  imports: [MasterListSkeletonComponent, DecimalPipe, ReactiveFormsModule, AppModalComponent, CustomDropdownComponent],
   templateUrl: './master-room-page.component.html',
 })
 export class MasterRoomPageComponent implements OnInit {

@@ -89,7 +89,7 @@
   }
 
   @if (loading()) {
-    <p class="app-loading-text">กำลังโหลด...</p>
+    <app-master-list-skeleton [tabs]="5" [columns]="4" ariaLabel="กำลังโหลดรายการอาหาร" />
   } @else if (categories().length > 0) {
     <div class="app-filter-bar app-role-tabs" role="tablist" aria-label="กรองตามประเภทอาหาร">
       @for (category of categories(); track category.id) {

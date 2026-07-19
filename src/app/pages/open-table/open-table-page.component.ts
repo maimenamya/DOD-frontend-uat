@@ -2134,14 +2134,6 @@ export class OpenTablePageComponent implements OnInit {
     );
   }
 
-  seatCardShowsStatusDot(status: SeatStatus): boolean {
-    return status === 'AVAILABLE';
-  }
-
-  seatCardShowsStatusBadge(status: SeatStatus): boolean {
-    return status !== 'AVAILABLE';
-  }
-
   statusDotClass(status: SeatStatus): Record<string, boolean> {
     return {
       'open-table-status-dot': true,

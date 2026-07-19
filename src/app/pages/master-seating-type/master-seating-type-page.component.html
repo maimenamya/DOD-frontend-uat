@@ -67,7 +67,7 @@
   }
 
   @if (loading()) {
-    <p class="app-loading-text">กำลังโหลด...</p>
+    <app-master-list-skeleton [columns]="3" ariaLabel="กำลังโหลดประเภทที่นั่ง" />
   } @else if (items().length === 0) {
     <p class="app-empty-state">ยังไม่มีประเภทที่นั่ง — เพิ่มประเภทก่อนสร้างโซนที่นั่ง</p>
   } @else {

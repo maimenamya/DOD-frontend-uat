@@ -1,5 +1,6 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { MasterListSkeletonComponent } from '../../components/master-list-skeleton/master-list-skeleton.component';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -28,7 +29,7 @@ function shopCalendarMonthStartInput(): string {
 
 @Component({
   selector: 'app-bill-history-page',
-  imports: [
+  imports: [MasterListSkeletonComponent, 
     DecimalPipe,
     FormsModule,
     ShopDateInputComponent,

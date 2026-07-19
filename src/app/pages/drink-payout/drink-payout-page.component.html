@@ -60,7 +60,13 @@
   }
 
   @if (loading()) {
-    <p class="app-muted">กำลังโหลด...</p>
+    <div class="app-skeleton-list" aria-busy="true" aria-label="กำลังโหลด">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
   } @else {
     <section class="app-card mb-6 app-card-flush">
       <div class="border-b border-theme-border px-4 py-3">

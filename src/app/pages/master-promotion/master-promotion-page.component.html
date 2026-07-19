@@ -153,7 +153,7 @@
   }
 
   @if (loading()) {
-    <p class="app-loading-text">กำลังโหลด...</p>
+    <app-master-list-skeleton [columns]="5" ariaLabel="กำลังโหลดโปรโมชัน" />
   } @else if (promotions().length === 0) {
     <p class="app-empty-state">ยังไม่มีข้อมูลโปรโมชั่น</p>
   } @else {

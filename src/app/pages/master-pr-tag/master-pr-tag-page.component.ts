@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { MasterListSkeletonComponent } from '../../components/master-list-skeleton/master-list-skeleton.component';
 import {
   highlightInvalidForm,
   resetFormValidationFlag,
@@ -26,7 +27,7 @@ import {
 
 @Component({
   selector: 'app-master-pr-tag-page',
-  imports: [DecimalPipe, ReactiveFormsModule, AppModalComponent, MasterListToolbarComponent, ListPaginatorComponent],
+  imports: [MasterListSkeletonComponent, DecimalPipe, ReactiveFormsModule, AppModalComponent, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './master-pr-tag-page.component.html',
 })
 export class MasterPrTagPageComponent implements OnInit {

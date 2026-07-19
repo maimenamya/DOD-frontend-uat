@@ -37,7 +37,7 @@
   }
 
   @if (loading()) {
-    <p class="app-loading-text">กำลังโหลด...</p>
+    <app-master-list-skeleton [tabs]="4" [columns]="5" ariaLabel="กำลังโหลดตารางเวร" />
   } @else if (listView().total === 0) {
     <p class="app-empty-state">ไม่พบพนักงานในกลุ่มนี้</p>
   } @else {

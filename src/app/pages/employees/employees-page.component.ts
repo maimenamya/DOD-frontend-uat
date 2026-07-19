@@ -1,11 +1,12 @@
 ﻿import { Component, OnInit, inject, signal } from '@angular/core';
+import { MasterListSkeletonComponent } from '../../components/master-list-skeleton/master-list-skeleton.component';
 import type { MstEmployee } from '../../models/employee';
 import { EmployeeService } from '../../services/employee.service';
 import { EmployeeTableComponent } from '../../components/employee-table/employee-table.component';
 
 @Component({
   selector: 'app-employees-page',
-  imports: [EmployeeTableComponent],
+  imports: [EmployeeTableComponent, MasterListSkeletonComponent],
   templateUrl: './employees-page.component.html',
 })
 export class EmployeesPageComponent implements OnInit {

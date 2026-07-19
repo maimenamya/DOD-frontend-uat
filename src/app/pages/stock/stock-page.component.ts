@@ -1,5 +1,6 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { MasterListSkeletonComponent } from '../../components/master-list-skeleton/master-list-skeleton.component';
 import {
   highlightInvalidForm,
   resetFormValidationFlag,
@@ -26,7 +27,7 @@ import {
 
 @Component({
   selector: 'app-stock-page',
-  imports: [ReactiveFormsModule, AppModalComponent, DecimalPipe, MasterListToolbarComponent, ListPaginatorComponent],
+  imports: [MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent, DecimalPipe, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './stock-page.component.html',
   styleUrl: './stock-page.component.css',
 })

@@ -6,7 +6,11 @@
     }
 
     @if (loading() && !qrDataUrl()) {
-      <p class="mt-12 text-slate-300">กำลังโหลด QR...</p>
+      <div
+        class="mx-auto mt-8 h-[min(420px,80vw)] w-[min(420px,80vw)] animate-pulse rounded-2xl bg-slate-800"
+        aria-busy="true"
+        aria-label="กำลังโหลด QR"
+      ></div>
     } @else if (error()) {
       <p class="mt-12 text-red-300" role="alert">{{ error() }}</p>
     } @else if (qrDataUrl()) {

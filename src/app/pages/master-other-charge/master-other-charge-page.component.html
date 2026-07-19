@@ -99,7 +99,7 @@
   }
 
   @if (loading()) {
-    <p class="app-loading-text">กำลังโหลด...</p>
+    <app-master-list-skeleton [columns]="4" ariaLabel="กำลังโหลดค่าบริการ" />
   } @else if (items().length === 0) {
     <p class="app-empty-state">ยังไม่มี{{ pageTitle() }}</p>
   } @else {

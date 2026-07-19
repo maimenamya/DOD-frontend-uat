@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { MasterListSkeletonComponent } from '../../components/master-list-skeleton/master-list-skeleton.component';
 import { ActivatedRoute } from '@angular/router';
 import {
   highlightInvalidForm,
@@ -28,7 +29,7 @@ import {
 
 @Component({
   selector: 'app-master-other-charge-page',
-  imports: [DecimalPipe, ReactiveFormsModule, AppModalComponent, MasterListToolbarComponent, ListPaginatorComponent],
+  imports: [MasterListSkeletonComponent, DecimalPipe, ReactiveFormsModule, AppModalComponent, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './master-other-charge-page.component.html',
 })
 export class MasterOtherChargePageComponent implements OnInit {

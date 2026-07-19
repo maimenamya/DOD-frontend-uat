@@ -73,7 +73,7 @@
   }
 
   @if (loading()) {
-    <p class="app-loading-text">กำลังโหลด...</p>
+    <app-master-list-skeleton [columns]="3" ariaLabel="กำลังโหลดหมวดเครื่องดื่ม" />
   } @else if (categories().length === 0) {
     <p class="app-empty-state">ยังไม่มีประเภทเครื่องดื่ม</p>
   } @else {

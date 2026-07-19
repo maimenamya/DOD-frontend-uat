@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { MasterListSkeletonComponent } from '../../components/master-list-skeleton/master-list-skeleton.component';
 import {
   highlightInvalidForm,
   resetFormValidationFlag,
@@ -18,7 +19,7 @@ import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-master-table-page',
-  imports: [ReactiveFormsModule, AppModalComponent],
+  imports: [MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent],
   templateUrl: './master-table-page.component.html',
 })
 export class MasterTablePageComponent implements OnInit {

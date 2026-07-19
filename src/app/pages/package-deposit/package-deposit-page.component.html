@@ -42,7 +42,7 @@
   }
 
   @if (loading()) {
-    <p class="app-loading-text">กำลังโหลด...</p>
+    <app-master-list-skeleton [tabs]="3" [columns]="4" ariaLabel="กำลังโหลดฝากขวด" />
   } @else {
     <section class="app-card app-card-flush package-deposit-section">
       @if (visibleItems().length === 0) {
@@ -273,10 +273,9 @@
           maxlength="10"
           formControlName="customerCode"
           (input)="onCreateCustomerCodeInput($event)"
-          placeholder="เช่น 042, A1"
+          placeholder="เช่น 000, a-1, a000"
           [class.app-input-invalid]="createFormValidated() && createForm.controls.customerCode.invalid"
         />
-        <p class="app-hint">{{ localCodeHint }}</p>
       </div>
 
       <div class="app-form-group">
@@ -302,7 +301,6 @@
           [attr.max]="selectedCreatePackageBottlesTotal()"
           [class.app-input-invalid]="createFormValidated() && createForm.controls.bottlesRemaining.invalid"
         />
-        <p class="app-hint">นับเป็นขวดเต็ม — เหลือครึ่งขวดให้ใส่ 1 แล้วระบุในหมายเหตุ</p>
       </div>
 
       <div class="app-form-group">

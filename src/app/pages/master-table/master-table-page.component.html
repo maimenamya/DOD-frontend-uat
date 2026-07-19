@@ -51,7 +51,7 @@
   }
 
   @if (loading()) {
-    <p class="app-loading-text">กำลังโหลด...</p>
+    <app-master-list-skeleton [columns]="3" ariaLabel="กำลังโหลดโต๊ะ" />
   } @else if (tables().length === 0) {
     <p class="app-empty-state">ยังไม่มีข้อมูลโต๊ะ</p>
   } @else {

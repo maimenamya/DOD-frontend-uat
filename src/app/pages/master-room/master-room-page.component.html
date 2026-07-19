@@ -89,7 +89,7 @@
   }
 
   @if (loading()) {
-    <p class="app-loading-text">กำลังโหลด...</p>
+    <app-master-list-skeleton [columns]="4" ariaLabel="กำลังโหลดห้อง" />
   } @else if (rooms().length === 0) {
     <p class="app-empty-state">ยังไม่มีข้อมูลห้อง</p>
   } @else {

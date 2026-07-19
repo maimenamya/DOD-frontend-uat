@@ -1,5 +1,6 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { MasterListSkeletonComponent } from '../../components/master-list-skeleton/master-list-skeleton.component';
 import {
   highlightInvalidForm,
   resetFormValidationFlag,
@@ -28,7 +29,7 @@ function shopCalendarMonthStartInput(): string {
 
 @Component({
   selector: 'app-daily-expenses-page',
-  imports: [
+  imports: [MasterListSkeletonComponent, 
     DecimalPipe,
     FormsModule,
     ReactiveFormsModule,

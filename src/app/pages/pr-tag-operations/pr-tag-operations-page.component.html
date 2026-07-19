@@ -138,7 +138,7 @@
   }
 
   @if (loading()) {
-    <p class="app-loading-text">กำลังโหลด...</p>
+    <app-master-list-skeleton [columns]="4" ariaLabel="กำลังโหลดรายการแท็ก PR" />
   } @else if (loadFailed()) {
     <p class="app-empty-state">
       โหลดข้อมูลไม่สำเร็จ — ตรวจสอบการเข้าสู่ระบบแล้วกดโหลดใหม่

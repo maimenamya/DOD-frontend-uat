@@ -52,7 +52,7 @@
   }
 
   @if (loading()) {
-    <p class="app-loading-text">กำลังโหลด...</p>
+    <app-master-list-skeleton [columns]="5" ariaLabel="กำลังโหลดประวัติบิล" />
   } @else if (!hasItems()) {
     <p class="app-empty-state">ไม่พบบิลในช่วงวันที่ที่เลือก</p>
   } @else {
@@ -170,7 +170,12 @@
     </div>
 
     @if (receiptLoading()) {
-      <p class="app-muted">กำลังโหลดรายละเอียด...</p>
+      <div class="app-skeleton-list app-skeleton-list--tight" aria-busy="true" aria-label="กำลังโหลดรายละเอียด">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     } @else {
       @if (receipt(); as detail) {
       <div class="bill-history-detail">

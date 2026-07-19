@@ -7,8 +7,7 @@
   </div>
 
   @if (loading()) {
-    <div class="app-skeleton"></div>
-    <p class="app-loading-text app-loading-centered">กำลังโหลดรายชื่อพนักงาน...</p>
+    <app-master-list-skeleton [toolbar]="false" [columns]="5" ariaLabel="กำลังโหลดรายชื่อพนักงาน" />
   } @else if (error()) {
     <div class="app-alert-error">
       <p class="app-alert-heading">เกิดข้อผิดพลาด</p>

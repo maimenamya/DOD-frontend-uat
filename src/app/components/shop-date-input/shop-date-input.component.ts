@@ -79,6 +79,11 @@ export class ShopDateInputComponent implements ControlValueAccessor, AfterViewIn
       appendTo: document.body,
       plugins: needsConfirm ? shopFlatpickrConfirmDatePlugins() : [],
       onReady: (_dates, _str, instance) => {
+        // flatpickr fires onReady synchronously *inside* the flatpickr() call,
+        // before its return value is assigned to this.fp — so bind it here first,
+        // otherwise syncPickerFromPending() early-returns and the initial value
+        // (from writeValue) never renders until the picker is opened.
+        this.fp = instance;
         instance.calendarContainer.classList.add('app-flatpickr-calendar');
         this.styleAltInput(instance);
         this.syncPickerFromPending();

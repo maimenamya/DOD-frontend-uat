@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { MasterListSkeletonComponent } from '../../components/master-list-skeleton/master-list-skeleton.component';
 import {
   highlightInvalidForm,
   resetFormValidationFlag,
@@ -23,7 +24,7 @@ import { roleOptionLabel } from '../../utils/role-display.util';
 
 @Component({
   selector: 'app-pr-tag-operations-page',
-  imports: [ReactiveFormsModule, AppModalComponent, CustomDropdownComponent],
+  imports: [MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent, CustomDropdownComponent],
   templateUrl: './pr-tag-operations-page.component.html',
   styleUrl: './pr-tag-operations-page.component.css',
 })

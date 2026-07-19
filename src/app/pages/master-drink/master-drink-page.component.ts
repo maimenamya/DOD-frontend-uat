@@ -1,4 +1,5 @@
 ﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { MasterListSkeletonComponent } from '../../components/master-list-skeleton/master-list-skeleton.component';
 import {
   highlightInvalidForm,
   resetFormValidationFlag,
@@ -33,7 +34,7 @@ import {
 
 @Component({
   selector: 'app-master-drink-page',
-  imports: [DecimalPipe, ReactiveFormsModule, AppModalComponent, CustomDropdownComponent, RouterLink, MasterListToolbarComponent, ListPaginatorComponent],
+  imports: [MasterListSkeletonComponent, DecimalPipe, ReactiveFormsModule, AppModalComponent, CustomDropdownComponent, RouterLink, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './master-drink-page.component.html',
 })
 export class MasterDrinkPageComponent implements OnInit {

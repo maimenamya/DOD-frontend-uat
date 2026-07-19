@@ -9,10 +9,10 @@ export type SystemGuideSection = {
   items: SystemGuideItem[];
 };
 
-export const SYSTEM_GUIDE_TITLE = 'คู่มือใช้งาน DOD';
+export const SYSTEM_GUIDE_TITLE = 'คู่มือใช้งาน D-rink';
 
 export const SYSTEM_GUIDE_INTRO =
-  'ระบบ DOD ช่วยร้านบันทึกยอดขาย เปิดโต๊ะ ลงดื่มพนักงาน จัดการแท็ก PR และออกรายงาน';
+  'ระบบ D-rink ช่วยร้านบันทึกยอดขาย เปิดโต๊ะ ลงดื่มพนักงาน จัดการแท็ก PR และออกรายงาน';
 
 export const SYSTEM_GUIDE_SECTIONS: SystemGuideSection[] = [
   {

@@ -15,6 +15,7 @@ import { forkJoin } from 'rxjs';
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
 import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
 import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
+import { MasterListSkeletonComponent } from '../../components/master-list-skeleton/master-list-skeleton.component';
 import type { MstFood, MstFoodCategory } from '../../models/master-data';
 import { AuthService } from '../../services/auth.service';
 import { ShopMasterService } from '../../services/shop-master.service';
@@ -28,7 +29,7 @@ import {
 
 @Component({
   selector: 'app-master-food-page',
-  imports: [DecimalPipe, ReactiveFormsModule, AppModalComponent, RouterLink, MasterListToolbarComponent, ListPaginatorComponent],
+  imports: [DecimalPipe, ReactiveFormsModule, AppModalComponent, RouterLink, MasterListToolbarComponent, MasterListSkeletonComponent, ListPaginatorComponent],
   templateUrl: './master-food-page.component.html',
 })
 export class MasterFoodPageComponent implements OnInit {

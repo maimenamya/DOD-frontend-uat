@@ -7,7 +7,12 @@
   </header>
 
   @if (loading()) {
-    <p class="app-muted">กำลังโหลด...</p>
+    <div class="app-skeleton-list" aria-busy="true" aria-label="กำลังโหลด">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
   } @else {
     <form
       class="app-form-stack shop-rules-form"

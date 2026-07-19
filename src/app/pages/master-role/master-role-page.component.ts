@@ -1,4 +1,5 @@
 ﻿import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { MasterListSkeletonComponent } from '../../components/master-list-skeleton/master-list-skeleton.component';
 import {
   highlightInvalidForm,
   resetFormValidationFlag,
@@ -47,7 +48,7 @@ const CATEGORY_DROPDOWN_OPTIONS: DropdownOption[] = [
 
 @Component({
   selector: 'app-master-role-page',
-  imports: [ReactiveFormsModule, AppModalComponent, DecimalPipe, CustomDropdownComponent, MasterListToolbarComponent, ListPaginatorComponent, RouterLink],
+  imports: [MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent, DecimalPipe, CustomDropdownComponent, MasterListToolbarComponent, ListPaginatorComponent, RouterLink],
   templateUrl: './master-role-page.component.html',
 })
 export class MasterRolePageComponent implements OnInit {
