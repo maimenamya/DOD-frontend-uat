@@ -14,6 +14,12 @@ import { ConfirmDialogComponent } from './confirm-dialog.component';
       [confirmLabel]="confirm.confirmLabel()"
       [cancelLabel]="confirm.cancelLabel()"
       [busy]="confirm.busy()"
+      [requiresReason]="confirm.requiresReason()"
+      [reasonLabel]="confirm.reasonLabel()"
+      [reasonPlaceholder]="confirm.reasonPlaceholder()"
+      [reasonText]="confirm.reasonText()"
+      [reasonValidated]="confirm.reasonValidated()"
+      (reasonTextChange)="confirm.onReasonTextChange($event)"
       (confirm)="confirm.onConfirm()"
       (cancel)="confirm.onCancel()"
     />

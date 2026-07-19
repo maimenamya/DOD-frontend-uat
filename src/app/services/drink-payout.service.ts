@@ -27,10 +27,11 @@ export class DrinkPayoutService {
     employeeId: string,
     businessDate: string,
     params: DrinkPayoutDateParams,
+    changeReason: string,
   ): Observable<DrinkPayoutDashboard> {
     return this.http.post<DrinkPayoutDashboard>(
       this.api.resource('drink-payouts', 'freelance'),
-      { employeeId, businessDate },
+      { employeeId, businessDate, changeReason },
       { params: this.buildDateParams(params) },
     );
   }
@@ -38,10 +39,11 @@ export class DrinkPayoutService {
   payTag(
     enrollmentId: number,
     params: DrinkPayoutDateParams,
+    changeReason: string,
   ): Observable<DrinkPayoutDashboard> {
     return this.http.post<DrinkPayoutDashboard>(
       this.api.resource('drink-payouts', 'tag', String(enrollmentId)),
-      {},
+      { changeReason },
       { params: this.buildDateParams(params) },
     );
   }

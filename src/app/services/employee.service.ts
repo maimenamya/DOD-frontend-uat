@@ -39,7 +39,9 @@ export class EmployeeService {
     return this.http.put<MstEmployee>(`${this.employeesUrl}/${id}`, payload);
   }
 
-  deleteEmployee(id: number): Observable<MstEmployee> {
-    return this.http.delete<MstEmployee>(`${this.employeesUrl}/${id}`);
+  deleteEmployee(id: number, changeReason: string): Observable<MstEmployee> {
+    return this.http.delete<MstEmployee>(`${this.employeesUrl}/${id}`, {
+      body: { changeReason },
+    });
   }
 }

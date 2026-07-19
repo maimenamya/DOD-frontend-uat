@@ -44,4 +44,5 @@ export interface MstSeatingTypeWritePayload {
   rateType?: SeatingRateType;
   basePrice?: number;
   minimumSpend?: number;
+  changeReason?: string;
 }

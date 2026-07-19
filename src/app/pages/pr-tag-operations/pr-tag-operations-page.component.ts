@@ -62,7 +62,7 @@ export class PrTagOperationsPageComponent implements OnInit {
   });
 
   readonly forceCutForm = this.fb.group({
-    endNote: ['', Validators.maxLength(500)],
+    endNote: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(500)]],
   });
 
   readonly employeeOptions = computed<DropdownOption[]>(() =>
@@ -288,10 +288,11 @@ export class PrTagOperationsPageComponent implements OnInit {
     const row = this.forceCutTarget();
     const id = row?.enrollment?.id;
     if (!id || this.acting()) return;
+    if (highlightInvalidForm(this.forceCutForm, this.forceCutFormValidated, this.toast)) return;
 
     const endNote = this.forceCutForm.getRawValue().endNote.trim();
     this.acting.set(true);
-    this.prTagService.forceCut(id, endNote || undefined).subscribe({
+    this.prTagService.forceCut(id, endNote).subscribe({
       next: () => {
         this.acting.set(false);
         this.closeForceCutModal();

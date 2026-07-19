@@ -70,6 +70,7 @@ export class MasterOtherChargePageComponent implements OnInit {
     price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     unitLabelTh: ['', Validators.required],
     isActive: [true],
+    changeReason: ['', Validators.minLength(3)],
   });
 
   readonly editForm = this.fb.group({
@@ -77,6 +78,7 @@ export class MasterOtherChargePageComponent implements OnInit {
     price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     unitLabelTh: ['', Validators.required],
     isActive: [true],
+    changeReason: ['', Validators.minLength(3)],
   });
 
   ngOnInit(): void {
@@ -129,6 +131,7 @@ export class MasterOtherChargePageComponent implements OnInit {
       price: String(item.price),
       unitLabelTh: item.unitLabelTh,
       isActive: item.isActive,
+      changeReason: '',
     });
     this.editingItem.set(item);
   }
@@ -137,7 +140,7 @@ export class MasterOtherChargePageComponent implements OnInit {
     this.editingItem.set(null);
   }
 
-  private payloadFromForm(form: typeof this.createForm) {
+  private payloadFromForm(form: typeof this.createForm, includeChangeReason = false) {
     const raw = form.getRawValue();
     return {
       name: raw.name.trim(),
@@ -145,6 +148,7 @@ export class MasterOtherChargePageComponent implements OnInit {
       unitLabelTh: raw.unitLabelTh.trim(),
       isActive: raw.isActive,
       chargeGroup: this.chargeGroup(),
+      ...(includeChangeReason ? { changeReason: raw.changeReason.trim() } : {}),
     };
   }
 
@@ -171,7 +175,7 @@ export class MasterOtherChargePageComponent implements OnInit {
     if (!item || this.submitting()) return;
     if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
-    this.otherChargeService.update(item.id, this.payloadFromForm(this.editForm)).subscribe({
+    this.otherChargeService.update(item.id, this.payloadFromForm(this.editForm, true)).subscribe({
       next: () => {
         this.submitting.set(false);
         this.closeEdit();
@@ -186,9 +190,9 @@ export class MasterOtherChargePageComponent implements OnInit {
   }
 
   async confirmDelete(item: MstOtherCharge): Promise<void> {
-    const ok = await this.confirmDialog.confirmDelete(`รายการ "${item.name}"`);
-    if (!ok) return;
-    this.otherChargeService.delete(item.id).subscribe({
+    const changeReason = await this.confirmDialog.confirmDeleteWithReason(`รายการ "${item.name}"`);
+    if (!changeReason) return;
+    this.otherChargeService.delete(item.id, changeReason).subscribe({
       next: () => {
         this.toast.showSuccess('ลบรายการเรียบร้อย');
         this.loadItems();

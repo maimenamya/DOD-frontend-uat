@@ -18,3 +18,11 @@ export type DailyExpenseWritePayload = {
   amount: number;
   businessDate: string;
 };
+
+export type DailyExpenseUpdatePayload = DailyExpenseWritePayload & {
+  changeReason: string;
+};
+
+export type DailyExpenseDeletePayload = {
+  changeReason: string;
+};

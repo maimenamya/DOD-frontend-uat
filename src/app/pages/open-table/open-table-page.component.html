@@ -1482,6 +1482,22 @@
       }
     </div>
 
+    <div class="app-form-group">
+      <label class="app-label" for="stop-drink-reason">เหตุผลการแก้ไข/ลบ</label>
+      <textarea
+        id="stop-drink-reason"
+        rows="3"
+        class="app-input app-scroll-region"
+        [class.app-field-invalid]="mutationReasonValidated()"
+        [ngModel]="mutationChangeReason()"
+        (ngModelChange)="onMutationChangeReasonChange($event)"
+        placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
+      ></textarea>
+      @if (mutationReasonValidated()) {
+        <p class="app-field-error">กรุณาระบุเหตุผลอย่างน้อย 3 ตัวอักษร</p>
+      }
+    </div>
+
     <div class="app-form-actions app-form-actions-top">
       <button type="button" class="app-btn-secondary" (click)="closeStopDrinkModal()">ยกเลิก</button>
       <button
@@ -1521,6 +1537,21 @@
         (ngModelChange)="stopSeatTime.set($event)"
       />
     </div>
+    <div class="app-form-group">
+      <label class="app-label" for="stop-room-reason">เหตุผลการแก้ไข/ลบ</label>
+      <textarea
+        id="stop-room-reason"
+        rows="3"
+        class="app-input app-scroll-region"
+        [class.app-field-invalid]="mutationReasonValidated()"
+        [ngModel]="mutationChangeReason()"
+        (ngModelChange)="onMutationChangeReasonChange($event)"
+        placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
+      ></textarea>
+      @if (mutationReasonValidated()) {
+        <p class="app-field-error">กรุณาระบุเหตุผลอย่างน้อย 3 ตัวอักษร</p>
+      }
+    </div>
     <div class="app-form-actions app-form-actions-top">
       <button type="button" class="app-btn-secondary" (click)="closeStopRoomModal()">ยกเลิก</button>
       <button type="button" class="app-btn-primary" [disabled]="actionBusy()" (click)="confirmStopRoom()">
@@ -1553,6 +1584,21 @@
         (keydown)="blockNonNumericKey($event)"
       />
     </div>
+    <div class="app-form-group">
+      <label class="app-label" for="void-item-reason">เหตุผลการแก้ไข/ลบ</label>
+      <textarea
+        id="void-item-reason"
+        rows="3"
+        class="app-input app-scroll-region"
+        [class.app-field-invalid]="mutationReasonValidated()"
+        [ngModel]="mutationChangeReason()"
+        (ngModelChange)="onMutationChangeReasonChange($event)"
+        placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
+      ></textarea>
+      @if (mutationReasonValidated()) {
+        <p class="app-field-error">กรุณาระบุเหตุผลอย่างน้อย 3 ตัวอักษร</p>
+      }
+    </div>
     <div class="app-form-actions app-form-actions-top">
       <button type="button" class="app-btn-secondary" (click)="closeVoidItemModal()">ยกเลิก</button>
       <button type="button" class="app-btn-danger" [disabled]="actionBusy()" (click)="confirmVoidItem()">
@@ -1582,6 +1628,21 @@
         — ลบแล้วลงใหม่ได้จาก «เพิ่มรายการ»
       }
     </p>
+    <div class="app-form-group">
+      <label class="app-label" for="delete-staff-drink-reason">เหตุผลการแก้ไข/ลบ</label>
+      <textarea
+        id="delete-staff-drink-reason"
+        rows="3"
+        class="app-input app-scroll-region"
+        [class.app-field-invalid]="mutationReasonValidated()"
+        [ngModel]="mutationChangeReason()"
+        (ngModelChange)="onMutationChangeReasonChange($event)"
+        placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
+      ></textarea>
+      @if (mutationReasonValidated()) {
+        <p class="app-field-error">กรุณาระบุเหตุผลอย่างน้อย 3 ตัวอักษร</p>
+      }
+    </div>
     <div class="app-form-actions app-form-actions-top">
       <button type="button" class="app-btn-secondary" (click)="closeDeleteStaffDrinkModal()">ยกเลิก</button>
       <button
@@ -1622,6 +1683,21 @@
       />
       <p class="app-field-hint mt-1">ใส่ 0 เพื่อลบรายการ</p>
     </div>
+    <div class="app-form-group">
+      <label class="app-label" for="edit-staff-drink-reason">เหตุผลการแก้ไข/ลบ</label>
+      <textarea
+        id="edit-staff-drink-reason"
+        rows="3"
+        class="app-input app-scroll-region"
+        [class.app-field-invalid]="mutationReasonValidated()"
+        [ngModel]="mutationChangeReason()"
+        (ngModelChange)="onMutationChangeReasonChange($event)"
+        placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
+      ></textarea>
+      @if (mutationReasonValidated()) {
+        <p class="app-field-error">กรุณาระบุเหตุผลอย่างน้อย 3 ตัวอักษร</p>
+      }
+    </div>
     <div class="app-form-actions app-form-actions-top">
       <button type="button" class="app-btn-secondary" (click)="closeEditStaffDrinkModal()">ยกเลิก</button>
       <button type="button" class="app-btn-primary" [disabled]="actionBusy()" (click)="confirmEditStaffDrink()">
@@ -1651,6 +1727,21 @@
         — ลบแล้วเพิ่มใหม่ได้จาก «เพิ่มรายการ»
       }
     </p>
+    <div class="app-form-group">
+      <label class="app-label" for="delete-room-charge-reason">เหตุผลการแก้ไข/ลบ</label>
+      <textarea
+        id="delete-room-charge-reason"
+        rows="3"
+        class="app-input app-scroll-region"
+        [class.app-field-invalid]="mutationReasonValidated()"
+        [ngModel]="mutationChangeReason()"
+        (ngModelChange)="onMutationChangeReasonChange($event)"
+        placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
+      ></textarea>
+      @if (mutationReasonValidated()) {
+        <p class="app-field-error">กรุณาระบุเหตุผลอย่างน้อย 3 ตัวอักษร</p>
+      }
+    </div>
     <div class="app-form-actions app-form-actions-top">
       <button type="button" class="app-btn-secondary" (click)="closeDeleteRoomChargeModal()">ยกเลิก</button>
       <button
@@ -1706,6 +1797,21 @@
         />
       </div>
     }
+    <div class="app-form-group">
+      <label class="app-label" for="edit-room-charge-reason">เหตุผลการแก้ไข/ลบ</label>
+      <textarea
+        id="edit-room-charge-reason"
+        rows="3"
+        class="app-input app-scroll-region"
+        [class.app-field-invalid]="mutationReasonValidated()"
+        [ngModel]="mutationChangeReason()"
+        (ngModelChange)="onMutationChangeReasonChange($event)"
+        placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
+      ></textarea>
+      @if (mutationReasonValidated()) {
+        <p class="app-field-error">กรุณาระบุเหตุผลอย่างน้อย 3 ตัวอักษร</p>
+      }
+    </div>
     <div class="app-form-actions app-form-actions-top">
       <button type="button" class="app-btn-secondary" (click)="closeEditRoomChargeModal()">ยกเลิก</button>
       <button type="button" class="app-btn-primary" [disabled]="actionBusy()" (click)="confirmEditRoomCharge()">
@@ -1770,6 +1876,21 @@
         (keydown)="blockNonNumericKey($event)"
       />
     </div>
+    <div class="app-form-group">
+      <label class="app-label" for="package-bottle-reason">เหตุผลการแก้ไข/ลบ</label>
+      <textarea
+        id="package-bottle-reason"
+        rows="3"
+        class="app-input app-scroll-region"
+        [class.app-field-invalid]="mutationReasonValidated()"
+        [ngModel]="mutationChangeReason()"
+        (ngModelChange)="onMutationChangeReasonChange($event)"
+        placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
+      ></textarea>
+      @if (mutationReasonValidated()) {
+        <p class="app-field-error">กรุณาระบุเหตุผลอย่างน้อย 3 ตัวอักษร</p>
+      }
+    </div>
     <div class="app-form-actions app-form-actions-top">
       <button type="button" class="app-btn-secondary" (click)="closePackageBottleModal()">ยกเลิก</button>
       <button
@@ -1810,6 +1931,21 @@
         (ngModelChange)="onReturnBeverageQtyChange($event)"
         (keydown)="blockNonNumericKey($event)"
       />
+    </div>
+    <div class="app-form-group">
+      <label class="app-label" for="return-beverage-reason">เหตุผลการแก้ไข/ลบ</label>
+      <textarea
+        id="return-beverage-reason"
+        rows="3"
+        class="app-input app-scroll-region"
+        [class.app-field-invalid]="mutationReasonValidated()"
+        [ngModel]="mutationChangeReason()"
+        (ngModelChange)="onMutationChangeReasonChange($event)"
+        placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
+      ></textarea>
+      @if (mutationReasonValidated()) {
+        <p class="app-field-error">กรุณาระบุเหตุผลอย่างน้อย 3 ตัวอักษร</p>
+      }
     </div>
     <div class="app-form-actions app-form-actions-top">
       <button type="button" class="app-btn-secondary" (click)="closeReturnBeverageModal()">ยกเลิก</button>

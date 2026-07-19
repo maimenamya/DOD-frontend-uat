@@ -5,12 +5,14 @@ import { Observable } from 'rxjs';
 import { ApiConfig } from '../core/api-config';
 import type {
   MstStockItem,
+  MstStockItemDeletePayload,
   MstStockItemUpdatePayload,
   MstStockItemWritePayload,
 } from '../models/beverage-stock';
 
 export type {
   MstStockItem,
+  MstStockItemDeletePayload,
   MstStockItemUpdatePayload,
   MstStockItemWritePayload,
   MstBeverageStock,
@@ -35,7 +37,9 @@ export class BeverageStockService {
     return this.http.put<MstStockItem>(this.api.resource('stock', String(stockItemId)), payload);
   }
 
-  remove(stockItemId: number): Observable<void> {
-    return this.http.delete<void>(this.api.resource('stock', String(stockItemId)));
+  remove(stockItemId: number, payload: MstStockItemDeletePayload): Observable<void> {
+    return this.http.delete<void>(this.api.resource('stock', String(stockItemId)), {
+      body: payload,
+    });
   }
 }

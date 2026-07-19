@@ -27,8 +27,10 @@ export class PrTagService {
     return this.http.put<MstPrTag>(this.api.resource(`pr-tags/${id}`), payload);
   }
 
-  deleteTag(id: number): Observable<void> {
-    return this.http.delete<void>(this.api.resource(`pr-tags/${id}`));
+  deleteTag(id: number, changeReason: string): Observable<void> {
+    return this.http.delete<void>(this.api.resource(`pr-tags/${id}`), {
+      body: { changeReason },
+    });
   }
 
   getOperationsDashboard(): Observable<PrTagOperationsDashboard> {
@@ -66,10 +68,10 @@ export class PrTagService {
     );
   }
 
-  forceCut(enrollmentId: number, endNote?: string): Observable<PrTagOperationsRow> {
+  forceCut(enrollmentId: number, endNote: string): Observable<PrTagOperationsRow> {
     return this.http.post<PrTagOperationsRow>(
       this.api.resource('pr-tags', 'enrollments', String(enrollmentId), 'force-cut'),
-      { endNote: endNote?.trim() || null },
+      { endNote: endNote.trim() },
     );
   }
 

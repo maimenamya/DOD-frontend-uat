@@ -44,6 +44,19 @@
             (input)="sanitizeIntegerInput('create', $event)"
           />
         </div>
+        <div class="app-form-group">
+          <label class="app-label" for="stock-create-reason">เหตุผลการเพิ่มสต็อก</label>
+          <textarea
+            id="stock-create-reason"
+            rows="3"
+            formControlName="adjustNote"
+            class="app-input app-scroll-region"
+            placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
+          ></textarea>
+          @if (showControlError(createForm.controls.adjustNote, createFormValidated())) {
+            <p class="app-field-error">{{ controlErrorMessage(createForm.controls.adjustNote) }}</p>
+          }
+        </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
           <button type="submit" class="app-btn-primary" [disabled]="submitting()">
@@ -76,6 +89,19 @@
             (input)="sanitizeIntegerInput('edit', $event)"
           />
           <p class="app-hint">ตั้งยอดตามการนับจริง — ไม่ใช่การบวกเพิ่ม</p>
+        </div>
+        <div class="app-form-group">
+          <label class="app-label" for="stock-edit-reason">เหตุผลการแก้ไข/ลบ</label>
+          <textarea
+            id="stock-edit-reason"
+            rows="3"
+            formControlName="adjustNote"
+            class="app-input app-scroll-region"
+            placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
+          ></textarea>
+          @if (showControlError(editForm.controls.adjustNote, editFormValidated())) {
+            <p class="app-field-error">{{ controlErrorMessage(editForm.controls.adjustNote) }}</p>
+          }
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>

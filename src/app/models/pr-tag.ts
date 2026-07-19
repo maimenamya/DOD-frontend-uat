@@ -21,6 +21,7 @@ export interface MstPrTagWritePayload {
   guaranteeAmount: number;
   dropoutPayoutAmount: number;
   isActive?: boolean;
+  changeReason?: string;
 }
 
 export interface PrTagEnrollmentView {

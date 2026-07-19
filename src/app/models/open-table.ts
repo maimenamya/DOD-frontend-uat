@@ -99,6 +99,8 @@ export type SessionMutationBase = {
   shopId: number;
   sessionId: number;
   expectedRevision: number;
+  /** Required on void/return/adjust/delete/stop mutations (audit trail). */
+  changeReason?: string;
 };
 
 export type ReturnBeveragePayload = SessionMutationBase & {

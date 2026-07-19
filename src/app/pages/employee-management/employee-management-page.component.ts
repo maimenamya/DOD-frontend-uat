@@ -141,6 +141,7 @@ export class EmployeeManagementPageComponent implements OnInit {
     status: ['Active', Validators.required],
     roleId: [0, [Validators.required, Validators.min(1)]],
     password: [''],
+    changeReason: ['', Validators.minLength(3)],
   });
 
   /** Create: lock to tab role; owner on manager tabs may pick ADMIN or MANAGER. */
@@ -300,6 +301,7 @@ export class EmployeeManagementPageComponent implements OnInit {
       status: employee.status,
       roleId: employee.roleId,
       password: '',
+      changeReason: '',
     });
   }
 
@@ -361,6 +363,7 @@ export class EmployeeManagementPageComponent implements OnInit {
         status: raw.status,
         roleId: raw.roleId,
         password: raw.password || undefined,
+        changeReason: raw.changeReason.trim(),
       })
       .subscribe({
         next: () => {
@@ -379,14 +382,12 @@ export class EmployeeManagementPageComponent implements OnInit {
   async confirmDelete(employee: MstEmployee): Promise<void> {
     if (!this.canDeleteRow(employee)) return;
 
-    const ok = await this.confirmDialog.confirm({
-      title: 'ยืนยันการลบ',
-      message: `ต้องการลบพนักงาน "${employee.nickname}" (${employee.employeeId}) ใช่หรือไม่?`,
-      confirmLabel: 'ลบ',
-    });
-    if (!ok) return;
+    const changeReason = await this.confirmDialog.confirmDeleteWithReason(
+      `พนักงาน "${employee.nickname}" (${employee.employeeId})`,
+    );
+    if (!changeReason) return;
 
-    this.employeeService.deleteEmployee(employee.id).subscribe({
+    this.employeeService.deleteEmployee(employee.id, changeReason).subscribe({
       next: () => {
         this.closeEdit();
         this.toast.showSuccess('ลบพนักงานสำเร็จ');

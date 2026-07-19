@@ -5,6 +5,23 @@
       <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="cancel.emit()">✕</button>
     </div>
     <p class="text-sm leading-relaxed text-text-secondary">{{ message() }}</p>
+    @if (requiresReason()) {
+      <div class="app-form-group mt-3">
+        <label class="app-label" for="confirm-dialog-reason">{{ reasonLabel() }}</label>
+        <textarea
+          id="confirm-dialog-reason"
+          rows="3"
+          class="app-input app-scroll-region"
+          [class.app-field-invalid]="reasonValidated()"
+          [ngModel]="reasonText()"
+          (ngModelChange)="reasonTextChange.emit($event)"
+          [placeholder]="reasonPlaceholder()"
+        ></textarea>
+        @if (reasonValidated()) {
+          <p class="app-field-error">กรุณาระบุเหตุผลอย่างน้อย 3 ตัวอักษร</p>
+        }
+      </div>
+    }
     <div class="app-form-actions app-form-actions-top">
       <button type="button" class="app-btn-secondary" [disabled]="busy()" (click)="cancel.emit()">
         {{ cancelLabel() }}

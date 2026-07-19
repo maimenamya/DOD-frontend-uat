@@ -57,6 +57,7 @@ export class MasterPrTagPageComponent implements OnInit {
     guaranteeAmount: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     dropoutPayoutAmount: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     isActive: [true],
+    changeReason: ['', Validators.minLength(3)],
   });
 
   readonly editForm = this.fb.group({
@@ -67,6 +68,7 @@ export class MasterPrTagPageComponent implements OnInit {
     guaranteeAmount: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     dropoutPayoutAmount: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     isActive: [true],
+    changeReason: ['', Validators.minLength(3)],
   });
 
   ngOnInit(): void {
@@ -123,6 +125,7 @@ export class MasterPrTagPageComponent implements OnInit {
       guaranteeAmount: String(item.guaranteeAmount),
       dropoutPayoutAmount: String(item.dropoutPayoutAmount),
       isActive: item.isActive,
+      changeReason: '',
     });
     this.editingItem.set(item);
   }
@@ -131,7 +134,7 @@ export class MasterPrTagPageComponent implements OnInit {
     this.editingItem.set(null);
   }
 
-  private payloadFromForm(form: typeof this.createForm) {
+  private payloadFromForm(form: typeof this.createForm, includeChangeReason = false) {
     const raw = form.getRawValue();
     return {
       name: raw.name.trim(),
@@ -141,6 +144,7 @@ export class MasterPrTagPageComponent implements OnInit {
       guaranteeAmount: Number.parseInt(raw.guaranteeAmount, 10),
       dropoutPayoutAmount: Number.parseInt(raw.dropoutPayoutAmount, 10),
       isActive: raw.isActive,
+      ...(includeChangeReason ? { changeReason: raw.changeReason.trim() } : {}),
     };
   }
 
@@ -167,7 +171,7 @@ export class MasterPrTagPageComponent implements OnInit {
     if (!item || this.submitting()) return;
     if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
-    this.prTagService.updateTag(item.id, this.payloadFromForm(this.editForm)).subscribe({
+    this.prTagService.updateTag(item.id, this.payloadFromForm(this.editForm, true)).subscribe({
       next: () => {
         this.submitting.set(false);
         this.closeEdit();
@@ -182,9 +186,9 @@ export class MasterPrTagPageComponent implements OnInit {
   }
 
   async confirmDelete(item: MstPrTag): Promise<void> {
-    const ok = await this.confirmDialog.confirmDelete(`แพ็กเกจ "${item.name}"`);
-    if (!ok) return;
-    this.prTagService.deleteTag(item.id).subscribe({
+    const changeReason = await this.confirmDialog.confirmDeleteWithReason(`แพ็กเกจ "${item.name}"`);
+    if (!changeReason) return;
+    this.prTagService.deleteTag(item.id, changeReason).subscribe({
       next: () => {
         this.toast.showSuccess('ลบแพ็กเกจแท็กเรียบร้อย');
         this.loadItems();

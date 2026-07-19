@@ -51,4 +51,5 @@ export interface MstRoleWritePayload {
   drinkAccrualRounding?: DrinkAccrualRounding;
   attendanceLeaveQuotaPerMonth?: number;
   workDuties?: WorkDuty[];
+  changeReason?: string;
 }

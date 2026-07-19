@@ -16,12 +16,16 @@ export interface MstStockItemWritePayload {
   name: string;
   unitLabelTh?: string;
   quantityOnHand: number;
-  adjustNote?: string | null;
+  adjustNote: string;
 }
 
 export interface MstStockItemUpdatePayload {
   quantityOnHand: number;
-  adjustNote?: string | null;
+  adjustNote: string;
+}
+
+export interface MstStockItemDeletePayload {
+  changeReason: string;
 }
 
 /** @deprecated Use MstStockItem */

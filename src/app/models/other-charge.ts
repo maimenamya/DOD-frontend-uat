@@ -21,6 +21,7 @@ export interface MstOtherChargeWritePayload {
   unitLabelTh?: string;
   isActive?: boolean;
   chargeGroup?: OtherChargeGroup;
+  changeReason?: string;
 }
 
 export function isTableOpeningOtherCharge(

@@ -98,6 +98,7 @@ export class EmployeeTeamPageComponent implements OnInit {
     status: ['Active', Validators.required],
     roleId: [0, [Validators.required, Validators.min(1)]],
     password: [''],
+    changeReason: ['', Validators.minLength(3)],
   });
 
   ngOnInit(): void {
@@ -179,6 +180,7 @@ export class EmployeeTeamPageComponent implements OnInit {
       status: employee.status,
       roleId: employee.roleId,
       password: '',
+      changeReason: '',
     });
   }
 
@@ -239,6 +241,7 @@ export class EmployeeTeamPageComponent implements OnInit {
         status: raw.status,
         roleId: raw.roleId,
         password: raw.password || undefined,
+        changeReason: raw.changeReason.trim(),
       })
       .subscribe({
         next: () => {
@@ -257,17 +260,15 @@ export class EmployeeTeamPageComponent implements OnInit {
   async confirmDelete(employee: MstEmployee): Promise<void> {
     if (!this.canMutateRow(employee)) return;
 
-    const ok = await this.confirmDialog.confirm({
-      title: 'ยืนยันการลบ',
-      message: `ต้องการลบพนักงาน "${employee.nickname}" (${employee.employeeId}) ใช่หรือไม่?`,
-      confirmLabel: 'ลบ',
-    });
-    if (!ok) return;
+    const changeReason = await this.confirmDialog.confirmDeleteWithReason(
+      `พนักงาน "${employee.nickname}" (${employee.employeeId})`,
+    );
+    if (!changeReason) return;
 
     this.error.set(null);
     this.success.set(null);
 
-    this.employeeService.deleteEmployee(employee.id).subscribe({
+    this.employeeService.deleteEmployee(employee.id, changeReason).subscribe({
       next: () => {
         this.success.set('ลบพนักงานสำเร็จ');
         if (this.editingEmployee()?.id === employee.id) {

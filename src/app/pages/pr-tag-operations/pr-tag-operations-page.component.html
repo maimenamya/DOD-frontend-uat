@@ -43,14 +43,14 @@
       }
       <form class="app-form-stack" [class.app-form-was-validated]="forceCutFormValidated()" [formGroup]="forceCutForm" (ngSubmit)="submitForceCut()">
         <div class="app-form-group">
-          <label class="app-label" for="force-cut-end-note">หมายเหตุ</label>
+          <label class="app-label" for="force-cut-end-note">เหตุผลการตัดแท็ก</label>
           <textarea
             id="force-cut-end-note"
             class="app-input min-h-[5rem] resize-y"
             formControlName="endNote"
             rows="3"
             maxlength="500"
-            placeholder="เช่น เหตุผลที่ตัดแท็ก (ไม่บังคับ)"
+            placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
           ></textarea>
         </div>
         <div class="app-form-actions">

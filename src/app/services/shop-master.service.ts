@@ -42,13 +42,15 @@ export class ShopMasterService {
 
   updateCocktail(
     id: number,
-    payload: Partial<{ name: string; drinkValue: number; unitLabelTh: string }>,
+    payload: Partial<{ name: string; drinkValue: number; unitLabelTh: string; changeReason: string }>,
   ): Observable<MstCocktail> {
     return this.http.put<MstCocktail>(this.api.resource(`cocktails/${id}`), payload);
   }
 
-  deleteCocktail(id: number): Observable<void> {
-    return this.http.delete<void>(this.api.resource(`cocktails/${id}`));
+  deleteCocktail(id: number, changeReason: string): Observable<void> {
+    return this.http.delete<void>(this.api.resource(`cocktails/${id}`), {
+      body: { changeReason },
+    });
   }
 
   getBeverageCategories(): Observable<MstBeverageCategory[]> {
@@ -101,13 +103,15 @@ export class ShopMasterService {
 
   updateFood(
     id: number,
-    payload: Partial<{ name: string; price: number; categoryId: number }>,
+    payload: Partial<{ name: string; price: number; categoryId: number; changeReason: string }>,
   ): Observable<MstFood> {
     return this.http.put<MstFood>(this.api.resource(`foods/${id}`), payload);
   }
 
-  deleteFood(id: number): Observable<void> {
-    return this.http.delete<void>(this.api.resource(`foods/${id}`));
+  deleteFood(id: number, changeReason: string): Observable<void> {
+    return this.http.delete<void>(this.api.resource(`foods/${id}`), {
+      body: { changeReason },
+    });
   }
 
   getSeatingTypes(): Observable<MstSeatingType[]> {
@@ -118,12 +122,17 @@ export class ShopMasterService {
     return this.http.post<MstSeatingType>(this.api.resource('seating-types'), payload);
   }
 
-  updateSeatingType(id: number, payload: MstSeatingTypeWritePayload): Observable<MstSeatingType> {
+  updateSeatingType(
+    id: number,
+    payload: MstSeatingTypeWritePayload & { changeReason?: string },
+  ): Observable<MstSeatingType> {
     return this.http.put<MstSeatingType>(this.api.resource(`seating-types/${id}`), payload);
   }
 
-  deleteSeatingType(id: number): Observable<void> {
-    return this.http.delete<void>(this.api.resource(`seating-types/${id}`));
+  deleteSeatingType(id: number, changeReason: string): Observable<void> {
+    return this.http.delete<void>(this.api.resource(`seating-types/${id}`), {
+      body: { changeReason },
+    });
   }
 
   getSeatings(): Observable<MstSeating[]> {
@@ -150,12 +159,17 @@ export class ShopMasterService {
     return this.http.post<MstPromotion>(this.api.resource('promotions'), payload);
   }
 
-  updatePromotion(id: number, payload: Partial<DrinkPackagePayload>): Observable<MstPromotion> {
+  updatePromotion(
+    id: number,
+    payload: Partial<DrinkPackagePayload & { changeReason: string }>,
+  ): Observable<MstPromotion> {
     return this.http.put<MstPromotion>(this.api.resource(`promotions/${id}`), payload);
   }
 
-  deletePromotion(id: number): Observable<void> {
-    return this.http.delete<void>(this.api.resource(`promotions/${id}`));
+  deletePromotion(id: number, changeReason: string): Observable<void> {
+    return this.http.delete<void>(this.api.resource(`promotions/${id}`), {
+      body: { changeReason },
+    });
   }
 
   getMemberships(): Observable<MstMembership[]> {
@@ -166,11 +180,16 @@ export class ShopMasterService {
     return this.http.post<MstMembership>(this.api.resource('memberships'), payload);
   }
 
-  updateMembership(id: number, payload: Partial<DrinkPackagePayload>): Observable<MstMembership> {
+  updateMembership(
+    id: number,
+    payload: Partial<DrinkPackagePayload & { changeReason: string }>,
+  ): Observable<MstMembership> {
     return this.http.put<MstMembership>(this.api.resource(`memberships/${id}`), payload);
   }
 
-  deleteMembership(id: number): Observable<void> {
-    return this.http.delete<void>(this.api.resource(`memberships/${id}`));
+  deleteMembership(id: number, changeReason: string): Observable<void> {
+    return this.http.delete<void>(this.api.resource(`memberships/${id}`), {
+      body: { changeReason },
+    });
   }
 }

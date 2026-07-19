@@ -69,7 +69,7 @@ import { APP_MOBILE_MEDIA_QUERY } from '../../utils/app-viewport.util';
 import { detectReceiptPrintPlatform } from '../../utils/receipt-print-platform.util';
 import { RoleService } from '../../services/role.service';
 import { ShopMasterService } from '../../services/shop-master.service';
-import { ConfirmDialogService } from '../../services/confirm-dialog.service';
+import { ConfirmDialogService, CHANGE_REASON_MIN_LEN } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
 import { closeOpenShopFlatpickrCalendars } from '../../utils/flatpickr-shop.util';
 import {
@@ -250,6 +250,8 @@ export class OpenTablePageComponent implements OnInit {
   readonly packageBottleBillItemKey = signal<string | null>(null);
   readonly packageBottleDisplayNameText = signal('');
   readonly packageBottleQtyText = signal('1');
+  readonly mutationChangeReason = signal('');
+  readonly mutationReasonValidated = signal(false);
   readonly stopSeatTime = signal(currentDatetimeLocalValue());
   private readonly stopDatetimeInput = viewChild('stopDatetimeInput', {
     read: ShopDatetimeInputComponent,
@@ -2361,6 +2363,29 @@ export class OpenTablePageComponent implements OnInit {
     }
   }
 
+  onMutationChangeReasonChange(value: string): void {
+    this.mutationChangeReason.set(value);
+    if (this.mutationReasonValidated() && value.trim().length >= CHANGE_REASON_MIN_LEN) {
+      this.mutationReasonValidated.set(false);
+    }
+  }
+
+  private resetMutationChangeReason(): void {
+    this.mutationChangeReason.set('');
+    this.mutationReasonValidated.set(false);
+  }
+
+  private requiredMutationChangeReason(): string | null {
+    const reason = this.mutationChangeReason().trim();
+    if (reason.length < CHANGE_REASON_MIN_LEN) {
+      this.mutationReasonValidated.set(true);
+      this.toast.showError('กรุณาระบุเหตุผลการแก้ไข/ลบอย่างน้อย 3 ตัวอักษร');
+      return null;
+    }
+    this.mutationReasonValidated.set(false);
+    return reason;
+  }
+
   /**
    * บิล mutation จาก portaled modal — flow เดียวกันทุกจุด:
    * skeleton ตอนกดยืนยัน → API → toast → ปิด modal → แสดงบิลใหม่
@@ -2610,6 +2635,7 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   openStopRoomModal(row: SessionRoomCharge): void {
+    this.resetMutationChangeReason();
     this.stopRoomTarget.set(row);
     this.stopSeatTime.set(currentDatetimeLocalValue());
     this.stopSeatTimeValidated.set(false);
@@ -2621,6 +2647,7 @@ export class OpenTablePageComponent implements OnInit {
     closeOpenShopFlatpickrCalendars();
     this.showStopRoomModal.set(false);
     this.stopRoomTarget.set(null);
+    this.resetMutationChangeReason();
     this.forcePurgeBodyModals();
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
@@ -2642,6 +2669,8 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
     this.stopSeatTimeValidated.set(false);
+    const changeReason = this.requiredMutationChangeReason();
+    if (!changeReason) return;
     this.submitBillPanelMutation(
       this.openTableService.stopRoomCharge({
         shopId: this.shopId,
@@ -2649,6 +2678,7 @@ export class OpenTablePageComponent implements OnInit {
         expectedRevision,
         roomChargeId: row.roomChargeId,
         seatStoppedAt,
+        changeReason,
       }),
       'สต็อปห้องสำเร็จ',
       sessionId,
@@ -2657,6 +2687,7 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   openDeleteRoomChargeModal(row: SessionRoomCharge): void {
+    this.resetMutationChangeReason();
     this.deleteRoomChargeTarget.set(row);
     this.showDeleteRoomChargeModal.set(true);
     this.showMobileSheet.set(false);
@@ -2665,6 +2696,7 @@ export class OpenTablePageComponent implements OnInit {
   closeDeleteRoomChargeModal(): void {
     this.showDeleteRoomChargeModal.set(false);
     this.deleteRoomChargeTarget.set(null);
+    this.resetMutationChangeReason();
     this.schedulePortaledModalPurge();
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
@@ -2684,12 +2716,15 @@ export class OpenTablePageComponent implements OnInit {
       this.toast.showError('ไม่พบรายการค่าห้อง');
       return;
     }
+    const changeReason = this.requiredMutationChangeReason();
+    if (!changeReason) return;
     this.submitBillPanelMutation(
       this.openTableService.deleteRoomCharge({
         shopId: this.shopId,
         sessionId,
         expectedRevision,
         roomChargeId: row.roomChargeId,
+        changeReason,
       }),
       'ลบค่าห้องสำเร็จ',
       sessionId,
@@ -2698,6 +2733,7 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   openEditRoomChargeModal(row: SessionRoomCharge): void {
+    this.resetMutationChangeReason();
     this.editRoomChargeTarget.set(row);
     this.editRoomChargeRateType.set(row.pricingType as RoomChargeRateMode);
     this.editRoomChargeUnitPriceText.set(
@@ -2710,6 +2746,7 @@ export class OpenTablePageComponent implements OnInit {
   closeEditRoomChargeModal(): void {
     this.showEditRoomChargeModal.set(false);
     this.editRoomChargeTarget.set(null);
+    this.resetMutationChangeReason();
     this.schedulePortaledModalPurge();
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
@@ -2751,6 +2788,8 @@ export class OpenTablePageComponent implements OnInit {
       }
       unitPrice = parsed;
     }
+    const changeReason = this.requiredMutationChangeReason();
+    if (!changeReason) return;
     this.submitBillPanelMutation(
       this.openTableService.updateRoomCharge({
         shopId: this.shopId,
@@ -2759,6 +2798,7 @@ export class OpenTablePageComponent implements OnInit {
         roomChargeId: row.roomChargeId,
         rateType,
         unitPrice,
+        changeReason,
       }),
       'แก้ไขค่าห้องสำเร็จ',
       sessionId,
@@ -2767,6 +2807,7 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   openStopDrinkModal(row: SessionStaffDrink): void {
+    this.resetMutationChangeReason();
     this.stopDrinkTarget.set(row);
     this.stopSeatTime.set(currentDatetimeLocalValue());
     this.stopSeatTimeValidated.set(false);
@@ -2785,6 +2826,7 @@ export class OpenTablePageComponent implements OnInit {
     this.stopDrinkPreview.set(null);
     this.showStopDrinkModal.set(false);
     this.stopDrinkTarget.set(null);
+    this.resetMutationChangeReason();
     this.forcePurgeBodyModals();
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
@@ -2858,6 +2900,8 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
     this.stopSeatTimeValidated.set(false);
+    const changeReason = this.requiredMutationChangeReason();
+    if (!changeReason) return;
     this.submitBillPanelMutation(
       this.openTableService.stopStaffDrink({
         shopId: this.shopId,
@@ -2865,6 +2909,7 @@ export class OpenTablePageComponent implements OnInit {
         expectedRevision,
         staffDrinkId: row.staffDrinkId,
         seatStoppedAt,
+        changeReason,
       }),
       'สต็อปดื่มสำเร็จ',
       sessionId,
@@ -2874,6 +2919,7 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   openReturnBeverageModal(item: SessionOrderItem): void {
+    this.resetMutationChangeReason();
     this.returnBeverageTarget.set(item);
     this.returnBeverageQtyText.set('1');
     this.showReturnBeverageModal.set(true);
@@ -2883,6 +2929,7 @@ export class OpenTablePageComponent implements OnInit {
   closeReturnBeverageModal(): void {
     this.showReturnBeverageModal.set(false);
     this.returnBeverageTarget.set(null);
+    this.resetMutationChangeReason();
     this.schedulePortaledModalPurge();
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
@@ -2953,6 +3000,7 @@ export class OpenTablePageComponent implements OnInit {
     }
 
     const key = this.billItemKey(selected);
+    this.resetMutationChangeReason();
     this.packageBottleBillItemKey.set(key);
     this.packageBottleDisplayNameText.set(this.defaultLiquorDisplayName(selected));
     this.packageBottleQtyText.set('1');
@@ -2979,6 +3027,7 @@ export class OpenTablePageComponent implements OnInit {
     this.packageBottleBillItemKey.set(null);
     this.packageBottleDisplayNameText.set('');
     this.packageBottleQtyText.set('1');
+    this.resetMutationChangeReason();
     this.schedulePortaledModalPurge();
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
@@ -3038,6 +3087,8 @@ export class OpenTablePageComponent implements OnInit {
       );
       return;
     }
+    const changeReason = this.requiredMutationChangeReason();
+    if (!changeReason) return;
     this.submitBillPanelMutation(
       this.openTableService.adjustPackageBottles({
         shopId: this.shopId,
@@ -3052,6 +3103,7 @@ export class OpenTablePageComponent implements OnInit {
         action,
         quantity,
         displayName,
+        changeReason,
       }),
       action === 'WITHDRAW' ? 'เบิกขวดสำเร็จ' : 'ฝากขวดสำเร็จ',
       sessionId,
@@ -3060,6 +3112,7 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   openVoidItemModal(item: SessionOrderItem): void {
+    this.resetMutationChangeReason();
     this.voidItemTarget.set(item);
     this.voidItemQtyText.set('1');
     this.showVoidItemModal.set(true);
@@ -3069,6 +3122,7 @@ export class OpenTablePageComponent implements OnInit {
   closeVoidItemModal(): void {
     this.showVoidItemModal.set(false);
     this.voidItemTarget.set(null);
+    this.resetMutationChangeReason();
     this.schedulePortaledModalPurge();
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
@@ -3101,11 +3155,14 @@ export class OpenTablePageComponent implements OnInit {
       this.toast.showError(`ลบได้ไม่เกิน ${item.quantity} ${item.unitLabel}`);
       return;
     }
+    const changeReason = this.requiredMutationChangeReason();
+    if (!changeReason) return;
     this.submitBillPanelMutation(
       this.openTableService.voidSessionItems({
         shopId: this.shopId,
         sessionId,
         expectedRevision,
+        changeReason,
         items: [
           {
             itemType: item.itemType,
@@ -3125,6 +3182,7 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   openDeleteStaffDrinkModal(row: SessionStaffDrink): void {
+    this.resetMutationChangeReason();
     this.deleteStaffDrinkTarget.set(row);
     this.showDeleteStaffDrinkModal.set(true);
     this.showMobileSheet.set(false);
@@ -3133,6 +3191,7 @@ export class OpenTablePageComponent implements OnInit {
   closeDeleteStaffDrinkModal(): void {
     this.showDeleteStaffDrinkModal.set(false);
     this.deleteStaffDrinkTarget.set(null);
+    this.resetMutationChangeReason();
     this.schedulePortaledModalPurge();
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
@@ -3152,12 +3211,15 @@ export class OpenTablePageComponent implements OnInit {
       this.toast.showError('ไม่พบรายการรันดื่ม');
       return;
     }
+    const changeReason = this.requiredMutationChangeReason();
+    if (!changeReason) return;
     this.submitBillPanelMutation(
       this.openTableService.deleteStaffDrink({
         shopId: this.shopId,
         sessionId,
         expectedRevision,
         staffDrinkId: row.staffDrinkId,
+        changeReason,
       }),
       'ลบรายการรันดื่มสำเร็จ',
       sessionId,
@@ -3166,6 +3228,7 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   openEditStaffDrinkModal(row: SessionStaffDrink): void {
+    this.resetMutationChangeReason();
     this.editStaffDrinkTarget.set(row);
     const stored = row.storedDrinksCount ?? row.drinks;
     this.editStaffDrinkQtyText.set(String(Math.max(0, stored)));
@@ -3176,6 +3239,7 @@ export class OpenTablePageComponent implements OnInit {
   closeEditStaffDrinkModal(): void {
     this.showEditStaffDrinkModal.set(false);
     this.editStaffDrinkTarget.set(null);
+    this.resetMutationChangeReason();
     this.schedulePortaledModalPurge();
     if (this.selectedSeatKey()) {
       this.showMobileSheet.set(true);
@@ -3209,6 +3273,8 @@ export class OpenTablePageComponent implements OnInit {
       this.toast.showError('จำนวนดื่มไม่ถูกต้อง');
       return;
     }
+    const changeReason = this.requiredMutationChangeReason();
+    if (!changeReason) return;
     this.submitBillPanelMutation(
       this.openTableService.adjustStaffDrink({
         shopId: this.shopId,
@@ -3216,6 +3282,7 @@ export class OpenTablePageComponent implements OnInit {
         expectedRevision,
         staffDrinkId: row.staffDrinkId,
         drinksCount,
+        changeReason,
       }),
       drinksCount === 0 ? 'ลบรายการรันดื่มสำเร็จ' : 'แก้ไขจำนวนดื่มสำเร็จ',
       sessionId,
@@ -3240,6 +3307,8 @@ export class OpenTablePageComponent implements OnInit {
       this.toast.showError(`คืนได้ไม่เกิน ${item.quantity} ${item.unitLabel}`);
       return;
     }
+    const changeReason = this.requiredMutationChangeReason();
+    if (!changeReason) return;
     this.submitBillPanelMutation(
       this.openTableService.returnBeverage({
         shopId: this.shopId,
@@ -3249,6 +3318,7 @@ export class OpenTablePageComponent implements OnInit {
         unitPrice: item.unitPrice,
         isFreeMixer: Boolean(item.isFreeMixer),
         quantity,
+        changeReason,
       }),
       'คืนเครื่องดื่มสำเร็จ',
       sessionId,

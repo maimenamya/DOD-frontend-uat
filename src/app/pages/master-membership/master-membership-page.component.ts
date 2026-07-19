@@ -85,6 +85,7 @@ export class MasterMembershipPageComponent implements OnInit {
     isFreeMixer: [false],
     allowDeposit: [false],
     freeDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    changeReason: ['', Validators.minLength(3)],
   });
 
   readonly editForm = this.fb.group({
@@ -94,6 +95,7 @@ export class MasterMembershipPageComponent implements OnInit {
     isFreeMixer: [false],
     allowDeposit: [false],
     freeDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    changeReason: ['', Validators.minLength(3)],
   });
 
   get createItems(): FormArray<DrinkPackageLineForm> {
@@ -174,6 +176,7 @@ export class MasterMembershipPageComponent implements OnInit {
       isFreeMixer: item.isFreeMixer,
       allowDeposit: item.allowDeposit ?? false,
       freeDrinks: String(item.freeDrinks ?? 0),
+      changeReason: '',
     });
     this.editingItem.set(item);
   }
@@ -234,6 +237,7 @@ export class MasterMembershipPageComponent implements OnInit {
       isFreeMixer: raw.isFreeMixer,
       allowDeposit: raw.allowDeposit,
       freeDrinks: Number.parseInt(raw.freeDrinks, 10),
+      changeReason: raw.changeReason.trim(),
     };
     this.shopMaster.updateMembership(item.id, payload).subscribe({
       next: () => {
@@ -250,9 +254,9 @@ export class MasterMembershipPageComponent implements OnInit {
   }
 
   async confirmDelete(item: MstMembership): Promise<void> {
-    const ok = await this.confirmDialog.confirmDelete(`เมมเบอร์ "${item.name}"`);
-    if (!ok) return;
-    this.shopMaster.deleteMembership(item.id).subscribe({
+    const changeReason = await this.confirmDialog.confirmDeleteWithReason(`เมมเบอร์ "${item.name}"`);
+    if (!changeReason) return;
+    this.shopMaster.deleteMembership(item.id, changeReason).subscribe({
       next: () => {
         this.toast.showSuccess('ลบเมมเบอร์เรียบร้อย');
         this.loadItems();

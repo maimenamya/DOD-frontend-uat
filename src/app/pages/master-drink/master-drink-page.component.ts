@@ -103,6 +103,7 @@ export class MasterDrinkPageComponent implements OnInit {
     unitLabelTh: ['', Validators.required],
     canReturn: [false],
     stockItemId: [0],
+    changeReason: ['', Validators.minLength(3)],
   });
 
   ngOnInit(): void {
@@ -173,6 +174,7 @@ export class MasterDrinkPageComponent implements OnInit {
       unitLabelTh: item.unitLabelTh || '',
       canReturn: Boolean(item.canReturn),
       stockItemId: item.stockItemId ?? item.stockItem?.id ?? 0,
+      changeReason: '',
     });
     this.editingBeverage.set(item);
   }
@@ -223,7 +225,7 @@ export class MasterDrinkPageComponent implements OnInit {
     if (!item || this.submitting()) return;
     if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
-    const { name, price, unitLabelTh, canReturn, stockItemId } = this.editForm.getRawValue();
+    const { name, price, unitLabelTh, canReturn, stockItemId, changeReason } = this.editForm.getRawValue();
     this.beverageService
       .updateBeverage(item.id, {
         name,
@@ -231,6 +233,7 @@ export class MasterDrinkPageComponent implements OnInit {
         unitLabelTh: unitLabelTh.trim(),
         canReturn,
         stockItemId: this.resolveStockItemId(stockItemId),
+        changeReason: changeReason.trim(),
       })
       .subscribe({
         next: () => {
@@ -247,9 +250,9 @@ export class MasterDrinkPageComponent implements OnInit {
   }
 
   async confirmDelete(item: MstBeverage): Promise<void> {
-    const ok = await this.confirmDialog.confirmDelete(`เครื่องดื่ม "${item.name}"`);
-    if (!ok) return;
-    this.beverageService.deleteBeverage(item.id).subscribe({
+    const changeReason = await this.confirmDialog.confirmDeleteWithReason(`เครื่องดื่ม "${item.name}"`);
+    if (!changeReason) return;
+    this.beverageService.deleteBeverage(item.id, changeReason).subscribe({
       next: () => {
         this.toast.showSuccess('ลบเครื่องดื่มเรียบร้อย');
         this.loadItems();

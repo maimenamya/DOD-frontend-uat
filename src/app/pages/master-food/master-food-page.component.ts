@@ -76,6 +76,7 @@ export class MasterFoodPageComponent implements OnInit {
   readonly editForm = this.fb.group({
     name: ['', Validators.required],
     price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    changeReason: ['', Validators.minLength(3)],
   });
 
   ngOnInit(): void {
@@ -142,6 +143,7 @@ export class MasterFoodPageComponent implements OnInit {
     this.editForm.reset({
       name: item.name,
       price: String(item.price),
+      changeReason: '',
     });
     this.editingItem.set(item);
   }
@@ -182,9 +184,14 @@ export class MasterFoodPageComponent implements OnInit {
     if (!item || this.submitting()) return;
     if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
-    const { name, price } = this.editForm.getRawValue();
+    const { name, price, changeReason } = this.editForm.getRawValue();
     this.shopMaster
-      .updateFood(item.id, { name, price: Number.parseInt(price, 10), categoryId: item.categoryId })
+      .updateFood(item.id, {
+        name,
+        price: Number.parseInt(price, 10),
+        categoryId: item.categoryId,
+        changeReason: changeReason.trim(),
+      })
       .subscribe({
       next: () => {
         this.submitting.set(false);
@@ -200,9 +207,9 @@ export class MasterFoodPageComponent implements OnInit {
   }
 
   async confirmDelete(item: MstFood): Promise<void> {
-    const ok = await this.confirmDialog.confirmDelete(`อาหาร "${item.name}"`);
-    if (!ok) return;
-    this.shopMaster.deleteFood(item.id).subscribe({
+    const changeReason = await this.confirmDialog.confirmDeleteWithReason(`อาหาร "${item.name}"`);
+    if (!changeReason) return;
+    this.shopMaster.deleteFood(item.id, changeReason).subscribe({
       next: () => {
         this.toast.showSuccess('ลบอาหารเรียบร้อย');
         this.loadItems();

@@ -28,7 +28,9 @@ export class BeverageService {
     return this.http.put<MstBeverage>(this.api.resource(`beverages/${id}`), payload);
   }
 
-  deleteBeverage(id: number): Observable<void> {
-    return this.http.delete<void>(this.api.resource(`beverages/${id}`));
+  deleteBeverage(id: number, changeReason: string): Observable<void> {
+    return this.http.delete<void>(this.api.resource(`beverages/${id}`), {
+      body: { changeReason },
+    });
   }
 }

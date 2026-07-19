@@ -142,6 +142,15 @@
             (input)="sanitizeIntegerInput('edit', 'freeDrinks', $event)"
           />
         </div>
+        <div class="app-form-group">
+          <label class="app-label">เหตุผลการแก้ไข/ลบ</label>
+          <textarea
+            rows="3"
+            formControlName="changeReason"
+            class="app-input app-scroll-region"
+            placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
+          ></textarea>
+        </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
           <button type="submit" class="app-btn-primary" [disabled]="submitting()">

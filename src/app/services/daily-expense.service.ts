@@ -4,7 +4,9 @@ import { Observable } from 'rxjs';
 
 import { ApiConfig } from '../core/api-config';
 import type {
+  DailyExpenseDeletePayload,
   DailyExpenseListResponse,
+  DailyExpenseUpdatePayload,
   DailyExpenseWritePayload,
   TxnDailyExpense,
 } from '../models/daily-expense';
@@ -25,11 +27,13 @@ export class DailyExpenseService {
     return this.http.post<TxnDailyExpense>(this.api.resource('daily-expenses'), payload);
   }
 
-  update(id: number, payload: Partial<DailyExpenseWritePayload>): Observable<TxnDailyExpense> {
+  update(id: number, payload: DailyExpenseUpdatePayload): Observable<TxnDailyExpense> {
     return this.http.put<TxnDailyExpense>(this.api.resource('daily-expenses', String(id)), payload);
   }
 
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(this.api.resource('daily-expenses', String(id)));
+  delete(id: number, payload: DailyExpenseDeletePayload): Observable<void> {
+    return this.http.delete<void>(this.api.resource('daily-expenses', String(id)), {
+      body: payload,
+    });
   }
 }

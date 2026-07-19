@@ -58,6 +58,7 @@ export class MasterCocktailPageComponent implements OnInit {
     name: ['', Validators.required],
     drinkValue: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     unitLabelTh: ['แก้ว', Validators.required],
+    changeReason: ['', Validators.minLength(3)],
   });
 
   ngOnInit(): void {
@@ -98,6 +99,7 @@ export class MasterCocktailPageComponent implements OnInit {
       name: item.name,
       drinkValue: String(item.drinkValue),
       unitLabelTh: item.unitLabelTh || 'แก้ว',
+      changeReason: '',
     });
     this.editingItem.set(item);
   }
@@ -136,12 +138,13 @@ export class MasterCocktailPageComponent implements OnInit {
     if (!item || this.submitting()) return;
     if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
-    const { name, drinkValue, unitLabelTh } = this.editForm.getRawValue();
+    const { name, drinkValue, unitLabelTh, changeReason } = this.editForm.getRawValue();
     this.shopMaster
       .updateCocktail(item.id, {
         name: name.trim(),
         drinkValue: Number.parseInt(drinkValue, 10),
         unitLabelTh: unitLabelTh.trim(),
+        changeReason: changeReason.trim(),
       })
       .subscribe({
         next: () => {
@@ -158,9 +161,9 @@ export class MasterCocktailPageComponent implements OnInit {
   }
 
   async confirmDelete(item: MstCocktail): Promise<void> {
-    const ok = await this.confirmDialog.confirmDelete(`ค็อกเทล "${item.name}"`);
-    if (!ok) return;
-    this.shopMaster.deleteCocktail(item.id).subscribe({
+    const changeReason = await this.confirmDialog.confirmDeleteWithReason(`ค็อกเทล "${item.name}"`);
+    if (!changeReason) return;
+    this.shopMaster.deleteCocktail(item.id, changeReason).subscribe({
       next: () => {
         this.toast.showSuccess('ลบค็อกเทลเรียบร้อย');
         this.loadItems();

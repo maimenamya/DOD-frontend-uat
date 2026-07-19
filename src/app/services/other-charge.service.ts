@@ -27,7 +27,9 @@ export class OtherChargeService {
     return this.http.put<MstOtherCharge>(this.api.resource(`other-charges/${id}`), payload);
   }
 
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(this.api.resource(`other-charges/${id}`));
+  delete(id: number, changeReason: string): Observable<void> {
+    return this.http.delete<void>(this.api.resource(`other-charges/${id}`), {
+      body: { changeReason },
+    });
   }
 }

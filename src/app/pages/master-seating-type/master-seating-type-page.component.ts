@@ -54,12 +54,14 @@ export class MasterSeatingTypePageComponent implements OnInit {
     name: ['', Validators.required],
     code: ['', Validators.required],
     description: [''],
+    changeReason: [''],
   });
 
   readonly editForm = this.fb.group({
     name: ['', Validators.required],
     code: ['', Validators.required],
     description: [''],
+    changeReason: ['', Validators.minLength(3)],
   });
 
   ngOnInit(): void {
@@ -100,6 +102,7 @@ export class MasterSeatingTypePageComponent implements OnInit {
       name: item.name,
       code: item.code,
       description: item.description ?? '',
+      changeReason: '',
     });
     this.editingItem.set(item);
   }
@@ -108,7 +111,7 @@ export class MasterSeatingTypePageComponent implements OnInit {
     this.editingItem.set(null);
   }
 
-  private payloadFromForm(form: typeof this.createForm) {
+  private payloadFromForm(form: typeof this.createForm, includeChangeReason = false) {
     const raw = form.getRawValue();
     return {
       name: raw.name,
@@ -117,6 +120,7 @@ export class MasterSeatingTypePageComponent implements OnInit {
       rateType: 'NONE' as const,
       basePrice: 0,
       minimumSpend: 0,
+      ...(includeChangeReason ? { changeReason: raw.changeReason.trim() } : {}),
     };
   }
 
@@ -143,7 +147,7 @@ export class MasterSeatingTypePageComponent implements OnInit {
     if (!item || this.submitting()) return;
     if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
-    this.shopMaster.updateSeatingType(item.id, this.payloadFromForm(this.editForm)).subscribe({
+    this.shopMaster.updateSeatingType(item.id, this.payloadFromForm(this.editForm, true)).subscribe({
       next: () => {
         this.submitting.set(false);
         this.closeEdit();
@@ -158,9 +162,9 @@ export class MasterSeatingTypePageComponent implements OnInit {
   }
 
   async confirmDelete(item: MstSeatingType): Promise<void> {
-    const ok = await this.confirmDialog.confirmDelete(`ประเภท "${item.name}"`);
-    if (!ok) return;
-    this.shopMaster.deleteSeatingType(item.id).subscribe({
+    const changeReason = await this.confirmDialog.confirmDeleteWithReason(`ประเภท "${item.name}"`);
+    if (!changeReason) return;
+    this.shopMaster.deleteSeatingType(item.id, changeReason).subscribe({
       next: () => {
         this.toast.showSuccess('ลบประเภทที่นั่งเรียบร้อย');
         this.loadItems();

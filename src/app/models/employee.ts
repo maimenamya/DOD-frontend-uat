@@ -61,4 +61,5 @@ export interface UpdateEmployeePayload {
   status?: string;
   roleId?: number;
   password?: string;
+  changeReason?: string;
 }

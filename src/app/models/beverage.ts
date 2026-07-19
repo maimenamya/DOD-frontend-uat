@@ -50,6 +50,7 @@ export interface MstBeverageUpdatePayload {
   unitLabelTh?: string;
   canReturn?: boolean;
   stockItemId?: number | null;
+  changeReason?: string;
 }
 
 export interface MstBeverageCategoryCreatePayload {

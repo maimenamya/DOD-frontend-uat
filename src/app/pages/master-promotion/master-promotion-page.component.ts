@@ -85,6 +85,7 @@ export class MasterPromotionPageComponent implements OnInit {
     isFreeMixer: [false],
     allowDeposit: [false],
     freeDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    changeReason: ['', Validators.minLength(3)],
   });
 
   readonly editForm = this.fb.group({
@@ -94,6 +95,7 @@ export class MasterPromotionPageComponent implements OnInit {
     isFreeMixer: [false],
     allowDeposit: [false],
     freeDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    changeReason: ['', Validators.minLength(3)],
   });
 
   get createItems(): FormArray<DrinkPackageLineForm> {
@@ -179,6 +181,7 @@ export class MasterPromotionPageComponent implements OnInit {
       isFreeMixer: item.isFreeMixer,
       allowDeposit: item.allowDeposit ?? false,
       freeDrinks: String(item.freeDrinks ?? 0),
+      changeReason: '',
     });
     this.editingItem.set(item);
   }
@@ -239,6 +242,7 @@ export class MasterPromotionPageComponent implements OnInit {
       isFreeMixer: raw.isFreeMixer,
       allowDeposit: raw.allowDeposit,
       freeDrinks: Number.parseInt(raw.freeDrinks, 10),
+      changeReason: raw.changeReason.trim(),
     };
     this.shopMaster.updatePromotion(item.id, payload).subscribe({
       next: () => {
@@ -255,9 +259,9 @@ export class MasterPromotionPageComponent implements OnInit {
   }
 
   async confirmDelete(item: MstPromotion): Promise<void> {
-    const ok = await this.confirmDialog.confirmDelete(`โปรโมชั่น "${item.name}"`);
-    if (!ok) return;
-    this.shopMaster.deletePromotion(item.id).subscribe({
+    const changeReason = await this.confirmDialog.confirmDeleteWithReason(`โปรโมชั่น "${item.name}"`);
+    if (!changeReason) return;
+    this.shopMaster.deletePromotion(item.id, changeReason).subscribe({
       next: () => {
         this.toast.showSuccess('ลบโปรโมชั่นเรียบร้อย');
         this.loadItems();

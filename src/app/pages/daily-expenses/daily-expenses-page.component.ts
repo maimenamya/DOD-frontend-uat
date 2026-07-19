@@ -4,6 +4,8 @@ import { MasterListSkeletonComponent } from '../../components/master-list-skelet
 import {
   highlightInvalidForm,
   resetFormValidationFlag,
+  showControlError,
+  controlErrorMessage,
 } from '../../utils/form-validation.util';
 import { FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -57,6 +59,8 @@ export class DailyExpensesPageComponent implements OnInit {
     `${item.description} ${item.businessDateLabel} ${item.businessDate}`,
   );
   readonly masterListRowNumber = masterListRowNumber;
+  readonly showControlError = showControlError;
+  readonly controlErrorMessage = controlErrorMessage;
   readonly totalAmount = signal(0);
   readonly loading = signal(true);
   readonly submitting = signal(false);
@@ -77,6 +81,7 @@ export class DailyExpensesPageComponent implements OnInit {
     description: ['', Validators.required],
     amount: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     businessDate: ['', Validators.required],
+    changeReason: ['', [Validators.required, Validators.minLength(3)]],
   });
 
   ngOnInit(): void {
@@ -146,6 +151,7 @@ export class DailyExpensesPageComponent implements OnInit {
       description: item.description,
       amount: String(item.amount),
       businessDate: item.businessDate,
+      changeReason: '',
     });
     this.editingItem.set(item);
   }
@@ -160,6 +166,16 @@ export class DailyExpensesPageComponent implements OnInit {
       description: raw.description.trim(),
       amount: Number.parseInt(raw.amount, 10),
       businessDate: raw.businessDate,
+    };
+  }
+
+  private editPayloadFromForm() {
+    const raw = this.editForm.getRawValue();
+    return {
+      description: raw.description.trim(),
+      amount: Number.parseInt(raw.amount, 10),
+      businessDate: raw.businessDate,
+      changeReason: raw.changeReason.trim(),
     };
   }
 
@@ -186,7 +202,7 @@ export class DailyExpensesPageComponent implements OnInit {
     if (!item || this.submitting()) return;
     if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
-    this.dailyExpenseService.update(item.id, this.payloadFromForm(this.editForm)).subscribe({
+    this.dailyExpenseService.update(item.id, this.editPayloadFromForm()).subscribe({
       next: () => {
         this.submitting.set(false);
         this.closeEdit();
@@ -201,11 +217,11 @@ export class DailyExpensesPageComponent implements OnInit {
   }
 
   async confirmDelete(item: TxnDailyExpense): Promise<void> {
-    const ok = await this.confirmDialog.confirmDelete(
+    const changeReason = await this.confirmDialog.confirmDeleteWithReason(
       `รายการ "${item.description}" วันที่ ${item.businessDateLabel}`,
     );
-    if (!ok) return;
-    this.dailyExpenseService.delete(item.id).subscribe({
+    if (!changeReason) return;
+    this.dailyExpenseService.delete(item.id, { changeReason }).subscribe({
       next: () => {
         this.toast.showSuccess('ลบรายการเรียบร้อย');
         this.loadItems();

@@ -31,7 +31,9 @@ export class RoleService {
     return this.http.put<MstRole>(this.api.resource(`roles/${id}`), payload);
   }
 
-  deleteRole(id: number): Observable<void> {
-    return this.http.delete<void>(this.api.resource(`roles/${id}`));
+  deleteRole(id: number, changeReason: string): Observable<void> {
+    return this.http.delete<void>(this.api.resource(`roles/${id}`), {
+      body: { changeReason },
+    });
   }
 }

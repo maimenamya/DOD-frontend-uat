@@ -122,6 +122,19 @@
             formControlName="businessDate"
           />
         </div>
+        <div class="app-form-group">
+          <label class="app-label" for="expense-edit-reason">เหตุผลการแก้ไข/ลบ</label>
+          <textarea
+            id="expense-edit-reason"
+            rows="3"
+            formControlName="changeReason"
+            class="app-input app-scroll-region"
+            placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
+          ></textarea>
+          @if (showControlError(editForm.controls.changeReason, editFormValidated())) {
+            <p class="app-field-error">{{ controlErrorMessage(editForm.controls.changeReason) }}</p>
+          }
+        </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
           <button type="submit" class="app-btn-primary" [disabled]="submitting()">

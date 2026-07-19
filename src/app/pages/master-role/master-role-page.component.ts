@@ -138,6 +138,7 @@ export class MasterRolePageComponent implements OnInit {
       drinkShopPortionBaht: '60',
       attendanceLeaveQuotaPerMonth: '0',
       workDuties: [],
+      changeReason: '',
     });
     this.showCreateModal.set(true);
   }
@@ -161,6 +162,7 @@ export class MasterRolePageComponent implements OnInit {
       drinkShopPortionBaht: String(role.drinkShopPortionBaht ?? 60),
       attendanceLeaveQuotaPerMonth: String(role.attendanceLeaveQuotaPerMonth ?? 0),
       workDuties: parseStaffWorkDuties(role.workDuties ?? []),
+      changeReason: '',
     });
     this.editingRole.set(role);
     if (lockPermissionGroup) {
@@ -214,7 +216,10 @@ export class MasterRolePageComponent implements OnInit {
     if (!role || this.submitting()) return;
     if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
-    const payload = this.buildPayload(this.editForm);
+    const payload = {
+      ...this.buildPayload(this.editForm),
+      changeReason: this.editForm.controls.changeReason.value.trim(),
+    };
     this.roleService.updateRole(role.id, payload).subscribe({
       next: () => {
         this.submitting.set(false);
@@ -231,9 +236,9 @@ export class MasterRolePageComponent implements OnInit {
 
   async confirmDelete(role: MstRole): Promise<void> {
     if (!this.canDeleteRole(role)) return;
-    const ok = await this.confirmDialog.confirmDelete(`ตำแหน่ง "${role.name}"`);
-    if (!ok) return;
-    this.roleService.deleteRole(role.id).subscribe({
+    const changeReason = await this.confirmDialog.confirmDeleteWithReason(`ตำแหน่ง "${role.name}"`);
+    if (!changeReason) return;
+    this.roleService.deleteRole(role.id, changeReason).subscribe({
       next: () => {
         this.toast.showSuccess('ลบตำแหน่งเรียบร้อย');
         this.loadRoles();
@@ -285,6 +290,7 @@ export class MasterRolePageComponent implements OnInit {
       drinkShopPortionBaht: ['60', [Validators.pattern(/^\d+$/)]],
       attendanceLeaveQuotaPerMonth: ['0', [Validators.pattern(/^\d+$/)]],
       workDuties: [[] as WorkDuty[]],
+      changeReason: ['', Validators.minLength(3)],
     });
   }
 

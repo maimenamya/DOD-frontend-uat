@@ -4,6 +4,8 @@ import { MasterListSkeletonComponent } from '../../components/master-list-skelet
 import {
   highlightInvalidForm,
   resetFormValidationFlag,
+  showControlError,
+  controlErrorMessage,
 } from '../../utils/form-validation.util';
 import {
   NonNullableFormBuilder,
@@ -45,6 +47,8 @@ export class StockPageComponent implements OnInit {
     `${row.name} ${row.unitLabelTh}`,
   );
   readonly masterListRowNumber = masterListRowNumber;
+  readonly showControlError = showControlError;
+  readonly controlErrorMessage = controlErrorMessage;
   readonly loading = signal(true);
   readonly submitting = signal(false);
   readonly createFormValidated = signal(false);
@@ -62,10 +66,12 @@ export class StockPageComponent implements OnInit {
     name: ['', Validators.required],
     unitLabelTh: ['ขวด', Validators.required],
     quantityOnHand: ['1', [Validators.required, Validators.pattern(/^[1-9]\d*$/)]],
+    adjustNote: ['', [Validators.required, Validators.minLength(3)]],
   });
 
   readonly editForm = this.fb.group({
     quantityOnHand: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
+    adjustNote: ['', [Validators.required, Validators.minLength(3)]],
   });
 
   ngOnInit(): void {
@@ -88,7 +94,7 @@ export class StockPageComponent implements OnInit {
 
   openCreate(): void {
     resetFormValidationFlag(this.createFormValidated);
-    this.createForm.reset({ name: '', unitLabelTh: 'ขวด', quantityOnHand: '1' });
+    this.createForm.reset({ name: '', unitLabelTh: 'ขวด', quantityOnHand: '1', adjustNote: '' });
     this.showCreateModal.set(true);
   }
 
@@ -99,7 +105,7 @@ export class StockPageComponent implements OnInit {
   openEdit(item: MstStockItem): void {
     resetFormValidationFlag(this.editFormValidated);
     this.editingItem.set(item);
-    this.editForm.reset({ quantityOnHand: String(item.quantityOnHand) });
+    this.editForm.reset({ quantityOnHand: String(item.quantityOnHand), adjustNote: '' });
   }
 
   closeEdit(): void {
@@ -124,6 +130,7 @@ export class StockPageComponent implements OnInit {
     const name = this.createForm.controls.name.value.trim();
     const unitLabelTh = this.createForm.controls.unitLabelTh.value.trim();
     const quantityOnHand = Number(this.createForm.controls.quantityOnHand.value);
+    const adjustNote = this.createForm.controls.adjustNote.value.trim();
 
     this.submitting.set(true);
     this.stockService
@@ -131,6 +138,7 @@ export class StockPageComponent implements OnInit {
         name,
         unitLabelTh,
         quantityOnHand,
+        adjustNote,
       })
       .subscribe({
         next: () => {
@@ -153,10 +161,12 @@ export class StockPageComponent implements OnInit {
     if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
 
     const quantityOnHand = Number(this.editForm.controls.quantityOnHand.value);
+    const adjustNote = this.editForm.controls.adjustNote.value.trim();
     this.submitting.set(true);
     this.stockService
       .updateQuantity(item.id, {
         quantityOnHand,
+        adjustNote,
       })
       .subscribe({
         next: () => {
@@ -179,14 +189,14 @@ export class StockPageComponent implements OnInit {
       linked > 0
         ? ` เมนู ${linked} รายการที่ผูกอยู่จะเลิกผูกสต็อก (ไม่ลบเมนู).`
         : '';
-    const ok = await this.confirmDialog.confirm({
+    const changeReason = await this.confirmDialog.confirmWithReason({
       title: 'ลบรายการสต็อก',
       message: `ลบ "${item.name}" ออกจากสต็อก?${linkedHint}`,
       confirmLabel: 'ลบ',
     });
-    if (!ok) return;
+    if (!changeReason) return;
 
-    this.stockService.remove(item.id).subscribe({
+    this.stockService.remove(item.id, { changeReason }).subscribe({
       next: () => {
         this.toast.showSuccess('ลบรายการสต็อกแล้ว');
         this.reload();
