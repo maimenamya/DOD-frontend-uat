@@ -4290,11 +4290,65 @@
   }
 
   .accept-privacy-consent {
-    @apply flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-text-primary;
+    @apply flex cursor-pointer items-start gap-3;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  .accept-privacy-consent input {
-    @apply mt-1 shrink-0;
+  /* Global `input { appearance: none }` hides native checkboxes */
+  .accept-privacy-check-control {
+    position: relative;
+    flex-shrink: 0;
+    width: 1.125rem;
+    height: 1.125rem;
+    margin-top: 0.15rem;
+  }
+
+  .accept-privacy-check-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 1;
+  }
+
+  .accept-privacy-check-indicator {
+    position: absolute;
+    inset: 0;
+    border: 2px solid color-mix(in srgb, var(--text-secondary) 55%, var(--border));
+    border-radius: 0.25rem;
+    background: var(--bg-secondary, var(--surface));
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    transition:
+      border-color 0.15s,
+      background 0.15s;
+  }
+
+  .accept-privacy-check-input:checked + .accept-privacy-check-indicator {
+    border-color: var(--primary);
+    background: var(--primary);
+  }
+
+  .accept-privacy-check-input:checked + .accept-privacy-check-indicator::after {
+    content: '';
+    width: 0.35rem;
+    height: 0.55rem;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg) translate(-1px, -1px);
+  }
+
+  .accept-privacy-check-input:focus-visible + .accept-privacy-check-indicator {
+    outline: 2px solid color-mix(in srgb, var(--primary-light) 70%, #ffffff);
+    outline-offset: 2px;
+  }
+
+  .accept-privacy-check-label {
+    @apply text-sm leading-relaxed text-text-primary;
   }
 
   .app-profile-hint {

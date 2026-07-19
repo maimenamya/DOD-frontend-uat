@@ -20,13 +20,17 @@
 
     <form class="accept-privacy-card__footer" (ngSubmit)="submit()">
       <label class="accept-privacy-consent">
-        <input
-          type="checkbox"
-          [ngModel]="agreed()"
-          (ngModelChange)="agreed.set($event)"
-          name="agreed"
-        />
-        <span>{{ checkboxLabel }}</span>
+        <span class="accept-privacy-check-control">
+          <input
+            type="checkbox"
+            class="accept-privacy-check-input"
+            [ngModel]="agreed()"
+            (ngModelChange)="agreed.set($event)"
+            name="agreed"
+          />
+          <span class="accept-privacy-check-indicator" aria-hidden="true"></span>
+        </span>
+        <span class="accept-privacy-check-label">{{ checkboxLabel }}</span>
       </label>
 
       <button
