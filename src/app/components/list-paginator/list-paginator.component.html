@@ -16,12 +16,24 @@
         (ngModelChange)="onLimitChange($event)"
       />
     </label>
-    <button type="button" class="app-btn-secondary-sm" [disabled]="!canGoPrev()" (click)="goPrev()">
-      ก่อนหน้า
-    </button>
-    <span class="app-list-paginator-page">หน้า {{ page() }} / {{ totalPages() }}</span>
-    <button type="button" class="app-btn-secondary-sm" [disabled]="!canGoNext()" (click)="goNext()">
-      ถัดไป
-    </button>
+    <div class="app-list-paginator-nav" aria-label="เปลี่ยนหน้า">
+      <button
+        type="button"
+        class="app-btn-secondary-sm app-list-paginator-nav-btn"
+        [disabled]="!canGoPrev()"
+        (click)="goPrev()"
+      >
+        ก่อนหน้า
+      </button>
+      <span class="app-list-paginator-page">หน้า {{ page() }} / {{ totalPages() }}</span>
+      <button
+        type="button"
+        class="app-btn-secondary-sm app-list-paginator-nav-btn"
+        [disabled]="!canGoNext()"
+        (click)="goNext()"
+      >
+        ถัดไป
+      </button>
+    </div>
   </div>
 </div>

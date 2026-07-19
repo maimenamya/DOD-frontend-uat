@@ -1,48 +1,28 @@
 import { Injectable, signal } from '@angular/core';
 
-export type UiTheme = 'light' | 'dark';
+export type UiTheme = 'dark';
 
 const STORAGE_KEY = 'dod-ui-theme';
 
+/** Applies dark theme only — no UI toggle (bar POS). */
 @Injectable({
   providedIn: 'root',
 })
 export class ThemeService {
-  readonly theme = signal<UiTheme>(ThemeService.readStored());
+  readonly theme = signal<UiTheme>('dark');
 
   constructor() {
-    this.apply(this.theme());
-  }
-
-  toggle(): void {
-    this.setTheme(this.theme() === 'dark' ? 'light' : 'dark');
-  }
-
-  setTheme(theme: UiTheme): void {
-    this.theme.set(theme);
+    this.apply('dark');
     try {
-      localStorage.setItem(STORAGE_KEY, theme);
+      localStorage.setItem(STORAGE_KEY, 'dark');
     } catch {
       /* private mode / quota */
     }
-    this.apply(theme);
   }
 
   private apply(theme: UiTheme): void {
     document.documentElement.setAttribute('data-theme', theme);
     document.body.setAttribute('data-theme', theme);
-    document.body.classList.toggle('dark-theme', theme === 'dark');
-  }
-
-  private static readStored(): UiTheme {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored === 'light' || stored === 'dark') {
-        return stored;
-      }
-    } catch {
-      /* SSR / private mode */
-    }
-    return 'dark';
+    document.body.classList.add('dark-theme');
   }
 }

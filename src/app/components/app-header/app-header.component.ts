@@ -12,7 +12,6 @@ import { Router } from '@angular/router';
 import type { AuthBranchOption } from '../../models/auth';
 import { AuthService } from '../../services/auth.service';
 import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
-import { ThemeService } from '../../services/theme.service';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
@@ -23,11 +22,9 @@ import { ToastService } from '../../services/toast.service';
 export class AppHeaderComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly themeService = inject(ThemeService);
   private readonly toast = inject(ToastService);
 
   readonly menuToggle = output<void>();
-  readonly uiTheme = this.themeService.theme;
 
   readonly profileMenuOpen = signal(false);
   readonly branches = signal<AuthBranchOption[]>([]);
@@ -47,10 +44,6 @@ export class AppHeaderComponent implements OnInit {
     const nick = this.displayNickname();
     return nick !== '—' ? nick.charAt(0).toUpperCase() : '?';
   });
-
-  readonly themeToggleAriaLabel = computed(() =>
-    this.uiTheme() === 'dark' ? 'เปลี่ยนเป็นโหมดสว่าง' : 'เปลี่ยนเป็นโหมดมืด',
-  );
 
   ngOnInit(): void {
     const cached = this.auth.getAvailableBranches();
@@ -87,10 +80,6 @@ export class AppHeaderComponent implements OnInit {
   goToProfile(): void {
     this.profileMenuOpen.set(false);
     void this.router.navigate(['/dashboard/my-profile']);
-  }
-
-  toggleTheme(): void {
-    this.themeService.toggle();
   }
 
   selectBranch(shopId: number): void {
