@@ -4294,6 +4294,14 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  .accept-privacy-consent--locked {
+    @apply cursor-not-allowed opacity-60;
+  }
+
+  .accept-privacy-consent--locked .accept-privacy-check-input {
+    cursor: not-allowed;
+  }
+
   /* Global `input { appearance: none }` hides native checkboxes */
   .accept-privacy-check-control {
     position: relative;

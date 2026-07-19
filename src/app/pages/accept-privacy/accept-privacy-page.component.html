@@ -9,7 +9,11 @@
   </div>
 
   <section class="app-card accept-privacy-card">
-    <div class="accept-privacy-card__body app-scroll-region">
+    <div
+      #policyBody
+      class="accept-privacy-card__body app-scroll-region"
+      (scroll)="onPolicyScroll()"
+    >
       @for (section of sections; track section.heading) {
         <div class="accept-privacy-section">
           <h2 class="accept-privacy-section__heading">{{ section.heading }}</h2>
@@ -19,7 +23,10 @@
     </div>
 
     <form class="accept-privacy-card__footer" (ngSubmit)="submit()">
-      <label class="accept-privacy-consent">
+      <label
+        class="accept-privacy-consent"
+        [class.accept-privacy-consent--locked]="!scrolledToEnd()"
+      >
         <span class="accept-privacy-check-control">
           <input
             type="checkbox"
@@ -27,6 +34,7 @@
             [ngModel]="agreed()"
             (ngModelChange)="agreed.set($event)"
             name="agreed"
+            [disabled]="!scrolledToEnd()"
           />
           <span class="accept-privacy-check-indicator" aria-hidden="true"></span>
         </span>
@@ -36,7 +44,7 @@
       <button
         type="submit"
         class="app-btn app-btn-primary"
-        [disabled]="submitting() || !agreed()"
+        [disabled]="submitting() || !agreed() || !scrolledToEnd()"
       >
         @if (submitting()) {
           กำลังบันทึก…
