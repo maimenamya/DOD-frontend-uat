@@ -109,8 +109,22 @@ export class MyProfileComponent implements OnInit {
               : 'บันทึกโปรไฟล์เรียบร้อย',
           );
           this.auth.fetchAccessibleBranches().subscribe({
-            next: () => void this.router.navigate([this.auth.homePathAfterLogin()]),
-            error: () => void this.router.navigate([this.auth.homePathAfterLogin()]),
+            next: () => {
+              const path = this.auth.postLoginPathSegments();
+              if (path.length === 1 && path[0].startsWith('/')) {
+                void this.router.navigateByUrl(path[0]);
+              } else {
+                void this.router.navigate(path);
+              }
+            },
+            error: () => {
+              const path = this.auth.postLoginPathSegments();
+              if (path.length === 1 && path[0].startsWith('/')) {
+                void this.router.navigateByUrl(path[0]);
+              } else {
+                void this.router.navigate(path);
+              }
+            },
           });
         },
         error: (err: { error?: { error?: string } }) => {

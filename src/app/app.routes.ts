@@ -4,6 +4,7 @@ import { authGuard, guestGuard } from './guards/auth.guard';
 import { dashboardHomeGuard } from './guards/dashboard-home.guard';
 import { stationWorkGuard, stationWorkTabGuard } from './guards/station-work.guard';
 import { mustChangePasswordChildGuard } from './guards/must-change-password.guard';
+import { privacyConsentChildGuard } from './guards/privacy-consent.guard';
 import { permissionGuard } from './guards/permission.guard';
 import { openTableGuard } from './guards/open-table.guard';
 import { saleSelfBillGuard } from './guards/sale-self-bill.guard';
@@ -25,6 +26,7 @@ import { MasterPromotionPageComponent } from './pages/master-promotion/master-pr
 import { MasterRolePageComponent } from './pages/master-role/master-role-page.component';
 import { MasterSeatingListPageComponent } from './pages/master-seating-list/master-seating-list-page.component';
 import { MasterSeatingTypePageComponent } from './pages/master-seating-type/master-seating-type-page.component';
+import { AcceptPrivacyPageComponent } from './pages/accept-privacy/accept-privacy-page.component';
 import { MyProfileComponent } from './pages/my-profile/my-profile.component';
 import { OpenTablePageComponent } from './pages/open-table/open-table-page.component';
 import { ReportsPageComponent } from './pages/reports/reports-page.component';
@@ -66,7 +68,7 @@ export const routes: Routes = [
     path: 'dashboard',
     component: MainShellComponent,
     canActivate: [authGuard],
-    canActivateChild: [authGuard, mustChangePasswordChildGuard],
+    canActivateChild: [authGuard, mustChangePasswordChildGuard, privacyConsentChildGuard],
     children: [
       { path: '', component: DashboardPageComponent, canActivate: [dashboardHomeGuard] },
       {
@@ -242,6 +244,7 @@ export const routes: Routes = [
         canActivate: [permissionGuard('master_data')],
       },
       { path: 'my-profile', component: MyProfileComponent },
+      { path: 'accept-privacy', component: AcceptPrivacyPageComponent },
       { path: 'sale-team', redirectTo: 'employees', pathMatch: 'full' },
       { path: 'pr-team', redirectTo: 'employees', pathMatch: 'full' },
       { path: 'managers', redirectTo: 'employees', pathMatch: 'full' },

@@ -117,36 +117,34 @@ export class LoginComponent implements OnInit {
   }
 
   private finishLogin(): void {
-    if (this.auth.needsPasswordChange()) {
-      this.loading.set(false);
-      void this.router.navigate(['/dashboard/my-profile']);
-      return;
-    }
-
-    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl')?.trim();
-    const navigateAfterLogin = (path: string | string[]) => {
-      this.loading.set(false);
-      if (typeof path === 'string') {
-        void this.router.navigateByUrl(path);
-      } else {
-        void this.router.navigate(path);
-      }
-    };
-
     this.auth.fetchAccessibleBranches().subscribe({
       next: () => {
-        if (returnUrl && returnUrl.startsWith('/')) {
-          navigateAfterLogin(returnUrl);
+        this.loading.set(false);
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl')?.trim();
+        if (
+          returnUrl &&
+          returnUrl.startsWith('/') &&
+          !this.auth.needsPasswordChange() &&
+          !this.auth.needsPrivacyConsent()
+        ) {
+          void this.router.navigateByUrl(returnUrl);
           return;
         }
-        navigateAfterLogin([this.auth.homePathAfterLogin()]);
+        const path = this.auth.postLoginPathSegments();
+        if (path.length === 1 && path[0].startsWith('/')) {
+          void this.router.navigateByUrl(path[0]);
+        } else {
+          void this.router.navigate(path);
+        }
       },
       error: () => {
-        if (returnUrl && returnUrl.startsWith('/')) {
-          navigateAfterLogin(returnUrl);
-          return;
+        this.loading.set(false);
+        const path = this.auth.postLoginPathSegments();
+        if (path.length === 1 && path[0].startsWith('/')) {
+          void this.router.navigateByUrl(path[0]);
+        } else {
+          void this.router.navigate(path);
         }
-        navigateAfterLogin([this.auth.homePathAfterLogin()]);
       },
     });
   }

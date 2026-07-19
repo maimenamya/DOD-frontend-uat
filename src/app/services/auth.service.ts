@@ -91,6 +91,35 @@ export class AuthService {
     return this.getUser()?.mustChangePassword === true;
   }
 
+  needsPrivacyConsent(): boolean {
+    const user = this.getUser();
+    if (!user || user.permissionGroup !== 'OWNER') {
+      return false;
+    }
+    if (user.pendingRoleSetup || user.mustChangePassword) {
+      return false;
+    }
+    return user.needsPrivacyConsent !== false;
+  }
+
+  acceptPrivacyPolicy(version: string): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(this.api.resource('auth', 'accept-privacy-policy'), {
+        version,
+      })
+      .pipe(tap((response) => this.persistSessionIfReady(response)));
+  }
+
+  postLoginPathSegments(): string[] {
+    if (this.needsPasswordChange()) {
+      return ['/dashboard/my-profile'];
+    }
+    if (this.needsPrivacyConsent()) {
+      return ['/dashboard/accept-privacy'];
+    }
+    return [this.homePathAfterLogin()];
+  }
+
   updateProfile(payload: UpdateProfileRequest): Observable<AuthResponse> {
     return this.http
       .put<AuthResponse>(this.api.resource('auth', 'me'), payload)
@@ -403,6 +432,7 @@ export class AuthService {
           shopId: employee.shopId,
           pendingRoleSetup: false,
           mustChangePassword,
+          needsPrivacyConsent: employee.needsPrivacyConsent === true,
           roleId: employee.roleId,
           role: employee.role!.name,
           roleDisplayNameTh: this.resolveRoleDisplayNameTh(
@@ -479,6 +509,7 @@ export class AuthService {
       shopId: user.shopId,
       pendingRoleSetup: false,
       mustChangePassword: user.mustChangePassword === true,
+      needsPrivacyConsent: user.needsPrivacyConsent === true,
       roleId: user.roleId,
       role,
       roleDisplayNameTh,

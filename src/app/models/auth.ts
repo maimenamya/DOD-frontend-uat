@@ -34,6 +34,8 @@ export interface AuthUser {
   shopId: number;
   pendingRoleSetup: boolean;
   mustChangePassword: boolean;
+  /** OWNER only — org has not accepted current privacy policy. */
+  needsPrivacyConsent?: boolean;
   roleId: number | null;
   /** MstRole name from master (e.g. SALE, PR, COYOTY). */
   role: string;
@@ -66,6 +68,7 @@ export interface AuthResponse {
     shopId: number;
     pendingRoleSetup: boolean;
     mustChangePassword: boolean;
+    needsPrivacyConsent?: boolean;
     roleId: number | null;
     role: {
       id: number;

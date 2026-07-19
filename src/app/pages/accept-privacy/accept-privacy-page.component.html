@@ -1,0 +1,45 @@
+<div class="app-page accept-privacy-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">{{ policyTitle }}</h1>
+      <p class="app-page-subtitle">
+        กรุณาอ่านและยอมรับก่อนใช้งานระบบ D-rink (เวอร์ชัน {{ policyVersion }})
+      </p>
+    </div>
+  </div>
+
+  <section class="app-card accept-privacy-card">
+    <div class="accept-privacy-card__body app-scroll-region">
+      @for (section of sections; track section.heading) {
+        <div class="accept-privacy-section">
+          <h2 class="accept-privacy-section__heading">{{ section.heading }}</h2>
+          <p class="accept-privacy-section__body">{{ section.body }}</p>
+        </div>
+      }
+    </div>
+
+    <form class="accept-privacy-card__footer" (ngSubmit)="submit()">
+      <label class="accept-privacy-consent">
+        <input
+          type="checkbox"
+          [ngModel]="agreed()"
+          (ngModelChange)="agreed.set($event)"
+          name="agreed"
+        />
+        <span>{{ checkboxLabel }}</span>
+      </label>
+
+      <button
+        type="submit"
+        class="app-btn app-btn-primary"
+        [disabled]="submitting() || !agreed()"
+      >
+        @if (submitting()) {
+          กำลังบันทึก…
+        } @else {
+          ยอมรับและเริ่มใช้งาน
+        }
+      </button>
+    </form>
+  </section>
+</div>
