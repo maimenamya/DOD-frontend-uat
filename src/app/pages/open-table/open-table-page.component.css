@@ -111,14 +111,10 @@
   width: 100%;
 }
 
-/* Drop the panel's bottom padding when the raised footer is present, so the footer
-   background reaches the very bottom edge of the card/sheet (no leftover gap). */
+/* Drop panel bottom padding when the raised footer is present (no gap at card edge) */
 .open-table-session-panel > div:has(.open-table-bill-summary) {
   padding-bottom: 0;
 }
-
-/* Desktop: let the drawer height follow its own content (no forced stretch),
-   so the footer sits right after the list instead of being pinned to a taller card. */
 
 /* KPI row — single row on desktop like mockup */
 .open-table-kpi-grid {
@@ -381,19 +377,13 @@
   --seat-card-accent-rgb: 37, 99, 235;
 }
 
-/* Bill totals — full-bleed raised footer section (mockup .order-foot):
-   different background + top divider, reaching the drawer edges (not a bordered box) */
+/* Bill totals — full-bleed raised footer (mockup .order-foot) */
 .open-table-bill-summary {
   display: flex;
   flex-direction: column;
-  /* cancel the drawer's p-4 (1rem) horizontally; the container drops its own bottom padding
-     (see the :has rule below) so the foot sits flush at the bottom without relying on
-     a negative margin cancelling the padding (which browsers don't always honour here).
-     top margin gives breathing room when the foot stands alone (no action row above it) */
   margin: 1.5rem -1rem 0;
   padding: 0.95rem 1rem 1.05rem;
   border-top: 1px solid var(--border);
-  /* raised tone — lighter than the card behind it */
   background: var(--surface);
   border-bottom-left-radius: var(--radius-card);
   border-bottom-right-radius: var(--radius-card);
