@@ -12,7 +12,7 @@ export type SystemGuideSection = {
 export const SYSTEM_GUIDE_TITLE = 'คู่มือใช้งาน D-rink';
 
 export const SYSTEM_GUIDE_INTRO =
-  'ระบบ D-rink ช่วยร้านบันทึกยอดขาย เปิดโต๊ะ ลงดื่มพนักงาน จัดการแท็ก PR และออกรายงาน';
+  'ระบบ D-rink ช่วยร้านบันทึกยอดขาย เปิดโต๊ะ ลงดื่มพนักงาน จัดการแท็ก PR และรายงาน';
 
 export const SYSTEM_GUIDE_SECTIONS: SystemGuideSection[] = [
   {
@@ -43,7 +43,7 @@ export const SYSTEM_GUIDE_SECTIONS: SystemGuideSection[] = [
         ],
       },
       {
-        label: 'ออกรายงาน',
+        label: 'รายงาน',
         points: [
           'เลือกช่วงวันที่และหัวข้อที่ต้องการในไฟล์',
           'ดูตัวอย่างแล้วดาวน์โหลด Excel',
