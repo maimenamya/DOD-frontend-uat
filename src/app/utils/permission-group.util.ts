@@ -25,7 +25,12 @@ export function hasFeature(group: PermissionGroup, feature: AppFeature): boolean
     case 'MANAGER':
       return true;
     case 'CASHIER':
-      return true;
+      // Ops only — shop settings / master / roles / employees require MANAGER+.
+      return (
+        feature !== 'master_data' &&
+        feature !== 'manage_employees' &&
+        feature !== 'manage_roles'
+      );
     case 'EMPLOYEE':
       return feature === 'dashboard';
     default:
@@ -91,7 +96,7 @@ export function canAccessOpenTablePage(
 }
 
 export function canManageEmployees(group: PermissionGroup): boolean {
-  return group === 'OWNER' || group === 'MANAGER' || group === 'CASHIER';
+  return group === 'OWNER' || group === 'MANAGER';
 }
 
 export function canManageRoles(group: PermissionGroup): boolean {
