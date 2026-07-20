@@ -318,8 +318,13 @@
 
 .open-table-layout-wrap {
   --app-scroll-track: var(--card-bg);
+  --open-table-layout-max-h: calc(100vh - 12.5rem);
+  --open-table-layout-max-h: calc(100dvh - 12.5rem);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
   overflow: auto;
-  max-height: min(70vh, 40rem);
+  max-height: var(--open-table-layout-max-h);
   border-radius: 0.5rem;
   border: 1px solid var(--border);
   background: var(--surface, var(--card-bg));
@@ -328,8 +333,17 @@
 
 .open-table-layout-canvas {
   position: relative;
-  width: 100%;
+  /* Keep full 1200×800 plan visible: shrink width when height would overflow */
+  width: min(
+    100%,
+    calc(
+      var(--open-table-layout-max-h) * var(--floor-canvas-w, 1200) /
+        var(--floor-canvas-h, 800)
+    )
+  );
+  max-height: var(--open-table-layout-max-h);
   aspect-ratio: var(--floor-canvas-w, 1200) / var(--floor-canvas-h, 800);
+  flex-shrink: 0;
   background:
     linear-gradient(
       to right,
@@ -342,7 +356,14 @@
       transparent 1px
     ),
     var(--surface-strong, var(--card-bg));
-  background-size: 40px 40px, 40px 40px, auto;
+  background-size: 2.5rem 2.5rem, 2.5rem 2.5rem, auto;
+}
+
+@media (min-width: 1000px) {
+  .open-table-workspace--split .open-table-layout-wrap {
+    --open-table-layout-max-h: calc(100vh - 11rem);
+    --open-table-layout-max-h: calc(100dvh - 11rem);
+  }
 }
 
 .open-table-layout-seat {
