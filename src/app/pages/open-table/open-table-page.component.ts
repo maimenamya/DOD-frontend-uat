@@ -2048,15 +2048,13 @@ export class OpenTablePageComponent implements OnInit {
     if (!layout) return {};
     const canvas = this.floorCanvas();
     const box = floorLayoutBoxSize(layout.shape, layout.size);
-    // Width % of canvas + aspect-ratio (not height %) so RECT_H/V stay correct
-    // even when the canvas is in a scroll area or label text would stretch height.
+    // Width/height % of canvas axes — same units as the floor editor.
     return {
       left: `${(layout.posX / canvas.width) * 100}%`,
       top: `${(layout.posY / canvas.height) * 100}%`,
       width: `${(box.width / canvas.width) * 100}%`,
-      aspectRatio: `${box.width} / ${box.height}`,
-      height: 'auto',
-      borderRadius: layout.shape === 'CIRCLE' ? '999px' : '10px',
+      height: `${(box.height / canvas.height) * 100}%`,
+      borderRadius: layout.shape === 'CIRCLE' ? '999px' : '8px',
     };
   }
 

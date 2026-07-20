@@ -304,10 +304,24 @@
           seatLedgerOpen() &&
           !seatAwaitingClear()
         ) {
-          <div class="open-table-session-panel__left space-y-4 app-scroll-region">
+          <div class="open-table-session-panel__left">
             <div class="open-table-pc-add-panel">
-              <h4 class="mb-3 text-sm font-semibold text-text-primary">เพิ่มรายการ</h4>
-              <ng-container *ngTemplateOutlet="addItemFormBody"></ng-container>
+              <div class="open-table-pc-add-panel__header">
+                <h4 class="open-table-pc-add-panel__title">เพิ่มรายการ</h4>
+              </div>
+              <div class="open-table-pc-add-panel__body app-scroll-region">
+                <ng-container *ngTemplateOutlet="addItemFormBody"></ng-container>
+              </div>
+              <div class="open-table-pc-add-panel__footer">
+                <button
+                  type="button"
+                  class="app-btn-primary"
+                  [disabled]="actionBusy()"
+                  (click)="submitAddItems()"
+                >
+                  {{ actionBusy() ? 'กำลังบันทึก...' : 'บันทึก' }}
+                </button>
+              </div>
             </div>
           </div>
         }
@@ -1414,14 +1428,14 @@
       }
     </div>
 
-    <div class="app-form-actions app-form-actions-top">
-      @if (!isPcBillWorkspace()) {
+    @if (!isPcBillWorkspace()) {
+      <div class="app-form-actions app-form-actions-top">
         <button type="button" class="app-btn-secondary" (click)="closeAddModal()">ยกเลิก</button>
-      }
-      <button type="button" class="app-btn-primary" [disabled]="actionBusy()" (click)="submitAddItems()">
-        {{ actionBusy() ? 'กำลังบันทึก...' : 'บันทึก' }}
-      </button>
-    </div>
+        <button type="button" class="app-btn-primary" [disabled]="actionBusy()" (click)="submitAddItems()">
+          {{ actionBusy() ? 'กำลังบันทึก...' : 'บันทึก' }}
+        </button>
+      </div>
+    }
 </ng-template>
 
 @if (showTransferModal()) {

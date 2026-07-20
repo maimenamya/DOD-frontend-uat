@@ -55,7 +55,8 @@ export const FLOOR_LAYOUT_SIZE_OPTIONS: Array<{ value: FloorLayoutSize; label: s
   { value: 'L', label: 'ใหญ่' },
 ];
 
-const SHORT_EDGE: Record<FloorLayoutSize, number> = { S: 40, M: 56, L: 80 };
+/** Short edge in canvas px — long = 2× (RECT 10∶5, square/circle 5∶5). */
+const SHORT_EDGE: Record<FloorLayoutSize, number> = { S: 28, M: 40, L: 56 };
 
 /**
  * Shared short edge so sizes match across shapes (user units 5 / 10):
