@@ -181,6 +181,26 @@
           </button>
             </div>
             }
+            <div class="app-filter-bar open-table-view-mode" role="tablist" aria-label="รูปแบบการแสดงโต๊ะ">
+              <button
+                type="button"
+                class="app-filter-chip"
+                [class.app-filter-chip-active]="floorDisplayMode() === 'grid'"
+                (click)="setFloorDisplayMode('grid')"
+              >
+                แบบรายการ
+              </button>
+              <button
+                type="button"
+                class="app-filter-chip"
+                [class.app-filter-chip-active]="floorDisplayMode() === 'layout'"
+                [disabled]="!hasFloorLayout()"
+                [title]="hasFloorLayout() ? 'ดูตามผังร้าน' : 'ยังไม่มีผังโต๊ะ — ตั้งที่เมนู จัดผังโต๊ะ'"
+                (click)="setFloorDisplayMode('layout')"
+              >
+                แบบผังร้าน
+              </button>
+            </div>
           </div>
 
           @if (floorPlanSkeleton()) {
@@ -192,6 +212,34 @@
               }
             </div>
           </div>
+        } @else if (floorDisplayMode() === 'layout') {
+          <div class="open-table-layout-wrap app-scroll-region">
+            <div
+              class="open-table-layout-canvas"
+              [style.--floor-canvas-w]="floorCanvas().width"
+              [style.--floor-canvas-h]="floorCanvas().height"
+            >
+              @for (seat of layoutSeats(); track seat.key) {
+                <button
+                  type="button"
+                  class="open-table-layout-seat"
+                  [ngClass]="seatTileClasses(seat)"
+                  [style]="layoutSeatStyle(seat)"
+                  [attr.aria-label]="seat.code + ' — ' + statusText(seat.status)"
+                  [title]="seat.code + ' — ' + statusText(seat.status)"
+                  (click)="selectSeat(seat)"
+                >
+                  <span class="open-table-layout-seat__code">{{ seat.code }}</span>
+                  <span class="open-table-layout-seat__status">{{ statusText(seat.status) }}</span>
+                </button>
+              }
+            </div>
+          </div>
+          @if (layoutSeats().length === 0) {
+            <p class="mt-3 text-sm text-text-secondary">
+              ไม่มีโต๊ะในผังตามตัวกรอง — สลับเป็นแบบรายการ หรือไปจัดผังที่เมนู จัดผังโต๊ะ
+            </p>
+          }
         } @else {
           <div class="space-y-5">
             @for (zone of seatZones(); track zone.typeId) {

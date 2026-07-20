@@ -1,0 +1,104 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">จัดผังโต๊ะ</h1>
+      <p class="app-page-subtitle">ลากโต๊ะจากรายการด้านซ้ายวางบนผัง แล้วเลือกขนาด/รูปทรง</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button type="button" class="app-btn-secondary" [disabled]="loading() || saving()" (click)="reload()">
+        รีโหลด
+      </button>
+      <button
+        type="button"
+        class="app-btn-primary"
+        [disabled]="loading() || saving() || !dirty()"
+        (click)="save()"
+      >
+        {{ saving() ? 'กำลังบันทึก...' : 'บันทึกผัง' }}
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <p class="app-empty-state">กำลังโหลดผังโต๊ะ...</p>
+  } @else {
+    <div class="floor-editor" (pointerup)="onWindowPointerUp()">
+      <aside class="floor-editor__palette app-scroll-region">
+        <h2 class="floor-editor__palette-title">โต๊ะยังไม่วาง</h2>
+        @if (unplaced().length === 0) {
+          <p class="app-hint">วางครบแล้ว</p>
+        } @else {
+          <ul class="floor-editor__palette-list">
+            @for (seat of unplaced(); track seat.seatingId) {
+              <li>
+                <button
+                  type="button"
+                  class="floor-editor__palette-item"
+                  (pointerdown)="onUnplacedPointerDown($event, seat)"
+                >
+                  <span class="font-semibold">{{ seat.code }}</span>
+                  <span class="text-text-secondary text-xs">{{ seat.seatingTypeName }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </aside>
+
+      <div class="floor-editor__main">
+        @if (selected(); as sel) {
+          <div class="floor-editor__toolbar">
+            <p class="floor-editor__toolbar-label">แก้ไข {{ sel.code }}</p>
+            <div class="floor-editor__toolbar-fields">
+              <div class="app-form-group">
+                <label class="app-label">รูปทรง</label>
+                <app-custom-dropdown
+                  [options]="shapeOptions"
+                  [ngModel]="sel.shape"
+                  (ngModelChange)="onShapeChange($event)"
+                />
+              </div>
+              <div class="app-form-group">
+                <label class="app-label">ขนาด</label>
+                <app-custom-dropdown
+                  [options]="sizeOptions"
+                  [ngModel]="sel.size"
+                  (ngModelChange)="onSizeChange($event)"
+                />
+              </div>
+              <button type="button" class="app-btn-danger self-end" (click)="removeSelected()">
+                เอาออกจากผัง
+              </button>
+            </div>
+          </div>
+        } @else {
+          <p class="app-hint mb-3">คลิกโต๊ะบนผังเพื่อแก้ขนาด/รูปทรง — ลากเพื่อย้ายตำแหน่ง</p>
+        }
+
+        <div
+          class="floor-editor__canvas-wrap app-scroll-region"
+          [style.--floor-canvas-w]="canvasWidth()"
+          [style.--floor-canvas-h]="canvasHeight()"
+        >
+          <div
+            class="floor-editor__canvas"
+            (pointermove)="onCanvasPointerMove($event)"
+            (pointerup)="onCanvasPointerUp($event)"
+          >
+            @for (seat of placed(); track seat.seatingId) {
+              <button
+                type="button"
+                class="floor-editor__seat"
+                [class.floor-editor__seat--selected]="selectedSeatingId() === seat.seatingId"
+                [style]="boxStyle(seat)"
+                (pointerdown)="onPlacedPointerDown($event, seat)"
+              >
+                {{ seat.code }}
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -57,6 +57,7 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
     children: [
       { path: '/dashboard/master-seatings', label: 'โซนที่นั่ง' },
       { path: '/dashboard/master-seating-types', label: 'ประเภทโซนที่นั่ง' },
+      { path: '/dashboard/master-seating-floor-layout', label: 'จัดผังโต๊ะ' },
     ],
   },
   {

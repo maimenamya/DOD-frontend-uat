@@ -26,6 +26,7 @@ import { MasterPromotionPageComponent } from './pages/master-promotion/master-pr
 import { MasterRolePageComponent } from './pages/master-role/master-role-page.component';
 import { MasterSeatingListPageComponent } from './pages/master-seating-list/master-seating-list-page.component';
 import { MasterSeatingTypePageComponent } from './pages/master-seating-type/master-seating-type-page.component';
+import { MasterSeatingFloorLayoutPageComponent } from './pages/master-seating-floor-layout/master-seating-floor-layout-page.component';
 import { AcceptPrivacyPageComponent } from './pages/accept-privacy/accept-privacy-page.component';
 import { MyProfileComponent } from './pages/my-profile/my-profile.component';
 import { OpenTablePageComponent } from './pages/open-table/open-table-page.component';
@@ -166,6 +167,11 @@ export const routes: Routes = [
       {
         path: 'master-seating-types',
         component: MasterSeatingTypePageComponent,
+        canActivate: [permissionGuard('master_data')],
+      },
+      {
+        path: 'master-seating-floor-layout',
+        component: MasterSeatingFloorLayoutPageComponent,
         canActivate: [permissionGuard('master_data')],
       },
       { path: 'master-seating-price-types', redirectTo: 'open-table', pathMatch: 'full' },

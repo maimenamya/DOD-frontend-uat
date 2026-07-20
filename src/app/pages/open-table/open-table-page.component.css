@@ -277,6 +277,111 @@
   color: #ef4444;
 }
 
+.open-table-floor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.open-table-view-mode {
+  margin-left: auto;
+}
+
+.open-table-layout-wrap {
+  --app-scroll-track: var(--card-bg);
+  overflow: auto;
+  max-height: min(70vh, 40rem);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--surface, var(--card-bg));
+  padding: 0.5rem;
+}
+
+.open-table-layout-canvas {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--floor-canvas-w, 1200) / var(--floor-canvas-h, 800);
+  background:
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--border) 50%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--border) 50%, transparent) 1px,
+      transparent 1px
+    ),
+    var(--surface-strong, var(--card-bg));
+  background-size: 40px 40px, 40px 40px, auto;
+}
+
+.open-table-layout-seat {
+  --seat-card-accent-rgb: 148, 163, 184;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0.2rem;
+  box-sizing: border-box;
+  border: 2px solid color-mix(in srgb, rgb(var(--seat-card-accent-rgb)) 55%, var(--border));
+  background: color-mix(in srgb, rgb(var(--seat-card-accent-rgb)) 14%, var(--card-bg));
+  color: var(--text-primary);
+  cursor: pointer;
+  line-height: 1.1;
+  overflow: hidden;
+  transition:
+    border-color var(--transition-smooth),
+    box-shadow var(--transition-smooth),
+    transform 0.15s ease;
+}
+
+.open-table-layout-seat:hover {
+  transform: translateY(-1px);
+  z-index: 2;
+}
+
+.open-table-layout-seat.open-table-seat-card--available {
+  --seat-card-accent-rgb: 34, 197, 94;
+}
+
+.open-table-layout-seat.open-table-seat-card--reserved {
+  --seat-card-accent-rgb: 234, 179, 8;
+}
+
+.open-table-layout-seat.open-table-seat-card--occupied {
+  --seat-card-accent-rgb: 239, 68, 68;
+}
+
+.open-table-layout-seat.open-table-seat-card--awaiting-clear {
+  --seat-card-accent-rgb: 168, 85, 247;
+}
+
+.open-table-layout-seat.open-table-seat-card--selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 35%, transparent);
+  z-index: 3;
+}
+
+.open-table-layout-seat__code {
+  font-size: clamp(0.65rem, 1.6vw, 0.85rem);
+  font-weight: 700;
+}
+
+.open-table-layout-seat__status {
+  font-size: clamp(0.55rem, 1.2vw, 0.7rem);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
 /* Floor-plan seat cards — square tiles; phone fills row width */
 .open-table-seat-grid {
   display: grid;

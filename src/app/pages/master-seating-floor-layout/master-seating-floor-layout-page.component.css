@@ -1,0 +1,111 @@
+.floor-editor {
+  display: grid;
+  grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
+  gap: 1rem;
+  min-height: 70vh;
+  --app-scroll-track: var(--card-bg);
+}
+
+.floor-editor__palette {
+  @apply rounded-card border border-theme-border bg-surface p-3;
+  max-height: 75vh;
+  overflow-y: auto;
+}
+
+.floor-editor__palette-title {
+  @apply mb-2 text-sm font-semibold text-text-primary;
+}
+
+.floor-editor__palette-list {
+  @apply flex flex-col gap-2;
+}
+
+.floor-editor__palette-item {
+  @apply flex w-full cursor-grab flex-col items-start gap-0.5 rounded-input border border-theme-border bg-surface px-3 py-2 text-left text-sm;
+  touch-action: none;
+}
+
+.floor-editor__palette-item:active {
+  cursor: grabbing;
+}
+
+.floor-editor__main {
+  @apply min-w-0;
+}
+
+.floor-editor__toolbar {
+  @apply mb-3 rounded-card border border-theme-border bg-surface p-3;
+}
+
+.floor-editor__toolbar-label {
+  @apply mb-2 text-sm font-semibold text-text-primary;
+}
+
+.floor-editor__toolbar-fields {
+  @apply grid gap-3;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  align-items: end;
+}
+
+.floor-editor__canvas-wrap {
+  @apply overflow-auto rounded-card border border-theme-border bg-surface p-3;
+  max-height: 75vh;
+}
+
+.floor-editor__canvas {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: var(--floor-canvas-w, 1200) / var(--floor-canvas-h, 800);
+  background:
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--theme-border) 55%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--theme-border) 55%, transparent) 1px,
+      transparent 1px
+    ),
+    var(--surface-strong, var(--card-bg));
+  background-size: 40px 40px, 40px 40px, auto;
+  touch-action: none;
+  user-select: none;
+}
+
+.floor-editor__seat {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid color-mix(in srgb, var(--primary) 55%, var(--theme-border));
+  background: color-mix(in srgb, var(--primary) 18%, var(--card-bg));
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: grab;
+  touch-action: none;
+  padding: 0;
+  line-height: 1.1;
+}
+
+.floor-editor__seat:active {
+  cursor: grabbing;
+}
+
+.floor-editor__seat--selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 35%, transparent);
+  z-index: 2;
+}
+
+@media (max-width: 900px) {
+  .floor-editor {
+    grid-template-columns: 1fr;
+  }
+
+  .floor-editor__palette {
+    max-height: 12rem;
+  }
+}

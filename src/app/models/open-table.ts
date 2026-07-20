@@ -1,7 +1,15 @@
 import type { SeatingRateType } from './seating';
 import type { BillReceiptResponse } from './bill-receipt';
+import type { FloorLayoutShape, FloorLayoutSize } from './seating-floor-layout';
 
 export type SeatStatus = 'AVAILABLE' | 'RESERVED' | 'OCCUPIED' | 'AWAITING_CLEAR';
+
+export type FloorPlanSeatLayout = {
+  posX: number;
+  posY: number;
+  shape: FloorLayoutShape;
+  size: FloorLayoutSize;
+};
 
 export type FloorPlanSeat = {
   id: number;
@@ -21,6 +29,7 @@ export type FloorPlanSeat = {
   previewTotalAmount?: number | null;
   openDurationLabel?: string | null;
   reservedTimeLabel?: string | null;
+  floorLayout?: FloorPlanSeatLayout | null;
 };
 
 export type FloorPlanKpi = {
@@ -48,6 +57,7 @@ export type FloorPlanSeatingType = {
 
 export type OpenTableFloorPlan = {
   viewMode?: 'full' | 'self_bill';
+  floorCanvas?: { width: number; height: number };
   kpi?: FloorPlanKpi;
   seatingTypes: FloorPlanSeatingType[];
   seatings: FloorPlanSeat[];

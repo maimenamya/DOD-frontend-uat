@@ -28,6 +28,7 @@ import type {
   CheckoutPreview,
   CheckoutResult,
   FloorPlanKpi,
+  FloorPlanSeatLayout,
   StopStaffDrinkPreview,
   OpenTableSessionDetail,
   PackageBottleMoveLine,
@@ -36,6 +37,7 @@ import type {
   SessionRoomCharge,
   SessionStaffDrink,
 } from '../../models/open-table';
+import { floorLayoutBoxSize } from '../../models/seating-floor-layout';
 import type { SeatingRateType } from '../../models/seating';
 import {
   ROOM_CHARGE_MODE_OPTIONS,
@@ -123,7 +125,12 @@ type SeatTile = {
   previewTotalAmount?: number | null;
   openDurationLabel?: string | null;
   reservedTimeLabel?: string | null;
+  floorLayout?: FloorPlanSeatLayout | null;
 };
+
+type FloorDisplayMode = 'grid' | 'layout';
+
+const FLOOR_DISPLAY_MODE_KEY = 'dod.openTable.floorDisplayMode';
 
 @Component({
   selector: 'app-open-table-page',
@@ -176,6 +183,8 @@ export class OpenTablePageComponent implements OnInit {
     salesChangePct: null,
   });
   readonly statusFilter = signal<SeatStatusFilter>('ALL');
+  readonly floorDisplayMode = signal<FloorDisplayMode>(readFloorDisplayMode());
+  readonly floorCanvas = signal<{ width: number; height: number }>({ width: 1200, height: 800 });
   readonly checkInGuestCountText = signal('1');
   readonly selectedSeatKey = signal<string | null>(null);
   readonly showMobileSheet = signal(false);
@@ -401,6 +410,14 @@ export class OpenTablePageComponent implements OnInit {
       }))
       .filter((z) => z.seats.length > 0);
   });
+
+  readonly hasFloorLayout = computed(() =>
+    this.seats().some((seat) => seat.floorLayout != null),
+  );
+
+  readonly layoutSeats = computed(() =>
+    this.filteredSeats().filter((seat) => seat.floorLayout != null),
+  );
 
   readonly panelGuestLabel = computed(() => {
     const seat = this.selectedSeat();
@@ -1048,7 +1065,7 @@ export class OpenTablePageComponent implements OnInit {
       .pipe(
         catchError(() => {
           this.toast.showError('ไม่สามารถโหลดแผนผังโต๊ะได้');
-          return of({ seatingTypes: [], seatings: [], kpi: undefined });
+          return of({ seatingTypes: [], seatings: [], kpi: undefined, floorCanvas: undefined });
         }),
         finalize(() => {
           this.loading.set(false);
@@ -1060,6 +1077,9 @@ export class OpenTablePageComponent implements OnInit {
       .subscribe((plan) => {
         if (plan.kpi) {
           this.floorPlanKpi.set(plan.kpi);
+        }
+        if (plan.floorCanvas) {
+          this.floorCanvas.set(plan.floorCanvas);
         }
         this.seatingTypeZones.set(
           plan.seatingTypes.map((t) => ({
@@ -1089,9 +1109,13 @@ export class OpenTablePageComponent implements OnInit {
             previewTotalAmount: s.previewTotalAmount ?? null,
             openDurationLabel: s.openDurationLabel ?? null,
             reservedTimeLabel: s.reservedTimeLabel ?? null,
+            floorLayout: s.floorLayout ?? null,
           })),
         );
         this.seats.set(tiles);
+        if (this.floorDisplayMode() === 'layout' && !tiles.some((s) => s.floorLayout)) {
+          this.floorDisplayMode.set('grid');
+        }
         this.tryFocusPendingSession();
         const key = selectKey ?? this.selectedSeatKey();
         if (key && this.selectedSeatKey() === key) {
@@ -1924,6 +1948,33 @@ export class OpenTablePageComponent implements OnInit {
 
   setStatusFilter(value: SeatStatusFilter): void {
     this.statusFilter.set(value);
+  }
+
+  setFloorDisplayMode(mode: FloorDisplayMode): void {
+    if (mode === 'layout' && !this.hasFloorLayout()) {
+      this.toast.showError('ยังไม่มีผังโต๊ะ — ไปตั้งที่เมนู จัดผังโต๊ะ');
+      return;
+    }
+    this.floorDisplayMode.set(mode);
+    try {
+      localStorage.setItem(FLOOR_DISPLAY_MODE_KEY, mode);
+    } catch {
+      /* ignore quota / private mode */
+    }
+  }
+
+  layoutSeatStyle(seat: SeatTile): Record<string, string> {
+    const layout = seat.floorLayout;
+    if (!layout) return {};
+    const canvas = this.floorCanvas();
+    const box = floorLayoutBoxSize(layout.shape, layout.size);
+    return {
+      left: `${(layout.posX / canvas.width) * 100}%`,
+      top: `${(layout.posY / canvas.height) * 100}%`,
+      width: `${(box.width / canvas.width) * 100}%`,
+      height: `${(box.height / canvas.height) * 100}%`,
+      borderRadius: layout.shape === 'CIRCLE' ? '999px' : '10px',
+    };
   }
 
   selectSeat(seat: SeatTile): void {
@@ -3744,4 +3795,14 @@ export class OpenTablePageComponent implements OnInit {
         }
       });
   }
+}
+
+function readFloorDisplayMode(): FloorDisplayMode {
+  try {
+    const raw = localStorage.getItem(FLOOR_DISPLAY_MODE_KEY);
+    if (raw === 'layout' || raw === 'grid') return raw;
+  } catch {
+    /* ignore */
+  }
+  return 'grid';
 }
