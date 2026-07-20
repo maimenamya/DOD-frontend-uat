@@ -70,7 +70,11 @@
 }
 
 .open-table-session-panel--pc {
+  display: flex;
+  flex-direction: column;
   min-height: min(75vh, 48rem);
+  height: min(75vh, 48rem);
+  overflow: hidden;
 }
 
 .open-table-session-panel__body--pc {
@@ -79,7 +83,9 @@
   grid-template-rows: minmax(0, 1fr);
   align-items: stretch;
   gap: 0;
-  min-height: min(75vh, 48rem);
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
 }
 
 .open-table-session-panel__body--pc:has(> .open-table-session-panel__left) {
@@ -89,10 +95,12 @@
 .open-table-session-panel__body--pc > .open-table-session-panel__left {
   grid-column: 1;
   grid-row: 1;
-  padding: 1rem;
-  max-height: calc(100dvh - 7rem);
+  padding: 1.5rem 1.25rem 1.75rem;
+  min-height: 0;
+  height: 100%;
   overflow-y: auto;
   border-right: 1px solid var(--border);
+  background: var(--card-bg);
   --app-scroll-track: var(--card-bg);
 }
 
@@ -102,7 +110,8 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  max-height: calc(100dvh - 7rem);
+  min-height: 0;
+  height: 100%;
   background: var(--card-bg);
 }
 
@@ -123,10 +132,19 @@
   --app-scroll-track: var(--card-bg);
 }
 
+/* Checkout foot: full width of bill column (no inset / black gap) */
 .open-table-session-panel__body--pc .open-table-session-panel__summary {
   flex-shrink: 0;
-  padding: 0 1rem 1rem;
   margin-top: auto;
+  padding: 0;
+  width: 100%;
+}
+
+.open-table-session-panel__body--pc .open-table-bill-summary {
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 0;
 }
 
 .open-table-session-panel__body:not(.open-table-session-panel__body--pc) .open-table-session-panel__header,
