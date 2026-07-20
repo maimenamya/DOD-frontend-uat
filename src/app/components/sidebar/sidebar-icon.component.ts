@@ -49,10 +49,13 @@ export type SidebarIconName =
           <rect x="13" y="11" width="8" height="10" rx="1.5" />
         }
         @case ('open-table') {
-          <!-- round pedestal table -->
-          <ellipse cx="12" cy="7.5" rx="7.5" ry="2.5" />
-          <path d="M12 10v6.5" />
-          <ellipse cx="12" cy="18.75" rx="4.25" ry="1.35" />
+          <!-- POS terminal (filled): jagged receipt, screen cutout, 3×3 keypad -->
+          <g fill="currentColor" stroke="none">
+            <path
+              fill-rule="evenodd"
+              d="M9.25 5.35V2.2l.5-.65.4.5.5-.65.4.5.5-.65.4.5.5-.65.4.5.5-.65.4.5.5-.65V5.35H9.25Zm.95-2.15h3.6v.5h-3.6Zm0 1h2.55v.4H10.2ZM7.1 5.9h9.8A2.85 2.85 0 0 1 19.75 8.75v9.5a2.85 2.85 0 0 1-2.85 2.85H7.1A2.85 2.85 0 0 1 4.25 18.25v-9.5A2.85 2.85 0 0 1 7.1 5.9Zm1.35 1.7h7.1c.5 0 .9.4.9.9v2.95c0 .5-.4.9-.9.9h-7.1c-.5 0-.9-.4-.9-.9V8.5c0-.5.4-.9.9-.9Zm-.05 6.05h1.55v1.55H8.4Zm2.95 0h1.55v1.55h-1.55Zm2.95 0H15.9v1.55h-1.55ZM8.4 16.55h1.55v1.55H8.4Zm2.95 0h1.55v1.55h-1.55Zm2.95 0H15.9v1.55h-1.55ZM8.4 19.45h1.55v1.55H8.4Zm2.95 0h1.55v1.55h-1.55Zm2.95 0H15.9v1.55h-1.55Z"
+            />
+          </g>
         }
         @case ('tag') {
           <path
