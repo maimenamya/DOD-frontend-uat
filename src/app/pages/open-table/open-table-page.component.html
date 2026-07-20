@@ -7,8 +7,10 @@
 
   <div
     class="open-table-workspace flex w-full flex-col gap-4 transition-all duration-300 ease-in-out"
-    [class.open-table-workspace--split]="drawerOpen()"
+    [class.open-table-workspace--split]="drawerOpen() && !isPcBillWorkspace()"
+    [class.open-table-workspace--pc-bill]="isPcBillWorkspace()"
   >
+    @if (!isPcBillWorkspace()) {
     <div class="open-table-search-row">
       <label class="open-table-search-field">
         <svg class="open-table-search-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -27,8 +29,10 @@
         />
       </label>
     </div>
+    }
 
     <div class="open-table-main-column min-w-0 w-full">
+      @if (!isPcBillWorkspace()) {
       <section class="app-card app-card-flush open-table-floor-card min-w-0 w-full p-4 transition-all duration-300 ease-in-out sm:p-5">
       <div class="space-y-4">
           <div class="open-table-floor-toolbar">
@@ -244,9 +248,14 @@
           }
       </div>
       </section>
+      }
     </div>
 
-    @if (drawerOpen()) {
+    @if (isPcBillWorkspace()) {
+      <div class="open-table-bill-workspace min-w-0 w-full">
+        <ng-container *ngTemplateOutlet="sessionPanel"></ng-container>
+      </div>
+    } @else if (drawerOpen()) {
       <aside
         class="open-table-drawer hidden min-w-0 shrink-0 desktop:block desktop:w-[35%] transition-all duration-300 ease-in-out"
       >
@@ -279,9 +288,32 @@
 </div>
 
 <ng-template #sessionPanel>
-  <section class="app-card app-card-flush open-table-session-panel">
-    <div class="space-y-4 p-4">
+  <section
+    class="app-card app-card-flush open-table-session-panel"
+    [class.open-table-session-panel--pc]="isPcBillWorkspace()"
+  >
+    <div
+      class="open-table-session-panel__body"
+      [class.open-table-session-panel__body--pc]="isPcBillWorkspace()"
+    >
       @if (selectedSeat(); as seat) {
+        @if (
+          isPcBillWorkspace() &&
+          ledgerCanMutate() &&
+          seat.sessionId &&
+          seatLedgerOpen() &&
+          !seatAwaitingClear()
+        ) {
+          <div class="open-table-session-panel__left space-y-4 app-scroll-region">
+            <div class="open-table-pc-add-panel">
+              <h4 class="mb-3 text-sm font-semibold text-text-primary">เพิ่มรายการ</h4>
+              <ng-container *ngTemplateOutlet="addItemFormBody"></ng-container>
+            </div>
+          </div>
+        }
+
+        <div class="open-table-session-panel__bill min-w-0">
+        <div class="open-table-session-panel__header space-y-4">
         <div class="flex items-start justify-between gap-3 border-b border-theme-border pb-3">
           <div class="min-w-0">
             <h3 class="flex flex-wrap items-center gap-2 text-base font-semibold text-text-primary">
@@ -319,6 +351,24 @@
                   </button>
                 </span>
               }
+              @if (isPcBillWorkspace() && ledgerCanMutate() && seat.sessionId) {
+                <button
+                  type="button"
+                  class="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-text-secondary hover:border-primary/35 hover:text-text-primary"
+                  aria-label="ย้ายโต๊ะ"
+                  title="ย้ายโต๊ะ"
+                  [disabled]="actionBusy()"
+                  (click)="handleSeatTransfer()"
+                >
+                  <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path
+                      fill-rule="evenodd"
+                      d="M2.24 6.8a.75.75 0 001.06-.04l1.95-2.1v6.59a.75.75 0 001.5 0V4.66l1.95 2.1a.75.75 0 101.1-1.02l-3.25-3.5a.75.75 0 00-1.1 0L2.2 5.74a.75.75 0 00.04 1.06zm10 6.4a.75.75 0 00-.04 1.06l3.25 3.5a.75.75 0 001.1 0l3.25-3.5a.75.75 0 10-1.1-1.02l-1.95 2.1V8.75a.75.75 0 00-1.5 0v6.59l-1.95-2.1a.75.75 0 00-1.06-.04z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </button>
+              }
               <span [ngClass]="statusDotClass(seat.status)" aria-hidden="true"></span>
               <span class="sr-only">{{ statusText(seat.status) }}</span>
             </h3>
@@ -344,7 +394,8 @@
           <button
             type="button"
             class="app-btn-ghost shrink-0 rounded-input p-2 text-text-secondary hover:border-primary/40 hover:text-text-primary"
-            aria-label="ปิดแผงบิล"
+            [attr.aria-label]="isPcBillWorkspace() ? 'ปิดบิล กลับไปผังโต๊ะ' : 'ปิดแผงบิล'"
+            [title]="isPcBillWorkspace() ? 'กลับไปผังโต๊ะ' : 'ปิด'"
             (click)="closeDrawer()"
           >
             <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -354,7 +405,9 @@
             </svg>
           </button>
         </div>
+        </div>
 
+        <div class="open-table-session-panel__main space-y-4 p-4 pt-0 app-scroll-region">
         @if (seatPanelLoading()) {
           <div class="open-table-bill-skeleton space-y-4" aria-busy="true" aria-live="polite">
             <div class="space-y-2">
@@ -576,6 +629,7 @@
             </button>
           }
         } @else {
+          <div class="open-table-session-panel__ledger space-y-4">
           <div>
             <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">
               รายการในบิล
@@ -772,7 +826,7 @@
             </div>
           </div>
 
-          @if (ledgerCanMutate()) {
+          @if (ledgerCanMutate() && !isPcBillWorkspace()) {
             <div class="open-table-order-actions">
               <button
                 type="button"
@@ -793,6 +847,12 @@
             </div>
           }
 
+          </div>
+        }
+        </div>
+
+          @if (seatLedgerOpen() && !seatPanelLoading() && !sessionDetailLoading() && !seatAwaitingClear()) {
+          <div class="open-table-session-panel__summary">
           <div class="open-table-bill-summary open-table-order-foot">
             <div class="open-table-bill-summary-row">
               <span class="open-table-bill-summary-label">ยอดดื่มรวม</span>
@@ -813,7 +873,9 @@
               </button>
             }
           </div>
-        }
+          </div>
+          }
+        </div>
       }
     </div>
   </section>
@@ -825,7 +887,11 @@
       <h2 class="app-modal-title">เพิ่มรายการ</h2>
       <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeAddModal()">✕</button>
     </div>
+    <ng-container *ngTemplateOutlet="addItemFormBody"></ng-container>
+  </app-modal>
+}
 
+<ng-template #addItemFormBody>
     <div class="app-filter-bar mb-4" role="tablist" aria-label="ประเภทการเพิ่มรายการ">
       <button
         type="button"
@@ -1349,13 +1415,14 @@
     </div>
 
     <div class="app-form-actions app-form-actions-top">
-      <button type="button" class="app-btn-secondary" (click)="closeAddModal()">ยกเลิก</button>
+      @if (!isPcBillWorkspace()) {
+        <button type="button" class="app-btn-secondary" (click)="closeAddModal()">ยกเลิก</button>
+      }
       <button type="button" class="app-btn-primary" [disabled]="actionBusy()" (click)="submitAddItems()">
         {{ actionBusy() ? 'กำลังบันทึก...' : 'บันทึก' }}
       </button>
     </div>
-  </app-modal>
-}
+</ng-template>
 
 @if (showTransferModal()) {
   <app-modal layout="center" (dismiss)="closeTransferModal()">

@@ -535,6 +535,11 @@ export class OpenTablePageComponent implements OnInit {
     return { ...detail, ...totals };
   }
   readonly drawerOpen = computed(() => this.selectedSeatKey() != null);
+
+  /** Desktop (≥1000px): bill replaces floor plan. */
+  readonly isPcBillWorkspace = computed(
+    () => !this.mobileDrawerViewport() && this.drawerOpen(),
+  );
   readonly anyModalOpen = computed(
     () =>
       this.showAddModal() ||
@@ -2065,6 +2070,9 @@ export class OpenTablePageComponent implements OnInit {
     this.showMobileSheet.set(true);
     if (seat.sessionId) {
       this.loadSessionDetail(seat.sessionId, { showLoading: true });
+      if (!this.mobileDrawerViewport() && seat.status === 'OCCUPIED') {
+        this.preparePcAddPanel();
+      }
     } else {
       this.sessionDetail.set(null);
       this.sessionDetailLoading.set(false);
@@ -2079,6 +2087,19 @@ export class OpenTablePageComponent implements OnInit {
       );
       this.checkInMode.set('OPEN');
     }
+  }
+
+  /** Desktop: prepare left-panel add form (always visible for open bills). */
+  private preparePcAddPanel(): void {
+    this.addModalMode.set('ORDER_LEDGER');
+    this.syncStaffLedgerRoles();
+    this.resetOrderLedgerForm();
+    this.resetStaffLedgerForm();
+    this.resetRoomChargeForm();
+    this.addItemValidated.set(false);
+    this.reloadStaffEmployees();
+    this.reloadPackageDeposits();
+    this.showAddModal.set(false);
   }
 
   onCheckInGuestCountInput(value: string): void {
@@ -2099,6 +2120,9 @@ export class OpenTablePageComponent implements OnInit {
     this.sessionDetailLoading.set(false);
     this.sessionDetailRequestSeq += 1;
     this.showMobileSheet.set(false);
+    this.showAddModal.set(false);
+    closeOpenShopFlatpickrCalendars();
+    this.forcePurgeBodyModals();
   }
 
   closeMobileSheet(): void {
@@ -2437,9 +2461,13 @@ export class OpenTablePageComponent implements OnInit {
     this.resetStaffLedgerForm();
     this.resetRoomChargeForm();
     this.addItemValidated.set(false);
-    this.showAddModal.set(true);
     this.reloadStaffEmployees();
     this.reloadPackageDeposits();
+    if (this.mobileDrawerViewport()) {
+      this.showAddModal.set(true);
+    } else {
+      this.preparePcAddPanel();
+    }
   }
 
   private flagAddItemValidation(): void {
@@ -2450,8 +2478,10 @@ export class OpenTablePageComponent implements OnInit {
     closeOpenShopFlatpickrCalendars();
     this.showAddModal.set(false);
     this.forcePurgeBodyModals();
-    if (this.selectedSeatKey()) {
+    if (this.selectedSeatKey() && this.mobileDrawerViewport()) {
       this.showMobileSheet.set(true);
+    } else if (!this.mobileDrawerViewport() && this.ledgerCanMutate()) {
+      this.preparePcAddPanel();
     }
   }
 

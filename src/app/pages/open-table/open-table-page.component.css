@@ -60,8 +60,88 @@
   }
 }
 
-.open-table-workspace {
+.open-table-workspace--pc-bill {
+  display: block;
+}
+
+.open-table-bill-workspace {
+  width: 100%;
+  min-width: 0;
+}
+
+.open-table-session-panel--pc {
+  min-height: min(75vh, 48rem);
+}
+
+.open-table-session-panel__body--pc {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   align-items: stretch;
+  gap: 0;
+  min-height: min(75vh, 48rem);
+}
+
+.open-table-session-panel__body--pc:has(> .open-table-session-panel__left) {
+  grid-template-columns: minmax(0, 1.45fr) minmax(20rem, 28rem);
+}
+
+.open-table-session-panel__body--pc > .open-table-session-panel__left {
+  grid-column: 1;
+  grid-row: 1;
+  padding: 1rem;
+  max-height: calc(100dvh - 7rem);
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+  --app-scroll-track: var(--card-bg);
+}
+
+.open-table-session-panel__body--pc > .open-table-session-panel__bill {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-height: calc(100dvh - 7rem);
+  background: var(--card-bg);
+}
+
+.open-table-session-panel__body--pc:has(> .open-table-session-panel__left) > .open-table-session-panel__bill {
+  grid-column: 2;
+  border-left: 1px solid var(--border);
+}
+
+.open-table-session-panel__body--pc .open-table-session-panel__header {
+  padding: 1rem 1rem 0.75rem;
+  flex-shrink: 0;
+}
+
+.open-table-session-panel__body--pc .open-table-session-panel__main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  --app-scroll-track: var(--card-bg);
+}
+
+.open-table-session-panel__body--pc .open-table-session-panel__summary {
+  flex-shrink: 0;
+  padding: 0 1rem 1rem;
+  margin-top: auto;
+}
+
+.open-table-session-panel__body:not(.open-table-session-panel__body--pc) .open-table-session-panel__header,
+.open-table-session-panel__body:not(.open-table-session-panel__body--pc) .open-table-session-panel__main {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.open-table-session-panel__body:not(.open-table-session-panel__body--pc) .open-table-session-panel__header {
+  padding-top: 1rem;
+}
+
+.open-table-session-panel__body:not(.open-table-session-panel__body--pc) .open-table-session-panel__main {
+  padding-top: 0;
+  padding-bottom: 1rem;
 }
 
 .open-table-main-column {
