@@ -166,7 +166,6 @@ export class OpenTablePageComponent implements OnInit {
   readonly loading = signal(true);
   readonly floorPlanRefreshing = signal(false);
   readonly floorPlanSkeleton = computed(() => this.loading() || this.floorPlanRefreshing());
-  readonly kpiSkeletonSlots = [0, 1, 2, 3] as const;
   readonly seatSkeletonSlots = Array.from({ length: 16 }, (_, i) => i);
   readonly actionBusy = signal(false);
   readonly search = signal('');
@@ -418,6 +417,27 @@ export class OpenTablePageComponent implements OnInit {
   readonly layoutSeats = computed(() =>
     this.filteredSeats().filter((seat) => seat.floorLayout != null),
   );
+
+  readonly statusCounts = computed(() => {
+    const seats = this.seats();
+    let available = 0;
+    let reserved = 0;
+    let occupied = 0;
+    let awaitingClear = 0;
+    for (const seat of seats) {
+      if (seat.status === 'AVAILABLE') available += 1;
+      else if (seat.status === 'RESERVED') reserved += 1;
+      else if (seat.status === 'OCCUPIED') occupied += 1;
+      else if (seat.status === 'AWAITING_CLEAR') awaitingClear += 1;
+    }
+    return {
+      ALL: seats.length,
+      AVAILABLE: available,
+      RESERVED: reserved,
+      OCCUPIED: occupied,
+      AWAITING_CLEAR: awaitingClear,
+    };
+  });
 
   readonly panelGuestLabel = computed(() => {
     const seat = this.selectedSeat();

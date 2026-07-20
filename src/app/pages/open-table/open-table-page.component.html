@@ -1,7 +1,7 @@
 <div class="app-page">
   <header class="app-page-header">
     <div>
-      <h1 class="app-page-title">{{ openTableSelfBillOnly() ? 'บิลของฉัน' : 'เปิดโต๊ะ' }}</h1>
+      <h1 class="app-page-title">{{ openTableSelfBillOnly() ? 'บิลของฉัน' : 'POS' }}</h1>
     </div>
   </header>
 
@@ -29,107 +29,6 @@
     </div>
 
     <div class="open-table-main-column min-w-0 w-full">
-      <div class="open-table-toolbar">
-        @if (floorPlanSkeleton()) {
-          <div class="open-table-kpi-grid" aria-busy="true" aria-label="กำลังโหลดสรุปโต๊ะ">
-            @for (slot of kpiSkeletonSlots; track slot) {
-              <div class="open-table-kpi-card open-table-kpi-card--skeleton">
-                <div class="app-skeleton open-table-kpi-skeleton__icon rounded-full" aria-hidden="true"></div>
-                <div class="open-table-kpi-card__body space-y-2">
-                  <div class="app-skeleton h-3 w-16 rounded" aria-hidden="true"></div>
-                  <div class="app-skeleton h-7 w-10 rounded" aria-hidden="true"></div>
-                  <div class="app-skeleton h-3 w-8 rounded" aria-hidden="true"></div>
-                </div>
-              </div>
-            }
-          </div>
-        } @else if (openTableSelfBillOnly()) {
-          <div class="open-table-kpi-grid open-table-kpi-grid--self-bill">
-            <div class="open-table-kpi-card open-table-kpi-card--occupied">
-              <div class="open-table-kpi-card__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                </svg>
-              </div>
-              <div class="open-table-kpi-card__body">
-                <p class="open-table-kpi-label">โต๊ะที่ดูแล</p>
-                <p class="open-table-kpi-value">{{ floorPlanKpi().inUse }}</p>
-              </div>
-            </div>
-            @if (floorPlanKpi().reserved > 0) {
-              <div class="open-table-kpi-card open-table-kpi-card--reserved">
-                <div class="open-table-kpi-card__icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zm0 16H5V10h14v10z" />
-                  </svg>
-                </div>
-                <div class="open-table-kpi-card__body">
-                  <p class="open-table-kpi-label">จองของฉัน</p>
-                  <p class="open-table-kpi-value">{{ floorPlanKpi().reserved }}</p>
-                </div>
-              </div>
-            }
-          </div>
-        } @else {
-        <div class="open-table-kpi-grid">
-          <div class="open-table-kpi-card open-table-kpi-card--available">
-            <div class="open-table-kpi-card__icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h10v2H4v-2z" />
-              </svg>
-            </div>
-            <div class="open-table-kpi-card__body">
-              <p class="open-table-kpi-label">โต๊ะว่าง</p>
-              <p class="open-table-kpi-value">{{ floorPlanKpi().available }}</p>
-              <p class="open-table-kpi-pct">{{ floorPlanKpi().availablePct }}%</p>
-            </div>
-          </div>
-          <div class="open-table-kpi-card open-table-kpi-card--occupied">
-            <div class="open-table-kpi-card__icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-              </svg>
-            </div>
-            <div class="open-table-kpi-card__body">
-              <p class="open-table-kpi-label">กำลังใช้งาน</p>
-              <p class="open-table-kpi-value">{{ floorPlanKpi().inUse }}</p>
-              <p class="open-table-kpi-pct">{{ floorPlanKpi().inUsePct }}%</p>
-            </div>
-          </div>
-          <div class="open-table-kpi-card open-table-kpi-card--reserved">
-            <div class="open-table-kpi-card__icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zm0 16H5V10h14v10z" />
-              </svg>
-            </div>
-            <div class="open-table-kpi-card__body">
-              <p class="open-table-kpi-label">จอง</p>
-              <p class="open-table-kpi-value">{{ floorPlanKpi().reserved }}</p>
-              <p class="open-table-kpi-pct">{{ floorPlanKpi().reservedPct }}%</p>
-            </div>
-          </div>
-          <div class="open-table-kpi-card open-table-kpi-card--sales">
-            <div class="open-table-kpi-card__body open-table-kpi-card__body--wide">
-              <p class="open-table-kpi-label">ยอดขายวันนี้</p>
-              <p class="open-table-kpi-value open-table-kpi-value--sales">
-                {{ floorPlanKpi().todaySales | number: '1.0-0' }} บาท
-              </p>
-              @if (floorPlanKpi().salesChangePct != null) {
-                <p
-                  class="open-table-kpi-trend"
-                  [class.open-table-kpi-trend--up]="floorPlanKpi().salesChangePct! >= 0"
-                  [class.open-table-kpi-trend--down]="floorPlanKpi().salesChangePct! < 0"
-                >
-                  {{ floorPlanKpi().salesChangePct! >= 0 ? '+' : '' }}{{ floorPlanKpi().salesChangePct }}%
-                  จากเมื่อวาน
-                </p>
-              }
-            </div>
-          </div>
-        </div>
-        }
-      </div>
-
       <section class="app-card app-card-flush open-table-floor-card min-w-0 w-full p-4 transition-all duration-300 ease-in-out sm:p-5">
       <div class="space-y-4">
           <div class="open-table-floor-toolbar">
@@ -142,6 +41,7 @@
             (click)="setStatusFilter('ALL')"
           >
             ทั้งหมด
+            <span class="open-table-filter-count">{{ statusCounts().ALL }}</span>
           </button>
           <button
             type="button"
@@ -151,6 +51,7 @@
           >
             <span class="open-table-status-dot open-table-status-dot--available" aria-hidden="true"></span>
             ว่าง
+            <span class="open-table-filter-count">{{ statusCounts().AVAILABLE }}</span>
           </button>
           <button
             type="button"
@@ -160,6 +61,7 @@
           >
             <span class="open-table-status-dot open-table-status-dot--reserved" aria-hidden="true"></span>
             จอง
+            <span class="open-table-filter-count">{{ statusCounts().RESERVED }}</span>
           </button>
           <button
             type="button"
@@ -169,6 +71,7 @@
           >
             <span class="open-table-status-dot open-table-status-dot--occupied" aria-hidden="true"></span>
             มีแขก
+            <span class="open-table-filter-count">{{ statusCounts().OCCUPIED }}</span>
           </button>
           <button
             type="button"
@@ -178,27 +81,44 @@
           >
             <span class="open-table-status-dot open-table-status-dot--awaiting-clear" aria-hidden="true"></span>
             รอลูกค้ากลับ
+            <span class="open-table-filter-count">{{ statusCounts().AWAITING_CLEAR }}</span>
           </button>
             </div>
             }
-            <div class="app-filter-bar open-table-view-mode" role="tablist" aria-label="รูปแบบการแสดงโต๊ะ">
+            <div
+              class="dashboard-date-presets open-table-view-mode"
+              role="tablist"
+              aria-label="รูปแบบการแสดงโต๊ะ"
+            >
               <button
                 type="button"
-                class="app-filter-chip"
-                [class.app-filter-chip-active]="floorDisplayMode() === 'grid'"
+                class="dashboard-date-btn open-table-view-btn"
+                [class.dashboard-date-btn-active]="floorDisplayMode() === 'grid'"
+                [attr.aria-pressed]="floorDisplayMode() === 'grid'"
+                title="แบบรายการ"
                 (click)="setFloorDisplayMode('grid')"
               >
-                แบบรายการ
+                <svg class="open-table-view-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z" />
+                </svg>
+                <span class="sr-only">แบบรายการ</span>
               </button>
               <button
                 type="button"
-                class="app-filter-chip"
-                [class.app-filter-chip-active]="floorDisplayMode() === 'layout'"
+                class="dashboard-date-btn open-table-view-btn"
+                [class.dashboard-date-btn-active]="floorDisplayMode() === 'layout'"
+                [attr.aria-pressed]="floorDisplayMode() === 'layout'"
                 [disabled]="!hasFloorLayout()"
-                [title]="hasFloorLayout() ? 'ดูตามผังร้าน' : 'ยังไม่มีผังโต๊ะ — ตั้งที่เมนู จัดผังโต๊ะ'"
+                [title]="hasFloorLayout() ? 'แบบผังร้าน' : 'ยังไม่มีผังโต๊ะ — ตั้งที่เมนู จัดผังโต๊ะ'"
                 (click)="setFloorDisplayMode('layout')"
               >
-                แบบผังร้าน
+                <svg class="open-table-view-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+                  <rect x="3" y="4" width="7" height="6" rx="1.25" />
+                  <rect x="14" y="4" width="7" height="10" rx="1.25" />
+                  <rect x="3" y="13" width="7" height="7" rx="1.25" />
+                  <circle cx="17.5" cy="18" r="2.5" />
+                </svg>
+                <span class="sr-only">แบบผังร้าน</span>
               </button>
             </div>
           </div>

@@ -68,7 +68,7 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
         this.canvasWidth.set(board.canvasWidth);
         this.canvasHeight.set(board.canvasHeight);
         this.placed.set(board.placed);
-        this.unplaced.set(board.unplaced);
+        this.unplaced.set(sortUnplacedByCode(board.unplaced));
         this.selectedSeatingId.set(null);
         this.dirty.set(false);
         this.loading.set(false);
@@ -116,7 +116,7 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     if (!selected) return;
     this.placed.update((rows) => rows.filter((r) => r.seatingId !== selected.seatingId));
     this.unplaced.update((rows) =>
-      [
+      sortUnplacedByCode([
         ...rows,
         {
           seatingId: selected.seatingId,
@@ -124,7 +124,7 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
           seatingTypeId: selected.seatingTypeId ?? 0,
           seatingTypeName: selected.seatingTypeName ?? '',
         },
-      ].sort((a, b) => a.code.localeCompare(b.code, 'th')),
+      ]),
     );
     this.selectedSeatingId.set(null);
     this.dirty.set(true);
@@ -217,7 +217,7 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     this.layoutService.saveBoard(items).subscribe({
       next: (board) => {
         this.placed.set(board.placed);
-        this.unplaced.set(board.unplaced);
+        this.unplaced.set(sortUnplacedByCode(board.unplaced));
         this.dirty.set(false);
         this.saving.set(false);
         this.toast.showSuccess('บันทึกผังโต๊ะแล้ว');
@@ -294,4 +294,10 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
       y: Math.min(Math.max(y, 0), Math.max(this.canvasHeight() - height, 0)),
     };
   }
+}
+
+function sortUnplacedByCode(rows: FloorLayoutUnplacedSeat[]): FloorLayoutUnplacedSeat[] {
+  return [...rows].sort((a, b) =>
+    a.code.localeCompare(b.code, 'th', { numeric: true, sensitivity: 'base' }),
+  );
 }

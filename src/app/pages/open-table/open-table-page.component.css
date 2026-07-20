@@ -287,6 +287,33 @@
 
 .open-table-view-mode {
   margin-left: auto;
+  flex-shrink: 0;
+}
+
+.open-table-view-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  padding-left: 0.55rem;
+  padding-right: 0.55rem;
+}
+
+.open-table-view-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.open-table-view-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  display: block;
+}
+
+.open-table-filter-count {
+  margin-left: 0.2rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
 }
 
 .open-table-layout-wrap {
