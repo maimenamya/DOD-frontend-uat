@@ -65,6 +65,7 @@
   width: 100%;
   max-width: 100%;
   aspect-ratio: var(--floor-canvas-w, 1200) / var(--floor-canvas-h, 800);
+  --floor-grid: calc(100% * 40 / var(--floor-canvas-w, 1200));
   background:
     linear-gradient(
       to right,
@@ -77,7 +78,7 @@
       transparent 1px
     ),
     var(--surface-strong, var(--card-bg));
-  background-size: 40px 40px, 40px 40px, auto;
+  background-size: var(--floor-grid) var(--floor-grid), var(--floor-grid) var(--floor-grid), auto;
   touch-action: none;
   user-select: none;
 }
@@ -87,10 +88,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
   border: 2px solid color-mix(in srgb, var(--primary) 55%, var(--theme-border));
   background: color-mix(in srgb, var(--primary) 18%, var(--card-bg));
   color: var(--text-primary);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   cursor: grab;
   touch-action: none;

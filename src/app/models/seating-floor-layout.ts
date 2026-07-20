@@ -55,7 +55,7 @@ export const FLOOR_LAYOUT_SIZE_OPTIONS: Array<{ value: FloorLayoutSize; label: s
   { value: 'L', label: 'ใหญ่' },
 ];
 
-const SIZE_BASE: Record<FloorLayoutSize, number> = { S: 56, M: 80, L: 112 };
+const SIZE_BASE: Record<FloorLayoutSize, number> = { S: 40, M: 56, L: 80 };
 
 export function floorLayoutBoxSize(
   shape: FloorLayoutShape,
