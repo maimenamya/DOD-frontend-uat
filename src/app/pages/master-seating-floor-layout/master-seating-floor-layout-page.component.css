@@ -16,6 +16,14 @@
   @apply mb-2 text-sm font-semibold text-text-primary;
 }
 
+.floor-editor__palette-zone {
+  @apply ml-1 font-normal text-text-secondary;
+}
+
+.floor-editor__zones {
+  flex-wrap: wrap;
+}
+
 .floor-editor__palette-list {
   @apply flex flex-col gap-2;
 }

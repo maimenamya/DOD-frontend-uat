@@ -133,6 +133,21 @@
             </div>
           </div>
         } @else if (floorDisplayMode() === 'layout') {
+          @if (layoutZones().length > 1) {
+            <div class="app-filter-bar open-table-layout-zone-bar" role="tablist" aria-label="โซนผังโต๊ะ">
+              @for (zone of layoutZones(); track zone.typeId) {
+                <button
+                  type="button"
+                  class="app-filter-chip"
+                  [class.app-filter-chip-active]="layoutZoneId() === zone.typeId"
+                  (click)="setLayoutZone(zone.typeId)"
+                >
+                  {{ zone.label }}
+                  <span class="open-table-filter-count">{{ zone.count }}</span>
+                </button>
+              }
+            </div>
+          }
           <div class="open-table-layout-wrap app-scroll-region">
             <div
               class="open-table-layout-canvas"

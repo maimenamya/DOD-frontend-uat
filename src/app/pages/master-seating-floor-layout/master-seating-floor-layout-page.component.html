@@ -2,6 +2,7 @@
   <div class="app-page-header">
     <div>
       <h1 class="app-page-title">จัดผังโต๊ะ</h1>
+      <p class="app-page-subtitle">เลือกโซนก่อน แล้วลากโต๊ะวางบนผังของโซนนั้น</p>
     </div>
     <div class="flex flex-wrap gap-2">
       <button type="button" class="app-btn-secondary" [disabled]="loading() || saving()" (click)="reload()">
@@ -20,15 +21,35 @@
 
   @if (loading()) {
     <p class="app-empty-state">กำลังโหลดผังโต๊ะ...</p>
+  } @else if (zones().length === 0) {
+    <p class="app-empty-state">ยังไม่มีโซนที่นั่ง — ตั้งค่าที่เมนู โซนที่นั่ง / ประเภทโซนที่นั่ง</p>
   } @else {
+    <div class="floor-editor__zones app-filter-bar mb-3" role="tablist" aria-label="เลือกโซนผัง">
+      @for (zone of zones(); track zone.id) {
+        <button
+          type="button"
+          class="app-filter-chip"
+          [class.app-filter-chip-active]="selectedZoneId() === zone.id"
+          (click)="selectZone(zone.id)"
+        >
+          {{ zone.name }}
+        </button>
+      }
+    </div>
+
     <div class="floor-editor" (pointerup)="onWindowPointerUp()">
       <aside class="floor-editor__palette app-scroll-region">
-        <h2 class="floor-editor__palette-title">โต๊ะที่สามารถเลือกได้</h2>
-        @if (unplaced().length === 0) {
-          <p class="app-hint">วางครบแล้ว</p>
+        <h2 class="floor-editor__palette-title">
+          โต๊ะยังไม่วาง
+          @if (selectedZone(); as zone) {
+            <span class="floor-editor__palette-zone">({{ zone.name }})</span>
+          }
+        </h2>
+        @if (zoneUnplaced().length === 0) {
+          <p class="app-hint">โซนนี้วางครบแล้ว</p>
         } @else {
           <ul class="floor-editor__palette-list">
-            @for (seat of unplaced(); track seat.seatingId) {
+            @for (seat of zoneUnplaced(); track seat.seatingId) {
               <li>
                 <button
                   type="button"
@@ -36,7 +57,6 @@
                   (pointerdown)="onUnplacedPointerDown($event, seat)"
                 >
                   <span class="font-semibold">{{ seat.code }}</span>
-                  <span class="text-text-secondary text-xs">{{ seat.seatingTypeName }}</span>
                 </button>
               </li>
             }
@@ -71,7 +91,11 @@
             </div>
           </div>
         } @else {
-          <p class="app-hint mb-3">คลิกโต๊ะบนผังเพื่อแก้ขนาด/รูปทรง — ลากเพื่อย้ายตำแหน่ง</p>
+          <p class="app-hint mb-3">
+            กำลังจัดผังโซน
+            <strong>{{ selectedZone()?.name ?? '—' }}</strong>
+            — ลากโต๊ะจากซ้ายมาวาง คลิกโต๊ะบนผังเพื่อแก้ขนาด/รูปทรง
+          </p>
         }
 
         <div
@@ -84,7 +108,7 @@
             (pointermove)="onCanvasPointerMove($event)"
             (pointerup)="onCanvasPointerUp($event)"
           >
-            @for (seat of placed(); track seat.seatingId) {
+            @for (seat of zonePlaced(); track seat.seatingId) {
               <button
                 type="button"
                 class="floor-editor__seat"

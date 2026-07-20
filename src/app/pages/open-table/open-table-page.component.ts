@@ -414,9 +414,36 @@ export class OpenTablePageComponent implements OnInit {
     this.seats().some((seat) => seat.floorLayout != null),
   );
 
-  readonly layoutSeats = computed(() =>
-    this.filteredSeats().filter((seat) => seat.floorLayout != null),
-  );
+  readonly layoutZones = computed(() => {
+    const byType = new Map<number, { typeId: number; label: string; count: number }>();
+    for (const seat of this.seats()) {
+      if (!seat.floorLayout) continue;
+      const existing = byType.get(seat.seatingTypeId);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        byType.set(seat.seatingTypeId, {
+          typeId: seat.seatingTypeId,
+          label: seat.zoneLabel,
+          count: 1,
+        });
+      }
+    }
+    return [...byType.values()].sort((a, b) =>
+      a.label.localeCompare(b.label, 'th', { numeric: true, sensitivity: 'base' }),
+    );
+  });
+
+  readonly layoutZoneId = signal<number | null>(null);
+
+  readonly layoutSeats = computed(() => {
+    const zoneId = this.layoutZoneId();
+    return this.filteredSeats().filter((seat) => {
+      if (seat.floorLayout == null) return false;
+      if (zoneId == null) return true;
+      return seat.seatingTypeId === zoneId;
+    });
+  });
 
   readonly statusCounts = computed(() => {
     const seats = this.seats();
@@ -1133,6 +1160,7 @@ export class OpenTablePageComponent implements OnInit {
           })),
         );
         this.seats.set(tiles);
+        this.syncLayoutZoneSelection(tiles);
         if (this.floorDisplayMode() === 'layout' && !tiles.some((s) => s.floorLayout)) {
           this.floorDisplayMode.set('grid');
         }
@@ -1976,11 +2004,38 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
     this.floorDisplayMode.set(mode);
+    if (mode === 'layout') {
+      this.syncLayoutZoneSelection(this.seats());
+    }
     try {
       localStorage.setItem(FLOOR_DISPLAY_MODE_KEY, mode);
     } catch {
       /* ignore quota / private mode */
     }
+  }
+
+  setLayoutZone(typeId: number): void {
+    this.layoutZoneId.set(typeId);
+  }
+
+  private syncLayoutZoneSelection(tiles: SeatTile[]): void {
+    const zones = new Map<number, string>();
+    for (const seat of tiles) {
+      if (seat.floorLayout) zones.set(seat.seatingTypeId, seat.zoneLabel);
+    }
+    if (zones.size === 0) {
+      this.layoutZoneId.set(null);
+      return;
+    }
+    const current = this.layoutZoneId();
+    if (current != null && zones.has(current)) return;
+    const first = [...zones.keys()].sort((a, b) =>
+      (zones.get(a) ?? '').localeCompare(zones.get(b) ?? '', 'th', {
+        numeric: true,
+        sensitivity: 'base',
+      }),
+    )[0];
+    this.layoutZoneId.set(first ?? null);
   }
 
   layoutSeatStyle(seat: SeatTile): Record<string, string> {

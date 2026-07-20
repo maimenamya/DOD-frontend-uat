@@ -20,9 +20,16 @@ export type FloorLayoutUnplacedSeat = {
   seatingTypeName: string;
 };
 
+export type FloorLayoutZone = {
+  id: number;
+  name: string;
+  code: string;
+};
+
 export type FloorLayoutBoard = {
   canvasWidth: number;
   canvasHeight: number;
+  zones: FloorLayoutZone[];
   placed: FloorLayoutPlacedSeat[];
   unplaced: FloorLayoutUnplacedSeat[];
 };

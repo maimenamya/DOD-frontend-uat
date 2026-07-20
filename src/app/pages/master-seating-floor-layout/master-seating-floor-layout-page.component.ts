@@ -12,6 +12,7 @@ import {
   type FloorLayoutSize,
   type FloorLayoutUnplacedSeat,
   type FloorLayoutWriteItem,
+  type FloorLayoutZone,
 } from '../../models/seating-floor-layout';
 import { SeatingFloorLayoutService } from '../../services/seating-floor-layout.service';
 import { ToastService } from '../../services/toast.service';
@@ -35,8 +36,10 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   readonly saving = signal(false);
   readonly canvasWidth = signal(1200);
   readonly canvasHeight = signal(800);
+  readonly zones = signal<FloorLayoutZone[]>([]);
   readonly placed = signal<FloorLayoutPlacedSeat[]>([]);
   readonly unplaced = signal<FloorLayoutUnplacedSeat[]>([]);
+  readonly selectedZoneId = signal<number | null>(null);
   readonly selectedSeatingId = signal<number | null>(null);
   readonly dirty = signal(false);
 
@@ -51,10 +54,28 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     label: o.label,
   }));
 
+  readonly selectedZone = computed(() => {
+    const id = this.selectedZoneId();
+    if (id == null) return null;
+    return this.zones().find((z) => z.id === id) ?? null;
+  });
+
+  readonly zonePlaced = computed(() => {
+    const zoneId = this.selectedZoneId();
+    if (zoneId == null) return [];
+    return this.placed().filter((row) => row.seatingTypeId === zoneId);
+  });
+
+  readonly zoneUnplaced = computed(() => {
+    const zoneId = this.selectedZoneId();
+    if (zoneId == null) return [];
+    return this.unplaced().filter((row) => row.seatingTypeId === zoneId);
+  });
+
   readonly selected = computed(() => {
     const id = this.selectedSeatingId();
     if (id == null) return null;
-    return this.placed().find((row) => row.seatingId === id) ?? null;
+    return this.zonePlaced().find((row) => row.seatingId === id) ?? null;
   });
 
   ngOnInit(): void {
@@ -67,10 +88,12 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
       next: (board) => {
         this.canvasWidth.set(board.canvasWidth);
         this.canvasHeight.set(board.canvasHeight);
+        this.zones.set(board.zones ?? []);
         this.placed.set(board.placed);
         this.unplaced.set(sortUnplacedByCode(board.unplaced));
         this.selectedSeatingId.set(null);
         this.dirty.set(false);
+        this.ensureZoneSelection(board.zones ?? []);
         this.loading.set(false);
       },
       error: (err: { error?: { error?: string } }) => {
@@ -78,6 +101,12 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  selectZone(zoneId: number): void {
+    if (this.selectedZoneId() === zoneId) return;
+    this.selectedZoneId.set(zoneId);
+    this.selectedSeatingId.set(null);
   }
 
   boxStyle(row: FloorLayoutPlacedSeat): Record<string, string> {
@@ -134,7 +163,6 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     event.preventDefault();
     this.drag = { kind: 'place', seatingId: seat.seatingId };
     const onMove = (ev: PointerEvent): void => {
-      // keep drag alive while moving toward canvas
       void ev;
     };
     const onUp = (ev: PointerEvent): void => {
@@ -216,8 +244,10 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     this.saving.set(true);
     this.layoutService.saveBoard(items).subscribe({
       next: (board) => {
+        this.zones.set(board.zones ?? []);
         this.placed.set(board.placed);
         this.unplaced.set(sortUnplacedByCode(board.unplaced));
+        this.ensureZoneSelection(board.zones ?? []);
         this.dirty.set(false);
         this.saving.set(false);
         this.toast.showSuccess('บันทึกผังโต๊ะแล้ว');
@@ -227,6 +257,16 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
         this.toast.showError(err.error?.error ?? 'บันทึกผังไม่สำเร็จ');
       },
     });
+  }
+
+  private ensureZoneSelection(zones: FloorLayoutZone[]): void {
+    if (zones.length === 0) {
+      this.selectedZoneId.set(null);
+      return;
+    }
+    const current = this.selectedZoneId();
+    if (current != null && zones.some((z) => z.id === current)) return;
+    this.selectedZoneId.set(zones[0]!.id);
   }
 
   private placeSeat(seatingId: number, posX: number, posY: number): void {

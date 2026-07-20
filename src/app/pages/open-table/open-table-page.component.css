@@ -318,13 +318,11 @@
 
 .open-table-layout-wrap {
   --app-scroll-track: var(--card-bg);
-  --open-table-layout-max-h: calc(100vh - 12.5rem);
-  --open-table-layout-max-h: calc(100dvh - 12.5rem);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  --open-table-layout-max-h: calc(100vh - 14.5rem);
+  --open-table-layout-max-h: calc(100dvh - 14.5rem);
   overflow: auto;
   max-height: var(--open-table-layout-max-h);
+  width: 100%;
   border-radius: 0.5rem;
   border: 1px solid var(--border);
   background: var(--surface, var(--card-bg));
@@ -333,17 +331,8 @@
 
 .open-table-layout-canvas {
   position: relative;
-  /* Keep full 1200×800 plan visible: shrink width when height would overflow */
-  width: min(
-    100%,
-    calc(
-      var(--open-table-layout-max-h) * var(--floor-canvas-w, 1200) /
-        var(--floor-canvas-h, 800)
-    )
-  );
-  max-height: var(--open-table-layout-max-h);
+  width: 100%;
   aspect-ratio: var(--floor-canvas-w, 1200) / var(--floor-canvas-h, 800);
-  flex-shrink: 0;
   background:
     linear-gradient(
       to right,
@@ -361,9 +350,13 @@
 
 @media (min-width: 1000px) {
   .open-table-workspace--split .open-table-layout-wrap {
-    --open-table-layout-max-h: calc(100vh - 11rem);
-    --open-table-layout-max-h: calc(100dvh - 11rem);
+    --open-table-layout-max-h: calc(100vh - 13rem);
+    --open-table-layout-max-h: calc(100dvh - 13rem);
   }
+}
+
+.open-table-layout-zone-bar {
+  margin-bottom: 0.75rem;
 }
 
 .open-table-layout-seat {
