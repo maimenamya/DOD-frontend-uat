@@ -55,25 +55,26 @@ export const FLOOR_LAYOUT_SIZE_OPTIONS: Array<{ value: FloorLayoutSize; label: s
   { value: 'L', label: 'ใหญ่' },
 ];
 
-const SIZE_BASE: Record<FloorLayoutSize, number> = { S: 40, M: 56, L: 80 };
+const SHORT_EDGE: Record<FloorLayoutSize, number> = { S: 40, M: 56, L: 80 };
 
-/** Long/short edges — exact swap so RECT_H is RECT_V rotated (ratio 2.5∶1). */
-const RECT_LONG = 1.75;
-const RECT_SHORT = 0.7;
-
+/**
+ * Shared short edge so sizes match across shapes (user units 5 / 10):
+ * RECT_H = 10×5, RECT_V = 5×10, SQUARE/CIRCLE = 5×5.
+ */
 export function floorLayoutBoxSize(
   shape: FloorLayoutShape,
   size: FloorLayoutSize,
 ): { width: number; height: number } {
-  const base = SIZE_BASE[size];
+  const short = SHORT_EDGE[size];
+  const long = short * 2;
   switch (shape) {
     case 'RECT_H':
-      return { width: Math.round(base * RECT_LONG), height: Math.round(base * RECT_SHORT) };
+      return { width: long, height: short };
     case 'RECT_V':
-      return { width: Math.round(base * RECT_SHORT), height: Math.round(base * RECT_LONG) };
+      return { width: short, height: long };
     case 'CIRCLE':
     case 'SQUARE':
     default:
-      return { width: base, height: base };
+      return { width: short, height: short };
   }
 }

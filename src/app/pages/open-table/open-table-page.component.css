@@ -83,7 +83,7 @@
 }
 
 .open-table-session-panel__body--pc:has(> .open-table-session-panel__left) {
-  grid-template-columns: minmax(0, 1.45fr) minmax(20rem, 28rem);
+  grid-template-columns: minmax(0, 60%) minmax(0, 40%);
 }
 
 .open-table-session-panel__body--pc > .open-table-session-panel__left {
