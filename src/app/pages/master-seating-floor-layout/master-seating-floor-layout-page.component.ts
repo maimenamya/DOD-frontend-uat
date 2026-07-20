@@ -117,7 +117,8 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
       left: `${(row.posX / w) * 100}%`,
       top: `${(row.posY / h) * 100}%`,
       width: `${(box.width / w) * 100}%`,
-      height: `${(box.height / h) * 100}%`,
+      aspectRatio: `${box.width} / ${box.height}`,
+      height: 'auto',
       borderRadius: row.shape === 'CIRCLE' ? '999px' : '10px',
     };
   }

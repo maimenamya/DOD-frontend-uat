@@ -381,6 +381,8 @@
   line-height: 1.05;
   text-align: center;
   overflow: hidden;
+  min-height: 0;
+  height: auto;
   transition:
     border-color var(--transition-smooth),
     box-shadow var(--transition-smooth),
