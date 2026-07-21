@@ -111,7 +111,9 @@
                 <tbody>
                   @for (row of listView().items; track row.id; let i = $index) {
                     <tr>
-                      <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
+                      <td class="bill-history-cell-no app-cell-mono" data-label="No.">
+                        {{ masterListRowNumber(listView(), i) }}
+                      </td>
                       <td class="bill-history-cell-date whitespace-nowrap text-text-secondary" data-label="วันที่">
                         {{ row.businessDateLabel }}
                       </td>
@@ -124,7 +126,7 @@
                       <td class="bill-history-cell-table" data-label="โต๊ะ / โซน">
                         {{ row.dineInLabel ?? '—' }}
                       </td>
-                      <td data-label="เซลล์">{{ row.saleNickname }}</td>
+                      <td class="bill-history-cell-sale" data-label="เซลล์">{{ row.saleNickname }}</td>
                       <td class="app-cell-right app-cell-highlight-violet whitespace-nowrap" data-label="ยอด">
                         {{ row.billAmount | number: '1.0-0' }}
                       </td>
