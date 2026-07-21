@@ -497,11 +497,11 @@
 
 .open-table-layout-canvas {
   position: relative;
-  /* Full container width; height follows 1200×800 so coords match the editor.
-     Different screens just scroll — we do not shrink the board to fit height. */
-  --floor-grid: calc(100% * 40 / var(--floor-canvas-w, 1200));
-  width: 100%;
-  aspect-ratio: var(--floor-canvas-w, 1200) / var(--floor-canvas-h, 800);
+  /* Fixed design size (e.g. 1200×800) — seats stay the same px; wrap scrolls X/Y. */
+  width: calc(var(--floor-canvas-w, 1200) * 1px);
+  height: calc(var(--floor-canvas-h, 800) * 1px);
+  flex-shrink: 0;
+  --floor-grid: 40px;
   background:
     linear-gradient(
       to right,
@@ -590,13 +590,13 @@
 }
 
 .open-table-layout-seat__code {
-  font-size: clamp(0.5rem, 0.95vw, 0.7rem);
+  font-size: 0.65rem;
   font-weight: 700;
   line-height: 1.05;
 }
 
 .open-table-layout-seat__status {
-  font-size: clamp(0.4rem, 0.85vw, 0.58rem);
+  font-size: 0.55rem;
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;

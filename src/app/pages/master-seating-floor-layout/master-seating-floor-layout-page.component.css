@@ -58,14 +58,16 @@
 .floor-editor__canvas-wrap {
   @apply overflow-auto rounded-card border border-theme-border bg-surface p-3;
   max-height: 75vh;
+  --app-scroll-track: var(--card-bg);
 }
 
 .floor-editor__canvas {
   position: relative;
-  width: 100%;
-  max-width: 100%;
-  aspect-ratio: var(--floor-canvas-w, 1200) / var(--floor-canvas-h, 800);
-  --floor-grid: calc(100% * 40 / var(--floor-canvas-w, 1200));
+  /* Fixed design size — do not shrink with viewport; wrap scrolls X/Y. */
+  width: calc(var(--floor-canvas-w, 1200) * 1px);
+  height: calc(var(--floor-canvas-h, 800) * 1px);
+  flex-shrink: 0;
+  --floor-grid: 40px;
   background:
     linear-gradient(
       to right,
