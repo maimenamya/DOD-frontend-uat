@@ -3,6 +3,44 @@
     <div>
       <h1 class="app-page-title">{{ openTableSelfBillOnly() ? 'บิลของฉัน' : 'POS' }}</h1>
     </div>
+    @if (!isPcBillWorkspace()) {
+      <div
+        class="dashboard-date-presets open-table-view-mode"
+        role="tablist"
+        aria-label="รูปแบบการแสดงโต๊ะ"
+      >
+        <button
+          type="button"
+          class="dashboard-date-btn open-table-view-btn"
+          [class.dashboard-date-btn-active]="floorDisplayMode() === 'grid'"
+          [attr.aria-pressed]="floorDisplayMode() === 'grid'"
+          title="แบบรายการ"
+          (click)="setFloorDisplayMode('grid')"
+        >
+          <svg class="open-table-view-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z" />
+          </svg>
+          <span class="sr-only">แบบรายการ</span>
+        </button>
+        <button
+          type="button"
+          class="dashboard-date-btn open-table-view-btn"
+          [class.dashboard-date-btn-active]="floorDisplayMode() === 'layout'"
+          [attr.aria-pressed]="floorDisplayMode() === 'layout'"
+          [disabled]="!hasFloorLayout()"
+          [title]="hasFloorLayout() ? 'แบบผังร้าน' : 'ยังไม่มีผังโต๊ะ — ตั้งที่เมนู จัดผังโต๊ะ'"
+          (click)="setFloorDisplayMode('layout')"
+        >
+          <svg class="open-table-view-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+            <rect x="3" y="4" width="7" height="6" rx="1.25" />
+            <rect x="14" y="4" width="7" height="10" rx="1.25" />
+            <rect x="3" y="13" width="7" height="7" rx="1.25" />
+            <circle cx="17.5" cy="18" r="2.5" />
+          </svg>
+          <span class="sr-only">แบบผังร้าน</span>
+        </button>
+      </div>
+    }
   </header>
 
   <div
@@ -35,8 +73,8 @@
       @if (!isPcBillWorkspace()) {
       <section class="app-card app-card-flush open-table-floor-card min-w-0 w-full p-4 transition-all duration-300 ease-in-out sm:p-5">
       <div class="space-y-4">
+          @if (!openTableSelfBillOnly()) {
           <div class="open-table-floor-toolbar">
-            @if (!openTableSelfBillOnly()) {
             <div class="app-filter-bar" role="tablist" aria-label="สถานะโต๊ะ">
           <button
             type="button"
@@ -88,44 +126,8 @@
             <span class="open-table-filter-count">{{ statusCounts().AWAITING_CLEAR }}</span>
           </button>
             </div>
-            }
-            <div
-              class="dashboard-date-presets open-table-view-mode"
-              role="tablist"
-              aria-label="รูปแบบการแสดงโต๊ะ"
-            >
-              <button
-                type="button"
-                class="dashboard-date-btn open-table-view-btn"
-                [class.dashboard-date-btn-active]="floorDisplayMode() === 'grid'"
-                [attr.aria-pressed]="floorDisplayMode() === 'grid'"
-                title="แบบรายการ"
-                (click)="setFloorDisplayMode('grid')"
-              >
-                <svg class="open-table-view-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z" />
-                </svg>
-                <span class="sr-only">แบบรายการ</span>
-              </button>
-              <button
-                type="button"
-                class="dashboard-date-btn open-table-view-btn"
-                [class.dashboard-date-btn-active]="floorDisplayMode() === 'layout'"
-                [attr.aria-pressed]="floorDisplayMode() === 'layout'"
-                [disabled]="!hasFloorLayout()"
-                [title]="hasFloorLayout() ? 'แบบผังร้าน' : 'ยังไม่มีผังโต๊ะ — ตั้งที่เมนู จัดผังโต๊ะ'"
-                (click)="setFloorDisplayMode('layout')"
-              >
-                <svg class="open-table-view-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
-                  <rect x="3" y="4" width="7" height="6" rx="1.25" />
-                  <rect x="14" y="4" width="7" height="10" rx="1.25" />
-                  <rect x="3" y="13" width="7" height="7" rx="1.25" />
-                  <circle cx="17.5" cy="18" r="2.5" />
-                </svg>
-                <span class="sr-only">แบบผังร้าน</span>
-              </button>
-            </div>
           </div>
+          }
 
           @if (floorPlanSkeleton()) {
           <div class="space-y-5" aria-busy="true" aria-label="กำลังโหลดแผนผังโต๊ะ">

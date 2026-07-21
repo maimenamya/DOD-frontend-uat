@@ -1,19 +1,27 @@
 .floor-editor {
-  display: grid;
-  grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
-  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   min-height: 70vh;
   --app-scroll-track: var(--card-bg);
 }
 
 .floor-editor__palette {
   @apply rounded-card border border-theme-border bg-surface p-3;
-  max-height: 75vh;
-  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.floor-editor__palette-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .floor-editor__palette-title {
-  @apply mb-2 text-sm font-semibold text-text-primary;
+  @apply text-sm font-semibold text-text-primary;
+  margin: 0;
 }
 
 .floor-editor__palette-zone {
@@ -25,12 +33,23 @@
 }
 
 .floor-editor__palette-list {
-  @apply flex flex-col gap-2;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.15rem 0;
+  list-style: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  --app-scroll-track: var(--card-bg);
 }
 
 .floor-editor__palette-item {
-  @apply flex w-full cursor-grab flex-col items-start gap-0.5 rounded-input border border-theme-border bg-surface px-3 py-2 text-left text-sm;
+  @apply inline-flex shrink-0 cursor-grab items-center justify-center rounded-input border border-theme-border bg-surface px-3 py-2 text-sm;
   touch-action: none;
+  min-width: 3.25rem;
 }
 
 .floor-editor__palette-item:active {
@@ -38,7 +57,8 @@
 }
 
 .floor-editor__main {
-  @apply min-w-0;
+  @apply min-w-0 w-full;
+  flex: 1 1 auto;
 }
 
 .floor-editor__toolbar {
@@ -56,18 +76,28 @@
 }
 
 .floor-editor__canvas-wrap {
-  @apply overflow-auto rounded-card border border-theme-border bg-surface p-3;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   max-height: 75vh;
+  width: 100%;
+  border-radius: var(--radius-card, 0.75rem);
+  border: 1px solid var(--theme-border, var(--border));
+  background: var(--surface, var(--card-bg));
+  padding: 0.75rem;
+  box-sizing: border-box;
   --app-scroll-track: var(--card-bg);
+  touch-action: pan-x pan-y;
 }
 
 .floor-editor__canvas {
   position: relative;
-  /* Fixed design size — do not shrink with viewport; wrap scrolls X/Y. */
-  width: calc(var(--floor-canvas-w, 1200) * 1px);
-  height: calc(var(--floor-canvas-h, 800) * 1px);
+  /* At least design size; grow to fill wrap so width matches POS */
+  width: max(100%, calc(var(--floor-canvas-w, 1200) * 1px));
+  aspect-ratio: var(--floor-canvas-w, 1200) / var(--floor-canvas-h, 800);
+  height: auto;
   flex-shrink: 0;
-  --floor-grid: 40px;
+  --floor-grid: calc(100% * 40 / var(--floor-canvas-w, 1200));
   background:
     linear-gradient(
       to right,
@@ -81,8 +111,14 @@
     ),
     var(--surface-strong, var(--card-bg));
   background-size: var(--floor-grid) var(--floor-grid), var(--floor-grid) var(--floor-grid), auto;
-  touch-action: none;
+  touch-action: pan-x pan-y;
   user-select: none;
+  cursor: grab;
+}
+
+.floor-editor__canvas--panning {
+  cursor: grabbing;
+  touch-action: none;
 }
 
 .floor-editor__seat {
@@ -114,14 +150,4 @@
   border-color: var(--primary);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 35%, transparent);
   z-index: 2;
-}
-
-@media (max-width: 900px) {
-  .floor-editor {
-    grid-template-columns: 1fr;
-  }
-
-  .floor-editor__palette {
-    max-height: 12rem;
-  }
 }

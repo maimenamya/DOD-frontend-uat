@@ -446,13 +446,12 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: 0.75rem;
 }
 
 .open-table-view-mode {
-  margin-left: auto;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .open-table-view-btn {
@@ -486,6 +485,8 @@
   --open-table-layout-max-h: calc(100vh - 14.5rem);
   --open-table-layout-max-h: calc(100dvh - 14.5rem);
   overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   max-height: var(--open-table-layout-max-h);
   width: 100%;
   border-radius: 0.5rem;
@@ -493,15 +494,17 @@
   background: var(--surface, var(--card-bg));
   padding: 0.5rem;
   box-sizing: border-box;
+  touch-action: pan-x pan-y;
 }
 
 .open-table-layout-canvas {
   position: relative;
-  /* Fixed design size (e.g. 1200×800) — seats stay the same px; wrap scrolls X/Y. */
-  width: calc(var(--floor-canvas-w, 1200) * 1px);
-  height: calc(var(--floor-canvas-h, 800) * 1px);
+  /* Fill wrap when wide; keep at least design size so small screens scroll X/Y. */
+  width: max(100%, calc(var(--floor-canvas-w, 1200) * 1px));
+  aspect-ratio: var(--floor-canvas-w, 1200) / var(--floor-canvas-h, 800);
+  height: auto;
   flex-shrink: 0;
-  --floor-grid: 40px;
+  --floor-grid: calc(100% * 40 / var(--floor-canvas-w, 1200));
   background:
     linear-gradient(
       to right,

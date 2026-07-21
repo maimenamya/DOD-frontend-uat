@@ -38,17 +38,20 @@
     </div>
 
     <div class="floor-editor" (pointerup)="onWindowPointerUp()">
-      <aside class="floor-editor__palette app-scroll-region">
-        <h2 class="floor-editor__palette-title">
-          โต๊ะยังไม่วาง
-          @if (selectedZone(); as zone) {
-            <span class="floor-editor__palette-zone">({{ zone.name }})</span>
+      <aside class="floor-editor__palette">
+        <div class="floor-editor__palette-head">
+          <h2 class="floor-editor__palette-title">
+            โต๊ะยังไม่วาง
+            @if (selectedZone(); as zone) {
+              <span class="floor-editor__palette-zone">({{ zone.name }})</span>
+            }
+          </h2>
+          @if (zoneUnplaced().length === 0) {
+            <p class="app-hint mb-0">โซนนี้วางครบแล้ว</p>
           }
-        </h2>
-        @if (zoneUnplaced().length === 0) {
-          <p class="app-hint">โซนนี้วางครบแล้ว</p>
-        } @else {
-          <ul class="floor-editor__palette-list">
+        </div>
+        @if (zoneUnplaced().length > 0) {
+          <ul class="floor-editor__palette-list app-scroll-region">
             @for (seat of zoneUnplaced(); track seat.seatingId) {
               <li>
                 <button
@@ -94,19 +97,23 @@
           <p class="app-hint mb-3">
             กำลังจัดผังโซน
             <strong>{{ selectedZone()?.name ?? '—' }}</strong>
-            — ลากโต๊ะจากซ้ายมาวาง คลิกโต๊ะบนผังเพื่อแก้ขนาด/รูปทรง
+            — ลากโต๊ะจากแถวบนมาวาง คลิกโต๊ะบนผังเพื่อแก้ขนาด/รูปทรง · ลากพื้นว่างหรือเลื่อนเพื่อเลื่อนผัง
           </p>
         }
 
         <div
+          #canvasWrap
           class="floor-editor__canvas-wrap app-scroll-region"
           [style.--floor-canvas-w]="canvasWidth()"
           [style.--floor-canvas-h]="canvasHeight()"
         >
           <div
             class="floor-editor__canvas"
+            [class.floor-editor__canvas--panning]="isPanning()"
+            (pointerdown)="onCanvasBackgroundPointerDown($event)"
             (pointermove)="onCanvasPointerMove($event)"
             (pointerup)="onCanvasPointerUp($event)"
+            (pointercancel)="onCanvasPointerUp($event)"
           >
             @for (seat of zonePlaced(); track seat.seatingId) {
               <button

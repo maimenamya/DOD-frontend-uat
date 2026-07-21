@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { CustomDropdownComponent } from '../../components/custom-dropdown/custom-dropdown.component';
@@ -20,6 +20,7 @@ import { ToastService } from '../../services/toast.service';
 type DragState =
   | { kind: 'move'; seatingId: number; offsetX: number; offsetY: number }
   | { kind: 'place'; seatingId: number }
+  | { kind: 'pan'; startX: number; startY: number; scrollLeft: number; scrollTop: number }
   | null;
 
 @Component({
@@ -31,6 +32,7 @@ type DragState =
 export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   private readonly layoutService = inject(SeatingFloorLayoutService);
   private readonly toast = inject(ToastService);
+  private readonly canvasWrap = viewChild<ElementRef<HTMLElement>>('canvasWrap');
 
   readonly loading = signal(true);
   readonly saving = signal(false);
@@ -42,8 +44,20 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   readonly selectedZoneId = signal<number | null>(null);
   readonly selectedSeatingId = signal<number | null>(null);
   readonly dirty = signal(false);
+  readonly isPanning = signal(false);
 
   private drag: DragState = null;
+
+  constructor() {
+    effect((onCleanup) => {
+      const ref = this.canvasWrap();
+      if (!ref) return;
+      const el = ref.nativeElement;
+      const onWheel = (event: WheelEvent): void => this.onCanvasWrapWheel(event, el);
+      el.addEventListener('wheel', onWheel, { passive: false });
+      onCleanup(() => el.removeEventListener('wheel', onWheel));
+    });
+  }
 
   readonly shapeOptions: DropdownOption[] = FLOOR_LAYOUT_SHAPE_OPTIONS.map((o) => ({
     value: o.value,
@@ -206,30 +220,77 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
       offsetX: event.clientX - rect.left,
       offsetY: event.clientY - rect.top,
     };
+    this.isPanning.set(false);
     target.setPointerCapture?.(event.pointerId);
   }
 
+  /** Pan the scroll wrap by dragging empty canvas (no Shift needed; works on touch). */
+  onCanvasBackgroundPointerDown(event: PointerEvent): void {
+    if (event.button !== 0) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('.floor-editor__seat')) return;
+    const wrap = (event.currentTarget as HTMLElement).closest(
+      '.floor-editor__canvas-wrap',
+    ) as HTMLElement | null;
+    if (!wrap) return;
+    event.preventDefault();
+    this.selectedSeatingId.set(null);
+    this.drag = {
+      kind: 'pan',
+      startX: event.clientX,
+      startY: event.clientY,
+      scrollLeft: wrap.scrollLeft,
+      scrollTop: wrap.scrollTop,
+    };
+    this.isPanning.set(true);
+    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+  }
+
   onCanvasPointerMove(event: PointerEvent): void {
-    if (!this.drag || this.drag.kind !== 'move') return;
-    const canvas = event.currentTarget as HTMLElement;
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = this.canvasWidth() / rect.width;
-    const scaleY = this.canvasHeight() / rect.height;
-    const x = (event.clientX - rect.left) * scaleX - this.drag.offsetX * scaleX;
-    const y = (event.clientY - rect.top) * scaleY - this.drag.offsetY * scaleY;
-    this.moveSeat(this.drag.seatingId, x, y);
+    if (!this.drag) return;
+    if (this.drag.kind === 'move') {
+      const canvas = event.currentTarget as HTMLElement;
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = this.canvasWidth() / rect.width;
+      const scaleY = this.canvasHeight() / rect.height;
+      const x = (event.clientX - rect.left) * scaleX - this.drag.offsetX * scaleX;
+      const y = (event.clientY - rect.top) * scaleY - this.drag.offsetY * scaleY;
+      this.moveSeat(this.drag.seatingId, x, y);
+      return;
+    }
+    if (this.drag.kind === 'pan') {
+      const wrap = (event.currentTarget as HTMLElement).closest(
+        '.floor-editor__canvas-wrap',
+      ) as HTMLElement | null;
+      if (!wrap) return;
+      wrap.scrollLeft = this.drag.scrollLeft - (event.clientX - this.drag.startX);
+      wrap.scrollTop = this.drag.scrollTop - (event.clientY - this.drag.startY);
+    }
   }
 
   onCanvasPointerUp(_event: PointerEvent): void {
-    if (this.drag?.kind === 'move') {
+    if (this.drag?.kind === 'move' || this.drag?.kind === 'pan') {
       this.drag = null;
+      this.isPanning.set(false);
     }
   }
 
   onWindowPointerUp(): void {
-    if (this.drag?.kind === 'move') {
+    if (this.drag?.kind === 'move' || this.drag?.kind === 'pan') {
       this.drag = null;
+      this.isPanning.set(false);
     }
+  }
+
+  /**
+   * Mouse wheel scrolls the floor without requiring Shift (also pans horizontally).
+   * Trackpad two-finger scroll uses both deltaX and deltaY.
+   */
+  onCanvasWrapWheel(event: WheelEvent, el: HTMLElement): void {
+    if (event.ctrlKey) return;
+    event.preventDefault();
+    el.scrollLeft += event.deltaX + event.deltaY;
+    el.scrollTop += event.deltaY;
   }
 
   save(): void {
