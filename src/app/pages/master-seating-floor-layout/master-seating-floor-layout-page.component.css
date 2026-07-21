@@ -63,10 +63,19 @@
 
 .floor-editor__toolbar {
   @apply mb-3 rounded-card border border-theme-border bg-surface p-3;
+  min-height: 8.75rem;
+  box-sizing: border-box;
 }
 
 .floor-editor__toolbar-label {
   @apply mb-2 text-sm font-semibold text-text-primary;
+}
+
+.floor-editor__toolbar-empty {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 
 .floor-editor__toolbar-fields {

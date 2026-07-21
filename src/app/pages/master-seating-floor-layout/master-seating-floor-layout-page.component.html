@@ -68,8 +68,14 @@
       </aside>
 
       <div class="floor-editor__main">
-        @if (selected(); as sel) {
-          <div class="floor-editor__toolbar">
+        <p class="app-hint mb-2">
+          กำลังจัดผังโซน
+          <strong>{{ selectedZone()?.name ?? '—' }}</strong>
+          — ลากโต๊ะจากแถวบนมาวาง · คลิกโต๊ะเพื่อแก้ไข · ลากพื้นว่างหรือเลื่อนเพื่อเลื่อนผัง
+        </p>
+
+        <div class="floor-editor__toolbar">
+          @if (selected(); as sel) {
             <p class="floor-editor__toolbar-label">แก้ไข {{ sel.code }}</p>
             <div class="floor-editor__toolbar-fields">
               <div class="app-form-group">
@@ -92,14 +98,12 @@
                 เอาออกจากผัง
               </button>
             </div>
-          </div>
-        } @else {
-          <p class="app-hint mb-3">
-            กำลังจัดผังโซน
-            <strong>{{ selectedZone()?.name ?? '—' }}</strong>
-            — ลากโต๊ะจากแถวบนมาวาง คลิกโต๊ะบนผังเพื่อแก้ขนาด/รูปทรง · ลากพื้นว่างหรือเลื่อนเพื่อเลื่อนผัง
-          </p>
-        }
+          } @else {
+            <p class="floor-editor__toolbar-label">แก้ไขโต๊ะ</p>
+            <p class="floor-editor__toolbar-empty">ไม่มีข้อมูล</p>
+            <p class="app-hint mb-0">คลิกโต๊ะบนผังเพื่อแก้ขนาด / รูปทรง</p>
+          }
+        </div>
 
         <div
           #canvasWrap

@@ -81,24 +81,23 @@ export function floorLayoutBoxSize(
 }
 
 /**
- * Seat box on the floor canvas. Use width % + aspect-ratio (not height %)
- * so RECT_H / RECT_V / SQUARE stay correct when the canvas uses aspect-ratio sizing.
+ * Seat box on the floor canvas — fixed design pixels (canvas is also fixed size).
+ * Editor and POS share this so tables never scale with the viewport.
  */
 export function floorLayoutSeatBoxStyle(
   posX: number,
   posY: number,
   shape: FloorLayoutShape,
   size: FloorLayoutSize,
-  canvasW: number,
-  canvasH: number,
+  _canvasW: number,
+  _canvasH: number,
 ): Record<string, string> {
   const box = floorLayoutBoxSize(shape, size);
   return {
-    left: `${(posX / canvasW) * 100}%`,
-    top: `${(posY / canvasH) * 100}%`,
-    width: `${(box.width / canvasW) * 100}%`,
-    aspectRatio: `${box.width} / ${box.height}`,
-    height: 'auto',
+    left: `${Math.round(posX)}px`,
+    top: `${Math.round(posY)}px`,
+    width: `${box.width}px`,
+    height: `${box.height}px`,
     borderRadius: shape === 'CIRCLE' ? '999px' : '8px',
   };
 }
