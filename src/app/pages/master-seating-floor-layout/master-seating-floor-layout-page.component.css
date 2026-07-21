@@ -85,11 +85,13 @@
 }
 
 .floor-editor__canvas-wrap {
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   max-height: 75vh;
   width: 100%;
+  min-width: 0;
   border-radius: var(--radius-card, 0.75rem);
   border: 1px solid var(--theme-border, var(--border));
   background: var(--surface, var(--card-bg));
@@ -97,14 +99,16 @@
   box-sizing: border-box;
   --app-scroll-track: var(--card-bg);
   touch-action: pan-x pan-y;
+  scrollbar-gutter: auto;
 }
 
 .floor-editor__canvas {
   position: relative;
-  /* Fixed design size — matches POS floor canvas pixel-for-pixel. */
-  width: calc(var(--floor-canvas-w, 1200) * 1px);
+  width: max(100%, calc(var(--floor-canvas-w, 1200) * 1px));
+  min-width: calc(var(--floor-canvas-w, 1200) * 1px);
   height: calc(var(--floor-canvas-h, 800) * 1px);
   flex-shrink: 0;
+  box-sizing: border-box;
   --floor-grid: 40px;
   background:
     linear-gradient(

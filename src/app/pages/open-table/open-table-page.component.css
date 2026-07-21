@@ -505,25 +505,32 @@
   --app-scroll-track: var(--card-bg);
   --open-table-layout-max-h: calc(100vh - 14.5rem);
   --open-table-layout-max-h: calc(100dvh - 14.5rem);
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   max-height: var(--open-table-layout-max-h);
   width: 100%;
+  min-width: 0;
   border: 0;
   border-radius: 0;
   background: var(--surface, var(--card-bg));
   padding: 0;
   box-sizing: border-box;
   touch-action: pan-x pan-y;
+  /* Don't reserve a stable gutter — it clips the right edge of the board */
+  scrollbar-gutter: auto;
 }
 
 .open-table-layout-canvas {
   position: relative;
-  /* Fixed design size — same px as the floor editor (scroll when viewport is smaller). */
-  width: calc(var(--floor-canvas-w, 1200) * 1px);
+  /* Fill the wrap so there is no empty “cut” panel on the right;
+     keep at least design width so seats stay fixed px and small screens scroll. */
+  width: max(100%, calc(var(--floor-canvas-w, 1200) * 1px));
+  min-width: calc(var(--floor-canvas-w, 1200) * 1px);
   height: calc(var(--floor-canvas-h, 800) * 1px);
   flex-shrink: 0;
+  box-sizing: border-box;
   --floor-grid: 40px;
   background:
     linear-gradient(
