@@ -2,9 +2,81 @@
   min-width: 0;
 }
 
+/* Desktop: fixed rem columns so date / time / ref never crush each other */
+.bill-history-table {
+  table-layout: fixed;
+}
+
+.bill-history-table col.bill-history-col-id {
+  width: 3.25rem;
+}
+
+.bill-history-table col.bill-history-col-date {
+  width: 7.5rem;
+}
+
+.bill-history-table col.bill-history-col-time {
+  width: 8.75rem;
+}
+
+.bill-history-table col.bill-history-col-ref {
+  width: 14rem;
+}
+
+.bill-history-table col.bill-history-col-table {
+  width: 9rem;
+}
+
+.bill-history-table col.bill-history-col-sale {
+  width: 6.5rem;
+}
+
+.bill-history-table col.bill-history-col-amount {
+  width: 5.5rem;
+}
+
+.bill-history-table col.bill-history-col-pay {
+  width: 5rem;
+}
+
+.bill-history-table col.bill-history-col-actions {
+  width: 6.5rem;
+}
+
+.bill-history-table th,
+.bill-history-table td {
+  overflow: hidden;
+  vertical-align: middle;
+}
+
 .bill-history-ref {
   font-variant-numeric: tabular-nums;
-  word-break: break-all;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+
+.bill-history-cell-date,
+.bill-history-cell-time {
+  font-size: 0.8125rem;
+}
+
+@media (min-width: 1000px) {
+  .bill-history-page .app-data-table-shell:has(.bill-history-table) {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .bill-history-page .app-split-table-body {
+    overflow-x: hidden;
+  }
+
+  .bill-history-table {
+    width: 66rem;
+    min-width: 66rem;
+    max-width: none;
+  }
 }
 
 .bill-history-detail {
@@ -45,7 +117,6 @@
   overflow-y: auto;
   max-height: min(42vh, 22rem);
   --app-scroll-track: var(--table-body-bg);
-  /* framed item table */
   border: 1px solid var(--border);
   border-radius: var(--radius-input);
 }
@@ -58,11 +129,31 @@
 
 .bill-history-detail-actions {
   flex-shrink: 0;
-  /* full-bleed footer divider is handled globally via `.app-modal .app-form-actions` */
 }
 
-@media (min-width: 1000px) {
-  .bill-history-table {
-    min-width: 52rem;
+/* Mobile cards: bill number as title; keep mono ref visible (global hides .app-cell-mono) */
+@media (max-width: 999px) {
+  .bill-history-page
+    .app-split-table--mobile-stack
+    .app-split-table-body
+    td.bill-history-ref.app-cell-mono {
+    display: block !important;
+  }
+
+  .bill-history-page
+    .app-split-table--mobile-stack
+    .app-split-table-body
+    td.bill-history-ref.app-cell-primary {
+    order: -1;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    word-break: break-word;
+  }
+
+  .bill-history-page
+    .app-split-table--mobile-stack
+    .app-split-table-body
+    td.bill-history-ref[data-label]::before {
+    display: none;
   }
 }

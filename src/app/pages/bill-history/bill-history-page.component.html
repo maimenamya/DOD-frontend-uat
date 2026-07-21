@@ -66,25 +66,25 @@
     } @else {
       <section class="app-card app-card-flush">
         <div class="app-data-table-shell">
-          <div class="app-split-table app-split-table--wide">
+          <div class="app-split-table app-split-table--wide app-split-table--mobile-stack">
             <div class="app-split-table-header">
               <table class="app-data-table app-split-table-grid bill-history-table">
                 <colgroup>
-                  <col class="app-col-id" />
-                  <col class="app-col-narrow" />
-                  <col class="app-col-narrow" />
-                  <col />
-                  <col />
-                  <col />
-                  <col class="app-col-narrow" />
-                  <col class="app-col-narrow" />
-                  <col class="app-col-actions" />
+                  <col class="bill-history-col-id" />
+                  <col class="bill-history-col-date" />
+                  <col class="bill-history-col-time" />
+                  <col class="bill-history-col-ref" />
+                  <col class="bill-history-col-table" />
+                  <col class="bill-history-col-sale" />
+                  <col class="bill-history-col-amount" />
+                  <col class="bill-history-col-pay" />
+                  <col class="bill-history-col-actions" />
                 </colgroup>
                 <thead>
                   <tr>
                     <th>No.</th>
                     <th>วันที่</th>
-                    <th>เวลาเช็กเอาต์</th>
+                    <th>เช็กเอาต์</th>
                     <th>เลขบิล</th>
                     <th>โต๊ะ / โซน</th>
                     <th>เซลล์</th>
@@ -98,35 +98,37 @@
             <div class="app-split-table-body app-scroll-region">
               <table class="app-data-table app-split-table-grid bill-history-table">
                 <colgroup>
-                  <col class="app-col-id" />
-                  <col class="app-col-narrow" />
-                  <col class="app-col-narrow" />
-                  <col />
-                  <col />
-                  <col />
-                  <col class="app-col-narrow" />
-                  <col class="app-col-narrow" />
-                  <col class="app-col-actions" />
+                  <col class="bill-history-col-id" />
+                  <col class="bill-history-col-date" />
+                  <col class="bill-history-col-time" />
+                  <col class="bill-history-col-ref" />
+                  <col class="bill-history-col-table" />
+                  <col class="bill-history-col-sale" />
+                  <col class="bill-history-col-amount" />
+                  <col class="bill-history-col-pay" />
+                  <col class="bill-history-col-actions" />
                 </colgroup>
                 <tbody>
                   @for (row of listView().items; track row.id; let i = $index) {
                     <tr>
                       <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
-                      <td class="whitespace-nowrap text-text-secondary">
+                      <td class="bill-history-cell-date whitespace-nowrap text-text-secondary" data-label="วันที่">
                         {{ row.businessDateLabel }}
                       </td>
-                      <td class="whitespace-nowrap text-text-secondary">
+                      <td class="bill-history-cell-time whitespace-nowrap text-text-secondary" data-label="เช็กเอาต์">
                         {{ row.checkedOutLabel }}
                       </td>
-                      <td class="bill-history-ref app-cell-mono">
+                      <td class="bill-history-ref app-cell-mono app-cell-primary" data-label="เลขบิล">
                         {{ row.billReference }}
                       </td>
-                      <td>{{ row.dineInLabel ?? '—' }}</td>
-                      <td class="app-cell-primary">{{ row.saleNickname }}</td>
-                      <td class="app-cell-right app-cell-highlight-violet">
+                      <td class="bill-history-cell-table" data-label="โต๊ะ / โซน">
+                        {{ row.dineInLabel ?? '—' }}
+                      </td>
+                      <td data-label="เซลล์">{{ row.saleNickname }}</td>
+                      <td class="app-cell-right app-cell-highlight-violet whitespace-nowrap" data-label="ยอด">
                         {{ row.billAmount | number: '1.0-0' }}
                       </td>
-                      <td>{{ row.paymentMethodLabel }}</td>
+                      <td class="whitespace-nowrap" data-label="ชำระ">{{ row.paymentMethodLabel }}</td>
                       <td class="app-cell-right">
                         <div class="app-table-actions">
                           <button
