@@ -101,7 +101,7 @@
 }
 
 .open-table-session-panel__body--pc:has(> .open-table-session-panel__left) {
-  grid-template-columns: minmax(4.75rem, 10%) minmax(0, 45%) minmax(0, 45%);
+  grid-template-columns: minmax(7.25rem, 12%) minmax(0, 44%) minmax(0, 44%);
 }
 
 .open-table-session-panel__body--pc > .open-table-session-panel__nav {
@@ -109,13 +109,13 @@
   grid-row: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.35rem;
   min-width: 0;
   min-height: 0;
   height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
-  padding: 0.5rem 0.35rem;
+  padding: 0.65rem 0.45rem;
   border-right: 1px solid var(--border);
   background: color-mix(in srgb, var(--surface-strong, var(--card-bg)) 88%, var(--card-bg));
   --app-scroll-track: var(--card-bg);
@@ -126,16 +126,16 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 2.5rem;
+  min-height: 2.85rem;
   margin: 0;
-  padding: 0.4rem 0.2rem;
+  padding: 0.55rem 0.35rem;
   border: 1px solid transparent;
   border-radius: var(--radius-input, 0.5rem);
   background: transparent;
   color: var(--text-secondary);
-  font-size: 0.7rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  line-height: 1.15;
+  line-height: 1.25;
   text-align: center;
   word-break: break-word;
   cursor: pointer;
