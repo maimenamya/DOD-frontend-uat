@@ -37,7 +37,7 @@ import type {
   SessionRoomCharge,
   SessionStaffDrink,
 } from '../../models/open-table';
-import { floorLayoutBoxSize } from '../../models/seating-floor-layout';
+import { floorLayoutSeatBoxStyle } from '../../models/seating-floor-layout';
 import type { SeatingRateType } from '../../models/seating';
 import {
   ROOM_CHARGE_MODE_OPTIONS,
@@ -2047,15 +2047,14 @@ export class OpenTablePageComponent implements OnInit {
     const layout = seat.floorLayout;
     if (!layout) return {};
     const canvas = this.floorCanvas();
-    const box = floorLayoutBoxSize(layout.shape, layout.size);
-    // Width/height % of canvas axes — same units as the floor editor.
-    return {
-      left: `${(layout.posX / canvas.width) * 100}%`,
-      top: `${(layout.posY / canvas.height) * 100}%`,
-      width: `${(box.width / canvas.width) * 100}%`,
-      height: `${(box.height / canvas.height) * 100}%`,
-      borderRadius: layout.shape === 'CIRCLE' ? '999px' : '8px',
-    };
+    return floorLayoutSeatBoxStyle(
+      layout.posX,
+      layout.posY,
+      layout.shape,
+      layout.size,
+      canvas.width,
+      canvas.height,
+    );
   }
 
   selectSeat(seat: SeatTile): void {

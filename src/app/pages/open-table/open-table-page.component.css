@@ -520,12 +520,11 @@
 
 .open-table-layout-canvas {
   position: relative;
-  /* Fill wrap when wide; keep at least design size so small screens scroll X/Y. */
-  width: max(100%, calc(var(--floor-canvas-w, 1200) * 1px));
-  aspect-ratio: var(--floor-canvas-w, 1200) / var(--floor-canvas-h, 800);
-  height: auto;
+  /* Fixed design size — same px as the floor editor (scroll when viewport is smaller). */
+  width: calc(var(--floor-canvas-w, 1200) * 1px);
+  height: calc(var(--floor-canvas-h, 800) * 1px);
   flex-shrink: 0;
-  --floor-grid: calc(100% * 40 / var(--floor-canvas-w, 1200));
+  --floor-grid: 40px;
   background:
     linear-gradient(
       to right,
@@ -572,6 +571,7 @@
   overflow: hidden;
   min-width: 0;
   min-height: 0;
+  /* height comes from inline aspect-ratio; do not force auto in a way that fights it */
   transition:
     border-color var(--transition-smooth),
     box-shadow var(--transition-smooth),

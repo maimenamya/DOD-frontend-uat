@@ -7,6 +7,7 @@ import {
   FLOOR_LAYOUT_SHAPE_OPTIONS,
   FLOOR_LAYOUT_SIZE_OPTIONS,
   floorLayoutBoxSize,
+  floorLayoutSeatBoxStyle,
   type FloorLayoutPlacedSeat,
   type FloorLayoutShape,
   type FloorLayoutSize,
@@ -124,16 +125,14 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   }
 
   boxStyle(row: FloorLayoutPlacedSeat): Record<string, string> {
-    const box = floorLayoutBoxSize(row.shape, row.size);
-    const w = this.canvasWidth();
-    const h = this.canvasHeight();
-    return {
-      left: `${(row.posX / w) * 100}%`,
-      top: `${(row.posY / h) * 100}%`,
-      width: `${(box.width / w) * 100}%`,
-      height: `${(box.height / h) * 100}%`,
-      borderRadius: row.shape === 'CIRCLE' ? '999px' : '8px',
-    };
+    return floorLayoutSeatBoxStyle(
+      row.posX,
+      row.posY,
+      row.shape,
+      row.size,
+      this.canvasWidth(),
+      this.canvasHeight(),
+    );
   }
 
   selectSeat(seatingId: number): void {

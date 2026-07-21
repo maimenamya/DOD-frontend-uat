@@ -79,3 +79,26 @@ export function floorLayoutBoxSize(
       return { width: short, height: short };
   }
 }
+
+/**
+ * Seat box on the floor canvas. Use width % + aspect-ratio (not height %)
+ * so RECT_H / RECT_V / SQUARE stay correct when the canvas uses aspect-ratio sizing.
+ */
+export function floorLayoutSeatBoxStyle(
+  posX: number,
+  posY: number,
+  shape: FloorLayoutShape,
+  size: FloorLayoutSize,
+  canvasW: number,
+  canvasH: number,
+): Record<string, string> {
+  const box = floorLayoutBoxSize(shape, size);
+  return {
+    left: `${(posX / canvasW) * 100}%`,
+    top: `${(posY / canvasH) * 100}%`,
+    width: `${(box.width / canvasW) * 100}%`,
+    aspectRatio: `${box.width} / ${box.height}`,
+    height: 'auto',
+    borderRadius: shape === 'CIRCLE' ? '999px' : '8px',
+  };
+}
