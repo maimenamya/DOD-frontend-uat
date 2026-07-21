@@ -338,7 +338,7 @@
                   [disabled]="actionBusy()"
                   (click)="submitAddItems()"
                 >
-                  {{ actionBusy() ? 'กำลังบันทึก...' : 'บันทึก' }}
+                  {{ actionBusy() ? 'กำลังเพิ่ม...' : 'เพิ่ม' }}
                 </button>
               </div>
             </div>
@@ -1493,7 +1493,7 @@
       <div class="app-form-actions app-form-actions-top">
         <button type="button" class="app-btn-secondary" (click)="closeAddModal()">ยกเลิก</button>
         <button type="button" class="app-btn-primary" [disabled]="actionBusy()" (click)="submitAddItems()">
-          {{ actionBusy() ? 'กำลังบันทึก...' : 'บันทึก' }}
+          {{ actionBusy() ? 'กำลังเพิ่ม...' : 'เพิ่ม' }}
         </button>
       </div>
     }
