@@ -658,7 +658,8 @@
 }
 
 .open-table-layout-seat.open-table-seat-card--awaiting-clear {
-  --seat-card-accent-rgb: 168, 85, 247;
+  /* Match filter dot / list card — slate, not purple */
+  --seat-card-accent-rgb: 148, 163, 184;
 }
 
 .open-table-layout-seat.open-table-seat-card--selected {

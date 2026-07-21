@@ -2240,7 +2240,7 @@ export class OpenTablePageComponent implements OnInit {
     if (status === 'AVAILABLE') return 'ว่าง';
     if (status === 'RESERVED') return 'จอง';
     if (status === 'AWAITING_CLEAR') return 'รอลูกค้ากลับ';
-    return 'กำลังใช้งาน';
+    return 'ใช้งาน';
   }
 
   seatTileClasses(seat: SeatTile): Record<string, boolean> {
