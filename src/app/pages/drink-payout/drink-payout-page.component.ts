@@ -128,16 +128,15 @@ export class DrinkPayoutPageComponent implements OnInit {
 
   async payFreelance(row: FreelanceDrinkPayoutRow): Promise<void> {
     if (!this.canPay() || this.acting()) return;
-    const changeReason = await this.confirmDialog.confirmWithReason({
+    const ok = await this.confirmDialog.confirm({
       title: 'ยืนยันจ่ายค่าดื่ม',
       message: `จ่ายให้ ${row.nickname} วันที่ ${row.businessDateLabel}\n${row.drinksCount} ดื่ม × ${row.employeePerDrink} บาท = ${row.totalPayoutBaht.toLocaleString('th-TH')} บาท`,
       confirmLabel: 'ยืนยันจ่ายแล้ว',
-      reasonLabel: 'เหตุผลการจ่าย',
     });
-    if (!changeReason) return;
+    if (!ok) return;
     this.acting.set(true);
     this.drinkPayoutService
-      .payFreelance(row.employeeId, row.businessDate, this.currentDateParams(), changeReason)
+      .payFreelance(row.employeeId, row.businessDate, this.currentDateParams())
       .subscribe({
         next: (data) => {
           this.acting.set(false);
@@ -163,16 +162,15 @@ export class DrinkPayoutPageComponent implements OnInit {
       );
     }
     parts.push(`รวม ${row.totalPayoutBaht.toLocaleString('th-TH')} บาท`);
-    const changeReason = await this.confirmDialog.confirmWithReason({
+    const ok = await this.confirmDialog.confirm({
       title: 'ยืนยันจ่ายค่าแท็ก',
       message: parts.join('\n'),
       confirmLabel: 'ยืนยันจ่ายแล้ว',
-      reasonLabel: 'เหตุผลการจ่าย',
     });
-    if (!changeReason) return;
+    if (!ok) return;
     this.acting.set(true);
     this.drinkPayoutService
-      .payTag(row.enrollmentId, this.currentDateParams(), changeReason)
+      .payTag(row.enrollmentId, this.currentDateParams())
       .subscribe({
       next: (data) => {
         this.acting.set(false);
