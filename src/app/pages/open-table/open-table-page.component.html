@@ -995,13 +995,18 @@
           </p>
         }
         <div class="app-form-group">
-          <label class="app-label">ประเภทที่นั่ง (เฉพาะโซนคิดค่าบริการ)</label>
-          <app-custom-dropdown
-            [options]="roomChargeSeatingTypeOptions()"
-            [ngModel]="roomChargeSeatingTypeId()"
-            (ngModelChange)="onRoomChargeSeatingTypeChange($event)"
-            placeholder="เลือกประเภท"
-          />
+          <div class="app-filter-bar" role="tablist" aria-label="ประเภทที่นั่งคิดค่าบริการ">
+            @for (opt of roomChargeSeatingTypeOptions(); track opt.value) {
+              <button
+                type="button"
+                class="app-filter-chip"
+                [class.app-filter-chip-active]="roomChargeSeatingTypeId() === opt.value"
+                (click)="onRoomChargeSeatingTypeChange(opt.value)"
+              >
+                {{ opt.label }}
+              </button>
+            }
+          </div>
         </div>
         @if (roomChargeSeatingTypeId() != null) {
           <div class="app-form-group">
