@@ -791,11 +791,11 @@
   --seat-card-accent-rgb: 37, 99, 235;
 }
 
-/* Bill totals — full-bleed raised footer (mockup .order-foot) */
+/* Bill totals — raised footer (mockup .order-foot) */
 .open-table-bill-summary {
   display: flex;
   flex-direction: column;
-  margin: 1.5rem -1rem 0;
+  margin: 0;
   padding: 0.95rem 1rem 1.05rem;
   border-top: 1px solid var(--border);
   background: var(--surface);
