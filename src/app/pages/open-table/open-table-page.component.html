@@ -306,10 +306,27 @@
           seatLedgerOpen() &&
           !seatAwaitingClear()
         ) {
+          <nav
+            class="open-table-session-panel__nav app-scroll-region"
+            aria-label="หมวดการเพิ่มรายการ"
+          >
+            @for (item of pcAddNavItems(); track item.key) {
+              <button
+                type="button"
+                class="open-table-pc-add-nav__btn"
+                [class.open-table-pc-add-nav__btn--active]="isPcAddNavActive(item.key)"
+                [attr.aria-pressed]="isPcAddNavActive(item.key)"
+                [title]="item.label"
+                (click)="selectPcAddNav(item.key)"
+              >
+                {{ item.shortLabel }}
+              </button>
+            }
+          </nav>
           <div class="open-table-session-panel__left">
             <div class="open-table-pc-add-panel">
               <div class="open-table-pc-add-panel__header">
-                <h4 class="open-table-pc-add-panel__title">เพิ่มรายการ</h4>
+                <h4 class="open-table-pc-add-panel__title">{{ pcAddNavActiveLabel() }}</h4>
               </div>
               <div class="open-table-pc-add-panel__body app-scroll-region">
                 <ng-container *ngTemplateOutlet="addItemFormBody"></ng-container>
@@ -908,32 +925,34 @@
 }
 
 <ng-template #addItemFormBody>
-    <div class="app-filter-bar mb-4" role="tablist" aria-label="ประเภทการเพิ่มรายการ">
-      <button
-        type="button"
-        class="app-filter-chip flex-1 text-center"
-        [class.app-filter-chip-active]="addModalMode() === 'ORDER_LEDGER'"
-        (click)="setAddModalMode('ORDER_LEDGER')"
-      >
-        รายการ
-      </button>
-      <button
-        type="button"
-        class="app-filter-chip flex-1 text-center"
-        [class.app-filter-chip-active]="addModalMode() === 'STAFF_LEDGER'"
-        (click)="setAddModalMode('STAFF_LEDGER')"
-      >
-        รันดื่ม
-      </button>
-      <button
-        type="button"
-        class="app-filter-chip flex-1 text-center"
-        [class.app-filter-chip-active]="addModalMode() === 'ROOM_CHARGE'"
-        (click)="setAddModalMode('ROOM_CHARGE')"
-      >
-        ค่าห้อง
-      </button>
-    </div>
+    @if (!isPcBillWorkspace()) {
+      <div class="app-filter-bar mb-4" role="tablist" aria-label="ประเภทการเพิ่มรายการ">
+        <button
+          type="button"
+          class="app-filter-chip flex-1 text-center"
+          [class.app-filter-chip-active]="addModalMode() === 'ORDER_LEDGER'"
+          (click)="setAddModalMode('ORDER_LEDGER')"
+        >
+          รายการ
+        </button>
+        <button
+          type="button"
+          class="app-filter-chip flex-1 text-center"
+          [class.app-filter-chip-active]="addModalMode() === 'STAFF_LEDGER'"
+          (click)="setAddModalMode('STAFF_LEDGER')"
+        >
+          รันดื่ม
+        </button>
+        <button
+          type="button"
+          class="app-filter-chip flex-1 text-center"
+          [class.app-filter-chip-active]="addModalMode() === 'ROOM_CHARGE'"
+          (click)="setAddModalMode('ROOM_CHARGE')"
+        >
+          ค่าห้อง
+        </button>
+      </div>
+    }
 
     <div class="app-form-stack">
       @if (addModalMode() === 'ROOM_CHARGE') {
@@ -997,26 +1016,46 @@
       }
 
       @if (addModalMode() === 'ORDER_LEDGER') {
-        <div class="app-form-group">
-          <label class="app-label">หมวดการลงรายการ</label>
-          <app-custom-dropdown
-            [options]="orderMasterCategoryOptions()"
-            [ngModel]="orderLedgerCategory()"
-            (ngModelChange)="onOrderLedgerCategoryChange($event)"
-            placeholder="เลือกหมวดการลงรายการ"
-          />
-        </div>
-
-        @if (orderLedgerCategory() === 'FOOD') {
+        @if (!isPcBillWorkspace()) {
           <div class="app-form-group">
-            <label class="app-label">หมวดหมู่อาหาร</label>
+            <label class="app-label">หมวดการลงรายการ</label>
             <app-custom-dropdown
-              [options]="foodCategoryDropdownOptions()"
-              [ngModel]="selectedFoodCategoryId()"
-              (ngModelChange)="onFoodCategoryChange($event)"
-              placeholder="เลือกหมวดหมู่อาหาร"
+              [options]="orderMasterCategoryOptions()"
+              [ngModel]="orderLedgerCategory()"
+              (ngModelChange)="onOrderLedgerCategoryChange($event)"
+              placeholder="เลือกหมวดการลงรายการ"
             />
           </div>
+        }
+
+        @if (orderLedgerCategory() === 'FOOD') {
+          @if (isPcBillWorkspace()) {
+            <div class="app-form-group">
+              <span class="app-label">ประเภทอาหาร</span>
+              <div class="app-filter-bar mt-1" role="tablist" aria-label="ประเภทอาหาร">
+                @for (opt of foodCategoryDropdownOptions(); track opt.value) {
+                  <button
+                    type="button"
+                    class="app-filter-chip"
+                    [class.app-filter-chip-active]="selectedFoodCategoryId() === opt.value"
+                    (click)="onFoodCategoryChange(opt.value)"
+                  >
+                    {{ opt.label }}
+                  </button>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="app-form-group">
+              <label class="app-label">ประเภทอาหาร</label>
+              <app-custom-dropdown
+                [options]="foodCategoryDropdownOptions()"
+                [ngModel]="selectedFoodCategoryId()"
+                (ngModelChange)="onFoodCategoryChange($event)"
+                placeholder="เลือกประเภทอาหาร"
+              />
+            </div>
+          }
           <div class="app-form-group">
             <label class="app-label">เลือกรายการอาหาร</label>
             @for (catId of [selectedFoodCategoryId()]; track catId) {
@@ -1031,15 +1070,33 @@
         }
 
         @if (orderLedgerCategory() === 'BEVERAGE') {
-          <div class="app-form-group">
-            <label class="app-label">ประเภทเครื่องดื่ม</label>
-            <app-custom-dropdown
-              [options]="beverageCategoryDropdownOptions()"
-              [ngModel]="selectedBeverageCategoryId()"
-              (ngModelChange)="onBeverageCategoryChange($event)"
-              placeholder="เลือกประเภท"
-            />
-          </div>
+          @if (isPcBillWorkspace()) {
+            <div class="app-form-group">
+              <span class="app-label">ประเภทเครื่องดื่ม</span>
+              <div class="app-filter-bar mt-1" role="tablist" aria-label="ประเภทเครื่องดื่ม">
+                @for (opt of beverageCategoryDropdownOptions(); track opt.value) {
+                  <button
+                    type="button"
+                    class="app-filter-chip"
+                    [class.app-filter-chip-active]="selectedBeverageCategoryId() === opt.value"
+                    (click)="onBeverageCategoryChange(opt.value)"
+                  >
+                    {{ opt.label }}
+                  </button>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="app-form-group">
+              <label class="app-label">ประเภทเครื่องดื่ม</label>
+              <app-custom-dropdown
+                [options]="beverageCategoryDropdownOptions()"
+                [ngModel]="selectedBeverageCategoryId()"
+                (ngModelChange)="onBeverageCategoryChange($event)"
+                placeholder="เลือกประเภท"
+              />
+            </div>
+          }
           <div class="app-form-group">
             <label class="app-label">เลือกเครื่องดื่ม</label>
             @for (catId of [selectedBeverageCategoryId()]; track catId) {

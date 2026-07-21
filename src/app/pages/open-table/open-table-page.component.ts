@@ -101,6 +101,11 @@ type SeatStatusFilter = 'ALL' | 'AVAILABLE' | 'RESERVED' | 'OCCUPIED' | 'AWAITIN
 type CheckInMode = 'OPEN' | 'RESERVE';
 type AddModalMode = 'ORDER_LEDGER' | 'STAFF_LEDGER' | 'ROOM_CHARGE';
 
+/** PC left-rail entry points (order matches floor ops: staff/room first, then menu). */
+type PcAddNavKey = AddModalMode | OrderLedgerCategory;
+
+type PcAddNavItem = { key: PcAddNavKey; label: string; shortLabel: string };
+
 const OWNER_ROLE = 'OWNER';
 
 type SeatingTypeZone = { id: number; name: string; rateType: SeatingRateType };
@@ -636,6 +641,49 @@ export class OpenTablePageComponent implements OnInit {
     return options;
   });
 
+  /** Desktop add rail — fixed order; hide empty master categories. */
+  readonly pcAddNavItems = computed<PcAddNavItem[]>(() => {
+    const items: PcAddNavItem[] = [
+      { key: 'STAFF_LEDGER', label: 'รันดื่ม', shortLabel: 'รันดื่ม' },
+      { key: 'ROOM_CHARGE', label: 'ค่าห้อง', shortLabel: 'ค่าห้อง' },
+    ];
+    const shortByCategory: Partial<Record<OrderLedgerCategory, string>> = {
+      FOOD: 'อาหาร',
+      BEVERAGE: 'เครื่องดื่ม',
+      COCKTAIL: 'ค็อกเทล',
+      PROMOTION: 'โปร',
+      MEMBER: 'เมม',
+      OTHER: 'เบ็ดเตล็ด',
+      TABLE_OPENING: 'ค่าเปิดโต๊ะ',
+    };
+    const order: OrderLedgerCategory[] = [
+      'FOOD',
+      'BEVERAGE',
+      'COCKTAIL',
+      'PROMOTION',
+      'MEMBER',
+      'OTHER',
+      'TABLE_OPENING',
+    ];
+    const available = new Set(
+      this.orderMasterCategoryOptions().map((o) => String(o.value) as OrderLedgerCategory),
+    );
+    for (const category of order) {
+      if (!available.has(category)) continue;
+      items.push({
+        key: category,
+        label: ORDER_LEDGER_CATEGORY_LABELS[category],
+        shortLabel: shortByCategory[category] ?? ORDER_LEDGER_CATEGORY_LABELS[category],
+      });
+    }
+    return items;
+  });
+
+  readonly pcAddNavActiveLabel = computed(() => {
+    const active = this.pcAddNavItems().find((item) => this.isPcAddNavActive(item.key));
+    return active?.label ?? 'เพิ่มรายการ';
+  });
+
   readonly foodCategoryDropdownOptions = computed<DropdownOption[]>(() =>
     this.foodCategoriesRaw().map((c) => ({ value: c.id, label: c.name })),
   );
@@ -926,6 +974,24 @@ export class OpenTablePageComponent implements OnInit {
     if (mode === 'ROOM_CHARGE') {
       this.resetRoomChargeForm();
     }
+  }
+
+  isPcAddNavActive(key: PcAddNavKey): boolean {
+    if (key === 'STAFF_LEDGER' || key === 'ROOM_CHARGE') {
+      return this.addModalMode() === key;
+    }
+    return this.addModalMode() === 'ORDER_LEDGER' && this.orderLedgerCategory() === key;
+  }
+
+  selectPcAddNav(key: PcAddNavKey): void {
+    if (key === 'STAFF_LEDGER' || key === 'ROOM_CHARGE') {
+      this.setAddModalMode(key);
+      this.addItemValidated.set(false);
+      return;
+    }
+    this.setAddModalMode('ORDER_LEDGER');
+    this.onOrderLedgerCategoryChange(key);
+    this.addItemValidated.set(false);
   }
 
   ngOnInit(): void {
@@ -2088,7 +2154,6 @@ export class OpenTablePageComponent implements OnInit {
 
   /** Desktop: prepare left-panel add form (always visible for open bills). */
   private preparePcAddPanel(): void {
-    this.addModalMode.set('ORDER_LEDGER');
     this.syncStaffLedgerRoles();
     this.resetOrderLedgerForm();
     this.resetStaffLedgerForm();
@@ -2097,6 +2162,8 @@ export class OpenTablePageComponent implements OnInit {
     this.reloadStaffEmployees();
     this.reloadPackageDeposits();
     this.showAddModal.set(false);
+    const firstNav = this.pcAddNavItems()[0]?.key ?? 'STAFF_LEDGER';
+    this.selectPcAddNav(firstNav);
   }
 
   onCheckInGuestCountInput(value: string): void {

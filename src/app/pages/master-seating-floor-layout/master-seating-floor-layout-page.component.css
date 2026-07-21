@@ -85,6 +85,10 @@
 }
 
 .floor-editor__canvas-wrap {
+  /* Same as POS: stretch canvas via grid — % width in overflow:auto is cyclic. */
+  display: grid;
+  justify-items: stretch;
+  align-items: start;
   overflow-x: auto;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -104,10 +108,9 @@
 
 .floor-editor__canvas {
   position: relative;
-  width: max(100%, calc(var(--floor-canvas-w, 1200) * 1px));
+  width: auto;
   min-width: calc(var(--floor-canvas-w, 1200) * 1px);
   height: calc(var(--floor-canvas-h, 800) * 1px);
-  flex-shrink: 0;
   box-sizing: border-box;
   --floor-grid: 40px;
   background:
