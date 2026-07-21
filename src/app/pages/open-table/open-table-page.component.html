@@ -254,7 +254,11 @@
     </div>
 
     @if (isPcBillWorkspace()) {
-      <div class="open-table-bill-workspace min-w-0 w-full">
+      <div
+        class="open-table-bill-workspace min-w-0"
+        [class.open-table-bill-workspace--compact]="isPcBillWorkspaceCompact()"
+        [class.w-full]="!isPcBillWorkspaceCompact()"
+      >
         <ng-container *ngTemplateOutlet="sessionPanel"></ng-container>
       </div>
     } @else if (drawerOpen()) {

@@ -81,6 +81,12 @@
   min-width: 0;
 }
 
+/* Compact states (check-in / awaiting clear): card ≈ half page, not full bleed */
+.open-table-bill-workspace--compact {
+  width: min(100%, 32rem);
+  max-width: 50%;
+}
+
 .open-table-session-panel--pc {
   display: flex;
   flex-direction: column;
@@ -90,6 +96,7 @@
 }
 
 .open-table-session-panel--pc-compact {
+  width: 100%;
   min-height: 0;
   height: auto;
   max-height: min(75vh, 48rem);
@@ -112,17 +119,14 @@
   overflow: visible;
 }
 
+/* Content fills the compact card (card itself is the “first cell”) */
 .open-table-compact-panel--pc {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: auto auto;
-  gap: 1rem;
-  align-items: start;
+  display: block;
+  width: 100%;
 }
 
 .open-table-compact-panel--pc > .open-table-compact-panel__cell {
-  grid-column: 1;
-  grid-row: 1;
+  width: 100%;
   min-width: 0;
 }
 
