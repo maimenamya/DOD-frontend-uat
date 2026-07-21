@@ -65,8 +65,8 @@
       <p class="app-empty-state">ไม่พบบิลที่ตรงกับคำค้น</p>
     } @else {
       <section class="app-card app-card-flush">
-        <div class="app-data-table-shell">
-          <div class="app-split-table app-split-table--wide app-split-table--mobile-stack">
+        <div class="app-data-table-shell app-scroll-region bill-history-table-shell">
+          <div class="app-split-table bill-history-split">
             <div class="app-split-table-header">
               <table class="app-data-table app-split-table-grid bill-history-table">
                 <colgroup>
@@ -111,26 +111,26 @@
                 <tbody>
                   @for (row of listView().items; track row.id; let i = $index) {
                     <tr>
-                      <td class="bill-history-cell-no app-cell-mono" data-label="No.">
+                      <td class="bill-history-cell-no app-cell-mono">
                         {{ masterListRowNumber(listView(), i) }}
                       </td>
-                      <td class="bill-history-cell-date whitespace-nowrap text-text-secondary" data-label="วันที่">
+                      <td class="bill-history-cell-date whitespace-nowrap text-text-secondary">
                         {{ row.businessDateLabel }}
                       </td>
-                      <td class="bill-history-cell-time whitespace-nowrap text-text-secondary" data-label="เช็กเอาต์">
+                      <td class="bill-history-cell-time whitespace-nowrap text-text-secondary">
                         {{ row.checkedOutLabel }}
                       </td>
-                      <td class="bill-history-ref app-cell-mono app-cell-primary" data-label="เลขบิล">
+                      <td class="bill-history-ref app-cell-mono app-cell-primary">
                         {{ row.billReference }}
                       </td>
-                      <td class="bill-history-cell-table" data-label="โต๊ะ / โซน">
+                      <td class="bill-history-cell-table whitespace-nowrap">
                         {{ row.dineInLabel ?? '—' }}
                       </td>
-                      <td class="bill-history-cell-sale" data-label="เซลล์">{{ row.saleNickname }}</td>
-                      <td class="app-cell-right app-cell-highlight-violet whitespace-nowrap" data-label="ยอด">
+                      <td class="bill-history-cell-sale whitespace-nowrap">{{ row.saleNickname }}</td>
+                      <td class="app-cell-right app-cell-highlight-violet whitespace-nowrap">
                         {{ row.billAmount | number: '1.0-0' }}
                       </td>
-                      <td class="whitespace-nowrap" data-label="ชำระ">{{ row.paymentMethodLabel }}</td>
+                      <td class="whitespace-nowrap">{{ row.paymentMethodLabel }}</td>
                       <td class="app-cell-right">
                         <div class="app-table-actions">
                           <button

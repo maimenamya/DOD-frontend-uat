@@ -3,73 +3,80 @@
 }
 
 /*
- * Desktop: keep a real min width + horizontal scroll.
- * Global `.app-split-table--wide` forces width:100% / min-width:0 which
- * crushed fixed columns so date/time/ref painted on top of each other.
+ * One horizontal scroll on the shell (header + body move together).
+ * Table fills the card when wide; keeps min-width so columns never crush.
+ * Mobile stays a real table (no card stack).
  */
-.bill-history-page .app-data-table-shell:has(.bill-history-table) {
+.bill-history-page .bill-history-table-shell {
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
   scrollbar-gutter: auto;
+  --app-scroll-track: var(--table-body-bg);
 }
 
-.bill-history-page .app-split-table:has(.bill-history-table) {
-  width: max-content;
-  min-width: 100%;
+.bill-history-page .bill-history-split {
+  width: max(100%, 72rem);
+  min-width: 72rem;
   max-width: none;
 }
 
-.bill-history-page .app-split-table-header,
-.bill-history-page .app-split-table-body {
-  width: max-content;
-  min-width: 100%;
+.bill-history-page .bill-history-split .app-split-table-header,
+.bill-history-page .bill-history-split .app-split-table-body {
+  width: 100%;
+  min-width: 0;
   max-width: none;
-  overflow-x: visible;
+  overflow-x: hidden;
 }
 
-.bill-history-page .app-split-table-header .bill-history-table,
-.bill-history-page .app-split-table-body .bill-history-table {
+.bill-history-page .bill-history-split .app-split-table-body {
+  overflow-y: auto;
+}
+
+.bill-history-page .bill-history-split .app-split-table-header .bill-history-table,
+.bill-history-page .bill-history-split .app-split-table-body .bill-history-table {
   table-layout: fixed;
-  width: 74rem;
-  min-width: 74rem;
+  width: 100%;
+  min-width: 72rem;
   max-width: none;
 }
 
+/* % cols stretch when the card is wider than 72rem */
 .bill-history-table col.bill-history-col-id {
-  width: 3.5rem;
+  width: 5%;
 }
 
 .bill-history-table col.bill-history-col-date {
-  width: 9rem;
+  width: 10%;
 }
 
 .bill-history-table col.bill-history-col-time {
-  width: 10.5rem;
+  width: 12%;
 }
 
 .bill-history-table col.bill-history-col-ref {
-  width: 16rem;
+  width: 20%;
 }
 
 .bill-history-table col.bill-history-col-table {
-  width: 10rem;
+  width: 14%;
 }
 
 .bill-history-table col.bill-history-col-sale {
-  width: 7rem;
+  width: 9%;
 }
 
 .bill-history-table col.bill-history-col-amount {
-  width: 6rem;
+  width: 8%;
 }
 
 .bill-history-table col.bill-history-col-pay {
-  width: 5.5rem;
+  width: 8%;
 }
 
 .bill-history-table col.bill-history-col-actions {
-  width: 6.5rem;
+  width: 14%;
 }
 
 .bill-history-page .bill-history-table th,
@@ -77,20 +84,21 @@
   overflow: hidden;
   text-overflow: ellipsis;
   vertical-align: middle;
+  white-space: nowrap;
+}
+
+.bill-history-page .bill-history-table th {
+  letter-spacing: 0.02em;
 }
 
 .bill-history-cell-date,
 .bill-history-cell-time {
   font-size: 0.8125rem;
-  white-space: nowrap;
 }
 
 .bill-history-ref {
   font-variant-numeric: tabular-nums;
-  word-break: break-word;
-  overflow-wrap: anywhere;
-  white-space: normal;
-  line-height: 1.35;
+  white-space: nowrap;
 }
 
 .bill-history-detail {
@@ -145,89 +153,35 @@
   flex-shrink: 0;
 }
 
-/* Mobile cards: readable stacked rows (not a squeezed table) */
+/* Beat global phone rem-width / card-stack rules — keep a scrollable table */
 @media (max-width: 999px) {
-  .bill-history-page .app-split-table:has(.bill-history-table),
-  .bill-history-page .app-split-table-header,
-  .bill-history-page .app-split-table-body {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
+  .bill-history-page .app-card-flush:has(.bill-history-table-shell) {
+    overflow: hidden;
   }
 
-  .bill-history-page .app-split-table-header .bill-history-table,
-  .bill-history-page .app-split-table-body .bill-history-table {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
+  .bill-history-page .bill-history-table-shell {
+    overflow-x: auto;
+    overflow-y: hidden;
   }
 
-  .bill-history-page .bill-history-table th,
-  .bill-history-page .bill-history-table td {
-    overflow: visible;
-    text-overflow: unset;
+  .bill-history-page .bill-history-split {
+    width: max(100%, 68rem);
+    min-width: 68rem;
   }
 
-  .bill-history-page
-    .app-split-table--mobile-stack
-    .app-split-table-body
-    tbody
-    tr {
-    gap: 0.35rem;
-    padding: 1rem 1.1rem;
+  .bill-history-page .bill-history-split .app-split-table-header .bill-history-table,
+  .bill-history-page .bill-history-split .app-split-table-body .bill-history-table {
+    min-width: 68rem;
   }
 
-  .bill-history-page
-    .app-split-table--mobile-stack
-    .app-split-table-body
-    td.bill-history-ref.app-cell-mono {
-    display: block !important;
+  .bill-history-page .bill-history-split .app-split-table-header {
+    display: block;
+    padding-inline-end: 0;
   }
 
-  .bill-history-page
-    .app-split-table--mobile-stack
-    .app-split-table-body
-    td.bill-history-ref.app-cell-primary {
-    order: -1;
-    font-size: 1rem;
-    font-weight: 600;
-    line-height: 1.35;
-    word-break: break-word;
-    padding-bottom: 0.35rem;
-  }
-
-  .bill-history-page
-    .app-split-table--mobile-stack
-    .app-split-table-body
-    td.bill-history-ref[data-label]::before {
-    display: none;
-  }
-
-  .bill-history-page
-    .app-split-table--mobile-stack
-    .app-split-table-body
-    td[data-label]:not(:has(.app-table-actions)) {
-    align-items: flex-start;
-    font-size: 0.875rem;
-    line-height: 1.4;
-  }
-
-  .bill-history-page
-    .app-split-table--mobile-stack
-    .app-split-table-body
-    td[data-label]:not(:has(.app-table-actions))::before {
-    min-width: 5.5rem;
-    font-size: 0.8125rem;
-  }
-
-  .bill-history-page
-    .app-split-table--mobile-stack
-    .app-split-table-body
-    td.bill-history-cell-date,
-  .bill-history-page
-    .app-split-table--mobile-stack
-    .app-split-table-body
-    td.bill-history-cell-time {
-    white-space: nowrap !important;
+  .bill-history-page .bill-history-split .app-split-table-body {
+    max-height: none;
+    overflow-x: hidden;
+    overflow-y: visible;
   }
 }
