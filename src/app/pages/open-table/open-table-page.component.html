@@ -1161,7 +1161,7 @@
             <div class="app-filter-bar" role="tablist" aria-label="โหมดเปิดโปรหรือเมม">
               <button
                 type="button"
-                class="app-filter-chip flex-1 text-center"
+                class="app-filter-chip"
                 [class.app-filter-chip-active]="packageOpenMode() === 'NEW'"
                 (click)="onPackageOpenModeChange('NEW')"
               >
@@ -1169,7 +1169,7 @@
               </button>
               <button
                 type="button"
-                class="app-filter-chip flex-1 text-center"
+                class="app-filter-chip"
                 [class.app-filter-chip-active]="packageOpenMode() === 'DEPOSIT'"
                 (click)="onPackageOpenModeChange('DEPOSIT')"
               >
@@ -1324,7 +1324,7 @@
             @for (opt of staffLedgerEntryModeOptions; track opt.value) {
               <button
                 type="button"
-                class="app-filter-chip flex-1 text-center"
+                class="app-filter-chip"
                 [class.app-filter-chip-active]="staffLedgerEntryMode() === opt.value"
                 (click)="onStaffLedgerEntryModeChange(opt.value)"
               >
