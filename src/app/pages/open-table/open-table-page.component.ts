@@ -545,6 +545,19 @@ export class OpenTablePageComponent implements OnInit {
   readonly isPcBillWorkspace = computed(
     () => !this.mobileDrawerViewport() && this.drawerOpen(),
   );
+
+  /** PC without add+bill split — shrink panel to content (check-in / awaiting clear). */
+  readonly isPcBillWorkspaceCompact = computed(() => {
+    if (!this.isPcBillWorkspace()) return false;
+    const seat = this.selectedSeat();
+    if (!seat) return true;
+    return !(
+      this.ledgerCanMutate() &&
+      seat.sessionId != null &&
+      this.seatLedgerOpen() &&
+      !this.seatAwaitingClear()
+    );
+  });
   readonly anyModalOpen = computed(
     () =>
       this.showAddModal() ||

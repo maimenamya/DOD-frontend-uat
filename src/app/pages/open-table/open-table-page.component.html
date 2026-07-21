@@ -293,6 +293,7 @@
   <section
     class="app-card app-card-flush open-table-session-panel"
     [class.open-table-session-panel--pc]="isPcBillWorkspace()"
+    [class.open-table-session-panel--pc-compact]="isPcBillWorkspaceCompact()"
   >
     <div
       class="open-table-session-panel__body"
@@ -458,75 +459,84 @@
             <div class="app-skeleton h-10 w-full rounded-input"></div>
           </div>
         } @else if (seat.status === 'AVAILABLE') {
-          <div class="space-y-3 rounded-input border border-theme-border bg-surface px-3 py-3">
-            <div class="open-table-staff-choice">
-              <div class="app-segmented-control" role="group" aria-label="เปิดโต๊ะหรือจอง">
-                <button
-                  type="button"
-                  class="app-segmented-chip"
-                  [class.app-segmented-chip-active]="checkInMode() === 'OPEN'"
-                  (click)="setCheckInMode('OPEN')"
-                >
-                  เปิดโต๊ะ
-                </button>
-                <button
-                  type="button"
-                  class="app-segmented-chip"
-                  [class.app-segmented-chip-active]="checkInMode() === 'RESERVE'"
-                  (click)="setCheckInMode('RESERVE')"
-                >
-                  จอง
-                </button>
-              </div>
-            </div>
-            <div class="space-y-1">
-              <span class="text-sm text-text-secondary">เซลล์</span>
-              <app-custom-dropdown
-                [class.app-field-invalid]="checkInValidated() && checkInSalesMissing()"
-                [options]="saleEmployeeOptions()"
-                [ngModel]="checkInSalesId()"
-                (ngModelChange)="onCheckInSalesChange($event)"
-                placeholder="เลือกเซลล์"
-              />
-            </div>
-            <div class="space-y-1">
-              <label class="text-sm text-text-secondary" for="check-in-guest-count">จำนวนลูกค้า</label>
-              <input
-                id="check-in-guest-count"
-                type="text"
-                inputmode="numeric"
-                class="app-input"
-                [class.app-field-invalid]="checkInValidated() && checkInGuestCountMissing()"
-                [value]="checkInGuestCountText()"
-                (input)="onCheckInGuestCountInput($any($event.target).value)"
-                (keydown)="onCheckInGuestCountKeydown($event)"
-                placeholder="เช่น 3"
-              />
-            </div>
-            <label class="app-toggle">
-              <input
-                type="checkbox"
-                class="app-toggle-input"
-                [ngModel]="checkInCreditSaleToShop()"
-                (ngModelChange)="checkInCreditSaleToShop.set($event)"
-              />
-              <span class="app-toggle-track" aria-hidden="true"></span>
-              <span class="app-toggle-text text-sm">
-                ยอดเข้าร้าน (ไม่นับยอดเซลล์ที่เลือก)
-              </span>
-            </label>
-            <button
-              type="button"
-              class="app-btn-primary w-full"
-              [disabled]="actionBusy()"
-              (click)="submitSeatAction()"
+          <div
+            class="open-table-compact-panel"
+            [class.open-table-compact-panel--pc]="isPcBillWorkspace()"
+          >
+            <div
+              class="open-table-compact-panel__cell space-y-3 rounded-input border border-theme-border bg-surface px-3 py-3"
             >
-              @if (actionBusy()) {
-                {{ checkInMode() === 'RESERVE' ? 'กำลังจอง...' : 'กำลังเปิดโต๊ะ...' }}
-              } @else {
-                {{ checkInMode() === 'RESERVE' ? 'บันทึกจอง' : 'เปิดโต๊ะ' }}
-              }
-            </button>
+              <div class="open-table-staff-choice">
+                <div class="app-segmented-control" role="group" aria-label="เปิดโต๊ะหรือจอง">
+                  <button
+                    type="button"
+                    class="app-segmented-chip"
+                    [class.app-segmented-chip-active]="checkInMode() === 'OPEN'"
+                    (click)="setCheckInMode('OPEN')"
+                  >
+                    เปิดโต๊ะ
+                  </button>
+                  <button
+                    type="button"
+                    class="app-segmented-chip"
+                    [class.app-segmented-chip-active]="checkInMode() === 'RESERVE'"
+                    (click)="setCheckInMode('RESERVE')"
+                  >
+                    จอง
+                  </button>
+                </div>
+              </div>
+              <div class="open-table-check-in-grid">
+                <div class="space-y-1">
+                  <span class="text-sm text-text-secondary">เซลล์</span>
+                  <app-custom-dropdown
+                    [class.app-field-invalid]="checkInValidated() && checkInSalesMissing()"
+                    [options]="saleEmployeeOptions()"
+                    [ngModel]="checkInSalesId()"
+                    (ngModelChange)="onCheckInSalesChange($event)"
+                    placeholder="เลือกเซลล์"
+                  />
+                </div>
+                <div class="space-y-1">
+                  <label class="text-sm text-text-secondary" for="check-in-guest-count">จำนวนลูกค้า</label>
+                  <input
+                    id="check-in-guest-count"
+                    type="text"
+                    inputmode="numeric"
+                    class="app-input"
+                    [class.app-field-invalid]="checkInValidated() && checkInGuestCountMissing()"
+                    [value]="checkInGuestCountText()"
+                    (input)="onCheckInGuestCountInput($any($event.target).value)"
+                    (keydown)="onCheckInGuestCountKeydown($event)"
+                    placeholder="เช่น 3"
+                  />
+                </div>
+              </div>
+              <label class="app-toggle">
+                <input
+                  type="checkbox"
+                  class="app-toggle-input"
+                  [ngModel]="checkInCreditSaleToShop()"
+                  (ngModelChange)="checkInCreditSaleToShop.set($event)"
+                />
+                <span class="app-toggle-track" aria-hidden="true"></span>
+                <span class="app-toggle-text text-sm">
+                  ยอดเข้าร้าน (ไม่นับยอดเซลล์ที่เลือก)
+                </span>
+              </label>
+              <button
+                type="button"
+                class="app-btn-primary w-full"
+                [disabled]="actionBusy()"
+                (click)="submitSeatAction()"
+              >
+                @if (actionBusy()) {
+                  {{ checkInMode() === 'RESERVE' ? 'กำลังจอง...' : 'กำลังเปิดโต๊ะ...' }}
+                } @else {
+                  {{ checkInMode() === 'RESERVE' ? 'บันทึกจอง' : 'เปิดโต๊ะ' }}
+                }
+              </button>
+            </div>
           </div>
         } @else if (seat.status === 'RESERVED') {
           @if (openTableSelfBillOnly()) {
@@ -544,7 +554,13 @@
               <p class="text-xs text-text-muted">รอแคชเชียร์/ผู้จัดการเปิดโต๊ะเมื่อลูกค้ามา</p>
             </div>
           } @else {
-          <div class="space-y-3 rounded-input border border-theme-border bg-surface px-3 py-3">
+          <div
+            class="open-table-compact-panel"
+            [class.open-table-compact-panel--pc]="isPcBillWorkspace()"
+          >
+            <div
+              class="open-table-compact-panel__cell space-y-3 rounded-input border border-theme-border bg-surface px-3 py-3"
+            >
             <p class="text-sm text-text-secondary">
               @if (seat.reservedCreditSaleToShop) {
                 จองไว้ · {{ seat.guestCount ?? '—' }} คน · ยอดเข้าร้าน (เปิดโดยเซลล์ {{ seat.reservedOperatorName ?? '—' }})
@@ -555,29 +571,31 @@
                 <span class="text-text-muted"> · เวลา {{ seat.reservedTimeLabel }}</span>
               }
             </p>
-            <div class="space-y-1">
-              <span class="text-sm text-text-secondary">เซลล์ (เมื่อลูกค้ามา)</span>
-              <app-custom-dropdown
-                [class.app-field-invalid]="checkInValidated() && checkInSalesMissing()"
-                [options]="saleEmployeeOptions()"
-                [ngModel]="checkInSalesId()"
-                (ngModelChange)="onCheckInSalesChange($event)"
-                placeholder="เลือกเซลล์"
-              />
-            </div>
-            <div class="space-y-1">
-              <label class="text-sm text-text-secondary" for="reserved-check-in-guest-count">จำนวนลูกค้า</label>
-              <input
-                id="reserved-check-in-guest-count"
-                type="text"
-                inputmode="numeric"
-                class="app-input"
-                [class.app-field-invalid]="checkInValidated() && checkInGuestCountMissing()"
-                [value]="checkInGuestCountText()"
-                (input)="onCheckInGuestCountInput($any($event.target).value)"
-                (keydown)="onCheckInGuestCountKeydown($event)"
-                placeholder="เช่น 3"
-              />
+            <div class="open-table-check-in-grid">
+              <div class="space-y-1">
+                <span class="text-sm text-text-secondary">เซลล์ (เมื่อลูกค้ามา)</span>
+                <app-custom-dropdown
+                  [class.app-field-invalid]="checkInValidated() && checkInSalesMissing()"
+                  [options]="saleEmployeeOptions()"
+                  [ngModel]="checkInSalesId()"
+                  (ngModelChange)="onCheckInSalesChange($event)"
+                  placeholder="เลือกเซลล์"
+                />
+              </div>
+              <div class="space-y-1">
+                <label class="text-sm text-text-secondary" for="reserved-check-in-guest-count">จำนวนลูกค้า</label>
+                <input
+                  id="reserved-check-in-guest-count"
+                  type="text"
+                  inputmode="numeric"
+                  class="app-input"
+                  [class.app-field-invalid]="checkInValidated() && checkInGuestCountMissing()"
+                  [value]="checkInGuestCountText()"
+                  (input)="onCheckInGuestCountInput($any($event.target).value)"
+                  (keydown)="onCheckInGuestCountKeydown($event)"
+                  placeholder="เช่น 3"
+                />
+              </div>
             </div>
             <label class="app-toggle">
               <input
@@ -591,22 +609,25 @@
                 ยอดเข้าร้าน (ไม่นับยอดเซลล์ที่เลือก)
               </span>
             </label>
-            <button
-              type="button"
-              class="app-btn-primary w-full"
-              [disabled]="actionBusy()"
-              (click)="checkInSelectedSeat()"
-            >
-              {{ actionBusy() ? 'กำลังเปิดโต๊ะ...' : 'เปิดโต๊ะ (ลูกค้ามาแล้ว)' }}
-            </button>
-            <button
-              type="button"
-              class="app-btn-secondary w-full"
-              [disabled]="actionBusy()"
-              (click)="cancelSelectedReservation()"
-            >
-              ยกเลิกจอง
-            </button>
+            <div class="open-table-awaiting-actions">
+              <button
+                type="button"
+                class="app-btn-primary"
+                [disabled]="actionBusy()"
+                (click)="checkInSelectedSeat()"
+              >
+                {{ actionBusy() ? 'กำลังเปิดโต๊ะ...' : 'เปิดโต๊ะ (ลูกค้ามาแล้ว)' }}
+              </button>
+              <button
+                type="button"
+                class="app-btn-secondary"
+                [disabled]="actionBusy()"
+                (click)="cancelSelectedReservation()"
+              >
+                ยกเลิกจอง
+              </button>
+            </div>
+            </div>
           </div>
           }
         } @else if (sessionDetailLoading()) {
@@ -633,33 +654,42 @@
             </div>
           </div>
         } @else if (seatAwaitingClear()) {
-          <p class="app-alert-warning" role="status">
-            เช็กบิลแล้ว
-            @if (sessionDetail()?.lastCheckedOutLabel) {
-              ({{ sessionDetail()!.lastCheckedOutLabel }})
-            }
-            ลูกค้ายังนั่งอยู่
-          </p>
-          @if (!openTableSelfBillOnly()) {
-            @if (reprintBillId()) {
-              <button
-                type="button"
-                class="app-btn-secondary w-full mb-2"
-                [disabled]="actionBusy()"
-                (click)="reprintLastReceipt()"
-              >
-                พิมพ์ใบเสร็จ
-              </button>
-            }
-            <button
-              type="button"
-              class="app-btn-primary w-full"
-              [disabled]="actionBusy()"
-              (click)="releaseCustomerFromSeat()"
-            >
-              ลูกค้ากลับแล้ว
-            </button>
-          }
+          <div
+            class="open-table-compact-panel"
+            [class.open-table-compact-panel--pc]="isPcBillWorkspace()"
+          >
+            <div class="open-table-compact-panel__cell space-y-3">
+              <p class="app-alert-warning" role="status">
+                เช็กบิลแล้ว
+                @if (sessionDetail()?.lastCheckedOutLabel) {
+                  ({{ sessionDetail()!.lastCheckedOutLabel }})
+                }
+                ลูกค้ายังนั่งอยู่
+              </p>
+              @if (!openTableSelfBillOnly()) {
+                <div class="open-table-awaiting-actions">
+                  @if (reprintBillId()) {
+                    <button
+                      type="button"
+                      class="app-btn-secondary"
+                      [disabled]="actionBusy()"
+                      (click)="reprintLastReceipt()"
+                    >
+                      พิมพ์ใบเสร็จ
+                    </button>
+                  }
+                  <button
+                    type="button"
+                    class="app-btn-primary"
+                    [disabled]="actionBusy()"
+                    (click)="releaseCustomerFromSeat()"
+                  >
+                    ลูกค้ากลับแล้ว
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
         } @else {
           <div class="open-table-session-panel__ledger space-y-4">
           <div>
