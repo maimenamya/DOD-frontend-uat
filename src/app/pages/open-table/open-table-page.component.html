@@ -1,5 +1,5 @@
 <div class="app-page">
-  <header class="app-page-header">
+  <header class="app-page-header open-table-page-header">
     <div>
       <h1 class="app-page-title">{{ openTableSelfBillOnly() ? 'บิลของฉัน' : 'POS' }}</h1>
     </div>
@@ -71,7 +71,7 @@
 
     <div class="open-table-main-column min-w-0 w-full">
       @if (!isPcBillWorkspace()) {
-      <section class="app-card app-card-flush open-table-floor-card min-w-0 w-full p-4 transition-all duration-300 ease-in-out sm:p-5">
+      <section class="open-table-floor-panel min-w-0 w-full transition-all duration-300 ease-in-out">
       <div class="space-y-4">
           @if (!openTableSelfBillOnly()) {
           <div class="open-table-floor-toolbar">

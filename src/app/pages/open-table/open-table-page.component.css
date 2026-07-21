@@ -26,6 +26,18 @@
   width: 100%;
 }
 
+/* POS title is short — keep view toggle on the same row even on phone */
+.open-table-page-header {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.open-table-page-header > div:first-child {
+  flex: 0 0 auto;
+}
+
 .open-table-search-row {
   width: 100%;
 }
@@ -238,6 +250,15 @@
 
 .open-table-floor-card {
   min-width: 0;
+}
+
+.open-table-floor-panel {
+  min-width: 0;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  box-shadow: none;
 }
 
 @media (min-width: 1000px) {
@@ -489,10 +510,10 @@
   -webkit-overflow-scrolling: touch;
   max-height: var(--open-table-layout-max-h);
   width: 100%;
-  border-radius: 0.5rem;
-  border: 1px solid var(--border);
+  border: 0;
+  border-radius: 0;
   background: var(--surface, var(--card-bg));
-  padding: 0.5rem;
+  padding: 0;
   box-sizing: border-box;
   touch-action: pan-x pan-y;
 }
