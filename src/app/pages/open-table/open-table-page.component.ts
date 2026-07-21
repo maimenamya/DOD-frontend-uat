@@ -3123,8 +3123,6 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
     this.stopSeatTimeValidated.set(false);
-    const changeReason = this.requiredMutationChangeReason();
-    if (!changeReason) return;
     this.submitBillPanelMutation(
       this.openTableService.stopStaffDrink({
         shopId: this.shopId,
@@ -3132,7 +3130,6 @@ export class OpenTablePageComponent implements OnInit {
         expectedRevision,
         staffDrinkId: row.staffDrinkId,
         seatStoppedAt,
-        changeReason,
       }),
       'สต็อปดื่มสำเร็จ',
       sessionId,

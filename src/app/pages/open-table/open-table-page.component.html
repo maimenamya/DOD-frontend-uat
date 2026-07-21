@@ -1607,22 +1607,6 @@
       }
     </div>
 
-    <div class="app-form-group">
-      <label class="app-label" for="stop-drink-reason">เหตุผลการแก้ไข/ลบ</label>
-      <textarea
-        id="stop-drink-reason"
-        rows="3"
-        class="app-input app-scroll-region"
-        [class.app-field-invalid]="mutationReasonValidated()"
-        [ngModel]="mutationChangeReason()"
-        (ngModelChange)="onMutationChangeReasonChange($event)"
-        placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
-      ></textarea>
-      @if (mutationReasonValidated()) {
-        <p class="app-field-error">กรุณาระบุเหตุผลอย่างน้อย 3 ตัวอักษร</p>
-      }
-    </div>
-
     <div class="app-form-actions app-form-actions-top">
       <button type="button" class="app-btn-secondary" (click)="closeStopDrinkModal()">ยกเลิก</button>
       <button
