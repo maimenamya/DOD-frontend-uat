@@ -460,7 +460,6 @@
         } @else if (seat.status === 'AVAILABLE') {
           <div class="space-y-3 rounded-input border border-theme-border bg-surface px-3 py-3">
             <div class="open-table-staff-choice">
-              <span class="app-label">ประเภท</span>
               <div class="app-segmented-control" role="group" aria-label="เปิดโต๊ะหรือจอง">
                 <button
                   type="button"
@@ -1031,8 +1030,7 @@
         @if (orderLedgerCategory() === 'FOOD') {
           @if (isPcBillWorkspace()) {
             <div class="app-form-group">
-              <span class="app-label">ประเภทอาหาร</span>
-              <div class="app-filter-bar mt-1" role="tablist" aria-label="ประเภทอาหาร">
+              <div class="app-filter-bar" role="tablist" aria-label="หมวดอาหาร">
                 @for (opt of foodCategoryDropdownOptions(); track opt.value) {
                   <button
                     type="button"
@@ -1047,12 +1045,12 @@
             </div>
           } @else {
             <div class="app-form-group">
-              <label class="app-label">ประเภทอาหาร</label>
+              <label class="app-label">หมวดอาหาร</label>
               <app-custom-dropdown
                 [options]="foodCategoryDropdownOptions()"
                 [ngModel]="selectedFoodCategoryId()"
                 (ngModelChange)="onFoodCategoryChange($event)"
-                placeholder="เลือกประเภทอาหาร"
+                placeholder="เลือกหมวดอาหาร"
               />
             </div>
           }
@@ -1072,8 +1070,7 @@
         @if (orderLedgerCategory() === 'BEVERAGE') {
           @if (isPcBillWorkspace()) {
             <div class="app-form-group">
-              <span class="app-label">ประเภทเครื่องดื่ม</span>
-              <div class="app-filter-bar mt-1" role="tablist" aria-label="ประเภทเครื่องดื่ม">
+              <div class="app-filter-bar" role="tablist" aria-label="หมวดเครื่องดื่ม">
                 @for (opt of beverageCategoryDropdownOptions(); track opt.value) {
                   <button
                     type="button"
@@ -1088,12 +1085,12 @@
             </div>
           } @else {
             <div class="app-form-group">
-              <label class="app-label">ประเภทเครื่องดื่ม</label>
+              <label class="app-label">หมวดเครื่องดื่ม</label>
               <app-custom-dropdown
                 [options]="beverageCategoryDropdownOptions()"
                 [ngModel]="selectedBeverageCategoryId()"
                 (ngModelChange)="onBeverageCategoryChange($event)"
-                placeholder="เลือกประเภท"
+                placeholder="เลือกหมวด"
               />
             </div>
           }
@@ -1161,11 +1158,10 @@
 
         @if (orderLedgerCategory() === 'PROMOTION' || orderLedgerCategory() === 'MEMBER') {
           <div class="app-form-group">
-            <label class="app-label">ประเภทการเปิด</label>
-            <div class="flex flex-wrap gap-2">
+            <div class="app-filter-bar" role="tablist" aria-label="โหมดเปิดโปรหรือเมม">
               <button
                 type="button"
-                class="app-filter-chip"
+                class="app-filter-chip flex-1 text-center"
                 [class.app-filter-chip-active]="packageOpenMode() === 'NEW'"
                 (click)="onPackageOpenModeChange('NEW')"
               >
@@ -1173,7 +1169,7 @@
               </button>
               <button
                 type="button"
-                class="app-filter-chip"
+                class="app-filter-chip flex-1 text-center"
                 [class.app-filter-chip-active]="packageOpenMode() === 'DEPOSIT'"
                 (click)="onPackageOpenModeChange('DEPOSIT')"
               >
@@ -1324,12 +1320,18 @@
 
       @if (addModalMode() === 'STAFF_LEDGER') {
         <div class="app-form-group">
-          <label class="app-label">ประเภทการลง</label>
-          <app-custom-dropdown
-            [options]="staffLedgerEntryModeOptions"
-            [ngModel]="staffLedgerEntryMode()"
-            (ngModelChange)="onStaffLedgerEntryModeChange($event)"
-          />
+          <div class="app-filter-bar" role="tablist" aria-label="โหมดลงดื่ม">
+            @for (opt of staffLedgerEntryModeOptions; track opt.value) {
+              <button
+                type="button"
+                class="app-filter-chip flex-1 text-center"
+                [class.app-filter-chip-active]="staffLedgerEntryMode() === opt.value"
+                (click)="onStaffLedgerEntryModeChange(opt.value)"
+              >
+                {{ opt.label }}
+              </button>
+            }
+          </div>
           @if (isStaffLedgerOffDutyPurchase()) {
             <p class="app-field-hint mt-1">
               ทุกตำแหน่ง · ลงตามจำนวนดื่ม (ไม่นับเวลานั่ง · ไม่ใช้โควต้าฟรี PR)
