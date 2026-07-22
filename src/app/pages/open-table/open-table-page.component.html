@@ -378,7 +378,7 @@
                     <span class="open-table-bill-tab-rail__btn-sale">{{ tab.saleName }}</span>
                   }
                 </button>
-                @if (seatBillTabs().length > 1) {
+                @if (tab.canCancel) {
                   <button
                     type="button"
                     class="open-table-bill-tab-rail__close"
@@ -396,7 +396,7 @@
                 }
               </div>
             }
-            @if (seatBillTabs().length < maxSeatBills) {
+            @if (canAddSeatBill()) {
               <button
                 type="button"
                 class="open-table-bill-tab-rail__btn open-table-bill-tab-rail__btn--add"
@@ -474,7 +474,7 @@
             <p class="text-sm text-text-secondary">
               เซลล์ผู้ดูแล:
               {{ activeSeatBillSaleName() ?? '—' }}
-              @if (sessionDetail()?.operatorSaleName && activeSeatBillTabId() === 'bill-1') {
+              @if (sessionDetail()?.operatorSaleName) {
                 <span class="text-text-muted">(เปิดโดย {{ sessionDetail()!.operatorSaleName }})</span>
               } @else if (seat.status === 'RESERVED' && seat.reservedCreditSaleToShop) {
                 <span class="text-text-muted">(จองโดย {{ seat.reservedOperatorName ?? '—' }})</span>
@@ -1617,11 +1617,21 @@
           placeholder="เลือกเซลล์"
         />
       </div>
+      <label class="app-toggle">
+        <input
+          type="checkbox"
+          class="app-toggle-input"
+          [ngModel]="newBillCreditSaleToShop()"
+          (ngModelChange)="newBillCreditSaleToShop.set($event)"
+        />
+        <span class="app-toggle-track" aria-hidden="true"></span>
+        <span class="app-toggle-text text-sm">ยอดเข้าร้าน (ไม่นับยอดเซลล์ที่เลือก)</span>
+      </label>
     </div>
     <div class="app-form-actions app-form-actions-top">
       <button type="button" class="app-btn-secondary" (click)="closeNewBillSaleModal()">ยกเลิก</button>
-      <button type="button" class="app-btn-primary" (click)="confirmNewBillSale()">
-        เปิดบิล
+      <button type="button" class="app-btn-primary" [disabled]="actionBusy()" (click)="confirmNewBillSale()">
+        {{ actionBusy() ? 'กำลังเปิด...' : 'เปิดบิล' }}
       </button>
     </div>
   </app-modal>

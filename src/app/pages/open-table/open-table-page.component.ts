@@ -1008,15 +1008,24 @@ export class OpenTablePageComponent implements OnInit {
     this.addItemValidated.set(false);
   }
 
-  /** UX preview: multiple bills on one seat (local tabs only — not persisted yet). */
+  /** Multi-bill tabs on one seat (from session detail). */
   readonly maxSeatBills = 3;
   readonly seatBillTabs = signal<
-    Array<{ id: string; label: string; saleId: number | null; saleName: string | null }>
-  >([{ id: 'bill-1', label: '1', saleId: null, saleName: null }]);
-  readonly activeSeatBillTabId = signal('bill-1');
+    Array<{
+      id: string;
+      sessionId: number;
+      label: string;
+      saleName: string | null;
+      revision: number;
+      canCancel: boolean;
+      status: string;
+    }>
+  >([]);
+  readonly activeSeatBillTabId = signal<string | null>(null);
   readonly showNewBillSaleModal = signal(false);
   readonly newBillSaleId = signal<number | null>(null);
   readonly newBillSaleValidated = signal(false);
+  readonly newBillCreditSaleToShop = signal(false);
   readonly activeSeatBillTabLabel = computed(() => {
     const id = this.activeSeatBillTabId();
     return this.seatBillTabs().find((t) => t.id === id)?.label ?? '1';
@@ -1027,20 +1036,47 @@ export class OpenTablePageComponent implements OnInit {
     if (tab?.saleName) return tab.saleName;
     return this.sessionDetail()?.saleName ?? this.selectedSeat()?.saleName ?? null;
   });
+  readonly canAddSeatBill = computed(() => {
+    const openCount = this.seatBillTabs().filter((t) => t.status === 'OPEN').length;
+    return (
+      this.ledgerCanMutate() &&
+      this.selectedSeat()?.status === 'OCCUPIED' &&
+      openCount > 0 &&
+      openCount < this.maxSeatBills
+    );
+  });
 
   selectSeatBillTab(tabId: string): void {
-    if (!this.seatBillTabs().some((t) => t.id === tabId)) return;
+    const tab = this.seatBillTabs().find((t) => t.id === tabId);
+    if (!tab) return;
+    if (this.activeSeatBillTabId() === tabId) return;
     this.activeSeatBillTabId.set(tabId);
+    const seatKey = this.selectedSeatKey();
+    if (seatKey) {
+      this.seats.update((tiles) =>
+        tiles.map((s) =>
+          s.key === seatKey
+            ? {
+                ...s,
+                sessionId: tab.sessionId,
+                sessionRevision: tab.revision,
+                saleName: tab.saleName ?? s.saleName,
+              }
+            : s,
+        ),
+      );
+    }
+    this.loadSessionDetail(tab.sessionId, { showLoading: true });
   }
 
   addSeatBillTab(): void {
-    const tabs = this.seatBillTabs();
-    if (tabs.length >= this.maxSeatBills) {
+    if (!this.canAddSeatBill()) {
       this.toast.showError(`เปิดได้สูงสุด ${this.maxSeatBills} บิลต่อโต๊ะ`);
       return;
     }
     this.newBillSaleValidated.set(false);
     this.newBillSaleId.set(null);
+    this.newBillCreditSaleToShop.set(false);
     this.showNewBillSaleModal.set(true);
   }
 
@@ -1048,6 +1084,7 @@ export class OpenTablePageComponent implements OnInit {
     this.showNewBillSaleModal.set(false);
     this.newBillSaleValidated.set(false);
     this.newBillSaleId.set(null);
+    this.newBillCreditSaleToShop.set(false);
   }
 
   onNewBillSaleChange(value: number | string | null): void {
@@ -1058,60 +1095,156 @@ export class OpenTablePageComponent implements OnInit {
   confirmNewBillSale(): void {
     this.newBillSaleValidated.set(true);
     const salesId = this.newBillSaleId();
+    const seat = this.selectedSeat();
     if (salesId == null) {
       this.toast.showError('กรุณาเลือกเซลล์');
       return;
     }
-    const tabs = this.seatBillTabs();
-    if (tabs.length >= this.maxSeatBills) {
-      this.toast.showError(`เปิดได้สูงสุด ${this.maxSeatBills} บิลต่อโต๊ะ`);
-      this.closeNewBillSaleModal();
+    if (!seat || seat.status !== 'OCCUPIED') {
+      this.toast.showError('โต๊ะนี้ยังไม่มีลูกค้า');
       return;
     }
-    const saleName =
-      this.saleEmployees().find((e) => e.id === salesId)?.nickname ?? '—';
-    const nextNum = tabs.length + 1;
-    const id = `bill-${nextNum}-${Date.now()}`;
-    this.seatBillTabs.set([
-      ...tabs,
-      { id, label: String(nextNum), saleId: salesId, saleName },
-    ]);
-    this.activeSeatBillTabId.set(id);
-    this.closeNewBillSaleModal();
-    this.toast.showSuccess('ตัวอย่าง UI — ยังไม่สร้างบิลจริงในระบบ');
+    this.actionBusy.set(true);
+    this.openTableService
+      .addBill({
+        shopId: this.shopId,
+        seatingId: seat.seatId,
+        salesId,
+        guestCount: seat.guestCount ?? 1,
+        creditSaleToShop: this.newBillCreditSaleToShop(),
+      })
+      .subscribe({
+        next: (session: { id: number; revision?: number }) => {
+          this.closeNewBillSaleModal();
+          this.actionBusy.set(false);
+          const sessionId = session.id;
+          this.seats.update((tiles) =>
+            tiles.map((s) =>
+              s.key === seat.key
+                ? {
+                    ...s,
+                    sessionId,
+                    sessionRevision: session.revision ?? 1,
+                    saleName:
+                      this.saleEmployees().find((e) => e.id === salesId)?.nickname ??
+                      s.saleName,
+                  }
+                : s,
+            ),
+          );
+          this.activeSeatBillTabId.set(String(sessionId));
+          this.loadSessionDetail(sessionId, { showLoading: true });
+          this.refreshFloorPlan();
+          this.toast.showSuccess('เปิดบิลใหม่แล้ว');
+        },
+        error: (err: HttpErrorResponse) => {
+          this.actionBusy.set(false);
+          this.toast.showError(
+            typeof err.error?.error === 'string' ? err.error.error : 'เปิดบิลใหม่ไม่สำเร็จ',
+          );
+        },
+      });
   }
 
   removeSeatBillTab(tabId: string): void {
-    const tabs = this.seatBillTabs();
-    if (tabs.length <= 1) {
-      this.toast.showError('ต้องเหลืออย่างน้อย 1 บิลบนโต๊ะ');
+    const tab = this.seatBillTabs().find((t) => t.id === tabId);
+    if (!tab) return;
+    if (!tab.canCancel) {
+      this.toast.showError(
+        tab.status !== 'OPEN'
+          ? 'บิลนี้เช็กแล้ว — ใช้ลูกค้ากลับแล้วถ้าต้องการเคลียร์'
+          : 'ลบได้เฉพาะบิลว่าง และต้องเหลืออย่างน้อย 1 บิล',
+      );
       return;
     }
-    if (!tabs.some((t) => t.id === tabId)) return;
-    const next = tabs.filter((t) => t.id !== tabId);
-    this.seatBillTabs.set(next);
-    if (this.activeSeatBillTabId() === tabId) {
-      this.activeSeatBillTabId.set(next[0]!.id);
-    }
+    this.actionBusy.set(true);
+    this.openTableService
+      .cancelBill({
+        shopId: this.shopId,
+        sessionId: tab.sessionId,
+        expectedRevision: tab.revision,
+      })
+      .subscribe({
+        next: () => {
+          this.actionBusy.set(false);
+          const remaining = this.seatBillTabs().filter((t) => t.id !== tabId);
+          const next =
+            this.activeSeatBillTabId() === tabId
+              ? remaining[0]
+              : remaining.find((t) => t.id === this.activeSeatBillTabId()) ?? remaining[0];
+          this.toast.showSuccess('ลบบิลแล้ว');
+          if (next) {
+            this.activeSeatBillTabId.set(next.id);
+            const seatKey = this.selectedSeatKey();
+            if (seatKey) {
+              this.seats.update((tiles) =>
+                tiles.map((s) =>
+                  s.key === seatKey
+                    ? {
+                        ...s,
+                        sessionId: next.sessionId,
+                        sessionRevision: next.revision,
+                        saleName: next.saleName ?? s.saleName,
+                      }
+                    : s,
+                ),
+              );
+            }
+            this.loadSessionDetail(next.sessionId, { showLoading: true });
+          }
+          this.refreshFloorPlan();
+        },
+        error: (err: HttpErrorResponse) => {
+          this.actionBusy.set(false);
+          this.toast.showError(
+            typeof err.error?.error === 'string' ? err.error.error : 'ลบบิลไม่สำเร็จ',
+          );
+        },
+      });
   }
 
   private resetSeatBillTabs(): void {
-    this.seatBillTabs.set([{ id: 'bill-1', label: '1', saleId: null, saleName: null }]);
-    this.activeSeatBillTabId.set('bill-1');
+    this.seatBillTabs.set([]);
+    this.activeSeatBillTabId.set(null);
     this.closeNewBillSaleModal();
   }
 
-  /** Seed bill-1 sale from the live session (preview only). */
-  private syncPrimarySeatBillSaleFromSession(): void {
-    const detail = this.sessionDetail();
-    const seat = this.selectedSeat();
-    const saleName = detail?.saleName ?? seat?.saleName ?? null;
-    this.seatBillTabs.update((tabs) => {
-      if (tabs.length === 0) return tabs;
-      const [first, ...rest] = tabs;
-      if (!first || first.id !== 'bill-1') return tabs;
-      return [{ ...first, saleName }, ...rest];
-    });
+  private syncSeatBillTabsFromDetail(detail: OpenTableSessionDetail): void {
+    const bills = detail.seatBills ?? [];
+    if (bills.length === 0) {
+      this.seatBillTabs.set([
+        {
+          id: String(detail.sessionId),
+          sessionId: detail.sessionId,
+          label: String(detail.billIndex ?? 1),
+          saleName: detail.saleName,
+          revision: detail.revision,
+          canCancel: false,
+          status: detail.sessionStatus ?? 'OPEN',
+        },
+      ]);
+    } else {
+      this.seatBillTabs.set(
+        bills.map((b) => ({
+          id: String(b.sessionId),
+          sessionId: b.sessionId,
+          label: String(b.billIndex),
+          saleName: b.saleName,
+          revision: b.revision,
+          canCancel: b.canCancel,
+          status: b.status,
+        })),
+      );
+    }
+    const activeId = String(detail.sessionId);
+    if (
+      this.activeSeatBillTabId() == null ||
+      !this.seatBillTabs().some((t) => t.id === this.activeSeatBillTabId())
+    ) {
+      this.activeSeatBillTabId.set(activeId);
+    } else if (this.seatBillTabs().some((t) => t.id === activeId)) {
+      this.activeSeatBillTabId.set(activeId);
+    }
   }
 
   ngOnInit(): void {
@@ -1256,11 +1389,35 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   private applySeatAfterCheckout(seatKey: string, sessionId: number, checkedOutLabel?: string): void {
-    this.seats.update((tiles) =>
-      tiles.map((s) => (s.key === seatKey ? { ...s, status: 'AWAITING_CLEAR' } : s)),
+    const otherOpen = this.seatBillTabs().find(
+      (t) => t.status === 'OPEN' && t.sessionId !== sessionId,
     );
     this.closeAddModal();
     this.showAddModal.set(false);
+
+    if (otherOpen) {
+      this.seats.update((tiles) =>
+        tiles.map((s) =>
+          s.key === seatKey
+            ? {
+                ...s,
+                status: 'OCCUPIED',
+                sessionId: otherOpen.sessionId,
+                sessionRevision: otherOpen.revision,
+                saleName: otherOpen.saleName ?? s.saleName,
+              }
+            : s,
+        ),
+      );
+      this.activeSeatBillTabId.set(otherOpen.id);
+      this.loadSessionDetail(otherOpen.sessionId, { showLoading: true });
+      this.toast.showSuccess(`เช็กบิลแล้ว — สลับไปบิล ${otherOpen.label}`);
+      return;
+    }
+
+    this.seats.update((tiles) =>
+      tiles.map((s) => (s.key === seatKey ? { ...s, status: 'AWAITING_CLEAR' } : s)),
+    );
     this.sessionDetail.set({
       sessionId,
       revision: this.sessionDetail()?.revision ?? this.selectedSeat()?.sessionRevision ?? 1,
@@ -1470,7 +1627,7 @@ export class OpenTablePageComponent implements OnInit {
         this.sessionDetail.set(normalized);
         if (normalized) {
           this.syncSeatRevisionFromDetail(normalized);
-          this.syncPrimarySeatBillSaleFromSession();
+          this.syncSeatBillTabsFromDetail(normalized);
         }
       });
   }
@@ -1536,6 +1693,7 @@ export class OpenTablePageComponent implements OnInit {
       const normalized = this.withSessionBillTotals(detail);
       this.sessionDetail.set(normalized);
       this.syncSeatRevisionFromDetail(normalized);
+      this.syncSeatBillTabsFromDetail(normalized);
       this.sessionDetailLoading.set(false);
     };
     requestAnimationFrame(() => {
@@ -3841,7 +3999,9 @@ export class OpenTablePageComponent implements OnInit {
         }
         if (seatKey) {
           this.applySeatAfterCheckout(seatKey, sessionId, result.checkedOutLabel);
-          this.loadSessionDetail(sessionId, { showLoading: false });
+          if (this.selectedSeat()?.status === 'AWAITING_CLEAR') {
+            this.loadSessionDetail(sessionId, { showLoading: false });
+          }
           this.refreshFloorPlan(seatKey, { silent: true });
           this.reloadStaffEmployees();
         }

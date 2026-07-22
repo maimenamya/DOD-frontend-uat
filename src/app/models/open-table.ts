@@ -19,6 +19,8 @@ export type FloorPlanSeat = {
   chargesRoomFee: boolean;
   sessionId: number | null;
   sessionRevision: number | null;
+  billIndex?: number | null;
+  openBillCount?: number;
   saleName: string | null;
   reservedSaleId: number | null;
   reservedCreditSaleToShop?: boolean;
@@ -230,9 +232,20 @@ export type StopStaffDrinkPreview = {
 
 export type TxnActiveSessionStatus = 'OPEN' | 'BILLED';
 
+export type SeatBillTab = {
+  sessionId: number;
+  billIndex: number;
+  status: TxnActiveSessionStatus;
+  saleName: string;
+  revision: number;
+  canCancel: boolean;
+};
+
 export type OpenTableSessionDetail = {
   sessionId: number;
   revision: number;
+  billIndex?: number;
+  seatBills?: SeatBillTab[];
   sessionStatus?: TxnActiveSessionStatus;
   lastCheckedOutLabel?: string;
   /** Bill from latest checkout — for reprint while awaiting customer release. */
@@ -270,6 +283,20 @@ export type CheckInPayload = {
   guestCount: number;
   /** Bill credit goes to shop, not the selected sale employee. */
   creditSaleToShop?: boolean;
+};
+
+export type AddBillPayload = {
+  shopId: number;
+  seatingId: number;
+  salesId: number;
+  guestCount?: number;
+  creditSaleToShop?: boolean;
+};
+
+export type CancelBillPayload = {
+  shopId: number;
+  sessionId: number;
+  expectedRevision: number;
 };
 
 export type UpdateSessionInfoPayload = SessionMutationBase & {

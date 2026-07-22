@@ -8,6 +8,8 @@ import type {
   TxnActiveSessionRecord,
   AddItemsPayload,
   CheckInPayload,
+  AddBillPayload,
+  CancelBillPayload,
   ReserveSeatPayload,
   CancelReservationPayload,
   CheckoutPayload,
@@ -50,6 +52,20 @@ export class OpenTableService {
 
   openTable(payload: CheckInPayload): Observable<TxnActiveSessionRecord> {
     return this.http.post<TxnActiveSessionRecord>(this.api.resource('open-table', 'check-in'), payload);
+  }
+
+  addBill(payload: AddBillPayload): Observable<TxnActiveSessionRecord> {
+    return this.http.post<TxnActiveSessionRecord>(
+      this.api.resource('open-table', 'add-bill'),
+      payload,
+    );
+  }
+
+  cancelBill(payload: CancelBillPayload): Observable<{ ok: boolean }> {
+    return this.http.post<{ ok: boolean }>(
+      this.api.resource('open-table', 'cancel-bill'),
+      payload,
+    );
   }
 
   reserveSeat(payload: ReserveSeatPayload): Observable<{ ok: boolean; saleName: string }> {
