@@ -361,16 +361,40 @@
             aria-label="บิลบนโต๊ะนี้"
           >
             @for (tab of seatBillTabs(); track tab.id) {
-              <button
-                type="button"
-                class="open-table-bill-tab-rail__btn"
-                [class.open-table-bill-tab-rail__btn--active]="activeSeatBillTabId() === tab.id"
-                [attr.aria-pressed]="activeSeatBillTabId() === tab.id"
-                [title]="'บิล ' + tab.label"
-                (click)="selectSeatBillTab(tab.id)"
+              <div
+                class="open-table-bill-tab-rail__chip"
+                [class.open-table-bill-tab-rail__chip--active]="activeSeatBillTabId() === tab.id"
               >
-                บิล {{ tab.label }}
-              </button>
+                <button
+                  type="button"
+                  class="open-table-bill-tab-rail__btn"
+                  [class.open-table-bill-tab-rail__btn--active]="activeSeatBillTabId() === tab.id"
+                  [attr.aria-pressed]="activeSeatBillTabId() === tab.id"
+                  [title]="'บิล ' + tab.label"
+                  (click)="selectSeatBillTab(tab.id)"
+                >
+                  <span class="open-table-bill-tab-rail__btn-label">บิล {{ tab.label }}</span>
+                  @if (tab.saleName) {
+                    <span class="open-table-bill-tab-rail__btn-sale">{{ tab.saleName }}</span>
+                  }
+                </button>
+                @if (seatBillTabs().length > 1) {
+                  <button
+                    type="button"
+                    class="open-table-bill-tab-rail__close"
+                    [attr.aria-label]="'ลบบิล ' + tab.label"
+                    [title]="'ลบบิล ' + tab.label"
+                    [disabled]="actionBusy()"
+                    (click)="removeSeatBillTab(tab.id); $event.stopPropagation()"
+                  >
+                    <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path
+                        d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
+                      />
+                    </svg>
+                  </button>
+                }
+              </div>
             }
             @if (seatBillTabs().length < maxSeatBills) {
               <button
@@ -449,8 +473,8 @@
             </h3>
             <p class="text-sm text-text-secondary">
               เซลล์ผู้ดูแล:
-              {{ sessionDetail()?.saleName ?? seat.saleName ?? '—' }}
-              @if (sessionDetail()?.operatorSaleName) {
+              {{ activeSeatBillSaleName() ?? '—' }}
+              @if (sessionDetail()?.operatorSaleName && activeSeatBillTabId() === 'bill-1') {
                 <span class="text-text-muted">(เปิดโดย {{ sessionDetail()!.operatorSaleName }})</span>
               } @else if (seat.status === 'RESERVED' && seat.reservedCreditSaleToShop) {
                 <span class="text-text-muted">(จองโดย {{ seat.reservedOperatorName ?? '—' }})</span>
@@ -1574,6 +1598,34 @@
       </div>
     }
 </ng-template>
+
+@if (showNewBillSaleModal()) {
+  <app-modal layout="center" (dismiss)="closeNewBillSaleModal()">
+    <div class="app-modal-header">
+      <h2 class="app-modal-title">เปิดบิลใหม่</h2>
+      <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeNewBillSaleModal()">✕</button>
+    </div>
+    <div class="app-form-stack">
+      <p class="text-sm text-text-secondary">เลือกเซลล์ผู้ดูแลของบิลนี้ (โต๊ะเดียวกัน คนละเซลได้)</p>
+      <div class="app-form-group">
+        <label class="app-label">เซลล์</label>
+        <app-custom-dropdown
+          [class.app-field-invalid]="newBillSaleValidated() && newBillSaleId() == null"
+          [options]="saleEmployeeOptions()"
+          [ngModel]="newBillSaleId()"
+          (ngModelChange)="onNewBillSaleChange($event)"
+          placeholder="เลือกเซลล์"
+        />
+      </div>
+    </div>
+    <div class="app-form-actions app-form-actions-top">
+      <button type="button" class="app-btn-secondary" (click)="closeNewBillSaleModal()">ยกเลิก</button>
+      <button type="button" class="app-btn-primary" (click)="confirmNewBillSale()">
+        เปิดบิล
+      </button>
+    </div>
+  </app-modal>
+}
 
 @if (showTransferModal()) {
   <app-modal layout="center" (dismiss)="closeTransferModal()">
