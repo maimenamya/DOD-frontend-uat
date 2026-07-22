@@ -474,11 +474,6 @@
             <p class="text-sm text-text-secondary">
               เซลล์ผู้ดูแล:
               {{ activeSeatBillSaleName() ?? '—' }}
-              @if (sessionDetail()?.operatorSaleName) {
-                <span class="text-text-muted">(เปิดโดย {{ sessionDetail()!.operatorSaleName }})</span>
-              } @else if (seat.status === 'RESERVED' && seat.reservedCreditSaleToShop) {
-                <span class="text-text-muted">(จองโดย {{ seat.reservedOperatorName ?? '—' }})</span>
-              }
             </p>
             @if (
               !seatAwaitingClear() &&

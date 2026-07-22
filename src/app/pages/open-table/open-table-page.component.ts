@@ -1034,7 +1034,13 @@ export class OpenTablePageComponent implements OnInit {
     const id = this.activeSeatBillTabId();
     const tab = this.seatBillTabs().find((t) => t.id === id);
     if (tab?.saleName) return tab.saleName;
-    return this.sessionDetail()?.saleName ?? this.selectedSeat()?.saleName ?? null;
+    const detail = this.sessionDetail();
+    // creditSaleToShop still credits shop — UI shows caretaker only, never "ร้าน"
+    if (detail?.operatorSaleName) return detail.operatorSaleName;
+    const seat = this.selectedSeat();
+    if (seat?.reservedOperatorName) return seat.reservedOperatorName;
+    const saleName = detail?.saleName ?? seat?.saleName ?? null;
+    return saleName === 'ร้าน' ? null : saleName;
   });
   readonly canAddSeatBill = computed(() => {
     const openCount = this.seatBillTabs().filter((t) => t.status === 'OPEN').length;
@@ -1217,7 +1223,7 @@ export class OpenTablePageComponent implements OnInit {
           id: String(detail.sessionId),
           sessionId: detail.sessionId,
           label: String(detail.billIndex ?? 1),
-          saleName: detail.saleName,
+          saleName: detail.operatorSaleName ?? detail.saleName,
           revision: detail.revision,
           canCancel: false,
           status: detail.sessionStatus ?? 'OPEN',
@@ -1236,15 +1242,37 @@ export class OpenTablePageComponent implements OnInit {
         })),
       );
     }
-    const activeId = String(detail.sessionId);
-    if (
-      this.activeSeatBillTabId() == null ||
-      !this.seatBillTabs().some((t) => t.id === this.activeSeatBillTabId())
-    ) {
-      this.activeSeatBillTabId.set(activeId);
-    } else if (this.seatBillTabs().some((t) => t.id === activeId)) {
-      this.activeSeatBillTabId.set(activeId);
+    // Keep current tab focus — only pick a tab when none / stale (don't jump to bill 1 after add-items).
+    const current = this.activeSeatBillTabId();
+    if (current == null || !this.seatBillTabs().some((t) => t.id === current)) {
+      this.activeSeatBillTabId.set(String(detail.sessionId));
     }
+  }
+
+  /** Prefer the bill tab the cashier is working on over floor-plan primary session. */
+  private focusedSeatSessionId(): number | null {
+    const tabId = this.activeSeatBillTabId();
+    if (tabId == null) return null;
+    const tab = this.seatBillTabs().find((t) => t.id === tabId);
+    if (!tab) return null;
+    return tab.sessionId;
+  }
+
+  private tilesWithPreservedBillFocus(tiles: SeatTile[], seatKey: string): SeatTile[] {
+    const focusedSessionId = this.focusedSeatSessionId();
+    if (focusedSessionId == null) return tiles;
+    const tab = this.seatBillTabs().find((t) => t.sessionId === focusedSessionId);
+    if (!tab) return tiles;
+    return tiles.map((s) =>
+      s.key === seatKey
+        ? {
+            ...s,
+            sessionId: focusedSessionId,
+            sessionRevision: tab.revision,
+            saleName: tab.saleName ?? s.saleName,
+          }
+        : s,
+    );
   }
 
   ngOnInit(): void {
@@ -1396,22 +1424,29 @@ export class OpenTablePageComponent implements OnInit {
     this.showAddModal.set(false);
 
     if (otherOpen) {
+      // Checked-out shell is removed server-side when siblings remain — drop it from tabs now.
+      const remaining = this.seatBillTabs()
+        .filter((t) => t.sessionId !== sessionId && t.status === 'OPEN')
+        .map((t, index) => ({ ...t, label: String(index + 1) }));
+      this.seatBillTabs.set(remaining);
+      const next =
+        remaining.find((t) => t.sessionId === otherOpen.sessionId) ?? remaining[0]!;
       this.seats.update((tiles) =>
         tiles.map((s) =>
           s.key === seatKey
             ? {
                 ...s,
                 status: 'OCCUPIED',
-                sessionId: otherOpen.sessionId,
-                sessionRevision: otherOpen.revision,
-                saleName: otherOpen.saleName ?? s.saleName,
+                sessionId: next.sessionId,
+                sessionRevision: next.revision,
+                saleName: next.saleName ?? s.saleName,
               }
             : s,
         ),
       );
-      this.activeSeatBillTabId.set(otherOpen.id);
-      this.loadSessionDetail(otherOpen.sessionId, { showLoading: true });
-      this.toast.showSuccess(`เช็กบิลแล้ว — สลับไปบิล ${otherOpen.label}`);
+      this.activeSeatBillTabId.set(next.id);
+      this.loadSessionDetail(next.sessionId, { showLoading: true });
+      this.toast.showSuccess(`เช็กบิลแล้ว — สลับไปบิล ${next.label}`);
       return;
     }
 
@@ -1507,17 +1542,27 @@ export class OpenTablePageComponent implements OnInit {
             floorLayout: s.floorLayout ?? null,
           })),
         );
-        this.seats.set(tiles);
-        this.syncLayoutZoneSelection(tiles);
-        if (this.floorDisplayMode() === 'layout' && !tiles.some((s) => s.floorLayout)) {
+        const key = selectKey ?? this.selectedSeatKey();
+        const focusedSessionId = key ? this.focusedSeatSessionId() : null;
+        const nextTiles =
+          key && focusedSessionId != null
+            ? this.tilesWithPreservedBillFocus(tiles, key)
+            : tiles;
+        this.seats.set(nextTiles);
+        this.syncLayoutZoneSelection(nextTiles);
+        if (this.floorDisplayMode() === 'layout' && !nextTiles.some((s) => s.floorLayout)) {
           this.floorDisplayMode.set('grid');
         }
         this.tryFocusPendingSession();
-        const key = selectKey ?? this.selectedSeatKey();
         if (key && this.selectedSeatKey() === key) {
-          const seat = tiles.find((s) => s.key === key);
-          if (seat?.sessionId) {
-            this.loadSessionDetail(seat.sessionId, { showLoading: false });
+          const seat = nextTiles.find((s) => s.key === key);
+          const sessionIdToLoad = focusedSessionId ?? seat?.sessionId ?? null;
+          if (sessionIdToLoad != null) {
+            // Already on this bill after add-items — don't reload primary (bill 1) and yank focus.
+            if (this.sessionDetail()?.sessionId === sessionIdToLoad) {
+              return;
+            }
+            this.loadSessionDetail(sessionIdToLoad, { showLoading: false });
           } else {
             this.sessionDetail.set(null);
             this.sessionDetailLoading.set(false);
@@ -1686,9 +1731,29 @@ export class OpenTablePageComponent implements OnInit {
     sessionId: number,
   ): void {
     const apply = (): void => {
-      if (this.selectedSeat()?.sessionId !== sessionId) {
+      const focused = this.focusedSeatSessionId();
+      const seatSession = this.selectedSeat()?.sessionId;
+      if (seatSession !== sessionId && focused !== sessionId) {
         this.sessionDetailLoading.set(false);
         return;
+      }
+      const seatKey = this.selectedSeatKey();
+      if (seatKey && seatSession !== sessionId) {
+        this.seats.update((tiles) =>
+          tiles.map((s) =>
+            s.key === seatKey
+              ? {
+                  ...s,
+                  sessionId,
+                  sessionRevision: detail.revision,
+                  saleName: detail.operatorSaleName ?? detail.saleName ?? s.saleName,
+                }
+              : s,
+          ),
+        );
+      }
+      if (this.activeSeatBillTabId() == null) {
+        this.activeSeatBillTabId.set(String(sessionId));
       }
       const normalized = this.withSessionBillTotals(detail);
       this.sessionDetail.set(normalized);
