@@ -1007,6 +1007,40 @@ export class OpenTablePageComponent implements OnInit {
     this.addItemValidated.set(false);
   }
 
+  /** UX preview: multiple bills on one seat (local tabs only — not persisted yet). */
+  readonly maxSeatBills = 3;
+  readonly seatBillTabs = signal<Array<{ id: string; label: string }>>([
+    { id: 'bill-1', label: '1' },
+  ]);
+  readonly activeSeatBillTabId = signal('bill-1');
+  readonly activeSeatBillTabLabel = computed(() => {
+    const id = this.activeSeatBillTabId();
+    return this.seatBillTabs().find((t) => t.id === id)?.label ?? '1';
+  });
+
+  selectSeatBillTab(tabId: string): void {
+    if (!this.seatBillTabs().some((t) => t.id === tabId)) return;
+    this.activeSeatBillTabId.set(tabId);
+  }
+
+  addSeatBillTab(): void {
+    const tabs = this.seatBillTabs();
+    if (tabs.length >= this.maxSeatBills) {
+      this.toast.showError(`เปิดได้สูงสุด ${this.maxSeatBills} บิลต่อโต๊ะ`);
+      return;
+    }
+    const nextNum = tabs.length + 1;
+    const id = `bill-${nextNum}-${Date.now()}`;
+    this.seatBillTabs.set([...tabs, { id, label: String(nextNum) }]);
+    this.activeSeatBillTabId.set(id);
+    this.toast.showSuccess('ตัวอย่าง UI — ยังไม่สร้างบิลจริงในระบบ');
+  }
+
+  private resetSeatBillTabs(): void {
+    this.seatBillTabs.set([{ id: 'bill-1', label: '1' }]);
+    this.activeSeatBillTabId.set('bill-1');
+  }
+
   ngOnInit(): void {
     const sessionParam = this.route.snapshot.queryParamMap.get('sessionId');
     const sessionId = sessionParam != null ? Number(sessionParam) : Number.NaN;
@@ -2141,6 +2175,7 @@ export class OpenTablePageComponent implements OnInit {
     if (this.openTableSelfBillOnly() && !seat.sessionId && seat.status !== 'RESERVED') {
       return;
     }
+    this.resetSeatBillTabs();
     this.selectedSeatKey.set(seat.key);
     this.checkInValidated.set(false);
     this.showMobileSheet.set(true);
@@ -2198,6 +2233,7 @@ export class OpenTablePageComponent implements OnInit {
     this.sessionDetailRequestSeq += 1;
     this.showMobileSheet.set(false);
     this.showAddModal.set(false);
+    this.resetSeatBillTabs();
     closeOpenShopFlatpickrCalendars();
     this.forcePurgeBodyModals();
   }

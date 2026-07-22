@@ -305,12 +305,94 @@
   min-width: 0;
   min-height: 0;
   height: 100%;
+  overflow: hidden;
   background: var(--card-bg);
 }
 
 .open-table-session-panel__body--pc:has(> .open-table-session-panel__left) > .open-table-session-panel__bill {
   grid-column: 3;
   border-left: 0;
+}
+
+/* Horizontal bill tabs — same language as vertical add rail */
+.open-table-bill-tab-rail {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-strong, var(--card-bg)) 88%, var(--card-bg));
+  --app-scroll-track: var(--card-bg);
+}
+
+.open-table-bill-tab-rail__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 4.25rem;
+  min-height: 2.35rem;
+  margin: 0;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-input, 0.5rem);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--transition-smooth, 0.15s ease),
+    color var(--transition-smooth, 0.15s ease),
+    border-color var(--transition-smooth, 0.15s ease);
+}
+
+.open-table-bill-tab-rail__btn:hover:not(:disabled) {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.open-table-bill-tab-rail__btn--active {
+  color: var(--text-primary);
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+  background: color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+.open-table-bill-tab-rail__btn--add {
+  min-width: 3.5rem;
+  color: var(--text-secondary);
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--border) 80%, var(--text-secondary));
+}
+
+.open-table-bill-tab-rail__btn--add:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+}
+
+.open-table-bill-tab-rail__btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.open-table-bill-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.45rem;
+  border-radius: 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--primary) 40%, var(--border));
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
 }
 
 .open-table-session-panel__body--pc .open-table-session-panel__header {

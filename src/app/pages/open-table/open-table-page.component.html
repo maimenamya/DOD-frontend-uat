@@ -351,11 +351,48 @@
         }
 
         <div class="open-table-session-panel__bill min-w-0">
+        @if (
+          seat.sessionId &&
+          seatLedgerOpen() &&
+          !seatAwaitingClear()
+        ) {
+          <nav
+            class="open-table-bill-tab-rail app-scroll-region"
+            aria-label="บิลบนโต๊ะนี้"
+          >
+            @for (tab of seatBillTabs(); track tab.id) {
+              <button
+                type="button"
+                class="open-table-bill-tab-rail__btn"
+                [class.open-table-bill-tab-rail__btn--active]="activeSeatBillTabId() === tab.id"
+                [attr.aria-pressed]="activeSeatBillTabId() === tab.id"
+                [title]="'บิล ' + tab.label"
+                (click)="selectSeatBillTab(tab.id)"
+              >
+                บิล {{ tab.label }}
+              </button>
+            }
+            @if (seatBillTabs().length < maxSeatBills) {
+              <button
+                type="button"
+                class="open-table-bill-tab-rail__btn open-table-bill-tab-rail__btn--add"
+                title="เปิดบิลใหม่บนโต๊ะนี้"
+                [disabled]="actionBusy()"
+                (click)="addSeatBillTab()"
+              >
+                + บิล
+              </button>
+            }
+          </nav>
+        }
         <div class="open-table-session-panel__header space-y-4">
         <div class="flex items-start justify-between gap-3 border-b border-theme-border pb-3">
           <div class="min-w-0">
             <h3 class="flex flex-wrap items-center gap-2 text-base font-semibold text-text-primary">
               <span>{{ seat.zoneLabel }} · {{ seat.code }}</span>
+              @if (seatBillTabs().length > 1 && seat.sessionId && seatLedgerOpen() && !seatAwaitingClear()) {
+                <span class="open-table-bill-tab-badge">บิล {{ activeSeatBillTabLabel() }}</span>
+              }
               @if (seatCanEditSessionInfo(seat)) {
                 <span class="inline-flex items-center gap-0.5">
                   <button
