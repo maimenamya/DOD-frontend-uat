@@ -52,6 +52,8 @@ export class ShopRulesPageComponent implements OnInit {
     absenceDeductionBaht: [500, [Validators.required, Validators.min(0)]],
     expectedCheckInTime: [''],
     expectedOnFloorTime: [''],
+    freelanceLateDrinkCutoffTime: [''],
+    freelanceLateDrinkExtraShopPortionBaht: [0, [Validators.required, Validators.min(0)]],
     expectedCheckOutTime: [''],
     expectedCheckOutNextDay: [true],
     autoCloseCutoffTime: [''],
@@ -85,7 +87,11 @@ export class ShopRulesPageComponent implements OnInit {
   }
 
   stepMoney(
-    field: 'lateFinePerMinuteBaht' | 'absenceDeductionBaht' | 'forgotCheckOutDeductionBaht',
+    field:
+      | 'lateFinePerMinuteBaht'
+      | 'absenceDeductionBaht'
+      | 'forgotCheckOutDeductionBaht'
+      | 'freelanceLateDrinkExtraShopPortionBaht',
     delta: number,
   ): void {
     if (!this.canManage()) return;
@@ -96,7 +102,12 @@ export class ShopRulesPageComponent implements OnInit {
   }
 
   normalizeTime(
-    field: 'expectedCheckInTime' | 'expectedOnFloorTime' | 'expectedCheckOutTime' | 'autoCloseCutoffTime',
+    field:
+      | 'expectedCheckInTime'
+      | 'expectedOnFloorTime'
+      | 'expectedCheckOutTime'
+      | 'autoCloseCutoffTime'
+      | 'freelanceLateDrinkCutoffTime',
   ): void {
     const control = this.form.controls[field];
     control.setValue(normalizeShopTimeHm(control.value));
@@ -109,11 +120,13 @@ export class ShopRulesPageComponent implements OnInit {
     this.normalizeTime('expectedOnFloorTime');
     this.normalizeTime('expectedCheckOutTime');
     this.normalizeTime('autoCloseCutoffTime');
+    this.normalizeTime('freelanceLateDrinkCutoffTime');
 
     const checkIn = this.form.controls.expectedCheckInTime.value.trim();
     const onFloor = this.form.controls.expectedOnFloorTime.value.trim();
     const checkOut = this.form.controls.expectedCheckOutTime.value.trim();
     const autoClose = this.form.controls.autoCloseCutoffTime.value.trim();
+    const freelanceLateCutoff = this.form.controls.freelanceLateDrinkCutoffTime.value.trim();
     if (
       !isValidShopTimeHm(checkIn) ||
       (onFloor && !isValidShopTimeHm(onFloor)) ||
@@ -126,6 +139,10 @@ export class ShopRulesPageComponent implements OnInit {
       this.toast.showError('เวลาตัดกะอัตโนมัติต้องเป็นรูปแบบ 24 ชม. เช่น 12:00');
       return;
     }
+    if (freelanceLateCutoff && !isValidShopTimeHm(freelanceLateCutoff)) {
+      this.toast.showError('เวลาเริ่มนับสาย freelance ต้องเป็นรูปแบบ 24 ชม. เช่น 21:00');
+      return;
+    }
 
     if (highlightInvalidForm(this.form, this.formValidated, this.toast)) return;
 
@@ -135,6 +152,7 @@ export class ShopRulesPageComponent implements OnInit {
       ...raw,
       autoCloseCutoffTime: raw.autoCloseCutoffTime.trim() || null,
       expectedOnFloorTime: raw.expectedOnFloorTime.trim() || null,
+      freelanceLateDrinkCutoffTime: raw.freelanceLateDrinkCutoffTime.trim() || null,
     };
     this.policyService.save(value).subscribe({
       next: (config) => {
@@ -164,6 +182,9 @@ export class ShopRulesPageComponent implements OnInit {
       absenceDeductionBaht: config.absenceDeductionBaht,
       expectedCheckInTime: config.expectedCheckInTime ?? '',
       expectedOnFloorTime: config.expectedOnFloorTime ?? '',
+      freelanceLateDrinkCutoffTime: config.freelanceLateDrinkCutoffTime ?? '',
+      freelanceLateDrinkExtraShopPortionBaht:
+        config.freelanceLateDrinkExtraShopPortionBaht ?? 0,
       expectedCheckOutTime: config.expectedCheckOutTime ?? '',
       expectedCheckOutNextDay: config.expectedCheckOutNextDay ?? true,
       autoCloseCutoffTime: config.autoCloseCutoffTime ?? '',

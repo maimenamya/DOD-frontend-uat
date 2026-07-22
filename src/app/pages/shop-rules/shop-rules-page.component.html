@@ -161,7 +161,7 @@
               />
             </div>
             <div class="app-form-group">
-              <label class="app-label" for="expected-on-floor">เวลา on floor (PR)</label>
+              <label class="app-label" for="expected-on-floor">เวลา on floor (PR แท็ก)</label>
               <input
                 id="expected-on-floor"
                 type="text"
@@ -174,6 +174,7 @@
                 (blur)="normalizeTime('expectedOnFloorTime')"
                 [readonly]="!canManage()"
               />
+              <p class="app-field-hint">ใช้คิดค่าปรับมาสายของ PR ที่ติดแท็กเท่านั้น</p>
             </div>
             <div class="app-form-group">
               <label class="app-label" for="expected-check-out">เวลาออกงาน</label>
@@ -218,6 +219,63 @@
             <p class="app-field-hint">
               หลังเวลานี้ของวันถัดจากกะ ระบบปิดกะและหักลืมแสกนออก — ว่างไว้ = ปิดฟีเจอร์
             </p>
+          </div>
+        </section>
+
+        <section class="app-card shop-rules-section">
+          <h2 class="shop-rules-section-title">PR freelance สาย → หักดื่มเข้าร้านเพิ่ม</h2>
+          <p class="app-field-hint shop-rules-section-hint">
+            แยกจาก on floor ของ PR แท็ก — ถ้าเข้างานหลังเวลาที่ตั้ง ระบบหักดื่มเข้าร้านเพิ่มต่อแก้วตอนจ่ายค่าดื่ม freelance
+            (เช่น หักปกติ 60 + เพิ่ม 20 = ร้านหัก 80) — ว่างเวลา = ปิดฟีเจอร์
+          </p>
+          <div class="shop-rules-attendance-grid shop-rules-work-hours-grid">
+            <div class="app-form-group">
+              <label class="app-label" for="freelance-late-drink-cutoff">เวลาเริ่มนับสาย (freelance)</label>
+              <input
+                id="freelance-late-drink-cutoff"
+                type="text"
+                class="app-input"
+                formControlName="freelanceLateDrinkCutoffTime"
+                placeholder="เช่น 21:00"
+                inputmode="numeric"
+                maxlength="5"
+                autocomplete="off"
+                (blur)="normalizeTime('freelanceLateDrinkCutoffTime')"
+                [readonly]="!canManage()"
+              />
+            </div>
+            <div class="app-form-group">
+              <label class="app-label">หักเพิ่มต่อดื่ม</label>
+              <div class="app-number-stepper">
+                <button
+                  type="button"
+                  class="app-number-stepper-btn"
+                  [disabled]="!canManage() || submitting()"
+                  (click)="stepMoney('freelanceLateDrinkExtraShopPortionBaht', -10)"
+                  aria-label="ลดหักดื่มเพิ่มเมื่อ freelance สาย"
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  class="app-input app-input-number app-number-stepper-input"
+                  formControlName="freelanceLateDrinkExtraShopPortionBaht"
+                  [readonly]="!canManage()"
+                />
+                <button
+                  type="button"
+                  class="app-number-stepper-btn"
+                  [disabled]="!canManage() || submitting()"
+                  (click)="stepMoney('freelanceLateDrinkExtraShopPortionBaht', 10)"
+                  aria-label="เพิ่มหักดื่มเพิ่มเมื่อ freelance สาย"
+                >
+                  +
+                </button>
+              </div>
+              <p class="app-field-hint">บาท / ดื่ม (บวกทับหักร้านตามตำแหน่ง)</p>
+            </div>
           </div>
         </section>
 
