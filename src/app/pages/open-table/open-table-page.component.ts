@@ -1008,6 +1008,13 @@ export class OpenTablePageComponent implements OnInit {
     this.addItemValidated.set(false);
   }
 
+  private currentPcAddNavKey(): PcAddNavKey | null {
+    const mode = this.addModalMode();
+    if (mode === 'STAFF_LEDGER' || mode === 'ROOM_CHARGE') return mode;
+    if (mode === 'ORDER_LEDGER') return this.orderLedgerCategory();
+    return null;
+  }
+
   /** Multi-bill tabs on one seat (from session detail). */
   readonly maxSeatBills = 3;
   readonly seatBillTabs = signal<
@@ -2498,16 +2505,31 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   /** Desktop: prepare left-panel add form (always visible for open bills). */
-  private preparePcAddPanel(): void {
+  private preparePcAddPanel(options?: { preserveNav?: boolean }): void {
     this.syncStaffLedgerRoles();
-    this.resetOrderLedgerForm();
-    this.resetStaffLedgerForm();
-    this.resetRoomChargeForm();
     this.addItemValidated.set(false);
     this.reloadStaffEmployees();
     this.reloadPackageDeposits();
     this.showAddModal.set(false);
-    const firstNav = this.pcAddNavItems()[0]?.key ?? 'STAFF_LEDGER';
+
+    const preserveNav = options?.preserveNav === true;
+    const preservedKey = this.currentPcAddNavKey();
+    const navItems = this.pcAddNavItems();
+    const canPreserve =
+      preserveNav &&
+      preservedKey != null &&
+      navItems.some((item) => item.key === preservedKey);
+
+    if (canPreserve) {
+      // Stay on current rail (e.g. เครื่องดื่ม) so cashier can add the next beer immediately.
+      this.orderQtyText.set('1');
+      return;
+    }
+
+    this.resetOrderLedgerForm();
+    this.resetStaffLedgerForm();
+    this.resetRoomChargeForm();
+    const firstNav = navItems[0]?.key ?? 'STAFF_LEDGER';
     this.selectPcAddNav(firstNav);
   }
 
@@ -2891,7 +2913,7 @@ export class OpenTablePageComponent implements OnInit {
     if (this.selectedSeatKey() && this.mobileDrawerViewport()) {
       this.showMobileSheet.set(true);
     } else if (!this.mobileDrawerViewport() && this.ledgerCanMutate()) {
-      this.preparePcAddPanel();
+      this.preparePcAddPanel({ preserveNav: true });
     }
   }
 
