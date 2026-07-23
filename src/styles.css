@@ -2645,6 +2645,21 @@
       width: 5.5rem;
     }
 
+    /* Keep ranking body capped + scrollable on mobile (global mobile table resets max-height). */
+    .app-data-table-shell:has(.dashboard-rank-split) {
+      overflow-x: hidden;
+      overflow-y: hidden;
+    }
+
+    .dashboard-rank-split .app-split-table-body.dashboard-rank-split-body--scroll {
+      height: var(--dashboard-rank-body);
+      max-height: var(--dashboard-rank-body);
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+
     .dashboard-date-custom {
       grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
       gap: 0.3rem 0.35rem;
@@ -4314,6 +4329,9 @@
   .dashboard-rank-split .app-split-table-body.dashboard-rank-split-body--scroll {
     height: var(--dashboard-rank-body);
     max-height: var(--dashboard-rank-body);
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .dashboard-rank-table-empty {
