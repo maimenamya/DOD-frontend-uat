@@ -172,6 +172,14 @@ export class ReportsPageComponent implements OnInit {
     return value.toLocaleString('th-TH');
   }
 
+  drinkStaffRows(preview: ReportPreview) {
+    return (preview.drinks?.staff ?? []).filter((row) => row.totalDrinks > 0);
+  }
+
+  drinkEntertainerRows(preview: ReportPreview) {
+    return (preview.drinks?.entertainers ?? []).filter((row) => row.totalDrinks > 0);
+  }
+
   private readApiError(err: HttpErrorResponse, fallback: string): string {
     const body = err.error as { error?: string } | undefined;
     return body?.error ?? fallback;

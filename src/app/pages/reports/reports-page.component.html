@@ -205,7 +205,7 @@
 
           </div>
 
-
+          <div class="reports-preview-body app-scroll-region">
 
           <div class="reports-kpi-grid">
 
@@ -497,19 +497,19 @@
 
 
 
-          @if (p.drinks && (p.drinks.staff.length > 0 || p.drinks.entertainers.length > 0)) {
+          @if (p.drinks && (drinkStaffRows(p).length > 0 || drinkEntertainerRows(p).length > 0)) {
 
             <div class="reports-block reports-block--split">
 
-              @if (p.drinks.staff.length > 0) {
+              @if (drinkStaffRows(p).length > 0) {
 
                 <div>
 
-                  <h3 class="reports-block-title">พนักงาน (TOP 5)</h3>
+                  <h3 class="reports-block-title">พนักงาน</h3>
 
                   <ul class="reports-rank-list">
 
-                    @for (row of p.drinks.staff.slice(0, 5); track row.employeeId) {
+                    @for (row of drinkStaffRows(p); track row.employeeId) {
 
                       <li>
 
@@ -527,15 +527,15 @@
 
               }
 
-              @if (p.drinks.entertainers.length > 0) {
+              @if (drinkEntertainerRows(p).length > 0) {
 
                 <div>
 
-                  <h3 class="reports-block-title">PR (TOP 5)</h3>
+                  <h3 class="reports-block-title">PR</h3>
 
                   <ul class="reports-rank-list">
 
-                    @for (row of p.drinks.entertainers.slice(0, 5); track row.employeeId) {
+                    @for (row of drinkEntertainerRows(p); track row.employeeId) {
 
                       <li>
 
@@ -556,6 +556,8 @@
             </div>
 
           }
+
+          </div>
 
         </section>
 

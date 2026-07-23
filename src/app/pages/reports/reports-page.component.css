@@ -246,13 +246,28 @@
 }
 
 .reports-preview {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: min(75vh, 52rem);
   padding: 1.25rem 1.5rem;
+  overflow: hidden;
+}
+
+.reports-preview-body {
+  --app-scroll-track: var(--surface-strong);
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: auto;
+  padding-right: 0.15rem;
 }
 
 .reports-preview--empty {
   display: flex;
   align-items: center;
   justify-content: center;
+  max-height: none;
 }
 
 .reports-preview-empty-text {

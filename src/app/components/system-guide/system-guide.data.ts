@@ -19,7 +19,7 @@ export const SYSTEM_GUIDE_SECTIONS: SystemGuideSection[] = [
     title: 'หน้างานประจำวัน',
     items: [
       {
-        label: 'แดชบอร์ด',
+        label: 'ภาพรวม',
         points: [
           'สรุปยอดขาย ดื่ม และตัวเลขสำคัญตามช่วงวันที่',
           'ใช้ดูภาพรวมร้านก่อนลงรายละเอียด',
