@@ -4,7 +4,7 @@
     <button type="button" class="app-btn-ghost" (click)="close()" aria-label="ปิดคู่มือ">✕</button>
   </div>
 
-  <div class="app-system-guide-body">
+  <div class="app-system-guide-body app-scroll-region app-modal-scroll">
     <p class="app-system-guide-intro">{{ intro }}</p>
 
     @for (section of sections; track section.title) {

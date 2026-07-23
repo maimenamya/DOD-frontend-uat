@@ -6,9 +6,10 @@
 }
 
 .app-system-guide-body {
-  max-height: min(var(--app-bottom-sheet-max-height), 36rem);
+  max-height: min(var(--app-bottom-sheet-max-height), 70vh, 42rem);
   overflow-y: auto;
   padding-top: 0.5rem;
+  --app-scroll-track: var(--surface-strong);
 }
 
 .app-system-guide-intro {
