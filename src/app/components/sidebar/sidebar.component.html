@@ -210,17 +210,18 @@
   </nav>
 
   <div class="app-sidebar-footer">
-    <button
-      type="button"
+    <a
+      routerLink="/dashboard/guide"
+      routerLinkActive="app-sidebar-link-active"
       class="app-sidebar-help"
       title="คู่มือใช้งานระบบและเมนู"
-      (click)="openGuide(); mobileClose.emit()"
+      (click)="collapseAllSubmenus(); mobileClose.emit()"
     >
       <span class="app-sidebar-icon-slot">
         <app-sidebar-icon name="help" />
       </span>
       <span class="app-sidebar-label">คู่มือใช้งาน</span>
-    </button>
+    </a>
     <button type="button" class="app-sidebar-logout" (click)="logout(); mobileClose.emit()">
       <span class="app-sidebar-icon-slot">
         <app-sidebar-icon name="logout" />
@@ -229,7 +230,3 @@
     </button>
   </div>
 </aside>
-
-@if (guideOpen()) {
-  <app-system-guide-modal (dismiss)="closeGuide()" />
-}

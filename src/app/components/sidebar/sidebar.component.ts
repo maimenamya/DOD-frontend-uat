@@ -4,7 +4,6 @@ import { filter } from 'rxjs';
 
 import { AuthService } from '../../services/auth.service';
 import { hasStationWorkMenu, showDashboardNav } from '../../models/work-duty';
-import { SystemGuideModalComponent } from '../system-guide/system-guide-modal.component';
 import { DodBrandWordmarkComponent } from './dod-brand-wordmark.component';
 import { SidebarIconComponent, type SidebarIconName } from './sidebar-icon.component';
 
@@ -108,7 +107,6 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
     RouterLinkActive,
     DodBrandWordmarkComponent,
     SidebarIconComponent,
-    SystemGuideModalComponent,
   ],
   templateUrl: './sidebar.component.html',
 })
@@ -142,21 +140,12 @@ export class SidebarComponent implements OnInit {
 
   readonly navGroups = MANAGEMENT_NAV_GROUPS;
   readonly activeSubmenu = signal<string | null>(this.getGroupIdByCurrentRoute());
-  readonly guideOpen = signal(false);
 
   ngOnInit(): void {
     this.syncSubmenuToRoute();
     this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe(() => this.syncSubmenuToRoute());
-  }
-
-  openGuide(): void {
-    this.guideOpen.set(true);
-  }
-
-  closeGuide(): void {
-    this.guideOpen.set(false);
   }
 
   toggleSubmenu(id: string): void {

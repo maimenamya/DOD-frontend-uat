@@ -1828,6 +1828,10 @@
     color: var(--text-primary);
   }
 
+  .app-sidebar-help.app-sidebar-link-active {
+    color: var(--text-primary);
+  }
+
   .app-sidebar-help .app-sidebar-icon {
     width: var(--sidebar-icon-box);
     height: var(--sidebar-icon-box);

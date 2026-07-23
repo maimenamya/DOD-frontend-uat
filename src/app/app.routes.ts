@@ -251,6 +251,13 @@ export const routes: Routes = [
       },
       { path: 'my-profile', component: MyProfileComponent },
       { path: 'accept-privacy', component: AcceptPrivacyPageComponent },
+      {
+        path: 'guide',
+        loadComponent: () =>
+          import('./pages/system-guide/system-guide-page.component').then(
+            (m) => m.SystemGuidePageComponent,
+          ),
+      },
       { path: 'sale-team', redirectTo: 'employees', pathMatch: 'full' },
       { path: 'pr-team', redirectTo: 'employees', pathMatch: 'full' },
       { path: 'managers', redirectTo: 'employees', pathMatch: 'full' },
