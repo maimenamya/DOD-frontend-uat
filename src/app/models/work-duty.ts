@@ -139,7 +139,7 @@ export function stationWorkTabsForUser(
   return stationWorkTabsFromDuties(effectiveWorkDuties(user));
 }
 
-/** คิวงาน — ครัว/บาร์/เซอร์วิส only; เซลล์และเด็กนั่งดริ้งไม่เห็น */
+/** คิวงาน/ออเดอร์ — ครัว/บาร์/เซอร์วิส only; เซลล์และเด็กนั่งดริ้งไม่เห็น */
 export function hasStationWorkMenu(user: WorkDutyNavUser | null | undefined): boolean {
   if (!user || !receivesShopNotifications(user)) return false;
   const duties = effectiveWorkDuties(user);

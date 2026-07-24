@@ -73,7 +73,9 @@ export class WebPushClientService {
       }
 
       const json = subscription.toJSON();
-      if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) {
+      const p256dh = json.keys?.['p256dh'];
+      const auth = json.keys?.['auth'];
+      if (!json.endpoint || !p256dh || !auth) {
         return false;
       }
 
@@ -81,8 +83,8 @@ export class WebPushClientService {
         this.http.post(this.api.resource('notifications/push/subscribe'), {
           endpoint: json.endpoint,
           keys: {
-            p256dh: json.keys.p256dh,
-            auth: json.keys.auth,
+            p256dh,
+            auth,
           },
         }),
       );

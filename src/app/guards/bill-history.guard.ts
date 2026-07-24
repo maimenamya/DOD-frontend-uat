@@ -7,7 +7,7 @@ export const billHistoryGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  if (auth.canAccessOpenTable()) {
+  if (auth.hasFeature('open_table')) {
     return true;
   }
 
