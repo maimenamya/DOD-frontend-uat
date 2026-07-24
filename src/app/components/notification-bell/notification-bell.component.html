@@ -41,6 +41,22 @@
           <span class="app-notification-menu-title">การแจ้งเตือน</span>
         </div>
 
+        @if (showPushSetup() && pushHint()) {
+          <div class="app-notification-push-box">
+            <p class="app-notification-push-hint">{{ pushHint() }}</p>
+            @if (showEnablePush()) {
+              <button
+                type="button"
+                class="app-btn-primary-sm app-notification-push-btn"
+                [disabled]="pushBusy()"
+                (click)="enableDevicePush()"
+              >
+                {{ pushBusy() ? 'กำลังเปิด...' : 'เปิดแจ้งเตือนเครื่อง' }}
+              </button>
+            }
+          </div>
+        }
+
         @if (loading() && items().length === 0) {
           <div class="app-skeleton-list app-skeleton-list--tight" aria-busy="true" aria-label="กำลังโหลด">
             <span></span>

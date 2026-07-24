@@ -1068,6 +1068,23 @@
     @apply text-sm font-semibold text-text-primary;
   }
 
+  .app-notification-push-box {
+    @apply flex flex-col gap-2 border-b border-theme-border px-3 py-3;
+    background: color-mix(in srgb, var(--surface-hover, var(--bg-secondary)) 70%, transparent);
+  }
+
+  .app-notification-push-hint {
+    margin: 0;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: var(--text-secondary);
+  }
+
+  .app-notification-push-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
   .app-notification-empty {
     @apply px-4 py-8 text-center text-sm text-text-secondary;
   }

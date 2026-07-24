@@ -15,30 +15,115 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return output;
 }
 
+export type WebPushStatus =
+  | 'ready'
+  | 'unsupported'
+  | 'insecure'
+  | 'ios_need_homescreen'
+  | 'server_disabled'
+  | 'denied'
+  | 'need_permission'
+  | 'error';
+
+export type WebPushEnsureResult = {
+  ok: boolean;
+  status: WebPushStatus;
+  message: string;
+};
+
+function isIosDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent;
+  const iOS = /iPad|iPhone|iPod/.test(ua);
+  const iPadOs = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+  return iOS || iPadOs;
+}
+
+function isStandalonePwa(): boolean {
+  if (typeof window === 'undefined') return false;
+  const displayStandalone = window.matchMedia('(display-mode: standalone)').matches;
+  const iosStandalone = Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
+  return displayStandalone || iosStandalone;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class WebPushClientService {
   private readonly http = inject(HttpClient);
   private readonly api = inject(ApiConfig);
-  private ensureInFlight: Promise<boolean> | null = null;
+  private ensureInFlight: Promise<WebPushEnsureResult> | null = null;
 
-  /** Register SW + request permission + save subscription (idempotent). */
-  ensureSubscribed(): Promise<boolean> {
+  /**
+   * Register SW + save subscription.
+   * Pass `requestPermission: true` only from a user tap (required on iPhone).
+   */
+  ensureSubscribed(options?: { requestPermission?: boolean }): Promise<WebPushEnsureResult> {
     if (this.ensureInFlight) return this.ensureInFlight;
-    this.ensureInFlight = this.runEnsure().finally(() => {
+    this.ensureInFlight = this.runEnsure(Boolean(options?.requestPermission)).finally(() => {
       this.ensureInFlight = null;
     });
     return this.ensureInFlight;
   }
 
-  private async runEnsure(): Promise<boolean> {
-    if (typeof window === 'undefined') return false;
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      return false;
+  async getStatusHint(): Promise<WebPushEnsureResult> {
+    if (typeof window === 'undefined') {
+      return { ok: false, status: 'unsupported', message: 'ไม่รองรับบนอุปกรณ์นี้' };
+    }
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+      return {
+        ok: false,
+        status: 'unsupported',
+        message: 'เบราว์เซอร์นี้ไม่รองรับแจ้งเตือนเครื่อง',
+      };
     }
     if (!window.isSecureContext) {
-      return false;
+      return { ok: false, status: 'insecure', message: 'ต้องเปิดผ่าน HTTPS' };
+    }
+    if (isIosDevice() && !isStandalonePwa()) {
+      return {
+        ok: false,
+        status: 'ios_need_homescreen',
+        message: 'บน iPhone ต้องเพิ่มแอปไปหน้าโฮมก่อน แล้วเปิดจากไอคอนนั้น',
+      };
+    }
+    if (Notification.permission === 'granted') {
+      return this.ensureSubscribed({ requestPermission: false });
+    }
+    if (Notification.permission === 'denied') {
+      return {
+        ok: false,
+        status: 'denied',
+        message: 'เครื่องปิดการแจ้งเตือนไว้ — เปิดได้ที่ตั้งค่า iPhone → การแจ้งเตือน',
+      };
+    }
+    return {
+      ok: false,
+      status: 'need_permission',
+      message: 'กดปุ่มด้านล่างเพื่อเปิดแจ้งเตือนดังที่เครื่อง',
+    };
+  }
+
+  private async runEnsure(requestPermission: boolean): Promise<WebPushEnsureResult> {
+    if (typeof window === 'undefined') {
+      return { ok: false, status: 'unsupported', message: 'ไม่รองรับบนอุปกรณ์นี้' };
+    }
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+      return {
+        ok: false,
+        status: 'unsupported',
+        message: 'เบราว์เซอร์นี้ไม่รองรับแจ้งเตือนเครื่อง',
+      };
+    }
+    if (!window.isSecureContext) {
+      return { ok: false, status: 'insecure', message: 'ต้องเปิดผ่าน HTTPS' };
+    }
+    if (isIosDevice() && !isStandalonePwa()) {
+      return {
+        ok: false,
+        status: 'ios_need_homescreen',
+        message: 'บน iPhone: Safari → แชร์ → เพิ่มไปยังหน้าโฮม → เปิดจากไอคอน แล้วค่อยกดเปิดแจ้งเตือน',
+      };
     }
 
     try {
@@ -48,7 +133,11 @@ export class WebPushClientService {
         ),
       );
       if (!meta.configured || !meta.publicKey) {
-        return false;
+        return {
+          ok: false,
+          status: 'server_disabled',
+          message: 'เซิร์ฟเวอร์ยังไม่ได้ตั้งค่า Web Push',
+        };
       }
 
       const registration = await navigator.serviceWorker.register('/push-sw.js', {
@@ -58,10 +147,21 @@ export class WebPushClientService {
 
       let permission = Notification.permission;
       if (permission === 'default') {
+        if (!requestPermission) {
+          return {
+            ok: false,
+            status: 'need_permission',
+            message: 'กดปุ่มด้านล่างเพื่อเปิดแจ้งเตือนดังที่เครื่อง',
+          };
+        }
         permission = await Notification.requestPermission();
       }
       if (permission !== 'granted') {
-        return false;
+        return {
+          ok: false,
+          status: 'denied',
+          message: 'ยังไม่อนุญาตแจ้งเตือน — เปิดได้ที่ตั้งค่าเครื่อง',
+        };
       }
 
       let subscription = await registration.pushManager.getSubscription();
@@ -76,7 +176,7 @@ export class WebPushClientService {
       const p256dh = json.keys?.['p256dh'];
       const auth = json.keys?.['auth'];
       if (!json.endpoint || !p256dh || !auth) {
-        return false;
+        return { ok: false, status: 'error', message: 'สมัครแจ้งเตือนไม่สำเร็จ' };
       }
 
       await firstValueFrom(
@@ -88,10 +188,18 @@ export class WebPushClientService {
           },
         }),
       );
-      return true;
+      return {
+        ok: true,
+        status: 'ready',
+        message: 'เปิดแจ้งเตือนเครื่องแล้ว — จะดังแม้ปิดแอปไว้',
+      };
     } catch (error) {
       console.warn('[web-push] ensureSubscribed failed', error);
-      return false;
+      return {
+        ok: false,
+        status: 'error',
+        message: 'เปิดแจ้งเตือนเครื่องไม่สำเร็จ ลองใหม่อีกครั้ง',
+      };
     }
   }
 }

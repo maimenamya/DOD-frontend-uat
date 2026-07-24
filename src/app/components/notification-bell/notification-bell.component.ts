@@ -17,7 +17,11 @@ import type { WorkDuty } from '../../models/work-duty';
 import type { ShopNotificationItem } from '../../services/notification.service';
 import { NotificationService } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
-import { WebPushClientService } from '../../services/web-push-client.service';
+import { ToastService } from '../../services/toast.service';
+import {
+  WebPushClientService,
+  type WebPushStatus,
+} from '../../services/web-push-client.service';
 
 const POLL_ACTIVE_MS = 15_000;
 const POLL_IDLE_MS = 30_000;
@@ -32,6 +36,7 @@ export class NotificationBellComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly notifications = inject(NotificationService);
   private readonly webPush = inject(WebPushClientService);
+  private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -45,6 +50,21 @@ export class NotificationBellComponent implements OnInit {
   readonly items = signal<ShopNotificationItem[]>([]);
   readonly unreadCount = signal(0);
   readonly loading = signal(false);
+  readonly pushStatus = signal<WebPushStatus | null>(null);
+  readonly pushHint = signal('');
+  readonly pushBusy = signal(false);
+
+  /** Show setup box whenever push is not fully ready. */
+  readonly showPushSetup = computed(() => {
+    const status = this.pushStatus();
+    return status != null && status !== 'ready';
+  });
+
+  /** Button only when a tap can actually request permission / retry. */
+  readonly showEnablePush = computed(() => {
+    const status = this.pushStatus();
+    return status === 'need_permission' || status === 'error';
+  });
 
   private readonly bellRoot = viewChild<ElementRef<HTMLElement>>('bellRoot');
   private readonly backdropRef = viewChild<ElementRef<HTMLButtonElement>>('backdrop');
@@ -61,7 +81,8 @@ export class NotificationBellComponent implements OnInit {
       if (show && !this.pollStarted) {
         this.pollStarted = true;
         this.schedulePoll(0);
-        void this.webPush.ensureSubscribed();
+        // Re-subscribe silently only if already granted (iPhone needs a tap to ask).
+        void this.refreshPushStatus();
       }
       if (!show) {
         this.pollStarted = false;
@@ -112,11 +133,35 @@ export class NotificationBellComponent implements OnInit {
     this.menuOpen.set(next);
     if (next) {
       this.fetchNotifications();
+      void this.refreshPushStatus();
     }
   }
 
   closeMenu(): void {
     this.menuOpen.set(false);
+  }
+
+  async enableDevicePush(): Promise<void> {
+    if (this.pushBusy()) return;
+    this.pushBusy.set(true);
+    try {
+      const result = await this.webPush.ensureSubscribed({ requestPermission: true });
+      this.pushStatus.set(result.status);
+      this.pushHint.set(result.message);
+      if (result.ok) {
+        this.toast.showSuccess(result.message);
+      } else {
+        this.toast.showError(result.message);
+      }
+    } finally {
+      this.pushBusy.set(false);
+    }
+  }
+
+  private async refreshPushStatus(): Promise<void> {
+    const hint = await this.webPush.getStatusHint();
+    this.pushStatus.set(hint.status);
+    this.pushHint.set(hint.message);
   }
 
   openItem(item: ShopNotificationItem): void {
