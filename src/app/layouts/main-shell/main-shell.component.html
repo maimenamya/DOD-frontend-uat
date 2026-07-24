@@ -2,14 +2,15 @@
 <app-confirm-dialog-host />
 
 <div class="app-layout">
-  @if (mobileMenuOpen()) {
-    <button
-      type="button"
-      class="app-mobile-overlay"
-      aria-label="ปิดเมนู"
-      (click)="closeMobileMenu()"
-    ></button>
-  }
+  <button
+    type="button"
+    class="app-mobile-overlay"
+    [class.app-mobile-overlay--open]="mobileMenuOpen()"
+    [attr.aria-hidden]="!mobileMenuOpen()"
+    [attr.tabindex]="mobileMenuOpen() ? 0 : -1"
+    aria-label="ปิดเมนู"
+    (click)="closeMobileMenu()"
+  ></button>
 
   <div class="app-sidebar-slot">
     <app-sidebar [mobileOpen]="mobileMenuOpen()" (mobileClose)="closeMobileMenu()" />

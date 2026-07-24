@@ -1282,8 +1282,20 @@
   }
 
   .app-mobile-overlay {
-    @apply fixed inset-0 z-30 backdrop-blur-sm;
+    @apply fixed inset-0 z-30;
     background: var(--overlay-scrim);
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transition:
+      opacity 280ms cubic-bezier(0.32, 0.72, 0, 1),
+      visibility 280ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .app-mobile-overlay--open {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
   }
 
   .app-page {
@@ -1447,20 +1459,25 @@
 
   /* ── Sidebar (off-canvas drawer — all viewports) ── */
   .app-sidebar {
-    @apply fixed inset-y-0 left-0 z-40 flex h-full min-h-screen min-h-[100dvh] w-64 flex-col text-text-primary backdrop-blur-glass transition-transform duration-300 ease-out;
-    background: color-mix(in srgb, var(--card-bg) 94%, #0b1220);
-    border: 1px solid var(--border);
+    @apply fixed inset-y-0 left-0 z-40 flex h-full min-h-screen min-h-[100dvh] w-64 flex-col text-text-primary;
+    background: var(--card-bg);
+    border-right: 1px solid var(--border);
     box-shadow: var(--shadow-sidebar);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
+    transform: translate3d(-100%, 0, 0);
+    transition: transform 280ms cubic-bezier(0.32, 0.72, 0, 1);
+    will-change: transform;
+    contain: layout paint;
+    backface-visibility: hidden;
   }
 
   .app-sidebar--closed {
-    @apply -translate-x-full;
+    transform: translate3d(-100%, 0, 0);
+    pointer-events: none;
   }
 
   .app-sidebar--open {
-    @apply translate-x-0;
+    transform: translate3d(0, 0, 0);
+    pointer-events: auto;
   }
 
   .app-sidebar-brand {
@@ -1469,21 +1486,11 @@
   }
 
   .app-sidebar-brand-mini {
-    @apply leading-none;
-    font-family: var(--font-sans);
-    font-size: 1.125rem;
-    font-weight: 800;
-    letter-spacing: 0;
-    transform: translateX(1px);
-    /* Collapsed mark = the gold "D" only */
-    background: linear-gradient(135deg, #f6c65c 0%, #eeba3c 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    @apply hidden leading-none;
   }
 
   .app-sidebar-brand-full {
-    @apply hidden overflow-hidden;
+    @apply block overflow-hidden;
   }
 
   .app-sidebar-label {
@@ -1491,14 +1498,6 @@
     display: inline-block;
     opacity: 1;
     max-width: 12rem;
-  }
-
-  .app-sidebar--open .app-sidebar-brand-mini {
-    @apply hidden;
-  }
-
-  .app-sidebar--open .app-sidebar-brand-full {
-    @apply block;
   }
 
   .app-sidebar-brand-wordmark {
