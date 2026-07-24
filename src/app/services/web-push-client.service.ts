@@ -47,12 +47,27 @@ function isStandalonePwa(): boolean {
   return displayStandalone || displayFullscreen || iosStandalone;
 }
 
+function isChromeOnIos(): boolean {
+  return typeof navigator !== 'undefined' && /CriOS/i.test(navigator.userAgent);
+}
+
+function iosLaunchModeLabel(): string {
+  if (isStandalonePwa()) return 'เปิดแบบแอป';
+  if (isChromeOnIos()) return 'เปิดใน Chrome';
+  return 'เปิดแบบแท็บเบราว์เซอร์';
+}
+
 function iosPushUnsupportedMessage(standalone: boolean): string {
-  // Home-screen "Bookmark" (not Web App) has no PushManager — user must delete & re-add.
+  const mode = iosLaunchModeLabel();
   if (!standalone) {
-    return 'ไอคอนตอนนี้เป็น Bookmark ไม่ใช่แอป — กดค้างไอคอนโฮม → ลบ Bookmark แล้วเพิ่มใหม่จาก Safari (แชร์ → เพิ่มไปยังหน้าโฮม)';
+    return (
+      `ตอนนี้: ${mode} (ยังไม่ใช่โหมดแอป) — ใช้ Safari เท่านั้น → แชร์ → เพิ่มไปยังหน้าโฮม ` +
+      `แล้วเปิดจากไอคอน (ไม่ต้องสนคำว่า Delete Bookmark) · ตั้งค่า → Safari เป็นเบราว์เซอร์เริ่มต้น`
+    );
   }
-  return 'ยังไม่มี Push บนเครื่อง — ลบไอคอนโฮม แล้วเพิ่มใหม่จาก Safari หลังอัปเดตเว็บ (ต้อง iOS 16.4+)';
+  return (
+    `ตอนนี้: ${mode} แต่เครื่องยังไม่มี Push — ต้อง iOS 16.4+ · ลบไอคอนโฮม ล้างข้อมูลเว็บ Safari แล้วเพิ่มใหม่จาก Safari`
+  );
 }
 
 @Injectable({
