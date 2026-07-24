@@ -17,6 +17,7 @@ import type { WorkDuty } from '../../models/work-duty';
 import type { ShopNotificationItem } from '../../services/notification.service';
 import { NotificationService } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
+import { WebPushClientService } from '../../services/web-push-client.service';
 
 const POLL_ACTIVE_MS = 15_000;
 const POLL_IDLE_MS = 30_000;
@@ -30,6 +31,7 @@ const MOBILE_MENU_MQL = '(max-width: 999px)';
 export class NotificationBellComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly notifications = inject(NotificationService);
+  private readonly webPush = inject(WebPushClientService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -59,6 +61,7 @@ export class NotificationBellComponent implements OnInit {
       if (show && !this.pollStarted) {
         this.pollStarted = true;
         this.schedulePoll(0);
+        void this.webPush.ensureSubscribed();
       }
       if (!show) {
         this.pollStarted = false;
