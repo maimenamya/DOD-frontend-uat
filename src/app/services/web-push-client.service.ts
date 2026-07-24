@@ -70,21 +70,23 @@ export class WebPushClientService {
     if (typeof window === 'undefined') {
       return { ok: false, status: 'unsupported', message: 'ไม่รองรับบนอุปกรณ์นี้' };
     }
+    if (!window.isSecureContext) {
+      return { ok: false, status: 'insecure', message: 'ต้องเปิดผ่าน HTTPS' };
+    }
+    // iPhone: PushManager is missing in a normal Safari/Chrome tab — check this before "unsupported".
+    if (isIosDevice() && !isStandalonePwa()) {
+      return {
+        ok: false,
+        status: 'ios_need_homescreen',
+        message:
+          'บน iPhone ต้องเพิ่มไปหน้าโฮมก่อน (Safari → แชร์ → เพิ่มไปยังหน้าโฮม) แล้วเปิดจากไอคอนนั้น',
+      };
+    }
     if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
       return {
         ok: false,
         status: 'unsupported',
         message: 'เบราว์เซอร์นี้ไม่รองรับแจ้งเตือนเครื่อง',
-      };
-    }
-    if (!window.isSecureContext) {
-      return { ok: false, status: 'insecure', message: 'ต้องเปิดผ่าน HTTPS' };
-    }
-    if (isIosDevice() && !isStandalonePwa()) {
-      return {
-        ok: false,
-        status: 'ios_need_homescreen',
-        message: 'บน iPhone ต้องเพิ่มแอปไปหน้าโฮมก่อน แล้วเปิดจากไอคอนนั้น',
       };
     }
     if (Notification.permission === 'granted') {
@@ -108,13 +110,6 @@ export class WebPushClientService {
     if (typeof window === 'undefined') {
       return { ok: false, status: 'unsupported', message: 'ไม่รองรับบนอุปกรณ์นี้' };
     }
-    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
-      return {
-        ok: false,
-        status: 'unsupported',
-        message: 'เบราว์เซอร์นี้ไม่รองรับแจ้งเตือนเครื่อง',
-      };
-    }
     if (!window.isSecureContext) {
       return { ok: false, status: 'insecure', message: 'ต้องเปิดผ่าน HTTPS' };
     }
@@ -122,7 +117,15 @@ export class WebPushClientService {
       return {
         ok: false,
         status: 'ios_need_homescreen',
-        message: 'บน iPhone: Safari → แชร์ → เพิ่มไปยังหน้าโฮม → เปิดจากไอคอน แล้วค่อยกดเปิดแจ้งเตือน',
+        message:
+          'บน iPhone: Safari → แชร์ → เพิ่มไปยังหน้าโฮม → เปิดจากไอคอน แล้วค่อยกดเปิดแจ้งเตือน',
+      };
+    }
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+      return {
+        ok: false,
+        status: 'unsupported',
+        message: 'เบราว์เซอร์นี้ไม่รองรับแจ้งเตือนเครื่อง',
       };
     }
 
