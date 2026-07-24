@@ -12,7 +12,7 @@ export type SystemGuideSection = {
 export const SYSTEM_GUIDE_TITLE = 'คู่มือใช้งาน D-rink';
 
 export const SYSTEM_GUIDE_INTRO =
-  'คู่มือนี้มี 5 ส่วนตามลำดับด้านล่าง อ่านทีละส่วนได้ เวลาในระบบเป็นเวลาไทยตามนาฬิการ้านเสมอ';
+  'คู่มือนี้มี 5 ส่วน กดหัวข้อเพื่อเปิดหรือซ่อนเนื้อหา อ่านเฉพาะส่วนที่ต้องการได้ เวลาในระบบเป็นเวลาไทยตามนาฬิการ้านเสมอ';
 
 export const SYSTEM_GUIDE_SECTIONS: SystemGuideSection[] = [
   {

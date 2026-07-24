@@ -5,24 +5,48 @@
   </header>
 
   <div class="system-guide-page-sections">
-    @for (section of sections; track section.title) {
-      <section class="app-card system-guide-section">
-        <h2 class="system-guide-section-title">{{ section.title }}</h2>
-        @if (section.intro) {
-          <p class="system-guide-section-intro">{{ section.intro }}</p>
+    @for (section of sections; track section.title; let i = $index) {
+      <section
+        class="app-card system-guide-section"
+        [class.system-guide-section--open]="isSectionOpen(i)"
+      >
+        <button
+          type="button"
+          class="system-guide-section-toggle"
+          [attr.aria-expanded]="isSectionOpen(i)"
+          (click)="toggleSection(i)"
+        >
+          <h2 class="system-guide-section-title">{{ section.title }}</h2>
+          <span class="system-guide-section-chevron" aria-hidden="true">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fill-rule="evenodd"
+                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </span>
+        </button>
+
+        @if (isSectionOpen(i)) {
+          <div class="system-guide-section-body">
+            @if (section.intro) {
+              <p class="system-guide-section-intro">{{ section.intro }}</p>
+            }
+            <ul class="system-guide-topics">
+              @for (item of section.items; track item.label) {
+                <li class="system-guide-topic">
+                  <p class="system-guide-topic-label">{{ item.label }}</p>
+                  <ul class="system-guide-points">
+                    @for (point of item.points; track point) {
+                      <li>{{ point }}</li>
+                    }
+                  </ul>
+                </li>
+              }
+            </ul>
+          </div>
         }
-        <ul class="system-guide-topics">
-          @for (item of section.items; track item.label) {
-            <li class="system-guide-topic">
-              <p class="system-guide-topic-label">{{ item.label }}</p>
-              <ul class="system-guide-points">
-                @for (point of item.points; track point) {
-                  <li>{{ point }}</li>
-                }
-              </ul>
-            </li>
-          }
-        </ul>
       </section>
     }
   </div>
