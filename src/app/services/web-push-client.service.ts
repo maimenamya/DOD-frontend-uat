@@ -51,7 +51,7 @@ function iosPushUnsupportedMessage(standalone: boolean): string {
   if (!standalone) {
     return 'ถ้าเพิ่มหน้าโฮมแล้ว: ปิดแท็บ Safari ให้หมด แล้วเปิดจากไอคอนโฮมเท่านั้น (อย่าเปิดจาก Safari)';
   }
-  return 'เครื่องนี้ยังไม่รองรับแจ้งเตือน PWA — ต้อง iPhone iOS 16.4 ขึ้นไป และเพิ่มจาก Safari (ไม่ใช่ Chrome)';
+  return 'ไอคอนโฮมตัวเก่ายังไม่ใช่แอปเต็มรูปแบบ — ลบไอคอนออก แล้วเพิ่มใหม่จาก Safari (แชร์ → เพิ่มไปยังหน้าโฮม) ต้อง iOS 16.4+';
 }
 
 @Injectable({

@@ -1,6 +1,9 @@
 /**
  * Runs before Angular — remembers shop login URL for PWA "Add to Home Screen".
- * Standalone apps hide the address bar; start_url must point at /s/{publicId}/login.
+ *
+ * Important (iOS Web Push): keep the HTTP `manifest.webmanifest` link.
+ * Do NOT replace it with a blob: URL — iOS then installs a bookmark/web-clip
+ * without PushManager even when opened from the home icon.
  */
 (function () {
   var STORAGE_KEY = 'dod_shop_public_id';
@@ -37,59 +40,12 @@
     }
   }
 
-  function installManifest(shopPublicId) {
-    var startUrl = shopPublicId ? '/s/' + encodeURIComponent(shopPublicId) + '/login' : '/login';
-    var manifest = {
-      name: 'D-rink',
-      short_name: 'D-rink',
-      description: 'ระบบ POS ร้านบาร์',
-      start_url: startUrl,
-      scope: '/',
-      display: 'standalone',
-      background_color: '#10141d',
-      theme_color: '#10141d',
-      orientation: 'any',
-      lang: 'th',
-      icons: [
-        {
-          src: '/icon-192.png',
-          sizes: '192x192',
-          type: 'image/png',
-          purpose: 'any',
-        },
-        {
-          src: '/app-icon.png',
-          sizes: '512x512',
-          type: 'image/png',
-          purpose: 'any',
-        },
-        {
-          src: '/app-icon.png',
-          sizes: '512x512',
-          type: 'image/png',
-          purpose: 'maskable',
-        },
-      ],
-    };
-
-    var blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
-    var blobUrl = URL.createObjectURL(blob);
-    var link = document.querySelector('link[rel="manifest"]');
-    if (!link) {
-      link = document.createElement('link');
-      link.rel = 'manifest';
-      document.head.appendChild(link);
-    }
-    link.href = blobUrl;
-  }
-
   var shopFromUrl = readShopFromPath();
   if (shopFromUrl) {
     writeStoredShop(shopFromUrl);
   }
 
   var shopPublicId = shopFromUrl || readStoredShop();
-  installManifest(shopPublicId);
 
   var path = location.pathname.replace(/\/+$/, '') || '/';
   if ((path === '/' || path === '/login') && shopPublicId && !hasAuthSession()) {
