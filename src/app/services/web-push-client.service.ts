@@ -42,8 +42,16 @@ function isIosDevice(): boolean {
 function isStandalonePwa(): boolean {
   if (typeof window === 'undefined') return false;
   const displayStandalone = window.matchMedia('(display-mode: standalone)').matches;
+  const displayFullscreen = window.matchMedia('(display-mode: fullscreen)').matches;
   const iosStandalone = Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
-  return displayStandalone || iosStandalone;
+  return displayStandalone || displayFullscreen || iosStandalone;
+}
+
+function iosPushUnsupportedMessage(standalone: boolean): string {
+  if (!standalone) {
+    return 'ถ้าเพิ่มหน้าโฮมแล้ว: ปิดแท็บ Safari ให้หมด แล้วเปิดจากไอคอนโฮมเท่านั้น (อย่าเปิดจาก Safari)';
+  }
+  return 'เครื่องนี้ยังไม่รองรับแจ้งเตือน PWA — ต้อง iPhone iOS 16.4 ขึ้นไป และเพิ่มจาก Safari (ไม่ใช่ Chrome)';
 }
 
 @Injectable({
@@ -78,15 +86,16 @@ export class WebPushClientService {
       return {
         ok: false,
         status: 'ios_need_homescreen',
-        message:
-          'บน iPhone ต้องเพิ่มไปหน้าโฮมก่อน (Safari → แชร์ → เพิ่มไปยังหน้าโฮม) แล้วเปิดจากไอคอนนั้น',
+        message: iosPushUnsupportedMessage(false),
       };
     }
     if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
       return {
         ok: false,
         status: 'unsupported',
-        message: 'เบราว์เซอร์นี้ไม่รองรับแจ้งเตือนเครื่อง',
+        message: isIosDevice()
+          ? iosPushUnsupportedMessage(isStandalonePwa())
+          : 'เบราว์เซอร์นี้ไม่รองรับแจ้งเตือนเครื่อง',
       };
     }
     if (Notification.permission === 'granted') {
@@ -117,15 +126,16 @@ export class WebPushClientService {
       return {
         ok: false,
         status: 'ios_need_homescreen',
-        message:
-          'บน iPhone: Safari → แชร์ → เพิ่มไปยังหน้าโฮม → เปิดจากไอคอน แล้วค่อยกดเปิดแจ้งเตือน',
+        message: iosPushUnsupportedMessage(false),
       };
     }
     if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
       return {
         ok: false,
         status: 'unsupported',
-        message: 'เบราว์เซอร์นี้ไม่รองรับแจ้งเตือนเครื่อง',
+        message: isIosDevice()
+          ? iosPushUnsupportedMessage(isStandalonePwa())
+          : 'เบราว์เซอร์นี้ไม่รองรับแจ้งเตือนเครื่อง',
       };
     }
 
