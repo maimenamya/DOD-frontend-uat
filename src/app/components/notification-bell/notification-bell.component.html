@@ -78,13 +78,7 @@
                 >
                   <span class="app-notification-item-title">{{ item.title }}</span>
                   <span class="app-notification-item-body">{{ item.body }}</span>
-                  <span class="app-notification-item-meta">
-                    @if (item.createdByNickname) {
-                      <span>จาก {{ item.createdByNickname }}</span>
-                      <span aria-hidden="true"> · </span>
-                    }
-                    <span>{{ item.createdAtLabel }} น.</span>
-                  </span>
+                  <span class="app-notification-item-meta">{{ item.createdAtLabel }} น.</span>
                 </button>
               </li>
             }

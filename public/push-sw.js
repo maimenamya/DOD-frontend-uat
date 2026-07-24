@@ -1,4 +1,4 @@
-/* D-rink Web Push service worker — keep at site root for full scope. */
+/* Web Push service worker — keep at site root for full scope. */
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
@@ -9,8 +9,8 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('push', (event) => {
   let data = {
-    title: 'D-rink',
-    body: 'มีการแจ้งเตือนใหม่',
+    title: '',
+    body: '',
     url: '/dashboard',
   };
   try {
@@ -26,9 +26,15 @@ self.addEventListener('push', (event) => {
     }
   }
 
+  // Show only table + items — never brand name as the notification title.
+  const title = String(data.title || '').trim();
+  const body = String(data.body || '').trim();
+  const displayTitle = title || body || 'ออเดอร์ใหม่';
+  const displayBody = title ? body : '';
+
   event.waitUntil(
-    self.registration.showNotification(data.title || 'D-rink', {
-      body: data.body || '',
+    self.registration.showNotification(displayTitle, {
+      body: displayBody,
       icon: '/favicon-64.png',
       badge: '/favicon-32.png',
       data: { url: data.url || '/dashboard' },

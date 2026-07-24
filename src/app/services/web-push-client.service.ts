@@ -169,7 +169,7 @@ export class WebPushClientService {
         };
       }
 
-      const registration = await navigator.serviceWorker.register('/push-sw.js', {
+      const registration = await navigator.serviceWorker.register('/push-sw.js?v=20260724', {
         scope: '/',
       });
       await navigator.serviceWorker.ready;

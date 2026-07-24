@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, HostListener, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { AppHeaderComponent } from '../../components/app-header/app-header.component';
@@ -19,6 +19,11 @@ import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 })
 export class MainShellComponent {
   readonly mobileMenuOpen = signal(false);
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.closeMobileMenu();
+  }
 
   toggleMobileMenu(): void {
     this.mobileMenuOpen.update((open) => !open);
