@@ -6,6 +6,14 @@
         <button
           type="button"
           class="dashboard-date-btn"
+          [class.dashboard-date-btn-active]="datePreset() === 'tonight'"
+          (click)="selectPreset('tonight')"
+        >
+          คืนนี้
+        </button>
+        <button
+          type="button"
+          class="dashboard-date-btn"
           [class.dashboard-date-btn-active]="datePreset() === 'today'"
           (click)="selectPreset('today')"
         >

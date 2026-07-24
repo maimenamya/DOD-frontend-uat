@@ -6,7 +6,7 @@ export interface EmployeePerformanceRank {
   transactionCount: number;
 }
 
-export type DashboardPreset = 'today' | 'yesterday' | 'custom';
+export type DashboardPreset = 'today' | 'tonight' | 'yesterday' | 'custom';
 
 export type BillStatusKind = 'bill_amount' | 'drink_count';
 
