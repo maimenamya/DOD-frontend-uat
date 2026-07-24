@@ -48,10 +48,11 @@ function isStandalonePwa(): boolean {
 }
 
 function iosPushUnsupportedMessage(standalone: boolean): string {
+  // Home-screen "Bookmark" (not Web App) has no PushManager — user must delete & re-add.
   if (!standalone) {
-    return 'ถ้าเพิ่มหน้าโฮมแล้ว: ปิดแท็บ Safari ให้หมด แล้วเปิดจากไอคอนโฮมเท่านั้น (อย่าเปิดจาก Safari)';
+    return 'ไอคอนตอนนี้เป็น Bookmark ไม่ใช่แอป — กดค้างไอคอนโฮม → ลบ Bookmark แล้วเพิ่มใหม่จาก Safari (แชร์ → เพิ่มไปยังหน้าโฮม)';
   }
-  return 'ไอคอนโฮมตัวเก่ายังไม่ใช่แอปเต็มรูปแบบ — ลบไอคอนออก แล้วเพิ่มใหม่จาก Safari (แชร์ → เพิ่มไปยังหน้าโฮม) ต้อง iOS 16.4+';
+  return 'ยังไม่มี Push บนเครื่อง — ลบไอคอนโฮม แล้วเพิ่มใหม่จาก Safari หลังอัปเดตเว็บ (ต้อง iOS 16.4+)';
 }
 
 @Injectable({
