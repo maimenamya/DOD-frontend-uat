@@ -17,8 +17,7 @@ export const attendancePunchGuard: CanActivateFn = (_route, state) => {
     _route.paramMap.get('shopPublicId')?.trim() || readStoredShopPublicId();
   const returnUrl = state.url;
 
-  return router.createUrlTree(
-    shopPublicId ? ['/s', shopPublicId, 'login'] : ['/login'],
-    { queryParams: { returnUrl } },
-  );
+  return router.createUrlTree(['/login'], {
+    queryParams: shopPublicId ? { shop: shopPublicId, returnUrl } : { returnUrl },
+  });
 };

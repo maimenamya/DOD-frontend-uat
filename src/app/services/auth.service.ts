@@ -144,7 +144,8 @@ export class AuthService {
   redirectToLogin(): void {
     const shopPublicId = readStoredShopPublicId();
     void this.router.navigate(
-      shopPublicId ? ['/s', shopPublicId, 'login'] : ['/login'],
+      ['/login'],
+      shopPublicId ? { queryParams: { shop: shopPublicId } } : {},
     );
   }
 

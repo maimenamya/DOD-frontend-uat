@@ -1,10 +1,6 @@
 /**
- * Dynamic Web App Manifest.
- * Query: ?shop={publicId} (optional; also stored in localStorage by pwa-bootstrap).
- *
- * iOS: start_url must be site root (`/`), not `/s/{shop}/login`.
- * A shop-subpath start_url made Safari treat `/dashboard` as out of scope
- * (URL chrome after login). Shop routing is handled in pwa-bootstrap.js.
+ * Legacy dynamic manifest (kept for old clients).
+ * Prefer `/manifest.webmanifest` at site root — iOS scopes relative to manifest URL.
  */
 module.exports = function handler(req, res) {
   const raw = typeof req.query.shop === 'string' ? req.query.shop.trim() : '';

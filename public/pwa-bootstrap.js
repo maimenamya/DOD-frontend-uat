@@ -1,14 +1,17 @@
 /**
  * Runs before Angular — PWA launch routing + shop id memory.
  *
- * Manifest start_url is `/` (not `/login` or `/s/{shop}/…`) so iOS keeps the
- * whole origin in standalone scope. On launch:
- * - logged in  → /dashboard (guards send station staff to their home)
- * - logged out → /s/{shop}/login when shop id is known
+ * Manifest is `/manifest.webmanifest` at site root (not `/api/manifest`) so iOS
+ * resolves scope `/` against the origin, not the `/api/` directory.
+ *
+ * Shop login must be `/login?shop=…` — never `/s/{shop}/login`. Installing a
+ * Home Screen app while on `/s/{shop}/login` made iOS treat scope as `/s/{shop}/`,
+ * so `/dashboard` opened with Safari chrome after login.
  */
 (function () {
   var STORAGE_KEY = 'dod_shop_public_id';
   var SESSION_KEY = 'dod_auth_session';
+  var MANIFEST_HREF = '/manifest.webmanifest';
 
   function readShopFromPath() {
     var match = location.pathname.match(/^\/s\/([^/]+)\/login\/?$/i);
@@ -54,21 +57,18 @@
     }
   }
 
-  function setManifestHref(shopPublicId) {
-    var href = shopPublicId
-      ? '/api/manifest?shop=' + encodeURIComponent(shopPublicId)
-      : '/api/manifest';
+  function setManifestHref() {
     var links = document.querySelectorAll('link[rel="manifest"]');
     if (!links.length) {
       var link = document.createElement('link');
       link.rel = 'manifest';
       link.type = 'application/manifest+json';
-      link.href = href;
+      link.href = MANIFEST_HREF;
       document.head.appendChild(link);
       return;
     }
     for (var i = 0; i < links.length; i += 1) {
-      links[i].href = href;
+      links[i].href = MANIFEST_HREF;
     }
   }
 
@@ -76,6 +76,12 @@
     return (
       typeof location.search === 'string' && location.search.indexOf('homescreen=1') !== -1
     );
+  }
+
+  function shopLoginUrl(shopPublicId) {
+    var url = '/login?shop=' + encodeURIComponent(shopPublicId);
+    if (wantsHomescreen()) url += '&homescreen=1';
+    return url;
   }
 
   var shopFromUrl = readShopFromPath() || readShopFromQuery();
@@ -91,21 +97,24 @@
     if (stored && isSafeShopId(stored)) shopPublicId = stored;
   }
 
-  setManifestHref(shopPublicId);
+  setManifestHref();
 
   var path = location.pathname.replace(/\/+$/, '') || '/';
-  if (path !== '/' && path !== '/login') {
+
+  // Old shop login path → canonical /login?shop= (keeps iOS PWA scope at /)
+  var pathShop = readShopFromPath();
+  if (pathShop && isSafeShopId(pathShop)) {
+    location.replace(shopLoginUrl(pathShop));
     return;
   }
 
-  // Already signed in — open the app, not the login screen.
-  if (hasAuthSession()) {
-    location.replace('/dashboard');
-    return;
-  }
-
-  if (shopPublicId) {
-    var qs = wantsHomescreen() ? '?homescreen=1' : '';
-    location.replace('/s/' + encodeURIComponent(shopPublicId) + '/login' + qs);
+  if (path === '/' || path === '/login') {
+    if (hasAuthSession()) {
+      location.replace('/dashboard');
+      return;
+    }
+    if (path === '/' && shopPublicId) {
+      location.replace(shopLoginUrl(shopPublicId));
+    }
   }
 })();

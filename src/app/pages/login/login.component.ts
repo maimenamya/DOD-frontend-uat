@@ -10,8 +10,9 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
+import { combineLatest, map } from 'rxjs';
 
+import { shopLoginQueryParams } from '../../core/login-url.util';
 import { readStoredShopPublicId, writeStoredShopPublicId } from '../../core/shop-public-id.storage';
 import { AuthService } from '../../services/auth.service';
 import {
@@ -37,8 +38,14 @@ export class LoginComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
+  /** Route `/s/:shopPublicId/login` or canonical `/login?shop=`. */
   private readonly shopPublicIdParam = toSignal(
-    this.route.paramMap.pipe(map((params) => params.get('shopPublicId')?.trim() ?? '')),
+    combineLatest([this.route.paramMap, this.route.queryParamMap]).pipe(
+      map(
+        ([params, query]) =>
+          (params.get('shopPublicId') ?? query.get('shop') ?? '').trim(),
+      ),
+    ),
     { initialValue: '' },
   );
 
@@ -64,11 +71,25 @@ export class LoginComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    const fromRoute = this.route.snapshot.paramMap.get('shopPublicId')?.trim() ?? '';
+    if (fromRoute) {
+      // Canonical URL under `/` so Add to Home Screen keeps iOS scope = whole site.
+      const homescreen = this.route.snapshot.queryParamMap.get('homescreen');
+      void this.router.navigate(['/login'], {
+        queryParams: shopLoginQueryParams(fromRoute, { homescreen }),
+        replaceUrl: true,
+      });
+      return;
+    }
+
     const publicId = this.shopPublicIdParam();
     if (!publicId) {
       const last = readStoredShopPublicId();
       if (last) {
-        void this.router.navigate(['/s', last, 'login'], { replaceUrl: true });
+        void this.router.navigate(['/login'], {
+          queryParams: shopLoginQueryParams(last),
+          replaceUrl: true,
+        });
         return;
       }
       this.missingShopLink.set(true);
