@@ -3,7 +3,7 @@
   "name": "D-rink",
   "short_name": "D-rink",
   "description": "ระบบ POS ร้านบาร์",
-  "start_url": "/login?homescreen=1",
+  "start_url": "/?homescreen=1",
   "scope": "/",
   "display": "standalone",
   "display_override": ["standalone", "fullscreen"],

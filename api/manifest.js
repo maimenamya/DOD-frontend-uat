@@ -1,19 +1,17 @@
 /**
- * Dynamic Web App Manifest — shop remembered via localStorage / pwa-bootstrap.
- * Query: ?shop={publicId} still accepted for backwards compatibility.
+ * Dynamic Web App Manifest.
+ * Query: ?shop={publicId} (optional; also stored in localStorage by pwa-bootstrap).
  *
- * iOS: start_url must stay at site root (/login…), NOT /s/{shop}/login.
- * Installing from a shop subpath made Safari treat /dashboard as out of
- * scope — chrome (URL bar) appeared right after login.
+ * iOS: start_url must be site root (`/`), not `/s/{shop}/login`.
+ * A shop-subpath start_url made Safari treat `/dashboard` as out of scope
+ * (URL chrome after login). Shop routing is handled in pwa-bootstrap.js.
  */
 module.exports = function handler(req, res) {
   const raw = typeof req.query.shop === 'string' ? req.query.shop.trim() : '';
   const shop = /^[a-zA-Z0-9_-]{1,64}$/.test(raw) ? raw : '';
-  // Root-level start keeps the whole origin in the installed app scope on iOS.
-  // pwa-bootstrap redirects to /s/{shop}/login when a shop id is stored.
   const startUrl = shop
-    ? `/login?homescreen=1&shop=${encodeURIComponent(shop)}`
-    : '/login?homescreen=1';
+    ? `/?homescreen=1&shop=${encodeURIComponent(shop)}`
+    : '/?homescreen=1';
 
   const manifest = {
     id: '/',

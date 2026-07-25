@@ -1,10 +1,10 @@
 /**
- * Runs before Angular — remembers shop login URL for PWA "Add to Home Screen".
+ * Runs before Angular — PWA launch routing + shop id memory.
  *
- * Manifest start_url stays at `/login?homescreen=1` (site root), not `/s/{shop}/…`.
- * iOS scopes the installed app from start_url’s directory; a shop subpath made
- * `/dashboard` open with Safari chrome after login. Shop id is stored here and
- * we replace to `/s/{shop}/login` when launching from `/` or `/login`.
+ * Manifest start_url is `/` (not `/login` or `/s/{shop}/…`) so iOS keeps the
+ * whole origin in standalone scope. On launch:
+ * - logged in  → /dashboard (guards send station staff to their home)
+ * - logged out → /s/{shop}/login when shop id is known
  */
 (function () {
   var STORAGE_KEY = 'dod_shop_public_id';
@@ -72,6 +72,12 @@
     }
   }
 
+  function wantsHomescreen() {
+    return (
+      typeof location.search === 'string' && location.search.indexOf('homescreen=1') !== -1
+    );
+  }
+
   var shopFromUrl = readShopFromPath() || readShopFromQuery();
   if (shopFromUrl && isSafeShopId(shopFromUrl)) {
     writeStoredShop(shopFromUrl);
@@ -88,13 +94,18 @@
   setManifestHref(shopPublicId);
 
   var path = location.pathname.replace(/\/+$/, '') || '/';
-  if ((path === '/' || path === '/login') && shopPublicId && !hasAuthSession()) {
-    var homescreen =
-      typeof location.search === 'string' && location.search.indexOf('homescreen=1') !== -1
-        ? '?homescreen=1'
-        : '';
-    location.replace(
-      '/s/' + encodeURIComponent(shopPublicId) + '/login' + homescreen,
-    );
+  if (path !== '/' && path !== '/login') {
+    return;
+  }
+
+  // Already signed in — open the app, not the login screen.
+  if (hasAuthSession()) {
+    location.replace('/dashboard');
+    return;
+  }
+
+  if (shopPublicId) {
+    var qs = wantsHomescreen() ? '?homescreen=1' : '';
+    location.replace('/s/' + encodeURIComponent(shopPublicId) + '/login' + qs);
   }
 })();
