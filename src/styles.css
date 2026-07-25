@@ -363,6 +363,8 @@
   }
 
   html {
+    /* Base 16px + 4px — rem / Tailwind text-* scale with the root */
+    font-size: 20px;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
@@ -373,6 +375,7 @@
     background-color: var(--bg-primary);
     color: var(--text-primary);
     font-family: var(--font-sans);
+    font-size: 1rem;
     line-height: var(--leading-normal);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -655,7 +658,7 @@
     }
 
     .login-page .glass-input {
-      font-size: 16px;
+      font-size: 1rem;
       line-height: 3rem;
     }
   }
@@ -914,7 +917,7 @@
   }
 
   .app-notification-trigger {
-    @apply relative flex h-10 w-10 shrink-0 items-center justify-center px-0;
+    @apply relative flex h-11 w-11 shrink-0 items-center justify-center px-0;
     cursor: pointer;
   }
 
@@ -924,7 +927,8 @@
   }
 
   .app-notification-icon {
-    @apply h-5 w-5;
+    @apply h-6 w-6;
+    display: block;
   }
 
   .app-notification-badge {
@@ -2804,7 +2808,7 @@
 
   /**
    * iOS Safari zooms the page when an input has font-size < 16px.
-   * Keep 16px on touch devices for all form controls.
+   * Use root rem (20px) so fields stay ≥16px and match the global type scale.
    */
   @media (max-width: 999px) {
     input,
@@ -2813,7 +2817,7 @@
     .glass-input,
     .app-input,
     .app-dropdown-trigger-label {
-      font-size: 16px;
+      font-size: 1rem;
       line-height: 1.5;
     }
 
@@ -5030,11 +5034,11 @@ input.app-input.app-shop-date-input.flatpickr-input.active {
     var(--shadow-glow-sm);
 }
 
-/* iOS Safari: inputs < 16px trigger page zoom on focus */
+/* iOS Safari: inputs < 16px trigger page zoom on focus (root is 20px) */
 @media (max-width: 999px) {
   input.app-shop-date-input,
   input.app-shop-datetime-input {
-    font-size: 16px !important;
+    font-size: 1rem !important;
     touch-action: manipulation;
   }
 }

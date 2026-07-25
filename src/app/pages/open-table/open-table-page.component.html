@@ -374,9 +374,6 @@
                   (click)="selectSeatBillTab(tab.id)"
                 >
                   <span class="open-table-bill-tab-rail__btn-label">บิล {{ tab.label }}</span>
-                  @if (tab.saleName) {
-                    <span class="open-table-bill-tab-rail__btn-sale">{{ tab.saleName }}</span>
-                  }
                 </button>
                 @if (tab.canCancel) {
                   <button
@@ -401,10 +398,11 @@
                 type="button"
                 class="open-table-bill-tab-rail__btn open-table-bill-tab-rail__btn--add"
                 title="เปิดบิลใหม่บนโต๊ะนี้"
+                aria-label="เปิดบิลใหม่บนโต๊ะนี้"
                 [disabled]="actionBusy()"
                 (click)="addSeatBillTab()"
               >
-                + บิล
+                +
               </button>
             }
           </nav>
@@ -1601,7 +1599,6 @@
       <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeNewBillSaleModal()">✕</button>
     </div>
     <div class="app-form-stack">
-      <p class="text-sm text-text-secondary">เลือกเซลล์ผู้ดูแลของบิลนี้ (โต๊ะเดียวกัน คนละเซลได้)</p>
       <div class="app-form-group">
         <label class="app-label">เซลล์</label>
         <app-custom-dropdown

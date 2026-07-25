@@ -8,18 +8,18 @@
       aria-haspopup="true"
       aria-label="การแจ้งเตือน"
     >
-      <svg
-        class="app-notification-icon"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.75"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5" />
-        <path d="M9.5 17a2.5 2.5 0 0 0 5 0" />
+      <svg class="app-notification-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <!-- Bold outline bell: knob + dome + base bar + clapper -->
+        <circle cx="12" cy="3.35" r="1.55" fill="currentColor" />
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.35"
+          stroke-linejoin="round"
+          d="M8.1 8.9c0-2.25 1.7-4.05 3.9-4.05s3.9 1.8 3.9 4.05v5.05l1.85 1.7H6.25l1.85-1.7V8.9z"
+        />
+        <rect x="5.35" y="15.55" width="13.3" height="2.2" rx="0.35" fill="currentColor" />
+        <path fill="currentColor" d="M9.15 17.75a2.85 2.85 0 005.7 0H9.15z" />
       </svg>
       @if (unreadCount() > 0) {
         <span class="app-notification-badge" aria-hidden="true">

@@ -383,9 +383,7 @@
 }
 
 .open-table-bill-tab-rail__chip .open-table-bill-tab-rail__btn {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.05rem;
+  align-items: center;
   border: 0;
   border-radius: 0;
   min-height: 2.25rem;
@@ -394,20 +392,6 @@
 
 .open-table-bill-tab-rail__btn-label {
   line-height: 1.2;
-}
-
-.open-table-bill-tab-rail__btn-sale {
-  max-width: 5.5rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 0.7rem;
-  font-weight: 500;
-  line-height: 1.15;
-  color: var(--text-muted, var(--text-secondary));
-}
-
-.open-table-bill-tab-rail__chip--active .open-table-bill-tab-rail__btn-sale {
-  color: var(--text-secondary);
 }
 
 .open-table-bill-tab-rail__chip .open-table-bill-tab-rail__btn--active,
@@ -445,10 +429,14 @@
 }
 
 .open-table-bill-tab-rail__btn--add {
-  min-width: 3.5rem;
+  min-width: 2.35rem;
+  padding-left: 0.55rem;
+  padding-right: 0.55rem;
   color: var(--text-secondary);
   border-style: dashed;
   border-color: color-mix(in srgb, var(--border) 80%, var(--text-secondary));
+  font-size: 1.125rem;
+  line-height: 1;
 }
 
 .open-table-bill-tab-rail__btn--add:hover:not(:disabled) {
