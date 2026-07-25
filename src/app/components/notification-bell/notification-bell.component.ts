@@ -60,10 +60,17 @@ export class NotificationBellComponent implements OnInit {
     return status != null && status !== 'ready';
   });
 
-  /** Button only when a tap can actually request permission / retry. */
-  readonly showEnablePush = computed(() => {
+  /** Short Thai label — full instructions go in toast on tap. */
+  readonly pushSetupButtonLabel = computed(() => {
     const status = this.pushStatus();
-    return status === 'need_permission' || status === 'error';
+    if (status == null || status === 'ready') return '';
+    if (status === 'need_permission' || status === 'error') return 'เปิดแจ้งเตือนเครื่อง';
+    if (status === 'ios_need_homescreen') return 'วิธีเปิดเป็นแอปบน iPhone';
+    if (status === 'denied') return 'วิธีเปิดการแจ้งเตือน';
+    if (status === 'unsupported' || status === 'insecure' || status === 'server_disabled') {
+      return 'ดูวิธีแก้การแจ้งเตือน';
+    }
+    return 'ตั้งค่าแจ้งเตือนเครื่อง';
   });
 
   private readonly bellRoot = viewChild<ElementRef<HTMLElement>>('bellRoot');
@@ -139,6 +146,18 @@ export class NotificationBellComponent implements OnInit {
 
   closeMenu(): void {
     this.menuOpen.set(false);
+  }
+
+  async onPushSetupClick(): Promise<void> {
+    const status = this.pushStatus();
+    if (status === 'need_permission' || status === 'error') {
+      await this.enableDevicePush();
+      return;
+    }
+    const message = this.pushHint().trim();
+    if (message) {
+      this.toast.showError(message);
+    }
   }
 
   async enableDevicePush(): Promise<void> {

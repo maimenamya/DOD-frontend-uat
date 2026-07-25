@@ -220,6 +220,30 @@ export function isAppFocusableField(target: EventTarget | null): target is HTMLE
   );
 }
 
+/**
+ * iOS standalone PWA often keeps the keyboard open when tapping empty space
+ * (Safari tabs dismiss more readily). Blur the active field unless the tap is
+ * on another field or controls next to it (e.g. show-password).
+ */
+export function dismissAppKeyboardIfOutsideField(target: EventTarget | null): void {
+  const active = document.activeElement;
+  if (!isAppFocusableField(active)) return;
+  if (!(target instanceof Node)) return;
+
+  if (target instanceof Element) {
+    if (isAppFocusableField(target)) return;
+    if (target.closest(FOCUSABLE_FIELD_SELECTOR)) return;
+    if (target.closest('label')) return;
+
+    const group = active.closest(
+      '.login-input-group, .app-form-field, .app-shop-datetime-field, .app-shop-date-field',
+    );
+    if (group?.contains(target)) return;
+  }
+
+  active.blur();
+}
+
 export function isAppMobileViewportMediaQuery(): string {
   return APP_MOBILE_MEDIA_QUERY;
 }

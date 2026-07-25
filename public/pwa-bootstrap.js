@@ -3,6 +3,8 @@
  *
  * Manifest uses HTTP `/api/manifest?shop=…` (not a blob URL) so iOS installs a
  * real Home Screen web app with start_url already containing the shop id.
+ * Manifest `id` must stay `/` (not `/s/{shop}/`) so post-login `/dashboard`
+ * routes remain inside the installed app on iOS.
  */
 (function () {
   var STORAGE_KEY = 'dod_shop_public_id';

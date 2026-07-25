@@ -2,25 +2,13 @@
   <div class="app-notification-bell-root" #bellRoot>
     <button
       type="button"
-      class="app-notification-trigger"
+      class="app-btn-menu app-notification-trigger"
       (click)="toggleMenu()"
       [attr.aria-expanded]="menuOpen()"
       aria-haspopup="true"
       aria-label="การแจ้งเตือน"
     >
-      <svg
-        class="app-notification-icon"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.75"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5" />
-        <path d="M9.5 17a2.5 2.5 0 0 0 5 0" />
-      </svg>
+      แจ้งเตือน
       @if (unreadCount() > 0) {
         <span class="app-notification-badge" aria-hidden="true">
           {{ unreadCount() > 99 ? '99+' : unreadCount() }}
@@ -41,19 +29,16 @@
           <span class="app-notification-menu-title">การแจ้งเตือน</span>
         </div>
 
-        @if (showPushSetup() && pushHint()) {
+        @if (showPushSetup() && pushSetupButtonLabel()) {
           <div class="app-notification-push-box">
-            <p class="app-notification-push-hint">{{ pushHint() }}</p>
-            @if (showEnablePush()) {
-              <button
-                type="button"
-                class="app-btn-primary-sm app-notification-push-btn"
-                [disabled]="pushBusy()"
-                (click)="enableDevicePush()"
-              >
-                {{ pushBusy() ? 'กำลังเปิด...' : 'เปิดแจ้งเตือนเครื่อง' }}
-              </button>
-            }
+            <button
+              type="button"
+              class="app-btn-primary-sm app-notification-push-btn"
+              [disabled]="pushBusy()"
+              (click)="onPushSetupClick()"
+            >
+              {{ pushBusy() ? 'กำลังเปิด...' : pushSetupButtonLabel() }}
+            </button>
           </div>
         }
 

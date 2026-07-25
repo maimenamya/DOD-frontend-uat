@@ -8,7 +8,10 @@ module.exports = function handler(req, res) {
   const startUrl = shop
     ? `/s/${encodeURIComponent(shop)}/login?homescreen=1`
     : '/login?homescreen=1';
-  const id = shop ? `/s/${encodeURIComponent(shop)}/` : '/';
+  // Keep id at site root. A shop-prefixed id (e.g. /s/foo/) made iOS treat
+  // /dashboard as outside the installed app — login stayed standalone, then
+  // after login Safari chrome (URL bar) appeared.
+  const id = '/';
 
   const manifest = {
     id,

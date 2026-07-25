@@ -1,6 +1,7 @@
 import { DestroyRef, Injectable, inject } from '@angular/core';
 
 import {
+  dismissAppKeyboardIfOutsideField,
   isAppFocusableField,
   isAppMobileViewportMediaQuery,
   revealAppFieldInVisualViewport,
@@ -54,9 +55,13 @@ export class AppKeyboardViewportService {
 
   private readonly onPointerDown = (event: PointerEvent): void => {
     const target = event.target;
-    if (!isAppFocusableField(target)) return;
-    this.activeField = target;
-    scheduleAppFieldReveal(target);
+    if (isAppFocusableField(target)) {
+      this.activeField = target;
+      scheduleAppFieldReveal(target);
+      return;
+    }
+    // Standalone iOS: tap empty area should dismiss keyboard like Safari tabs.
+    dismissAppKeyboardIfOutsideField(target);
   };
 
   constructor() {

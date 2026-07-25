@@ -914,14 +914,8 @@
   }
 
   .app-notification-trigger {
-    @apply relative flex h-10 w-10 items-center justify-center rounded-full border border-theme-border text-text-secondary transition-colors duration-200;
+    @apply relative shrink-0;
     cursor: pointer;
-  }
-
-  .app-notification-trigger:hover {
-    border-color: var(--primary-light);
-    color: var(--text-accent);
-    background: color-mix(in srgb, var(--primary) 8%, transparent);
   }
 
   .app-notification-trigger:focus-visible {
@@ -929,12 +923,8 @@
     outline-offset: 2px;
   }
 
-  .app-notification-icon {
-    @apply h-5 w-5;
-  }
-
   .app-notification-badge {
-    @apply absolute -right-0.5 -top-0.5 flex min-h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full px-1 text-[0.625rem] font-bold leading-none text-white;
+    @apply absolute -right-1.5 -top-1.5 flex min-h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full px-1 text-[0.625rem] font-bold leading-none text-white;
     background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
     box-shadow: 0 0 0 2px var(--card-bg);
   }
@@ -1013,13 +1003,6 @@
   .app-notification-push-box {
     @apply flex flex-col gap-2 border-b border-theme-border px-3 py-3;
     background: color-mix(in srgb, var(--surface-hover, var(--bg-secondary)) 70%, transparent);
-  }
-
-  .app-notification-push-hint {
-    margin: 0;
-    font-size: 0.75rem;
-    line-height: 1.45;
-    color: var(--text-secondary);
   }
 
   .app-notification-push-btn {
@@ -1399,16 +1382,8 @@
       @apply w-full gap-1.5;
     }
 
-    .dashboard-date-presets {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      width: 100%;
-      margin-left: 0;
-      gap: 0.35rem;
-    }
-
     .dashboard-date-btn {
-      @apply px-2 py-1.5 text-[0.6875rem] leading-snug;
+      @apply px-1.5 py-1.5 text-[0.6875rem] leading-snug;
       min-width: 0;
     }
   }
@@ -4058,24 +4033,27 @@
     @apply flex w-full min-w-0 flex-col gap-2 sm:w-auto;
   }
 
-  /* Segmented control — one bordered track, quiet inner buttons */
+  /* Segmented control — full-width on phone; shrink-wrap on sm+ */
   .dashboard-date-presets {
-    display: inline-flex;
+    display: flex;
     flex-wrap: nowrap;
     gap: 0.25rem;
     padding: 0.25rem;
     border: 1px solid var(--border);
     border-radius: var(--radius-input);
     background: var(--surface);
-    width: auto;
+    width: 100%;
     max-width: 100%;
+    box-sizing: border-box;
   }
 
   .dashboard-date-btn {
     @apply rounded-md border-0 px-2 py-1.5 text-xs font-medium text-text-secondary transition sm:px-2.5 sm:py-2 sm:text-sm;
     background: transparent;
+    flex: 1 1 0;
     min-width: 0;
     line-height: 1.25;
+    text-align: center;
   }
 
   .dashboard-date-btn:hover {
@@ -4136,6 +4114,7 @@
     .dashboard-date-btn {
       flex: 0 0 auto;
       min-width: 0;
+      text-align: center;
     }
 
     .dashboard-date-custom {
