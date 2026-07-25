@@ -14,10 +14,12 @@ from PIL import Image
 SCRIPTS = Path(__file__).resolve().parent
 PUBLIC = SCRIPTS.parent / "public"
 SRC = SCRIPTS / "app-icon-source.png"
-# theme / manifest background (#10141d); close to icon fill (~8,12,21)
-BG = (16, 20, 29, 255)
+# Match the logo plate fill (not theme #10141d) — mismatched edge fill
+# reads as a fake “frame” on the home screen after OS masking.
+BG = (8, 12, 21, 255)
 # gold stroke is ~10–12px at mid-edge; shave a bit more for AA fringe
-BORDER_SHAVE_PX = 14
+BORDER_SHAVE_PX = 16
+ICON_VERSION = "v3"
 
 
 def shave_outer_ring(src: Image.Image, shave: int) -> Image.Image:
@@ -63,17 +65,18 @@ def main() -> None:
     src = Image.open(SRC)
     clean = shave_outer_ring(src, BORDER_SHAVE_PX)
 
+    ver = ICON_VERSION
     outputs = {
         "app-icon.png": 512,
-        "app-icon-v2.png": 512,
+        f"app-icon-{ver}.png": 512,
         "icon-192.png": 192,
-        "icon-192-v2.png": 192,
+        f"icon-192-{ver}.png": 192,
         "apple-touch-icon.png": 180,
-        "apple-touch-icon-v2.png": 180,
+        f"apple-touch-icon-{ver}.png": 180,
         "apple-touch-icon-167.png": 167,
-        "apple-touch-icon-167-v2.png": 167,
+        f"apple-touch-icon-167-{ver}.png": 167,
         "apple-touch-icon-152.png": 152,
-        "apple-touch-icon-152-v2.png": 152,
+        f"apple-touch-icon-152-{ver}.png": 152,
         "favicon-64.png": 64,
         "favicon-48.png": 48,
         "favicon-32.png": 32,
@@ -81,8 +84,11 @@ def main() -> None:
 
     for name, size in outputs.items():
         resized = clean.resize((size, size), Image.Resampling.LANCZOS)
+        # Flatten to exact BG so home-screen masks never show an edge ring
+        flat = Image.new("RGBA", (size, size), BG)
+        flat.alpha_composite(resized)
         path = PUBLIC / name
-        resized.save(path, format="PNG", optimize=True)
+        flat.convert("RGB").save(path, format="PNG", optimize=True)
         print(f"wrote {path.name} ({size}x{size})")
 
     ico32 = clean.resize((32, 32), Image.Resampling.LANCZOS)
