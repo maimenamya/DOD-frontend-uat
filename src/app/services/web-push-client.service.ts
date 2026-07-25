@@ -39,6 +39,21 @@ function isIosDevice(): boolean {
   return iOS || iPadOs;
 }
 
+function isAndroidDevice(): boolean {
+  return typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
+}
+
+/** Line / Facebook / Instagram in-app browsers — no reliable Web Push. */
+function isRestrictedInAppBrowser(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent;
+  return (
+    /\bFBAN\b|\bFBAV\b|\bFB_IAB\b/i.test(ua) ||
+    /\bInstagram\b/i.test(ua) ||
+    /\bLine\//i.test(ua)
+  );
+}
+
 function isStandalonePwa(): boolean {
   if (typeof window === 'undefined') return false;
   const displayStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -70,6 +85,19 @@ function iosPushUnsupportedMessage(standalone: boolean): string {
   );
 }
 
+function androidDeniedMessage(): string {
+  return (
+    'เครื่อง/Chrome ปิดการแจ้งเตือนไว้ — ตั้งค่า → แอป → Chrome → การแจ้งเตือน → อนุญาต ' +
+    'แล้วที่ไซต์นี้: เมนู Chrome (⋮) → ข้อมูลเว็บไซต์ → การแจ้งเตือน → อนุญาต แล้วกดปุ่มอีกครั้ง'
+  );
+}
+
+function restrictedBrowserMessage(): string {
+  return (
+    'เปิดจากแอปแชท (เช่น Line) ใช้แจ้งเตือนเครื่องไม่ได้ — เปิดใน Chrome แล้วเข้าจากไอคอนหน้าจอหลัก'
+  );
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -80,7 +108,7 @@ export class WebPushClientService {
 
   /**
    * Register SW + save subscription.
-   * Pass `requestPermission: true` only from a user tap (required on iPhone).
+   * Pass `requestPermission: true` only from a user tap (required on iPhone / many Android).
    */
   ensureSubscribed(options?: { requestPermission?: boolean }): Promise<WebPushEnsureResult> {
     if (this.ensureInFlight) return this.ensureInFlight;
@@ -90,12 +118,46 @@ export class WebPushClientService {
     return this.ensureInFlight;
   }
 
+  /**
+   * Drop OS push for this browser (endpoint).
+   * Used when OWNER/MANAGER logs in after a prior SERVICE subscription on the same device.
+   */
+  async clearSubscription(): Promise<void> {
+    if (typeof window === 'undefined') return;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+    try {
+      const registration =
+        (await navigator.serviceWorker.getRegistration('/')) ??
+        (await navigator.serviceWorker.getRegistration());
+      if (!registration) return;
+
+      const subscription = await registration.pushManager.getSubscription();
+      if (!subscription) return;
+
+      const endpoint = subscription.endpoint;
+      try {
+        await firstValueFrom(
+          this.http.post(this.api.resource('notifications/push/unsubscribe'), { endpoint }),
+        );
+      } catch {
+        // Still unsubscribe locally even if API fails (offline / 401).
+      }
+      await subscription.unsubscribe();
+    } catch (error) {
+      console.warn('[web-push] clearSubscription failed', error);
+    }
+  }
+
   async getStatusHint(): Promise<WebPushEnsureResult> {
     if (typeof window === 'undefined') {
       return { ok: false, status: 'unsupported', message: 'ไม่รองรับบนอุปกรณ์นี้' };
     }
     if (!window.isSecureContext) {
       return { ok: false, status: 'insecure', message: 'ต้องเปิดผ่าน HTTPS' };
+    }
+    if (isRestrictedInAppBrowser()) {
+      return { ok: false, status: 'unsupported', message: restrictedBrowserMessage() };
     }
     // iPhone: PushManager is missing in a normal Safari/Chrome tab — check this before "unsupported".
     if (isIosDevice() && !isStandalonePwa()) {
@@ -111,7 +173,9 @@ export class WebPushClientService {
         status: 'unsupported',
         message: isIosDevice()
           ? iosPushUnsupportedMessage(isStandalonePwa())
-          : 'เบราว์เซอร์นี้ไม่รองรับแจ้งเตือนเครื่อง',
+          : isAndroidDevice()
+            ? 'เบราว์เซอร์นี้ไม่รองรับแจ้งเตือนเครื่อง — เปิดด้วย Chrome แล้วลองใหม่'
+            : 'เบราว์เซอร์นี้ไม่รองรับแจ้งเตือนเครื่อง',
       };
     }
     if (Notification.permission === 'granted') {
@@ -121,7 +185,11 @@ export class WebPushClientService {
       return {
         ok: false,
         status: 'denied',
-        message: 'เครื่องปิดการแจ้งเตือนไว้ — เปิดได้ที่ตั้งค่า iPhone → การแจ้งเตือน',
+        message: isAndroidDevice()
+          ? androidDeniedMessage()
+          : isIosDevice()
+            ? 'เครื่องปิดการแจ้งเตือนไว้ — เปิดได้ที่ตั้งค่า iPhone → การแจ้งเตือน'
+            : 'เบราว์เซอร์ปิดการแจ้งเตือนไว้ — เปิดสิทธิ์ที่การตั้งค่าไซต์แล้วลองใหม่',
       };
     }
     return {
@@ -138,6 +206,9 @@ export class WebPushClientService {
     if (!window.isSecureContext) {
       return { ok: false, status: 'insecure', message: 'ต้องเปิดผ่าน HTTPS' };
     }
+    if (isRestrictedInAppBrowser()) {
+      return { ok: false, status: 'unsupported', message: restrictedBrowserMessage() };
+    }
     if (isIosDevice() && !isStandalonePwa()) {
       return {
         ok: false,
@@ -151,29 +222,15 @@ export class WebPushClientService {
         status: 'unsupported',
         message: isIosDevice()
           ? iosPushUnsupportedMessage(isStandalonePwa())
-          : 'เบราว์เซอร์นี้ไม่รองรับแจ้งเตือนเครื่อง',
+          : isAndroidDevice()
+            ? 'เบราว์เซอร์นี้ไม่รองรับแจ้งเตือนเครื่อง — เปิดด้วย Chrome แล้วลองใหม่'
+            : 'เบราว์เซอร์นี้ไม่รองรับแจ้งเตือนเครื่อง',
       };
     }
 
     try {
-      const meta = await firstValueFrom(
-        this.http.get<{ configured: boolean; publicKey: string | null }>(
-          this.api.resource('notifications/push/vapid-public-key'),
-        ),
-      );
-      if (!meta.configured || !meta.publicKey) {
-        return {
-          ok: false,
-          status: 'server_disabled',
-          message: 'เซิร์ฟเวอร์ยังไม่ได้ตั้งค่า Web Push',
-        };
-      }
-
-      const registration = await navigator.serviceWorker.register('/push-sw.js?v=20260724', {
-        scope: '/',
-      });
-      await navigator.serviceWorker.ready;
-
+      // Ask permission BEFORE any network/SW await — many Android Chrome builds
+      // drop the user-gesture if we fetch VAPID first, so the prompt never appears.
       let permission = Notification.permission;
       if (permission === 'default') {
         if (!requestPermission) {
@@ -189,9 +246,29 @@ export class WebPushClientService {
         return {
           ok: false,
           status: 'denied',
-          message: 'ยังไม่อนุญาตแจ้งเตือน — เปิดได้ที่ตั้งค่าเครื่อง',
+          message: isAndroidDevice()
+            ? androidDeniedMessage()
+            : 'ยังไม่อนุญาตแจ้งเตือน — เปิดได้ที่ตั้งค่าเครื่อง',
         };
       }
+
+      const meta = await firstValueFrom(
+        this.http.get<{ configured: boolean; publicKey: string | null }>(
+          this.api.resource('notifications/push/vapid-public-key'),
+        ),
+      );
+      if (!meta.configured || !meta.publicKey) {
+        return {
+          ok: false,
+          status: 'server_disabled',
+          message: 'เซิร์ฟเวอร์ยังไม่ได้ตั้งค่า Web Push',
+        };
+      }
+
+      const registration = await navigator.serviceWorker.register('/push-sw.js?v=20260726', {
+        scope: '/',
+      });
+      await navigator.serviceWorker.ready;
 
       let subscription = await registration.pushManager.getSubscription();
       if (!subscription) {
@@ -224,10 +301,25 @@ export class WebPushClientService {
       };
     } catch (error) {
       console.warn('[web-push] ensureSubscribed failed', error);
+      const name =
+        error && typeof error === 'object' && 'name' in error
+          ? String((error as { name?: string }).name)
+          : '';
+      if (name === 'AbortError' || name === 'NotAllowedError') {
+        return {
+          ok: false,
+          status: 'denied',
+          message: isAndroidDevice()
+            ? androidDeniedMessage()
+            : 'ยังไม่อนุญาตแจ้งเตือน — เปิดได้ที่ตั้งค่าเครื่อง',
+        };
+      }
       return {
         ok: false,
         status: 'error',
-        message: 'เปิดแจ้งเตือนเครื่องไม่สำเร็จ ลองใหม่อีกครั้ง',
+        message: isAndroidDevice()
+          ? 'เปิดแจ้งเตือนไม่สำเร็จ — ใช้ Chrome, อนุญาตการแจ้งเตือนในตั้งค่าแอป แล้วกดปุ่มอีกครั้ง'
+          : 'เปิดแจ้งเตือนเครื่องไม่สำเร็จ ลองใหม่อีกครั้ง',
       };
     }
   }

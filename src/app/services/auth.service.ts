@@ -32,6 +32,8 @@ import {
 } from '../core/shop-public-id.storage';
 import { isJwtExpired } from '../utils/jwt-expiry.util';
 import { ToastService } from './toast.service';
+import { WebPushClientService } from './web-push-client.service';
+import { receivesShopNotifications } from '../models/work-duty';
 
 const STORAGE_KEY = 'dod_auth_session';
 
@@ -43,12 +45,20 @@ export class AuthService {
   private readonly api = inject(ApiConfig);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  private readonly webPush = inject(WebPushClientService);
 
   private sessionExpiryInProgress = false;
 
   private readonly sessionSignal = signal<AuthSession | null>(this.readStoredSession());
 
   readonly session = this.sessionSignal.asReadonly();
+
+  constructor() {
+    const restored = this.sessionSignal();
+    if (restored && !receivesShopNotifications(restored.user)) {
+      void this.webPush.clearSubscription();
+    }
+  }
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.http
@@ -354,6 +364,10 @@ export class AuthService {
     this.sessionExpiryInProgress = false;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
     this.sessionSignal.set(session);
+    // OWNER/MANAGER must not keep a prior SERVICE push endpoint on this device.
+    if (!receivesShopNotifications(session.user)) {
+      void this.webPush.clearSubscription();
+    }
   }
 
   private cacheAvailableBranches(branches: AuthBranchOption[]): void {

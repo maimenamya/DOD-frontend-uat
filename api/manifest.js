@@ -1,0 +1,51 @@
+/**
+ * Dynamic Web App Manifest — shop-scoped start_url for iOS Add to Home Screen.
+ * Query: ?shop={publicId}
+ */
+module.exports = function handler(req, res) {
+  const raw = typeof req.query.shop === 'string' ? req.query.shop.trim() : '';
+  const shop = /^[a-zA-Z0-9_-]{1,64}$/.test(raw) ? raw : '';
+  const startUrl = shop
+    ? `/s/${encodeURIComponent(shop)}/login?homescreen=1`
+    : '/login?homescreen=1';
+  const id = shop ? `/s/${encodeURIComponent(shop)}/` : '/';
+
+  const manifest = {
+    id,
+    name: 'D-rink',
+    short_name: 'D-rink',
+    description: 'ระบบ POS ร้านบาร์',
+    start_url: startUrl,
+    scope: '/',
+    display: 'standalone',
+    display_override: ['standalone', 'fullscreen'],
+    background_color: '#10141d',
+    theme_color: '#10141d',
+    orientation: 'any',
+    lang: 'th',
+    icons: [
+      {
+        src: '/apple-touch-icon.png',
+        sizes: '180x180',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/app-icon.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any',
+      },
+    ],
+  };
+
+  res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+  res.status(200).send(JSON.stringify(manifest));
+};

@@ -112,28 +112,146 @@ export class AttendanceCheckInPageComponent implements OnInit {
     this.lastPunch.set(null);
     this.scanHandled = false;
     this.scanning.set(true);
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
     try {
+      // Import first so the tap still counts as user gesture when getUserMedia runs.
       const { Html5Qrcode } = await import('html5-qrcode');
+      await this.waitForQrReaderElement();
+
       this.scanner = new Html5Qrcode(QR_READER_ELEMENT_ID);
-      await this.scanner.start(
-        { facingMode: 'environment' },
-        { fps: 8, qrbox: { width: 260, height: 260 } },
-        (decodedText) => {
-          void this.onQrDecoded(decodedText);
-        },
-        () => {
-          // scan attempt — ignore
-        },
-      );
-    } catch {
+      const config = { fps: 8, qrbox: { width: 240, height: 240 } };
+      const onSuccess = (decodedText: string): void => {
+        void this.onQrDecoded(decodedText);
+      };
+      const onFailure = (): void => {
+        // scan attempt — ignore
+      };
+
+      await this.startScannerWithFallback(this.scanner, Html5Qrcode, config, onSuccess, onFailure);
+    } catch (error) {
       this.scanning.set(false);
-      this.scanError.set(
-        'เปิดกล้องไม่ได้ — อนุญาตการใช้กล้องในเบราว์เซอร์ หรือใช้แอปแสกน QR แทน',
-      );
+      this.scanError.set(this.cameraErrorMessage(error));
       await this.disposeScanner();
     }
+  }
+
+  /** Android Chrome often needs the host div painted before Html5Qrcode.start. */
+  private async waitForQrReaderElement(): Promise<void> {
+    const deadline = Date.now() + 2500;
+    while (Date.now() < deadline) {
+      if (document.getElementById(QR_READER_ELEMENT_ID)) return;
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    }
+    throw new Error('QR_READER_MISSING');
+  }
+
+  /**
+   * Some Android devices reject facingMode=environment (OverconstrainedError)
+   * or need an explicit cameraId from getCameras().
+   */
+  private async startScannerWithFallback(
+    scanner: import('html5-qrcode').Html5Qrcode,
+    Html5Qrcode: typeof import('html5-qrcode').Html5Qrcode,
+    config: { fps: number; qrbox: { width: number; height: number } },
+    onSuccess: (decodedText: string) => void,
+    onFailure: () => void,
+  ): Promise<void> {
+    let lastError: unknown;
+
+    const tryStart = async (
+      cameraIdOrConfig: string | { facingMode: string },
+    ): Promise<boolean> => {
+      try {
+        await scanner.start(cameraIdOrConfig, config, onSuccess, onFailure);
+        return true;
+      } catch (error) {
+        lastError = error;
+        try {
+          if (scanner.isScanning) await scanner.stop();
+        } catch {
+          /* ignore */
+        }
+        const name =
+          error && typeof error === 'object' && 'name' in error
+            ? String((error as { name?: string }).name)
+            : '';
+        // User denied — do not keep prompting other cameras.
+        if (name === 'NotAllowedError' || name === 'SecurityError') {
+          throw error;
+        }
+        return false;
+      }
+    };
+
+    // 1) Prefer back camera via facingMode (keeps user-gesture close on Android).
+    if (await tryStart({ facingMode: 'environment' })) return;
+
+    // 2) Explicit device ids (labels often empty until permission was granted once).
+    try {
+      const cameras = await Html5Qrcode.getCameras();
+      const ordered = [...cameras].sort((a, b) => {
+        const score = (label: string): number =>
+          /back|rear|environment|หลัง|ท้าย/i.test(label) ? 0 : 1;
+        return score(a.label) - score(b.label);
+      });
+      // On many Androids the last camera is the rear lens when labels are blank.
+      if (ordered.length > 1 && !ordered.some((c) => /back|rear|environment/i.test(c.label))) {
+        ordered.reverse();
+      }
+      for (const cam of ordered) {
+        if (cam.id && (await tryStart(cam.id))) return;
+      }
+    } catch (error) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'name' in error &&
+        ((error as { name?: string }).name === 'NotAllowedError' ||
+          (error as { name?: string }).name === 'SecurityError')
+      ) {
+        throw error;
+      }
+      // ignore enumerate failure
+    }
+
+    // 3) Front camera last.
+    if (await tryStart({ facingMode: 'user' })) return;
+
+    throw lastError ?? new Error('CAMERA_START_FAILED');
+  }
+
+  private cameraErrorMessage(error: unknown): string {
+    const name =
+      error && typeof error === 'object' && 'name' in error
+        ? String((error as { name?: string }).name)
+        : '';
+    const message =
+      error && typeof error === 'object' && 'message' in error
+        ? String((error as { message?: string }).message)
+        : String(error ?? '');
+
+    if (message === 'QR_READER_MISSING') {
+      return 'เปิดกล้องไม่สำเร็จ — ลองกดแสกนอีกครั้ง';
+    }
+    if (name === 'NotAllowedError' || /Permission|NotAllowed/i.test(message)) {
+      return (
+        'ไม่อนุญาตกล้อง — เปิดที่ตั้งค่า → แอป (Chrome) → สิทธิ์กล้อง → อนุญาต ' +
+        'แล้วรีเฟรชหน้านี้'
+      );
+    }
+    if (name === 'NotFoundError' || /Requested device not found/i.test(message)) {
+      return 'ไม่พบกล้องบนเครื่องนี้ — ใช้แอปแสกน QR แล้วเปิดลิงก์ลงเวลาแทน';
+    }
+    if (name === 'NotReadableError' || /Could not start video|in use/i.test(message)) {
+      return 'กล้องถูกแอปอื่นใช้อยู่ — ปิดแอปกล้อง/วิดีโอคอล แล้วลองใหม่';
+    }
+    if (name === 'OverconstrainedError' || /Overconstrained/i.test(message)) {
+      return 'เครื่องนี้เลือกกล้องหลังไม่ได้ — ลองกดแสกนอีกครั้ง หรืออนุญาตกล้องใน Chrome';
+    }
+    if (name === 'SecurityError' || !window.isSecureContext) {
+      return 'ต้องเปิดผ่าน HTTPS ถึงจะใช้กล้องได้';
+    }
+    return 'เปิดกล้องไม่ได้ — อนุญาตกล้องใน Chrome หรือใช้แอปแสกน QR แทน';
   }
 
   async stopScan(): Promise<void> {
