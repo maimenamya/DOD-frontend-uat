@@ -8,7 +8,19 @@
       aria-haspopup="true"
       aria-label="การแจ้งเตือน"
     >
-      แจ้งเตือน
+      <svg
+        class="app-notification-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.75"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5" />
+        <path d="M9.5 17a2.5 2.5 0 0 0 5 0" />
+      </svg>
       @if (unreadCount() > 0) {
         <span class="app-notification-badge" aria-hidden="true">
           {{ unreadCount() > 99 ? '99+' : unreadCount() }}
@@ -29,15 +41,15 @@
           <span class="app-notification-menu-title">การแจ้งเตือน</span>
         </div>
 
-        @if (showPushSetup() && pushSetupButtonLabel()) {
+        @if (showPushSetup()) {
           <div class="app-notification-push-box">
             <button
               type="button"
               class="app-btn-primary-sm app-notification-push-btn"
               [disabled]="pushBusy()"
-              (click)="onPushSetupClick()"
+              (click)="enableDevicePush()"
             >
-              {{ pushBusy() ? 'กำลังเปิด...' : pushSetupButtonLabel() }}
+              {{ pushBusy() ? 'กำลังเปิด...' : 'เปิดแจ้งเตือนเครื่อง' }}
             </button>
           </div>
         }

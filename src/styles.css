@@ -914,7 +914,7 @@
   }
 
   .app-notification-trigger {
-    @apply relative shrink-0;
+    @apply relative flex h-10 w-10 shrink-0 items-center justify-center px-0;
     cursor: pointer;
   }
 
@@ -923,8 +923,12 @@
     outline-offset: 2px;
   }
 
+  .app-notification-icon {
+    @apply h-5 w-5;
+  }
+
   .app-notification-badge {
-    @apply absolute -right-1.5 -top-1.5 flex min-h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full px-1 text-[0.625rem] font-bold leading-none text-white;
+    @apply absolute -right-1 -top-1 flex min-h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full px-1 text-[0.625rem] font-bold leading-none text-white;
     background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
     box-shadow: 0 0 0 2px var(--card-bg);
   }
