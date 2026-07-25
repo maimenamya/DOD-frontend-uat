@@ -1,11 +1,15 @@
 <header class="app-top-header">
   <button
     type="button"
-    class="app-btn-menu app-top-header-menu"
+    class="app-top-header-menu"
     (click)="onMenuClick()"
     aria-label="เปิดเมนู"
   >
-    เมนู
+    <svg class="app-top-header-menu-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <rect x="3.5" y="5.25" width="17" height="2.5" rx="1.25" />
+      <rect x="3.5" y="10.75" width="17" height="2.5" rx="1.25" />
+      <rect x="3.5" y="16.25" width="17" height="2.5" rx="1.25" />
+    </svg>
   </button>
 
   <div class="app-top-header-end">

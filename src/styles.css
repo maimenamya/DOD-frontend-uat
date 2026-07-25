@@ -762,7 +762,24 @@
   }
 
   .app-top-header-menu {
-    @apply shrink-0;
+    @apply relative flex h-10 w-10 shrink-0 items-center justify-center border-0 bg-transparent p-0 text-text-secondary;
+    cursor: pointer;
+  }
+
+  .app-top-header-menu:hover {
+    color: var(--text-primary);
+  }
+
+  .app-top-header-menu:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-input);
+  }
+
+  .app-top-header-menu-icon {
+    display: block;
+    width: 1.7rem;
+    height: 1.7rem;
   }
 
   .app-top-header-end {
@@ -917,18 +934,24 @@
   }
 
   .app-notification-trigger {
-    @apply relative flex h-11 w-11 shrink-0 items-center justify-center px-0;
+    @apply relative flex h-10 w-10 shrink-0 items-center justify-center border-0 bg-transparent p-0 text-text-secondary;
     cursor: pointer;
+  }
+
+  .app-notification-trigger:hover {
+    color: var(--text-primary);
   }
 
   .app-notification-trigger:focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
+    border-radius: var(--radius-input);
   }
 
   .app-notification-icon {
-    @apply h-6 w-6;
     display: block;
+    width: 1.7rem;
+    height: 1.7rem;
   }
 
   .app-notification-badge {

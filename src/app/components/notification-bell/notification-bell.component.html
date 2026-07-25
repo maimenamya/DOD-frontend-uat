@@ -2,24 +2,22 @@
   <div class="app-notification-bell-root" #bellRoot>
     <button
       type="button"
-      class="app-btn-menu app-notification-trigger"
+      class="app-notification-trigger"
       (click)="toggleMenu()"
       [attr.aria-expanded]="menuOpen()"
       aria-haspopup="true"
       aria-label="การแจ้งเตือน"
     >
-      <svg class="app-notification-icon" viewBox="0 0 24 24" aria-hidden="true">
-        <!-- Bold outline bell: knob + dome + base bar + clapper -->
-        <circle cx="12" cy="3.35" r="1.55" fill="currentColor" />
+      <svg
+        class="app-notification-icon"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <!-- Bold filled bell — fills the button, not a thin outline -->
         <path
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.35"
-          stroke-linejoin="round"
-          d="M8.1 8.9c0-2.25 1.7-4.05 3.9-4.05s3.9 1.8 3.9 4.05v5.05l1.85 1.7H6.25l1.85-1.7V8.9z"
+          d="M12 2.1c.7 0 1.25.55 1.25 1.25v.55a7.1 7.1 0 0 1 5.85 6.95v3.35l1.55 2.05A1.15 1.15 0 0 1 19.75 18.5H4.25a1.15 1.15 0 0 1-.9-1.85l1.55-2.05V10.85A7.1 7.1 0 0 1 10.75 3.9v-.55c0-.7.55-1.25 1.25-1.25Zm-2.35 17.65h4.7a2.35 2.35 0 0 1-4.7 0Z"
         />
-        <rect x="5.35" y="15.55" width="13.3" height="2.2" rx="0.35" fill="currentColor" />
-        <path fill="currentColor" d="M9.15 17.75a2.85 2.85 0 005.7 0H9.15z" />
       </svg>
       @if (unreadCount() > 0) {
         <span class="app-notification-badge" aria-hidden="true">

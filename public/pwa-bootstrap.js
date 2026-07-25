@@ -1,10 +1,10 @@
 /**
  * Runs before Angular — remembers shop login URL for PWA "Add to Home Screen".
  *
- * Manifest uses HTTP `/api/manifest?shop=…` (not a blob URL) so iOS installs a
- * real Home Screen web app with start_url already containing the shop id.
- * Manifest `id` must stay `/` (not `/s/{shop}/`) so post-login `/dashboard`
- * routes remain inside the installed app on iOS.
+ * Manifest start_url stays at `/login?homescreen=1` (site root), not `/s/{shop}/…`.
+ * iOS scopes the installed app from start_url’s directory; a shop subpath made
+ * `/dashboard` open with Safari chrome after login. Shop id is stored here and
+ * we replace to `/s/{shop}/login` when launching from `/` or `/login`.
  */
 (function () {
   var STORAGE_KEY = 'dod_shop_public_id';
@@ -89,6 +89,12 @@
 
   var path = location.pathname.replace(/\/+$/, '') || '/';
   if ((path === '/' || path === '/login') && shopPublicId && !hasAuthSession()) {
-    location.replace('/s/' + encodeURIComponent(shopPublicId) + '/login');
+    var homescreen =
+      typeof location.search === 'string' && location.search.indexOf('homescreen=1') !== -1
+        ? '?homescreen=1'
+        : '';
+    location.replace(
+      '/s/' + encodeURIComponent(shopPublicId) + '/login' + homescreen,
+    );
   }
 })();
