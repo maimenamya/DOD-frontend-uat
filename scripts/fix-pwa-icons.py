@@ -65,10 +65,15 @@ def main() -> None:
 
     outputs = {
         "app-icon.png": 512,
+        "app-icon-v2.png": 512,
         "icon-192.png": 192,
+        "icon-192-v2.png": 192,
         "apple-touch-icon.png": 180,
+        "apple-touch-icon-v2.png": 180,
         "apple-touch-icon-167.png": 167,
+        "apple-touch-icon-167-v2.png": 167,
         "apple-touch-icon-152.png": 152,
+        "apple-touch-icon-152-v2.png": 152,
         "favicon-64.png": 64,
         "favicon-48.png": 48,
         "favicon-32.png": 32,
