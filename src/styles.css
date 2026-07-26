@@ -742,6 +742,7 @@
     overflow-y: auto;
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
   }
 
   /** Routed page hosts are custom elements — block + full width so tables fill the shell */
@@ -755,12 +756,24 @@
 
   /* ── Top header (profile + shop) ── */
   .app-top-header {
-    @apply sticky top-0 z-20 flex shrink-0 items-center justify-between gap-4 border-b border-theme-border px-4 py-3 backdrop-blur-glass sm:px-6 desktop:px-8;
+    @apply sticky top-0 z-20 flex shrink-0 items-center justify-between gap-4 border-b border-theme-border px-4 backdrop-blur-glass sm:px-6 desktop:px-8;
     background: var(--card-bg);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
+    /* iOS PWA (black-translucent) + Safari: keep menu/bell below the status bar */
+    padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
+    padding-bottom: 0.75rem;
+    padding-left: max(1rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1rem, env(safe-area-inset-right, 0px));
     /* Sticky split-table heads sit flush under this bar on mobile */
-    --app-top-header-offset: 3.5rem;
+    --app-top-header-offset: calc(3.5rem + env(safe-area-inset-top, 0px));
+  }
+
+  @media (min-width: 640px) {
+    .app-top-header {
+      padding-left: max(1.5rem, env(safe-area-inset-left, 0px));
+      padding-right: max(1.5rem, env(safe-area-inset-right, 0px));
+    }
   }
 
   .app-top-header-menu {
@@ -1492,6 +1505,7 @@
   .app-sidebar-brand {
     @apply flex shrink-0 items-center justify-center px-2 py-4;
     min-height: calc(var(--sidebar-icon-box) + 1.25rem);
+    padding-top: calc(1rem + env(safe-area-inset-top, 0px));
   }
 
   .app-sidebar-brand-mini {
