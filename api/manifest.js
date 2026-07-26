@@ -1,21 +1,40 @@
 /**
- * Legacy dynamic manifest (kept for old clients).
- * Prefer `/manifest.webmanifest` at site root — iOS scopes relative to manifest URL.
+ * Dynamic manifest with shop baked into start_url.
+ * Used when the user is on /login?shop=… so Add to Home Screen opens that shop
+ * even if standalone storage is empty.
+ *
+ * start_url / scope / icons use absolute origin URLs so iOS does not resolve
+ * them relative to /api/ (which would break scope).
  */
 module.exports = function handler(req, res) {
   const raw = typeof req.query.shop === 'string' ? req.query.shop.trim() : '';
   const shop = /^[a-zA-Z0-9_-]{1,64}$/.test(raw) ? raw : '';
-  const startUrl = shop
+
+  const protoHeader = req.headers['x-forwarded-proto'] || req.headers['x-forwarded-protocol'];
+  const proto = String(protoHeader || 'https')
+    .split(',')[0]
+    .trim()
+    .replace(/:$/, '');
+  const host = String(req.headers['x-forwarded-host'] || req.headers.host || '')
+    .split(',')[0]
+    .trim();
+  const origin = host ? `${proto}://${host}` : '';
+
+  const startPath = shop
     ? `/login?homescreen=1&shop=${encodeURIComponent(shop)}`
     : '/login?homescreen=1';
+  const startUrl = origin ? `${origin}${startPath}` : startPath;
+  const scope = origin ? `${origin}/` : '/';
+  const id = origin ? `${origin}/` : '/';
+  const icon = (path) => (origin ? `${origin}${path}` : path);
 
   const manifest = {
-    id: '/',
+    id,
     name: 'D-rink',
     short_name: 'D-rink',
     description: 'ระบบ POS ร้านบาร์',
     start_url: startUrl,
-    scope: '/',
+    scope,
     display: 'standalone',
     display_override: ['standalone'],
     background_color: '#080c15',
@@ -24,25 +43,25 @@ module.exports = function handler(req, res) {
     lang: 'th',
     icons: [
       {
-        src: '/icon-192-v4.png',
+        src: icon('/icon-192-v4.png'),
         sizes: '192x192',
         type: 'image/png',
         purpose: 'any',
       },
       {
-        src: '/app-icon-v4.png',
+        src: icon('/app-icon-v4.png'),
         sizes: '512x512',
         type: 'image/png',
         purpose: 'any',
       },
       {
-        src: '/icon-192-v4.png',
+        src: icon('/icon-192-v4.png'),
         sizes: '192x192',
         type: 'image/png',
         purpose: 'maskable',
       },
       {
-        src: '/app-icon-v4.png',
+        src: icon('/app-icon-v4.png'),
         sizes: '512x512',
         type: 'image/png',
         purpose: 'maskable',

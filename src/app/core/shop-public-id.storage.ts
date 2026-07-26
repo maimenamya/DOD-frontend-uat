@@ -1,3 +1,5 @@
+import { syncPwaManifestLink } from './pwa-manifest.util';
+
 export const SHOP_PUBLIC_ID_STORAGE_KEY = 'dod_shop_public_id';
 
 export function readStoredShopPublicId(): string | null {
@@ -17,4 +19,6 @@ export function writeStoredShopPublicId(publicId: string): void {
   } catch {
     // ignore quota / private mode
   }
+  // Bake shop into manifest start_url before Add to Home Screen.
+  syncPwaManifestLink(trimmed);
 }

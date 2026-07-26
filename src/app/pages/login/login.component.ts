@@ -82,12 +82,19 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    const publicId = this.shopPublicIdParam();
+    // Prefer snapshot over toSignal — initialValue '' can race and show "missing link"
+    // even when ?shop= is already on the URL (common after Home Screen launch).
+    const publicId =
+      this.route.snapshot.queryParamMap.get('shop')?.trim() ||
+      this.shopPublicIdParam() ||
+      '';
     if (!publicId) {
       const last = readStoredShopPublicId();
       if (last) {
         void this.router.navigate(['/login'], {
-          queryParams: shopLoginQueryParams(last),
+          queryParams: shopLoginQueryParams(last, {
+            homescreen: this.route.snapshot.queryParamMap.get('homescreen'),
+          }),
           replaceUrl: true,
         });
         return;

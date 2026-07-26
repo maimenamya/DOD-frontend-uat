@@ -16,8 +16,8 @@
 
     @if (missingShopLink()) {
       <p class="login-footer">
-        ติดต่อเจ้าของร้านสำหรับลิงก์เข้าระบบ<br />
-        ถ้าติดตั้งแอปบนหน้าจอแล้ว ให้เปิดลิงก์ร้านครั้งหนึ่งก่อน แล้วค่อย Add to Home Screen ใหม่
+        เปิดลิงก์เข้าระบบจากเจ้าของร้านใน Safari ก่อน<br />
+        (ต้องมี ?shop=… ในลิงก์) แล้วค่อย Add to Home Screen — อย่าล้างข้อมูลเว็บก่อนติดตั้ง
       </p>
     } @else if (shopLoadError()) {
       <p class="login-error" role="alert">{{ shopLoadError() }}</p>

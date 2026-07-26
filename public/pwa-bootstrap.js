@@ -1,8 +1,9 @@
 /**
  * Runs before Angular — PWA launch routing + shop id memory.
  *
- * Manifest is `/manifest.webmanifest` at site root (not `/api/manifest`) so iOS
- * resolves scope `/` against the origin, not the `/api/` directory.
+ * When shop is known, manifest href is `/api/manifest?shop=…` so Add to Home
+ * Screen bakes shop into start_url (absolute origin URLs — safe under /api/).
+ * Fallback static file: `/manifest.webmanifest`.
  *
  * Shop login must be `/login?shop=…` — never `/s/{shop}/login`.
  *
@@ -13,7 +14,7 @@
 (function () {
   var STORAGE_KEY = 'dod_shop_public_id';
   var SESSION_KEY = 'dod_auth_session';
-  var MANIFEST_HREF = '/manifest.webmanifest';
+  var MANIFEST_STATIC = '/manifest.webmanifest';
 
   function readShopFromPath() {
     var match = location.pathname.match(/^\/s\/([^/]+)\/login\/?$/i);
@@ -59,18 +60,26 @@
     }
   }
 
-  function setManifestHref() {
+  function manifestHrefForShop(shopPublicId) {
+    if (shopPublicId && isSafeShopId(shopPublicId)) {
+      return '/api/manifest?shop=' + encodeURIComponent(shopPublicId);
+    }
+    return MANIFEST_STATIC;
+  }
+
+  function setManifestHref(shopPublicId) {
+    var href = manifestHrefForShop(shopPublicId);
     var links = document.querySelectorAll('link[rel="manifest"]');
     if (!links.length) {
       var link = document.createElement('link');
       link.rel = 'manifest';
       link.type = 'application/manifest+json';
-      link.href = MANIFEST_HREF;
+      link.href = href;
       document.head.appendChild(link);
       return;
     }
     for (var i = 0; i < links.length; i += 1) {
-      links[i].href = MANIFEST_HREF;
+      links[i].href = href;
     }
   }
 
@@ -123,7 +132,7 @@
     if (stored && isSafeShopId(stored)) shopPublicId = stored;
   }
 
-  setManifestHref();
+  setManifestHref(shopPublicId);
 
   try {
     document.documentElement.classList.toggle('app-standalone', isIosStandalone());
