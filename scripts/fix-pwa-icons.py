@@ -3,6 +3,9 @@
 Android/iOS apply different masks — a gold border in the PNG never lines up.
 Shave the outer silhouette ring (~border thickness) and fill to the canvas edge
 with the app background color so each OS can mask cleanly.
+
+Pair outputs with manifest purpose: maskable so launchers do not letterbox
+the icon (white ring around a small square).
 """
 from __future__ import annotations
 
@@ -19,7 +22,20 @@ SRC = SCRIPTS / "app-icon-source.png"
 BG = (8, 12, 21, 255)
 # gold stroke is ~10–12px at mid-edge; shave a bit more for AA fringe
 BORDER_SHAVE_PX = 16
-ICON_VERSION = "v3"
+ICON_VERSION = "v4"
+
+
+def fill_outer_black(src: Image.Image) -> Image.Image:
+    """Replace pure outer black margin with plate BG before shave."""
+    img = src.convert("RGBA")
+    px = img.load()
+    w, h = img.size
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[x, y]
+            if a < 10 or (r <= 6 and g <= 6 and b <= 10):
+                px[x, y] = BG
+    return img
 
 
 def shave_outer_ring(src: Image.Image, shave: int) -> Image.Image:
@@ -62,7 +78,7 @@ def shave_outer_ring(src: Image.Image, shave: int) -> Image.Image:
 
 
 def main() -> None:
-    src = Image.open(SRC)
+    src = fill_outer_black(Image.open(SRC))
     clean = shave_outer_ring(src, BORDER_SHAVE_PX)
 
     ver = ICON_VERSION

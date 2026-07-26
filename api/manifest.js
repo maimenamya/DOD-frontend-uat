@@ -6,8 +6,8 @@ module.exports = function handler(req, res) {
   const raw = typeof req.query.shop === 'string' ? req.query.shop.trim() : '';
   const shop = /^[a-zA-Z0-9_-]{1,64}$/.test(raw) ? raw : '';
   const startUrl = shop
-    ? `/?homescreen=1&shop=${encodeURIComponent(shop)}`
-    : '/?homescreen=1';
+    ? `/login?homescreen=1&shop=${encodeURIComponent(shop)}`
+    : '/login?homescreen=1';
 
   const manifest = {
     id: '/',
@@ -17,29 +17,35 @@ module.exports = function handler(req, res) {
     start_url: startUrl,
     scope: '/',
     display: 'standalone',
-    display_override: ['standalone', 'fullscreen'],
-    background_color: '#10141d',
+    display_override: ['standalone'],
+    background_color: '#080c15',
     theme_color: '#10141d',
     orientation: 'any',
     lang: 'th',
     icons: [
       {
-        src: '/apple-touch-icon-v3.png',
-        sizes: '180x180',
-        type: 'image/png',
-        purpose: 'any',
-      },
-      {
-        src: '/icon-192-v3.png',
+        src: '/icon-192-v4.png',
         sizes: '192x192',
         type: 'image/png',
         purpose: 'any',
       },
       {
-        src: '/app-icon-v3.png',
+        src: '/app-icon-v4.png',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'any',
+      },
+      {
+        src: '/icon-192-v4.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+      {
+        src: '/app-icon-v4.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
       },
     ],
   };

@@ -4,9 +4,11 @@
  * Manifest is `/manifest.webmanifest` at site root (not `/api/manifest`) so iOS
  * resolves scope `/` against the origin, not the `/api/` directory.
  *
- * Shop login must be `/login?shop=…` — never `/s/{shop}/login`. Installing a
- * Home Screen app while on `/s/{shop}/login` made iOS treat scope as `/s/{shop}/`,
- * so `/dashboard` opened with Safari chrome after login.
+ * Shop login must be `/login?shop=…` — never `/s/{shop}/login`.
+ *
+ * Critical for iOS: never use location.replace / location.assign for in-app hops.
+ * A full navigation on first launch drops standalone mode and shows Safari chrome
+ * (top + bottom bars) even on the login screen. Use history.replaceState instead.
  */
 (function () {
   var STORAGE_KEY = 'dod_shop_public_id';
@@ -78,10 +80,34 @@
     );
   }
 
+  function isIosStandalone() {
+    try {
+      if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
+        return true;
+      }
+      if (window.matchMedia && window.matchMedia('(display-mode: fullscreen)').matches) {
+        return true;
+      }
+      return Boolean(window.navigator && window.navigator.standalone);
+    } catch (e) {
+      return false;
+    }
+  }
+
   function shopLoginUrl(shopPublicId) {
     var url = '/login?shop=' + encodeURIComponent(shopPublicId);
-    if (wantsHomescreen()) url += '&homescreen=1';
+    if (wantsHomescreen() || isIosStandalone()) url += '&homescreen=1';
     return url;
+  }
+
+  /** Soft URL change — keeps iOS Home Screen apps in standalone (no Safari chrome). */
+  function softNavigate(url) {
+    if (!url || url === location.pathname + location.search + location.hash) return;
+    try {
+      history.replaceState(null, '', url);
+    } catch (e) {
+      // Same-document only; never fall back to location.replace on iOS PWA.
+    }
   }
 
   var shopFromUrl = readShopFromPath() || readShopFromQuery();
@@ -99,22 +125,35 @@
 
   setManifestHref();
 
+  try {
+    document.documentElement.classList.toggle('app-standalone', isIosStandalone());
+  } catch (e) {}
+
   var path = location.pathname.replace(/\/+$/, '') || '/';
 
   // Old shop login path → canonical /login?shop= (keeps iOS PWA scope at /)
   var pathShop = readShopFromPath();
   if (pathShop && isSafeShopId(pathShop)) {
-    location.replace(shopLoginUrl(pathShop));
+    softNavigate(shopLoginUrl(pathShop));
     return;
   }
 
   if (path === '/' || path === '/login') {
     if (hasAuthSession()) {
-      location.replace('/dashboard');
+      softNavigate('/dashboard');
       return;
     }
-    if (path === '/' && shopPublicId) {
-      location.replace(shopLoginUrl(shopPublicId));
+    if (path === '/') {
+      if (shopPublicId) {
+        softNavigate(shopLoginUrl(shopPublicId));
+      } else {
+        softNavigate(wantsHomescreen() ? '/login?homescreen=1' : '/login');
+      }
+      return;
+    }
+    // Already on /login — attach stored shop without leaving the document.
+    if (path === '/login' && shopPublicId && !readShopFromQuery()) {
+      softNavigate(shopLoginUrl(shopPublicId));
     }
   }
 })();

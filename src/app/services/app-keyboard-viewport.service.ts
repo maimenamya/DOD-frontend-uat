@@ -115,11 +115,22 @@ export class AppKeyboardViewportService {
   private syncStandaloneClass(): void {
     const root = document.documentElement;
     const standaloneMq = window.matchMedia('(display-mode: standalone)');
+    const fullscreenMq = window.matchMedia('(display-mode: fullscreen)');
     const apply = (): void => {
-      root.classList.toggle('app-standalone', standaloneMq.matches);
+      const iosStandalone = Boolean(
+        (navigator as Navigator & { standalone?: boolean }).standalone,
+      );
+      root.classList.toggle(
+        'app-standalone',
+        standaloneMq.matches || fullscreenMq.matches || iosStandalone,
+      );
     };
     apply();
     standaloneMq.addEventListener('change', apply);
-    this.destroyRef.onDestroy(() => standaloneMq.removeEventListener('change', apply));
+    fullscreenMq.addEventListener('change', apply);
+    this.destroyRef.onDestroy(() => {
+      standaloneMq.removeEventListener('change', apply);
+      fullscreenMq.removeEventListener('change', apply);
+    });
   }
 }

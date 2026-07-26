@@ -3,32 +3,38 @@
   "name": "D-rink",
   "short_name": "D-rink",
   "description": "ระบบ POS ร้านบาร์",
-  "start_url": "/?homescreen=1",
+  "start_url": "/login?homescreen=1",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone", "fullscreen"],
-  "background_color": "#10141d",
+  "display_override": ["standalone"],
+  "background_color": "#080c15",
   "theme_color": "#10141d",
   "orientation": "any",
   "lang": "th",
   "icons": [
     {
-      "src": "/apple-touch-icon-v3.png",
-      "sizes": "180x180",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icon-192-v3.png",
+      "src": "/icon-192-v4.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/app-icon-v3.png",
+      "src": "/app-icon-v4.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/icon-192-v4.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/app-icon-v4.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
