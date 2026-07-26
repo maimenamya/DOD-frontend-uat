@@ -752,18 +752,25 @@
   gap: 0.75rem;
 }
 
-.open-table-view-mode {
+/* Icon toggle only — keep compact (do not stretch like mobile date presets) */
+.open-table-view-mode.dashboard-date-presets {
+  display: inline-flex;
+  flex-wrap: nowrap;
   flex-shrink: 0;
+  width: auto;
+  max-width: none;
   margin-left: auto;
 }
 
-.open-table-view-btn {
+.open-table-view-btn.dashboard-date-btn {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  min-width: 2.25rem;
-  padding-left: 0.55rem;
-  padding-right: 0.55rem;
+  min-width: 2.5rem;
+  padding: 0.5rem 0.65rem;
+  font-size: inherit;
+  line-height: 1;
 }
 
 .open-table-view-btn:disabled {
@@ -772,8 +779,8 @@
 }
 
 .open-table-view-icon {
-  width: 1.15rem;
-  height: 1.15rem;
+  width: 1.25rem;
+  height: 1.25rem;
   display: block;
 }
 

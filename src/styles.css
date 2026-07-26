@@ -2013,10 +2013,10 @@
   }
 
   .app-split-table-header th {
-    @apply px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wider;
+    @apply px-5 py-4 text-center text-xs font-semibold uppercase tracking-wider;
     color: var(--table-head-text);
     background-color: var(--table-head-sticky-bg) !important;
-    line-height: 1.4;
+    line-height: 1.45;
   }
 
   .app-split-table-grid {
@@ -2029,10 +2029,12 @@
     overflow-x: hidden;
   }
 
+  /* Match bill-history row air — avoid cramped master/report tables on mobile */
   .app-split-table-body .app-data-table td {
-    @apply box-border py-3 text-center;
+    @apply box-border px-5 py-4 text-center;
     background-color: var(--table-body-bg);
     vertical-align: middle;
+    line-height: 1.45;
     transition: background-color var(--transition-smooth), color var(--transition-smooth);
   }
 
@@ -2148,11 +2150,11 @@
   }
 
   .app-data-table-sticky-head thead th {
-    @apply sticky top-0 z-10 px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wider;
+    @apply sticky top-0 z-10 px-5 py-4 text-center text-xs font-semibold uppercase tracking-wider;
     color: var(--table-head-text);
     background-color: var(--table-head-sticky-bg) !important;
     background-image: none;
-    line-height: 1.4;
+    line-height: 1.45;
   }
 
   .app-data-table {
@@ -2164,11 +2166,11 @@
   }
 
   .app-data-table th {
-    @apply px-5 py-3.5 text-center text-xs font-semibold uppercase tracking-wide;
+    @apply px-5 py-4 text-center text-xs font-semibold uppercase tracking-wide;
     color: var(--table-head-text);
     background-color: var(--table-head-sticky-bg);
     border-bottom: 1px solid var(--table-head-border);
-    line-height: 1.4;
+    line-height: 1.45;
   }
 
   .app-data-table-sticky-head tbody td {
@@ -2186,8 +2188,29 @@
   .app-data-table td {
     @apply px-5 py-4 text-center text-sm text-text-secondary;
     color: var(--table-cell-text, var(--text-secondary));
-    line-height: var(--leading-normal);
+    line-height: 1.45;
     vertical-align: middle;
+  }
+
+  /**
+   * Plain tables (no split header): same mobile comfort as bill-history —
+   * horizontal scroll instead of crushing columns into the viewport.
+   */
+  .app-data-table-shell:not(:has(.app-split-table)) {
+    @apply app-scroll-region;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-gutter: auto;
+    --app-scroll-track: var(--table-body-bg);
+  }
+
+  @media (max-width: 639px) {
+    .app-data-table-shell:not(:has(.app-split-table)) > .app-data-table {
+      width: max(100%, 40rem);
+      min-width: 40rem;
+    }
   }
 
   .app-data-table tbody tr {
@@ -2237,7 +2260,7 @@
   }
 
   .app-table-actions {
-    @apply flex justify-center gap-2;
+    @apply flex flex-wrap justify-center gap-2.5;
   }
 
   .app-table-empty {
@@ -2281,12 +2304,12 @@
       table-layout: fixed;
     }
 
-    /** Phones: fixed rem width + horizontal scroll in the shell */
+    /** Phones: wider min-width (like bill-history) so cells are not cramped */
     @media (max-width: 639px) {
       .app-split-table-header .app-split-table-grid,
       .app-split-table-body .app-split-table-grid {
-        width: 32rem;
-        min-width: 32rem;
+        width: 40rem;
+        min-width: 40rem;
       }
 
       .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack)
@@ -2295,16 +2318,16 @@
       .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack)
         .app-split-table-body
         .app-split-table-grid {
-        width: 36rem;
-        min-width: 36rem;
+        width: 44rem;
+        min-width: 44rem;
       }
 
       .app-data-table-scroll-10.app-data-table-wrap--wide .app-data-table,
       .app-data-table-wrap.app-data-table-scroll-10--wide .app-data-table,
       .app-split-table--wide .app-split-table-header .app-split-table-grid,
       .app-split-table--wide .app-split-table-body .app-split-table-grid {
-        width: 52rem;
-        min-width: 52rem;
+        width: 56rem;
+        min-width: 56rem;
       }
     }
 

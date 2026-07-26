@@ -14,9 +14,10 @@
           class="dashboard-date-btn open-table-view-btn"
           [class.dashboard-date-btn-active]="floorDisplayMode() === 'grid'"
           [attr.aria-pressed]="floorDisplayMode() === 'grid'"
-          title="แบบรายการ"
+          title="แบบรายการ (grid)"
           (click)="setFloorDisplayMode('grid')"
         >
+          <!-- grid: 2×2 tiles -->
           <svg class="open-table-view-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z" />
           </svg>
@@ -31,11 +32,11 @@
           [title]="hasFloorLayout() ? 'แบบผังร้าน' : 'ยังไม่มีผังโต๊ะ — ตั้งที่เมนู จัดผังโต๊ะ'"
           (click)="setFloorDisplayMode('layout')"
         >
-          <svg class="open-table-view-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
-            <rect x="3" y="4" width="7" height="6" rx="1.25" />
-            <rect x="14" y="4" width="7" height="10" rx="1.25" />
-            <rect x="3" y="13" width="7" height="7" rx="1.25" />
-            <circle cx="17.5" cy="18" r="2.5" />
+          <!-- floor plan: unequal seats on a map -->
+          <svg class="open-table-view-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path
+              d="M3.5 4.75A1.75 1.75 0 015.25 3h5A1.75 1.75 0 0112 4.75v5A1.75 1.75 0 0110.25 11.5h-5A1.75 1.75 0 013.5 9.75v-5zM13.75 3h5A1.75 1.75 0 0120.5 4.75v8.5A1.75 1.75 0 0118.75 15h-5A1.75 1.75 0 0112 13.25v-8.5A1.75 1.75 0 0113.75 3zM3.5 13.25A1.75 1.75 0 015.25 11.5h5A1.75 1.75 0 0112 13.25v6A1.75 1.75 0 0110.25 21h-5A1.75 1.75 0 013.5 19.25v-6zM15.5 16.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5z"
+            />
           </svg>
           <span class="sr-only">แบบผังร้าน</span>
         </button>
