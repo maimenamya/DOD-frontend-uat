@@ -18,4 +18,11 @@ export interface ShopPolicyConfig {
   forgotCheckOutDeductionBaht: number;
 }
 
-export type ShopPolicyInput = Omit<ShopPolicyConfig, 'shopId'>;
+export type ShopPolicyInput = Omit<
+  ShopPolicyConfig,
+  'shopId' | 'expectedOnFloorTime' | 'expectedCheckOutTime'
+> & {
+  /** Omit to leave shop legacy columns unchanged (staff times on roles). */
+  expectedOnFloorTime?: string | null;
+  expectedCheckOutTime?: string | null;
+};

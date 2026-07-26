@@ -34,6 +34,12 @@ export interface MstRole {
   drinkAccrualMode?: DrinkAccrualMode;
   drinkAccrualRounding?: DrinkAccrualRounding;
   attendanceLeaveQuotaPerMonth?: number;
+  /** Expected check-in HH:mm for this role (late fine). */
+  expectedCheckInTime?: string | null;
+  /** Expected on-floor HH:mm (PR tag late); fallback check-in. */
+  expectedOnFloorTime?: string | null;
+  expectedCheckOutTime?: string | null;
+  expectedCheckOutNextDay?: boolean;
   workDuties?: WorkDuty[];
   createdAt?: string;
 }
@@ -50,6 +56,10 @@ export interface MstRoleWritePayload {
   drinkAccrualMode?: DrinkAccrualMode;
   drinkAccrualRounding?: DrinkAccrualRounding;
   attendanceLeaveQuotaPerMonth?: number;
+  expectedCheckInTime?: string | null;
+  expectedOnFloorTime?: string | null;
+  expectedCheckOutTime?: string | null;
+  expectedCheckOutNextDay?: boolean;
   workDuties?: WorkDuty[];
   changeReason?: string;
 }

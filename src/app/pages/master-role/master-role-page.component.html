@@ -69,6 +69,54 @@
             />
             <p class="app-field-hint">จำนวนวันลาที่ไม่หักเงินต่อเดือน — เกินโควต้าต้องกดหักเงินที่หน้าบันทึกเวลา</p>
           </div>
+          <div class="app-form-group">
+            <label class="app-label">เวลาเข้างาน</label>
+            <input
+              type="text"
+              class="app-input"
+              formControlName="expectedCheckInTime"
+              placeholder="เช่น 20:00"
+              inputmode="numeric"
+              maxlength="5"
+              autocomplete="off"
+              (blur)="normalizeTime('create', 'expectedCheckInTime')"
+            />
+            <p class="app-field-hint">ใช้เทียบกับเวลาแสกนเข้าเพื่อคิดมาสายของตำแหน่งนี้</p>
+          </div>
+          @if (createIsEntertainer()) {
+            <div class="app-form-group">
+              <label class="app-label">เวลา on floor (PR แท็ก)</label>
+              <input
+                type="text"
+                class="app-input"
+                formControlName="expectedOnFloorTime"
+                placeholder="เช่น 21:00"
+                inputmode="numeric"
+                maxlength="5"
+                autocomplete="off"
+                (blur)="normalizeTime('create', 'expectedOnFloorTime')"
+              />
+              <p class="app-field-hint">ใช้คิดค่าปรับมาสายของ PR ที่ติดแท็ก — ว่าง = ใช้เวลาเข้างาน</p>
+            </div>
+          }
+          <div class="app-form-group">
+            <label class="app-label">เวลาออกงาน</label>
+            <input
+              type="text"
+              class="app-input"
+              formControlName="expectedCheckOutTime"
+              placeholder="เช่น 04:00"
+              inputmode="numeric"
+              maxlength="5"
+              autocomplete="off"
+              (blur)="normalizeTime('create', 'expectedCheckOutTime')"
+            />
+          </div>
+          <label class="app-toggle">
+            <input type="checkbox" class="app-toggle-input" formControlName="expectedCheckOutNextDay" />
+            <span class="app-toggle-track" aria-hidden="true"></span>
+            <span class="app-toggle-text text-sm">ออกงานวันถัดไป (กะข้ามเที่ยงคืน)</span>
+          </label>
         }
         <div class="app-form-group">
           <label class="app-label">ราคาต่อดื่ม (บาท)</label>
@@ -195,6 +243,54 @@
             />
             <p class="app-field-hint">จำนวนวันลาที่ไม่หักเงินต่อเดือน — เกินโควต้าต้องกดหักเงินที่หน้าบันทึกเวลา</p>
           </div>
+          <div class="app-form-group">
+            <label class="app-label">เวลาเข้างาน</label>
+            <input
+              type="text"
+              class="app-input"
+              formControlName="expectedCheckInTime"
+              placeholder="เช่น 20:00"
+              inputmode="numeric"
+              maxlength="5"
+              autocomplete="off"
+              (blur)="normalizeTime('edit', 'expectedCheckInTime')"
+            />
+            <p class="app-field-hint">ใช้เทียบกับเวลาแสกนเข้าเพื่อคิดมาสายของตำแหน่งนี้</p>
+          </div>
+          @if (editIsEntertainer()) {
+            <div class="app-form-group">
+              <label class="app-label">เวลา on floor (PR แท็ก)</label>
+              <input
+                type="text"
+                class="app-input"
+                formControlName="expectedOnFloorTime"
+                placeholder="เช่น 21:00"
+                inputmode="numeric"
+                maxlength="5"
+                autocomplete="off"
+                (blur)="normalizeTime('edit', 'expectedOnFloorTime')"
+              />
+              <p class="app-field-hint">ใช้คิดค่าปรับมาสายของ PR ที่ติดแท็ก — ว่าง = ใช้เวลาเข้างาน</p>
+            </div>
+          }
+          <div class="app-form-group">
+            <label class="app-label">เวลาออกงาน</label>
+            <input
+              type="text"
+              class="app-input"
+              formControlName="expectedCheckOutTime"
+              placeholder="เช่น 04:00"
+              inputmode="numeric"
+              maxlength="5"
+              autocomplete="off"
+              (blur)="normalizeTime('edit', 'expectedCheckOutTime')"
+            />
+          </div>
+          <label class="app-toggle">
+            <input type="checkbox" class="app-toggle-input" formControlName="expectedCheckOutNextDay" />
+            <span class="app-toggle-track" aria-hidden="true"></span>
+            <span class="app-toggle-text text-sm">ออกงานวันถัดไป (กะข้ามเที่ยงคืน)</span>
+          </label>
         }
         <div class="app-form-group">
           <label class="app-label">ราคาต่อดื่ม (บาท)</label>

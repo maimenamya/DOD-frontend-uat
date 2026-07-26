@@ -140,13 +140,15 @@
         </section>
 
         <section class="app-card shop-rules-section">
-          <h2 class="shop-rules-section-title">เวลาเข้า–ออกงาน</h2>
+          <h2 class="shop-rules-section-title">กะร้าน / ตัดกะ</h2>
           <p class="app-field-hint shop-rules-section-hint">
-            ใช้เปรียบเทียบกับเวลาที่แสกนจริง (เช่น เข้า 20:00 ออก 04:00 วันถัดไป) — ไม่บังคับกรอก
+            เวลาเข้า–ออกงานของพนักงานตั้งที่หน้า
+            <a routerLink="/dashboard/master-role" class="app-field-hint-link">ตำแหน่ง</a>
+            (แต่ละตำแหน่งเข้างานคนละเวลาได้) — ส่วนนี้ใช้กับยอด «คืนนี้» และการตัดกะอัตโนมัติของร้าน
           </p>
           <div class="shop-rules-attendance-grid shop-rules-work-hours-grid">
             <div class="app-form-group">
-              <label class="app-label" for="expected-check-in">เวลาเข้างาน</label>
+              <label class="app-label" for="expected-check-in">เริ่มนับยอดคืนนี้</label>
               <input
                 id="expected-check-in"
                 type="text"
@@ -159,37 +161,7 @@
                 (blur)="normalizeTime('expectedCheckInTime')"
                 [readonly]="!canManage()"
               />
-            </div>
-            <div class="app-form-group">
-              <label class="app-label" for="expected-on-floor">เวลา on floor (PR แท็ก)</label>
-              <input
-                id="expected-on-floor"
-                type="text"
-                class="app-input"
-                formControlName="expectedOnFloorTime"
-                placeholder="เช่น 21:00"
-                inputmode="numeric"
-                maxlength="5"
-                autocomplete="off"
-                (blur)="normalizeTime('expectedOnFloorTime')"
-                [readonly]="!canManage()"
-              />
-              <p class="app-field-hint">ใช้คิดค่าปรับมาสายของ PR ที่ติดแท็กเท่านั้น</p>
-            </div>
-            <div class="app-form-group">
-              <label class="app-label" for="expected-check-out">เวลาออกงาน</label>
-              <input
-                id="expected-check-out"
-                type="text"
-                class="app-input"
-                formControlName="expectedCheckOutTime"
-                placeholder="เช่น 04:00"
-                inputmode="numeric"
-                maxlength="5"
-                autocomplete="off"
-                (blur)="normalizeTime('expectedCheckOutTime')"
-                [readonly]="!canManage()"
-              />
+              <p class="app-field-hint">เวลาเริ่มช่วงยอดคืนนี้บนแดชบอร์ด — ไม่ใช่เวลาเข้างานพนักงาน</p>
             </div>
           </div>
           <label class="app-toggle mt-3">
@@ -200,7 +172,7 @@
               [disabled]="!canManage()"
             />
             <span class="app-toggle-track" aria-hidden="true"></span>
-            <span class="app-toggle-text text-sm">ออกงานวันถัดไป (กะข้ามเที่ยงคืน)</span>
+            <span class="app-toggle-text text-sm">กะร้านข้ามเที่ยงคืน (วันถัดไป)</span>
           </label>
           <div class="app-form-group mt-4">
             <label class="app-label" for="auto-close-cutoff">ตัดกะอัตโนมัติ (ลืมแสกนออก)</label>
@@ -225,7 +197,7 @@
         <section class="app-card shop-rules-section">
           <h2 class="shop-rules-section-title">PR freelance สาย → หักดื่มเข้าร้านเพิ่ม</h2>
           <p class="app-field-hint shop-rules-section-hint">
-            แยกจาก on floor ของ PR แท็ก — ถ้าเข้างานหลังเวลาที่ตั้ง ระบบหักดื่มเข้าร้านเพิ่มต่อดื่มตอนจ่ายค่าดื่ม freelance
+            แยกจากเวลา on floor ของตำแหน่งเด็กนั่งดริ้ง — ถ้าเข้างานหลังเวลาที่ตั้ง ระบบหักดื่มเข้าร้านเพิ่มต่อดื่มตอนจ่ายค่าดื่ม freelance
             (เช่น หักปกติ 60 + เพิ่ม 20 = ร้านหัก 80) — ว่างเวลา = ปิดฟีเจอร์
           </p>
           <div class="shop-rules-attendance-grid shop-rules-work-hours-grid">

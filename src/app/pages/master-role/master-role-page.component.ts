@@ -40,6 +40,7 @@ import {
   createMasterListView,
   masterListRowNumber,
 } from '../../utils/master-list.util';
+import { isValidShopTimeHm, normalizeShopTimeHm } from '../../utils/shop-time.util';
 
 const CATEGORY_DROPDOWN_OPTIONS: DropdownOption[] = [
   { value: 'STAFF', label: 'พนักงาน' },
@@ -137,6 +138,10 @@ export class MasterRolePageComponent implements OnInit {
       defaultPricePerDrink: '0',
       drinkShopPortionBaht: '60',
       attendanceLeaveQuotaPerMonth: '0',
+      expectedCheckInTime: '20:00',
+      expectedOnFloorTime: '',
+      expectedCheckOutTime: '04:00',
+      expectedCheckOutNextDay: true,
       workDuties: [],
       changeReason: '',
     });
@@ -161,6 +166,10 @@ export class MasterRolePageComponent implements OnInit {
       defaultPricePerDrink: String(role.defaultPricePerDrink),
       drinkShopPortionBaht: String(role.drinkShopPortionBaht ?? 60),
       attendanceLeaveQuotaPerMonth: String(role.attendanceLeaveQuotaPerMonth ?? 0),
+      expectedCheckInTime: role.expectedCheckInTime ?? '',
+      expectedOnFloorTime: role.expectedOnFloorTime ?? '',
+      expectedCheckOutTime: role.expectedCheckOutTime ?? '',
+      expectedCheckOutNextDay: role.expectedCheckOutNextDay ?? true,
       workDuties: parseStaffWorkDuties(role.workDuties ?? []),
       changeReason: '',
     });
@@ -192,8 +201,18 @@ export class MasterRolePageComponent implements OnInit {
     this.editingRole.set(null);
   }
 
+  normalizeTime(
+    form: 'create' | 'edit',
+    field: 'expectedCheckInTime' | 'expectedOnFloorTime' | 'expectedCheckOutTime',
+  ): void {
+    const targetForm = form === 'create' ? this.createForm : this.editForm;
+    const control = targetForm.controls[field];
+    control.setValue(normalizeShopTimeHm(control.value));
+  }
+
   submitCreate(): void {
     if (this.submitting()) return;
+    if (!this.validateWorkHours(this.createForm)) return;
     if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
     this.submitting.set(true);
     const payload = this.buildPayload(this.createForm);
@@ -214,6 +233,7 @@ export class MasterRolePageComponent implements OnInit {
   submitEdit(): void {
     const role = this.editingRole();
     if (!role || this.submitting()) return;
+    if (!this.validateWorkHours(this.editForm)) return;
     if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
     this.submitting.set(true);
     const payload = {
@@ -289,9 +309,37 @@ export class MasterRolePageComponent implements OnInit {
       defaultPricePerDrink: ['0', [Validators.pattern(/^\d+$/)]],
       drinkShopPortionBaht: ['60', [Validators.pattern(/^\d+$/)]],
       attendanceLeaveQuotaPerMonth: ['0', [Validators.pattern(/^\d+$/)]],
+      expectedCheckInTime: [''],
+      expectedOnFloorTime: [''],
+      expectedCheckOutTime: [''],
+      expectedCheckOutNextDay: [true],
       workDuties: [[] as WorkDuty[]],
       changeReason: ['', Validators.minLength(3)],
     });
+  }
+
+  private validateWorkHours(
+    form: ReturnType<MasterRolePageComponent['buildRoleForm']>,
+  ): boolean {
+    const raw = form.getRawValue();
+    if (raw.category !== 'STAFF' && raw.category !== 'ENTERTAINER') {
+      return true;
+    }
+    this.normalizeTime(form === this.createForm ? 'create' : 'edit', 'expectedCheckInTime');
+    this.normalizeTime(form === this.createForm ? 'create' : 'edit', 'expectedOnFloorTime');
+    this.normalizeTime(form === this.createForm ? 'create' : 'edit', 'expectedCheckOutTime');
+    const checkIn = form.controls.expectedCheckInTime.value.trim();
+    const onFloor = form.controls.expectedOnFloorTime.value.trim();
+    const checkOut = form.controls.expectedCheckOutTime.value.trim();
+    if (!checkIn || !isValidShopTimeHm(checkIn) || !isValidShopTimeHm(checkOut) || !checkOut) {
+      this.toast.showError('กรุณาระบุเวลาเข้า–ออกงานเป็นรูปแบบ 24 ชม. เช่น 20:00');
+      return false;
+    }
+    if (onFloor && !isValidShopTimeHm(onFloor)) {
+      this.toast.showError('เวลา on floor ต้องเป็นรูปแบบ 24 ชม. เช่น 21:00');
+      return false;
+    }
+    return true;
   }
 
   private wireRoleForm(
@@ -352,6 +400,7 @@ export class MasterRolePageComponent implements OnInit {
     const raw = form.getRawValue();
     const isEntertainer = raw.category === 'ENTERTAINER';
     const isStaff = raw.category === 'STAFF';
+    const needsWorkHours = isStaff || isEntertainer;
     return {
       name: raw.name.trim().toUpperCase(),
       displayNameTh: raw.displayNameTh.trim(),
@@ -365,6 +414,16 @@ export class MasterRolePageComponent implements OnInit {
         raw.attendanceLeaveQuotaPerMonth || '0',
         10,
       ),
+      ...(needsWorkHours
+        ? {
+            expectedCheckInTime: raw.expectedCheckInTime.trim() || null,
+            expectedOnFloorTime: isEntertainer
+              ? raw.expectedOnFloorTime.trim() || null
+              : null,
+            expectedCheckOutTime: raw.expectedCheckOutTime.trim() || null,
+            expectedCheckOutNextDay: raw.expectedCheckOutNextDay,
+          }
+        : {}),
       workDuties: canConfigureWorkDuties(raw.permissionGroup)
         ? raw.category === 'ENTERTAINER'
           ? (['PR_FLOOR'] as WorkDuty[])

@@ -4,6 +4,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
 import { CustomDropdownComponent } from '../../components/custom-dropdown/custom-dropdown.component';
 import type { ShopPolicyConfig } from '../../models/shop-policy';
@@ -27,7 +28,7 @@ type TierField =
 
 @Component({
   selector: 'app-shop-rules-page',
-  imports: [ReactiveFormsModule, CustomDropdownComponent],
+  imports: [ReactiveFormsModule, CustomDropdownComponent, RouterLink],
   templateUrl: './shop-rules-page.component.html',
 })
 export class ShopRulesPageComponent implements OnInit {
@@ -51,10 +52,8 @@ export class ShopRulesPageComponent implements OnInit {
     lateFinePerMinuteBaht: [5, [Validators.required, Validators.min(0)]],
     absenceDeductionBaht: [500, [Validators.required, Validators.min(0)]],
     expectedCheckInTime: [''],
-    expectedOnFloorTime: [''],
     freelanceLateDrinkCutoffTime: [''],
     freelanceLateDrinkExtraShopPortionBaht: [0, [Validators.required, Validators.min(0)]],
-    expectedCheckOutTime: [''],
     expectedCheckOutNextDay: [true],
     autoCloseCutoffTime: [''],
     forgotCheckOutDeductionBaht: [0, [Validators.required, Validators.min(0)]],
@@ -104,8 +103,6 @@ export class ShopRulesPageComponent implements OnInit {
   normalizeTime(
     field:
       | 'expectedCheckInTime'
-      | 'expectedOnFloorTime'
-      | 'expectedCheckOutTime'
       | 'autoCloseCutoffTime'
       | 'freelanceLateDrinkCutoffTime',
   ): void {
@@ -117,22 +114,14 @@ export class ShopRulesPageComponent implements OnInit {
     if (!this.canManage()) return;
     resetFormValidationFlag(this.formValidated);
     this.normalizeTime('expectedCheckInTime');
-    this.normalizeTime('expectedOnFloorTime');
-    this.normalizeTime('expectedCheckOutTime');
     this.normalizeTime('autoCloseCutoffTime');
     this.normalizeTime('freelanceLateDrinkCutoffTime');
 
     const checkIn = this.form.controls.expectedCheckInTime.value.trim();
-    const onFloor = this.form.controls.expectedOnFloorTime.value.trim();
-    const checkOut = this.form.controls.expectedCheckOutTime.value.trim();
     const autoClose = this.form.controls.autoCloseCutoffTime.value.trim();
     const freelanceLateCutoff = this.form.controls.freelanceLateDrinkCutoffTime.value.trim();
-    if (
-      !isValidShopTimeHm(checkIn) ||
-      (onFloor && !isValidShopTimeHm(onFloor)) ||
-      !isValidShopTimeHm(checkOut)
-    ) {
-      this.toast.showError('เวลาเข้า-ออกงานและ on floor ต้องเป็นรูปแบบ 24 ชม. เช่น 20:00');
+    if (checkIn && !isValidShopTimeHm(checkIn)) {
+      this.toast.showError('เวลาเริ่มนับยอดคืนนี้ต้องเป็นรูปแบบ 24 ชม. เช่น 20:00');
       return;
     }
     if (autoClose && !isValidShopTimeHm(autoClose)) {
@@ -148,11 +137,19 @@ export class ShopRulesPageComponent implements OnInit {
 
     this.submitting.set(true);
     const raw = this.form.getRawValue();
-    const value = {
-      ...raw,
+    const value: import('../../models/shop-policy').ShopPolicyInput = {
+      seatDrinkTier15Drinks: raw.seatDrinkTier15Drinks,
+      seatDrinkTier30Drinks: raw.seatDrinkTier30Drinks,
+      seatDrinkTier45Drinks: raw.seatDrinkTier45Drinks,
+      seatDrinkRounding: raw.seatDrinkRounding,
+      lateFinePerMinuteBaht: raw.lateFinePerMinuteBaht,
+      absenceDeductionBaht: raw.absenceDeductionBaht,
+      expectedCheckInTime: raw.expectedCheckInTime.trim() || null,
+      expectedCheckOutNextDay: raw.expectedCheckOutNextDay,
       autoCloseCutoffTime: raw.autoCloseCutoffTime.trim() || null,
-      expectedOnFloorTime: raw.expectedOnFloorTime.trim() || null,
+      forgotCheckOutDeductionBaht: raw.forgotCheckOutDeductionBaht,
       freelanceLateDrinkCutoffTime: raw.freelanceLateDrinkCutoffTime.trim() || null,
+      freelanceLateDrinkExtraShopPortionBaht: raw.freelanceLateDrinkExtraShopPortionBaht,
     };
     this.policyService.save(value).subscribe({
       next: (config) => {
@@ -181,11 +178,9 @@ export class ShopRulesPageComponent implements OnInit {
       lateFinePerMinuteBaht: config.lateFinePerMinuteBaht,
       absenceDeductionBaht: config.absenceDeductionBaht,
       expectedCheckInTime: config.expectedCheckInTime ?? '',
-      expectedOnFloorTime: config.expectedOnFloorTime ?? '',
       freelanceLateDrinkCutoffTime: config.freelanceLateDrinkCutoffTime ?? '',
       freelanceLateDrinkExtraShopPortionBaht:
         config.freelanceLateDrinkExtraShopPortionBaht ?? 0,
-      expectedCheckOutTime: config.expectedCheckOutTime ?? '',
       expectedCheckOutNextDay: config.expectedCheckOutNextDay ?? true,
       autoCloseCutoffTime: config.autoCloseCutoffTime ?? '',
       forgotCheckOutDeductionBaht: config.forgotCheckOutDeductionBaht ?? 0,
