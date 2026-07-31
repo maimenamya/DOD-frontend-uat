@@ -29,13 +29,6 @@ import { ToastService } from '../../services/toast.service';
 import { roleDisplayNameTh, compareRolesByThaiLabel } from '../../utils/role-display.util';
 import { canMutateRoleRecord } from '../../utils/permission-group.util';
 import {
-  STAFF_WORK_DUTY_OPTIONS,
-  canConfigureWorkDuties,
-  parseStaffWorkDuties,
-  workDutyLabels,
-  type WorkDuty,
-} from '../../models/work-duty';
-import {
   MasterListQueryState,
   createMasterListView,
   masterListRowNumber,
@@ -60,11 +53,6 @@ export class MasterRolePageComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
   readonly categoryDropdownOptions = CATEGORY_DROPDOWN_OPTIONS;
-  readonly workDutyDropdownOptions: DropdownOption[] = STAFF_WORK_DUTY_OPTIONS.map((option) => ({
-    value: option.value,
-    label: option.label,
-  }));
-  readonly workDutyLabels = workDutyLabels;
   readonly roleDisplayNameTh = roleDisplayNameTh;
 
   readonly canManage = computed(() => this.auth.canWriteOnPage('manage_roles'));
@@ -142,7 +130,6 @@ export class MasterRolePageComponent implements OnInit {
       expectedOnFloorTime: '',
       expectedCheckOutTime: '04:00',
       expectedCheckOutNextDay: true,
-      workDuties: [],
       changeReason: '',
     });
     this.showCreateModal.set(true);
@@ -170,7 +157,6 @@ export class MasterRolePageComponent implements OnInit {
       expectedOnFloorTime: role.expectedOnFloorTime ?? '',
       expectedCheckOutTime: role.expectedCheckOutTime ?? '',
       expectedCheckOutNextDay: role.expectedCheckOutNextDay ?? true,
-      workDuties: parseStaffWorkDuties(role.workDuties ?? []),
       changeReason: '',
     });
     this.editingRole.set(role);
@@ -273,20 +259,6 @@ export class MasterRolePageComponent implements OnInit {
     return category === 'ENTERTAINER' ? 'เด็กนั่งดริ้ง' : 'พนักงาน';
   }
 
-  showEntertainerMenuHint(form: 'create' | 'edit'): boolean {
-    const targetForm = form === 'create' ? this.createForm : this.editForm;
-    return (
-      targetForm.controls.category.value === 'ENTERTAINER' &&
-      canConfigureWorkDuties(targetForm.controls.permissionGroup.value)
-    );
-  }
-
-  showWorkDutiesForForm(form: 'create' | 'edit'): boolean {
-    const targetForm = form === 'create' ? this.createForm : this.editForm;
-    const isStaff = targetForm.controls.category.value === 'STAFF';
-    return isStaff && canConfigureWorkDuties(targetForm.controls.permissionGroup.value);
-  }
-
   sanitizeIntegerInput(
     form: 'create' | 'edit',
     controlName: 'startDrinks' | 'nextHourDrinks' | 'defaultPricePerDrink' | 'drinkShopPortionBaht' | 'attendanceLeaveQuotaPerMonth',
@@ -313,7 +285,6 @@ export class MasterRolePageComponent implements OnInit {
       expectedOnFloorTime: [''],
       expectedCheckOutTime: [''],
       expectedCheckOutNextDay: [true],
-      workDuties: [[] as WorkDuty[]],
       changeReason: ['', Validators.minLength(3)],
     });
   }
@@ -355,20 +326,10 @@ export class MasterRolePageComponent implements OnInit {
       } else {
         this.editIsStaff.set(isStaff);
       }
-      if (category === 'ENTERTAINER') {
-        form.controls.workDuties.setValue([], { emitEvent: false });
-      }
       this.applyEntertainerDrinkValidators(form, category === 'ENTERTAINER');
     };
 
     form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => refresh());
-    form.controls.permissionGroup.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((group) => {
-        if (!canConfigureWorkDuties(group)) {
-          form.controls.workDuties.setValue([], { emitEvent: false });
-        }
-      });
     refresh();
   }
 
@@ -424,11 +385,6 @@ export class MasterRolePageComponent implements OnInit {
             expectedCheckOutNextDay: raw.expectedCheckOutNextDay,
           }
         : {}),
-      workDuties: canConfigureWorkDuties(raw.permissionGroup)
-        ? raw.category === 'ENTERTAINER'
-          ? (['PR_FLOOR'] as WorkDuty[])
-          : parseStaffWorkDuties(raw.workDuties)
-        : [],
     };
   }
 }

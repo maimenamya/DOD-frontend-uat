@@ -14,6 +14,7 @@ import type {
   DashboardSummary,
   EmployeePerformanceRank,
 } from '../../models/dashboard';
+import { DASHBOARD_SHOP_BILL_BUCKET_ID } from '../../models/dashboard';
 import type { MstEmployee } from '../../models/employee';
 import { AuthService } from '../../services/auth.service';
 import { DashboardService } from '../../services/dashboard.service';
@@ -42,10 +43,14 @@ export class DashboardPageComponent implements OnInit {
   readonly displayNickname = computed(() => this.auth.getDisplayNickname());
   readonly isSaleRole = computed(() => this.auth.isSaleTeamRole());
   readonly isPrRole = computed(() => this.auth.isEntertainerRole());
+  readonly isCashierView = computed(() => this.auth.getPermissionGroup() === 'CASHIER');
   readonly canPickBillSale = computed(
-    () => this.auth.canAccessTeamManagement() || this.auth.isOwner(),
+    () =>
+      this.auth.canAccessTeamManagement() ||
+      this.auth.isOwner() ||
+      this.isCashierView(),
   );
-  /** Manager / OWNER — full shop stats + bill picker. */
+  /** Manager / OWNER / CASHIER — full shop stats + bill picker. */
   readonly isManagerView = computed(() => this.canPickBillSale());
   /** SALE — shop-wide cards/tables; top bar = own bill total. */
   readonly isSaleTeamView = computed(() => this.isSaleRole() && !this.canPickBillSale());
@@ -73,12 +78,12 @@ export class DashboardPageComponent implements OnInit {
   readonly customTo = signal('');
   readonly staffSearch = signal('');
   readonly entertainerSearch = signal('');
-  readonly selectedSaleEmployeeId = signal('');
+  readonly selectedSaleEmployeeId = signal(DASHBOARD_SHOP_BILL_BUCKET_ID);
   private billStatusRequestSeq = 0;
 
   readonly billSectionTitle = computed(() => {
     if (this.canPickBillSale()) {
-      return 'ดูยอดบิลพนักงาน (SALE)';
+      return 'ดูยอดบิล';
     }
     if (this.isSaleRole()) {
       return 'ยอดบิลของตัวเอง';
@@ -89,12 +94,13 @@ export class DashboardPageComponent implements OnInit {
     return 'ยอดบิลของตัวเอง';
   });
 
-  readonly saleBillDropdownOptions = computed((): DropdownOption[] =>
-    this.saleStaff().map((emp) => ({
+  readonly saleBillDropdownOptions = computed((): DropdownOption[] => [
+    { value: DASHBOARD_SHOP_BILL_BUCKET_ID, label: 'ยอดเข้าร้าน' },
+    ...this.saleStaff().map((emp) => ({
       value: emp.employeeId,
       label: emp.nickname,
     })),
-  );
+  ]);
 
   readonly filteredTopStaff = computed(() =>
     this.filterLeaderboard(this.summary()?.topStaff ?? [], this.staffSearch()),
@@ -290,8 +296,12 @@ export class DashboardPageComponent implements OnInit {
           (e) => e.status === 'Active' && e.role?.name === 'SALE',
         );
         this.saleStaff.set(sales);
-        if (!this.selectedSaleEmployeeId() && sales.length > 0) {
-          this.selectedSaleEmployeeId.set(sales[0].employeeId);
+        const selected = this.selectedSaleEmployeeId();
+        const stillValid =
+          selected === DASHBOARD_SHOP_BILL_BUCKET_ID ||
+          sales.some((e) => e.employeeId === selected);
+        if (!stillValid) {
+          this.selectedSaleEmployeeId.set(DASHBOARD_SHOP_BILL_BUCKET_ID);
         }
         this.loadSummary();
       },

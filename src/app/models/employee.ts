@@ -1,5 +1,6 @@
 import type { PermissionGroup } from './permission-group';
 import type { RoleCategory } from './role';
+import type { WorkDuty } from './work-duty';
 import type {
   EmployeeAttendanceStatus,
   EmployeeTableSeatStatus,
@@ -30,6 +31,8 @@ export interface MstEmployee {
   status: string;
   tableSeatStatus?: EmployeeTableSeatStatus;
   attendanceStatus?: EmployeeAttendanceStatus;
+  /** Station / notification duties for this person. */
+  workDuties?: WorkDuty[];
   createdAt: string;
   /** Joined from ACTIVE TxnPrTagEnrollment — not stored on MstEmployee. */
   hasActivePrTag?: boolean;
@@ -53,6 +56,7 @@ export interface CreateEmployeePayload {
   shopId: number;
   team: EmployeeTeam;
   email?: string;
+  workDuties?: WorkDuty[];
 }
 
 export interface UpdateEmployeePayload {
@@ -61,5 +65,6 @@ export interface UpdateEmployeePayload {
   status?: string;
   roleId?: number;
   password?: string;
+  workDuties?: WorkDuty[];
   changeReason?: string;
 }

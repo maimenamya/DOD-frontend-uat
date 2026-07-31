@@ -31,6 +31,9 @@ export interface DashboardSummary {
   billStatus: DashboardBillStatus | null;
 }
 
+/** Synthetic id for creditSaleToShop bills in the sale bill picker. */
+export const DASHBOARD_SHOP_BILL_BUCKET_ID = '__SHOP__';
+
 export interface DashboardSummaryParams {
   shopId: number;
   preset?: DashboardPreset;

@@ -6,7 +6,12 @@
     "start": "ng serve",
     "build": "node set-env.js && ng build --configuration production",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "lint": "ng lint",
+    "lint:fix": "ng lint --fix=true",
+    "audit": "npm audit --audit-level=moderate",
+    "audit:fix": "npm audit fix",
+    "sonar": "npx --yes sonarqube-scanner"
   },
   "private": true,
   "engines": {
@@ -35,7 +40,9 @@
     "@angular/compiler-cli": "^19.0.0",
     "@types/jasmine": "~5.1.0",
     "@types/qrcode": "^1.5.6",
+    "angular-eslint": "21.0.1",
     "autoprefixer": "^10.5.0",
+    "eslint": "^9.39.1",
     "jasmine-core": "~5.4.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
@@ -44,6 +51,7 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "postcss": "^8.5.13",
     "tailwindcss": "^3.4.19",
-    "typescript": "~5.6.2"
+    "typescript": "~5.6.2",
+    "typescript-eslint": "8.46.4"
   }
 }

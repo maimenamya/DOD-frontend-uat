@@ -44,6 +44,13 @@ import {
   createMasterListView,
   masterListRowNumber,
 } from '../../utils/master-list.util';
+import {
+  STAFF_WORK_DUTY_OPTIONS,
+  canConfigureWorkDuties,
+  parseStaffWorkDuties,
+  workDutyLabels,
+  type WorkDuty,
+} from '../../models/work-duty';
 
 @Component({
   selector: 'app-employee-management-page',
@@ -79,6 +86,12 @@ export class EmployeeManagementPageComponent implements OnInit {
   readonly editFormValidated = signal(false);
   readonly editingEmployee = signal<MstEmployee | null>(null);
   readonly showCreateForm = signal(false);
+
+  readonly workDutyDropdownOptions: DropdownOption[] = STAFF_WORK_DUTY_OPTIONS.map((option) => ({
+    value: option.value,
+    label: option.label,
+  }));
+  readonly workDutyLabels = workDutyLabels;
 
   readonly tabRoles = computed(() => {
     const list = this.roles();
@@ -133,6 +146,7 @@ export class EmployeeManagementPageComponent implements OnInit {
     nickname: ['', [Validators.required, Validators.minLength(1)]],
     email: [''],
     roleId: [0, [Validators.required, Validators.min(1)]],
+    workDuties: [[] as WorkDuty[]],
   });
 
   readonly editForm = this.fb.group({
@@ -141,6 +155,7 @@ export class EmployeeManagementPageComponent implements OnInit {
     status: ['Active', Validators.required],
     roleId: [0, [Validators.required, Validators.min(1)]],
     password: [''],
+    workDuties: [[] as WorkDuty[]],
     changeReason: ['', Validators.minLength(3)],
   });
 
@@ -170,6 +185,48 @@ export class EmployeeManagementPageComponent implements OnInit {
       )
       .map((r) => ({ value: r.id, label: roleOptionLabel(r) })),
   );
+
+  showWorkDutiesForCreate(): boolean {
+    const roleId = this.createForm.controls.roleId.value;
+    const role =
+      this.roles().find((r) => r.id === roleId) ?? this.selectedRole() ?? null;
+    return this.canConfigureDutiesForRole(role);
+  }
+
+  showWorkDutiesForEdit(): boolean {
+    const roleId = this.editForm.controls.roleId.value;
+    const role = this.roles().find((r) => r.id === roleId) ?? null;
+    return this.canConfigureDutiesForRole(role);
+  }
+
+  showEntertainerDutyHintForCreate(): boolean {
+    const roleId = this.createForm.controls.roleId.value;
+    const role =
+      this.roles().find((r) => r.id === roleId) ?? this.selectedRole() ?? null;
+    return role?.category === 'ENTERTAINER' && canConfigureWorkDuties(role.permissionGroup ?? 'EMPLOYEE');
+  }
+
+  showEntertainerDutyHintForEdit(): boolean {
+    const roleId = this.editForm.controls.roleId.value;
+    const role = this.roles().find((r) => r.id === roleId) ?? null;
+    return role?.category === 'ENTERTAINER' && canConfigureWorkDuties(role.permissionGroup ?? 'EMPLOYEE');
+  }
+
+  private canConfigureDutiesForRole(role: MstRole | null | undefined): boolean {
+    if (!role) return false;
+    return (
+      role.category === 'STAFF' &&
+      canConfigureWorkDuties(role.permissionGroup ?? 'EMPLOYEE')
+    );
+  }
+
+  /** New STAFF start with no duties — pick per person (not from role). */
+  private defaultDutiesForRole(role: MstRole | null | undefined): WorkDuty[] {
+    if (!role) return [];
+    if (role.category === 'ENTERTAINER') return [];
+    if (!canConfigureWorkDuties(role.permissionGroup ?? 'EMPLOYEE')) return [];
+    return [];
+  }
 
   ngOnInit(): void {
     this.roleService.getRoles().subscribe({
@@ -282,6 +339,7 @@ export class EmployeeManagementPageComponent implements OnInit {
       nickname: '',
       email: '',
       roleId: role.id,
+      workDuties: this.defaultDutiesForRole(role),
     });
   }
 
@@ -301,6 +359,7 @@ export class EmployeeManagementPageComponent implements OnInit {
       status: employee.status,
       roleId: employee.roleId,
       password: '',
+      workDuties: parseStaffWorkDuties(employee.workDuties ?? []),
       changeReason: '',
     });
   }
@@ -333,6 +392,9 @@ export class EmployeeManagementPageComponent implements OnInit {
         shopId,
         team: teamForRole(role),
         email: raw.email || undefined,
+        workDuties: this.canConfigureDutiesForRole(role)
+          ? parseStaffWorkDuties(raw.workDuties)
+          : undefined,
       })
       .subscribe({
         next: () => {
@@ -354,6 +416,7 @@ export class EmployeeManagementPageComponent implements OnInit {
     if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
 
     const raw = this.editForm.getRawValue();
+    const nextRole = this.roles().find((r) => r.id === raw.roleId);
     this.submitting.set(true);
 
     this.employeeService
@@ -363,6 +426,10 @@ export class EmployeeManagementPageComponent implements OnInit {
         status: raw.status,
         roleId: raw.roleId,
         password: raw.password || undefined,
+        // Omit when not configuring — BE keeps existing duties (or forces PR/empty on role change).
+        ...(this.canConfigureDutiesForRole(nextRole)
+          ? { workDuties: parseStaffWorkDuties(raw.workDuties) }
+          : {}),
         changeReason: raw.changeReason.trim(),
       })
       .subscribe({

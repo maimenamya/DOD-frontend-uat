@@ -9,19 +9,21 @@ import { ShopDateInputComponent } from '../../components/shop-date-input/shop-da
 import { AuthService } from '../../services/auth.service';
 import { ReportService } from '../../services/report.service';
 import { ToastService } from '../../services/toast.service';
-import type { ReportPreview, ReportPreviewParams, ReportSection } from '../../models/report';
+import type {
+  ReportPreview,
+  ReportPreviewParams,
+  ReportSection,
+} from '../../models/report';
 import { shopCalendarTodayInput } from '../open-table/open-table-ledger.util';
 import { blobApiErrorMessage } from '../../utils/excel-download.util';
 
-const SECTION_OPTIONS: { id: ReportSection; label: string; hint?: string }[] = [
-  { id: 'bills', label: 'ยอดบิล' },
-  { id: 'drinks', label: 'บอร์ดเครื่องดื่ม' },
-  { id: 'expenses', label: 'รายจ่ายร้าน' },
-  {
-    id: 'sale_breakdown',
-    label: 'ยอดขายตามเซลล์',
-    hint: 'เบียร์ / เหล้า / โปร / เมม / ดื่มเด็ก',
-  },
+const ALL_SECTIONS: ReportSection[] = [
+  'bills',
+  'drinks',
+  'expenses',
+  'sale_breakdown',
+  'food',
+  'stock',
 ];
 
 function shopCalendarMonthStartInput(): string {
@@ -41,16 +43,8 @@ export class ReportsPageComponent implements OnInit {
   private readonly reportService = inject(ReportService);
   private readonly toast = inject(ToastService);
 
-  readonly sectionOptions = SECTION_OPTIONS;
-
   readonly rangeFrom = signal(shopCalendarMonthStartInput());
   readonly rangeTo = signal(shopCalendarTodayInput());
-  readonly selectedSections = signal<ReportSection[]>([
-    'bills',
-    'drinks',
-    'expenses',
-    'sale_breakdown',
-  ]);
 
   readonly previewLoading = signal(false);
   readonly downloading = signal(false);
@@ -58,10 +52,7 @@ export class ReportsPageComponent implements OnInit {
   readonly preview = signal<ReportPreview | null>(null);
   readonly error = signal<string | null>(null);
 
-  readonly canDownload = computed(() => {
-    if (this.previewLoading() || this.downloading()) return false;
-    return this.selectedSections().length > 0;
-  });
+  readonly canDownload = computed(() => !this.previewLoading() && !this.downloading());
 
   private get shopId(): number | null {
     return this.auth.getShopId();
@@ -79,21 +70,6 @@ export class ReportsPageComponent implements OnInit {
     this.loadPreview();
   }
 
-  onSectionChange(section: ReportSection, checked: boolean): void {
-    this.selectedSections.update((current) => {
-      if (checked) {
-        return current.includes(section) ? current : [...current, section];
-      }
-      const next = current.filter((s) => s !== section);
-      return next.length > 0 ? next : current;
-    });
-    this.loadPreview();
-  }
-
-  isSectionSelected(section: ReportSection): boolean {
-    return this.selectedSections().includes(section);
-  }
-
   private buildParams(): ReportPreviewParams | null {
     const shopId = this.shopId;
     if (shopId == null) return null;
@@ -102,7 +78,7 @@ export class ReportsPageComponent implements OnInit {
       preset: 'custom',
       from: this.rangeFrom(),
       to: this.rangeTo(),
-      sections: this.selectedSections(),
+      sections: ALL_SECTIONS,
     };
   }
 
@@ -126,7 +102,7 @@ export class ReportsPageComponent implements OnInit {
       .pipe(
         catchError((err: HttpErrorResponse) => {
           const msg = (err.error as { error?: string } | undefined)?.error;
-          this.error.set(msg ?? 'โหลดตัวอย่างรายงานไม่สำเร็จ');
+          this.error.set(msg ?? 'โหลดรายงานไม่สำเร็จ');
           this.preview.set(null);
           return of(null);
         }),
@@ -172,12 +148,39 @@ export class ReportsPageComponent implements OnInit {
     return value.toLocaleString('th-TH');
   }
 
-  drinkStaffRows(preview: ReportPreview) {
-    return (preview.drinks?.staff ?? []).filter((row) => row.totalDrinks > 0);
+  drinkPeopleRows(preview: ReportPreview) {
+    const staff = (preview.drinks?.staff ?? []).filter((row) => row.totalDrinks > 0);
+    const entertainers = (preview.drinks?.entertainers ?? []).filter(
+      (row) => row.totalDrinks > 0,
+    );
+    return [...staff, ...entertainers].sort((a, b) => b.totalDrinks - a.totalDrinks);
   }
 
-  drinkEntertainerRows(preview: ReportPreview) {
-    return (preview.drinks?.entertainers ?? []).filter((row) => row.totalDrinks > 0);
+  /** Card 8 — dish count only, one row per sale. */
+  foodDishTotalsBySale(preview: ReportPreview): Array<{
+    saleEmployeeId: string;
+    saleNickname: string;
+    quantity: number;
+  }> {
+    const map = new Map<string, { saleNickname: string; quantity: number }>();
+    for (const row of preview.food?.bySale ?? []) {
+      const existing = map.get(row.saleEmployeeId);
+      if (existing) {
+        existing.quantity += row.quantity;
+      } else {
+        map.set(row.saleEmployeeId, {
+          saleNickname: row.saleNickname,
+          quantity: row.quantity,
+        });
+      }
+    }
+    return [...map.entries()]
+      .map(([saleEmployeeId, v]) => ({
+        saleEmployeeId,
+        saleNickname: v.saleNickname,
+        quantity: v.quantity,
+      }))
+      .sort((a, b) => b.quantity - a.quantity || a.saleNickname.localeCompare(b.saleNickname, 'th'));
   }
 
   private readApiError(err: HttpErrorResponse, fallback: string): string {

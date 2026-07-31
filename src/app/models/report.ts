@@ -1,6 +1,12 @@
 export type ReportPreset = 'daily' | 'weekly' | 'monthly' | 'custom';
 
-export type ReportSection = 'bills' | 'drinks' | 'expenses' | 'sale_breakdown';
+export type ReportSection =
+  | 'bills'
+  | 'drinks'
+  | 'expenses'
+  | 'sale_breakdown'
+  | 'food'
+  | 'stock';
 
 export interface ReportBillRow {
   businessDate: string;
@@ -58,8 +64,31 @@ export interface ReportSaleEntertainerRow {
 export interface ReportSaleProductRow {
   saleEmployeeId: string;
   saleNickname: string;
+  stockItemId: number;
   stockItemLabel: string;
   quantity: number;
+}
+
+export interface ReportFoodByItem {
+  foodName: string;
+  quantity: number;
+  totalAmount: number;
+}
+
+export interface ReportSaleFoodRow {
+  saleEmployeeId: string;
+  saleNickname: string;
+  foodName: string;
+  quantity: number;
+  totalAmount: number;
+}
+
+export interface ReportStockRow {
+  stockItemId: number;
+  name: string;
+  unitLabelTh: string;
+  usedQuantity: number;
+  remainingQuantity: number;
 }
 
 export interface ReportPreview {
@@ -97,6 +126,16 @@ export interface ReportPreview {
     summaries: ReportSaleSummaryRow[];
     entertainerRows: ReportSaleEntertainerRow[];
     productRows: ReportSaleProductRow[];
+  } | null;
+  food: {
+    totalDishes: number;
+    totalAmount: number;
+    byFood: ReportFoodByItem[];
+    bySale: ReportSaleFoodRow[];
+  } | null;
+  stock: {
+    totalUsed: number;
+    rows: ReportStockRow[];
   } | null;
 }
 

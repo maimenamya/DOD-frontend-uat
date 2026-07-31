@@ -278,6 +278,56 @@
   padding: 1.25rem;
 }
 
+.open-table-pc-add-panel__body--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.open-table-pc-add-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: min(100%, 11rem);
+  aspect-ratio: 1;
+  max-height: 14rem;
+  margin: 0;
+  padding: 1rem;
+  border-radius: var(--radius-card, 0.85rem);
+  border: 1.5px dashed color-mix(in srgb, var(--primary) 45%, var(--border));
+  background: color-mix(in srgb, var(--primary) 8%, var(--card-bg));
+  color: var(--text-primary);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.open-table-pc-add-empty:hover {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 14%, var(--card-bg));
+  transform: translateY(-1px);
+}
+
+.open-table-pc-add-empty__plus {
+  font-size: 3.25rem;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--text-accent, var(--primary));
+}
+
+.open-table-pc-add-empty__hint {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
 .open-table-pc-add-panel__footer {
   flex-shrink: 0;
   display: flex;
@@ -782,6 +832,11 @@
   width: 1.25rem;
   height: 1.25rem;
   display: block;
+}
+
+.open-table-view-icon--layout {
+  width: 1.55rem;
+  height: 1.55rem;
 }
 
 .open-table-filter-count {

@@ -4834,6 +4834,15 @@
   font-family: var(--font-sans);
 }
 
+/* Desktop: never taller than the viewport (JS also flips above the field when needed) */
+.app-flatpickr-calendar.flatpickr-calendar:not(.app-flatpickr-calendar--mobile) {
+  @apply app-scroll-region;
+  max-height: calc(100dvh - 1.25rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+  --app-scroll-track: var(--card-bg);
+}
+
 .app-flatpickr-calendar.flatpickr-calendar:not(.app-flatpickr-calendar--mobile)::before,
 .app-flatpickr-calendar.flatpickr-calendar:not(.app-flatpickr-calendar--mobile)::after,
 .app-flatpickr-calendar.arrowTop::before,

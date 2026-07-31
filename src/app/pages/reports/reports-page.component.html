@@ -1,581 +1,349 @@
 <div class="app-page reports-page">
-
   <header class="reports-header">
-
     <div>
-
       <h1 class="app-page-title">รายงาน</h1>
-
-      <p class="app-page-subtitle">เลือกช่วงวันที่และหัวข้อ แล้วดาวน์โหลด Excel</p>
-
+      <p class="app-page-subtitle">สรุปตามช่วงวันที่ที่เลือก — แยกเป็นกลุ่มให้อ่านง่าย</p>
     </div>
-
+    <button
+      type="button"
+      class="app-btn-primary-sm reports-download-btn"
+      [disabled]="!canDownload()"
+      (click)="downloadReport()"
+    >
+      {{ downloading() ? 'กำลังสร้างไฟล์...' : 'ดาวน์โหลด Excel' }}
+    </button>
   </header>
 
-
-
-  <div class="reports-layout">
-
-    <section class="reports-panel app-card">
-
-      <h2 class="reports-panel-title">ช่วงเวลา</h2>
-
-      <div class="reports-date-range">
-
-        <label class="reports-date-field">
-
-          <span class="reports-date-label">ตั้งแต่วันที่</span>
-
-          <app-shop-date-input
-            class="reports-date-input"
-            extraInputClass="dashboard-date-input"
-            [requireConfirm]="false"
-            [ngModel]="rangeFrom()"
-            (ngModelChange)="rangeFrom.set($event)"
-          />
-
-        </label>
-
-        <label class="reports-date-field">
-
-          <span class="reports-date-label">ถึง</span>
-
-          <app-shop-date-input
-            class="reports-date-input"
-            extraInputClass="dashboard-date-input"
-            [requireConfirm]="false"
-            [ngModel]="rangeTo()"
-            (ngModelChange)="rangeTo.set($event)"
-          />
-
-        </label>
-
-        <button type="button" class="dashboard-date-apply reports-btn-compact" (click)="applyRange()">
-          ใช้ช่วงนี้
-        </button>
-
-      </div>
-
-
-
-      <h2 class="reports-panel-title">หัวข้อในไฟล์</h2>
-
-      <p class="reports-checklist-hint">เลือกว่าจะใส่อะไรในรายงาน</p>
-
-      <ul class="reports-checklist">
-
-        @for (opt of sectionOptions; track opt.id) {
-
-          <li>
-
-            <label class="reports-check-row">
-
-              <span class="reports-check-control">
-
-                <input
-
-                  type="checkbox"
-
-                  class="reports-check-input"
-
-                  [checked]="isSectionSelected(opt.id)"
-
-                  (change)="onSectionChange(opt.id, $any($event.target).checked)"
-
-                />
-
-                <span class="reports-check-indicator" aria-hidden="true"></span>
-
-              </span>
-
-              <span class="reports-check-label">
-                {{ opt.label }}
-                @if (opt.hint) {
-                  <span class="reports-check-hint">{{ opt.hint }}</span>
-                }
-              </span>
-
-            </label>
-
-          </li>
-
-        }
-
-      </ul>
-
-
-
-      <div class="reports-actions">
-
-        <button
-          type="button"
-          class="app-btn-secondary-sm"
-          [disabled]="previewLoading()"
-          (click)="loadPreview()"
-        >
-          ดูตัวอย่าง
-        </button>
-
-      </div>
-
-    </section>
-
-
-
-    <div class="reports-preview-column">
-
-      @if (error()) {
-
-        <div class="app-alert-error">{{ error() }}</div>
-
-      }
-
-
-
-      @if (previewLoading()) {
-
-        <section class="reports-preview app-card" aria-hidden="true">
-
-          <div class="reports-preview-head">
-
-            <div class="reports-preview-head-info">
-
-              <div class="app-skeleton h-4 w-28 rounded"></div>
-
-              <div class="app-skeleton mt-2 h-3 w-40 rounded"></div>
-
-            </div>
-
-            <div class="app-skeleton reports-download-btn h-9 w-36 rounded-input"></div>
-
-          </div>
-
-          <div class="reports-kpi-grid">
-
-            <div class="app-skeleton h-[4.5rem] w-full rounded"></div>
-
-            <div class="app-skeleton h-[4.5rem] w-full rounded"></div>
-
-            <div class="app-skeleton h-[4.5rem] w-full rounded"></div>
-
-          </div>
-
-          <div class="reports-block">
-
-            <div class="app-skeleton h-3.5 w-44 rounded"></div>
-
-            <div class="reports-skeleton-rows">
-
-              @for (row of [1, 2, 3, 4, 5]; track row) {
-
-                <div class="app-skeleton h-6 w-full rounded"></div>
-
-              }
-
-            </div>
-
-          </div>
-
-        </section>
-
-      }
-
-      @if (!previewLoading() && preview(); as p) {
-
-        <section class="reports-preview app-card">
-
-          <div class="reports-preview-head">
-
-            <div class="reports-preview-head-info">
-
-              <h2 class="reports-panel-title">ตัวอย่าง</h2>
-
-              <p class="reports-range">{{ p.fromDate }} – {{ p.toDate }}</p>
-
-            </div>
-
-            <button
-              type="button"
-              class="app-btn-primary-sm reports-download-btn"
-              [disabled]="!canDownload()"
-              (click)="downloadReport()"
-            >
-              {{ downloading() ? 'กำลังสร้างไฟล์...' : 'ดาวน์โหลด Excel' }}
-            </button>
-
-          </div>
-
-          <div class="reports-preview-body app-scroll-region">
-
-          <div class="reports-kpi-grid">
-
-            @if (p.bills) {
-
-              <div class="reports-kpi">
-
-                <span class="reports-kpi-label">ยอดบิล</span>
-
-                <span class="reports-kpi-value">{{ formatMoney(p.bills.totalAmount) }}</span>
-
-                <span class="reports-kpi-meta">{{ p.bills.billCount }} บิล</span>
-
-              </div>
-
-            }
-
-            @if (p.drinks) {
-
-              <div class="reports-kpi">
-
-                <span class="reports-kpi-label">ยอดดื่ม</span>
-
-                <span class="reports-kpi-value">{{ p.drinks.totalDrinks | number }}</span>
-
-                <span class="reports-kpi-meta"
-
-                  >พนักงาน {{ p.drinks.totalStaffDrinks | number }} · PR
-
-                  {{ p.drinks.totalEntertainerDrinks | number }}</span
-
-                >
-
-              </div>
-
-            }
-
-            @if (p.expenses) {
-
-              <div class="reports-kpi" [class.reports-kpi--muted]="!p.expenses.available">
-
-                <span class="reports-kpi-label">รายจ่ายร้าน</span>
-
-                @if (p.expenses.available) {
-
-                  <span class="reports-kpi-value">{{ formatMoney(p.expenses.totalAmount) }}</span>
-
-                  <span class="reports-kpi-meta">{{ p.expenses.rows.length }} รายการ</span>
-
-                } @else {
-
-                  <span class="reports-kpi-meta">{{ p.expenses.message }}</span>
-
-                }
-
-              </div>
-
-            }
-
-          </div>
-
-
-
-          @if (p.bills && p.bills.bySale.length > 0) {
-
-            <div class="reports-block">
-
-              <h3 class="reports-block-title">ยอดบิลตามเซลล์ (สูงสุด 8)</h3>
-
-              <table class="reports-table">
-
-                <thead>
-
-                  <tr>
-
-                    <th>เซลล์</th>
-
-                    <th class="reports-num">บิล</th>
-
-                    <th class="reports-num">ยอด (บาท)</th>
-
-                  </tr>
-
-                </thead>
-
-                <tbody>
-
-                  @for (row of p.bills.bySale.slice(0, 8); track row.saleEmployeeId) {
-
-                    <tr>
-
-                      <td>{{ row.nickname }}</td>
-
-                      <td class="reports-num">{{ row.billCount }}</td>
-
-                      <td class="reports-num">{{ formatMoney(row.totalAmount) }}</td>
-
-                    </tr>
-
-                  }
-
-                </tbody>
-
-              </table>
-
-            </div>
-
-          }
-
-
-
-          @if (p.saleBreakdown && p.saleBreakdown.summaries.length === 0) {
-
-            <div class="reports-block">
-
-              <h3 class="reports-block-title">ยอดขายตามเซลล์ — แยกตามสต๊อก</h3>
-
-              <p class="app-empty-state">ไม่มียอดในช่วงวันที่นี้ (ต้องมีบิลเช็กเอาต์แล้ว และไม่ใช่บิลเครดิตร้าน)</p>
-
-            </div>
-
-          }
-
-
-
-          @if (p.saleBreakdown && p.saleBreakdown.summaries.length > 0) {
-
-            <div class="reports-block">
-
-              <h3 class="reports-block-title">ยอดขายตามเซลล์ — แยกตามสต๊อก (จากบิลที่เช็กเอาต์แล้ว)</h3>
-
-              <table class="reports-table">
-
-                <thead>
-
-                  <tr>
-
-                    <th>เซลล์</th>
-
-                    @for (col of p.saleBreakdown.stockColumns; track col) {
-
-                      <th class="reports-num">{{ col }}</th>
-
-                    }
-
-                    <th class="reports-num">โปร (ชุด)</th>
-
-                    <th class="reports-num">เมม (ชุด)</th>
-
-                    <th class="reports-num">ดื่มเด็ก</th>
-
-                  </tr>
-
-                </thead>
-
-                <tbody>
-
-                  @for (row of p.saleBreakdown.summaries.slice(0, 8); track row.saleEmployeeId) {
-
-                    <tr>
-
-                      <td>{{ row.nickname }}</td>
-
-                      @for (col of p.saleBreakdown.stockColumns; track col) {
-
-                        <td class="reports-num">{{ row.stockQuantities[col] || 0 }}</td>
-
-                      }
-
-                      <td class="reports-num">{{ row.promotionCount }}</td>
-
-                      <td class="reports-num">{{ row.membershipCount }}</td>
-
-                      <td class="reports-num">{{ row.entertainerDrinkTotal }}</td>
-
-                    </tr>
-
-                  }
-
-                </tbody>
-
-              </table>
-
-            </div>
-
-          }
-
-
-
-          @if (p.saleBreakdown && p.saleBreakdown.entertainerRows.length > 0) {
-
-            <div class="reports-block">
-
-              <h3 class="reports-block-title">เซลล์ × เด็กนั่งดริ้ง (TOP 10)</h3>
-
-              <table class="reports-table">
-
-                <thead>
-
-                  <tr>
-
-                    <th>เซลล์</th>
-
-                    <th>เด็กนั่งดริ้ง</th>
-
-                    <th class="reports-num">แก้ว</th>
-
-                  </tr>
-
-                </thead>
-
-                <tbody>
-
-                  @for (
-
-                    row of p.saleBreakdown.entertainerRows.slice(0, 10);
-
-                    track row.saleEmployeeId + row.entertainerEmployeeId
-
-                  ) {
-
-                    <tr>
-
-                      <td>{{ row.saleNickname }}</td>
-
-                      <td>{{ row.entertainerNickname }} ({{ row.roleName }})</td>
-
-                      <td class="reports-num">{{ row.totalDrinks }}</td>
-
-                    </tr>
-
-                  }
-
-                </tbody>
-
-              </table>
-
-            </div>
-
-          }
-
-
-
-          @if (p.expenses && p.expenses.available && p.expenses.rows.length > 0) {
-
-            <div class="reports-block">
-
-              <h3 class="reports-block-title">รายจ่ายร้าน (ล่าสุด 10)</h3>
-
-              <table class="reports-table">
-
-                <thead>
-
-                  <tr>
-
-                    <th>วันที่</th>
-
-                    <th>รายการ</th>
-
-                    <th class="reports-num">บาท</th>
-
-                  </tr>
-
-                </thead>
-
-                <tbody>
-
-                  @for (row of p.expenses.rows.slice(0, 10); track row.businessDate + row.description) {
-
-                    <tr>
-
-                      <td>{{ row.businessDate }}</td>
-
-                      <td>{{ row.description }}</td>
-
-                      <td class="reports-num">{{ formatMoney(row.amount) }}</td>
-
-                    </tr>
-
-                  }
-
-                </tbody>
-
-              </table>
-
-            </div>
-
-          }
-
-
-
-          @if (p.drinks && (drinkStaffRows(p).length > 0 || drinkEntertainerRows(p).length > 0)) {
-
-            <div class="reports-block reports-block--split">
-
-              @if (drinkStaffRows(p).length > 0) {
-
-                <div>
-
-                  <h3 class="reports-block-title">พนักงาน</h3>
-
-                  <ul class="reports-rank-list">
-
-                    @for (row of drinkStaffRows(p); track row.employeeId) {
-
-                      <li>
-
-                        <span>{{ row.nickname }}</span>
-
-                        <span class="reports-rank-val">{{ row.totalDrinks }} แก้ว</span>
-
-                      </li>
-
-                    }
-
-                  </ul>
-
-                </div>
-
-              }
-
-              @if (drinkEntertainerRows(p).length > 0) {
-
-                <div>
-
-                  <h3 class="reports-block-title">PR</h3>
-
-                  <ul class="reports-rank-list">
-
-                    @for (row of drinkEntertainerRows(p); track row.employeeId) {
-
-                      <li>
-
-                        <span>{{ row.nickname }}</span>
-
-                        <span class="reports-rank-val">{{ row.totalDrinks }} แก้ว</span>
-
-                      </li>
-
-                    }
-
-                  </ul>
-
-                </div>
-
-              }
-
-            </div>
-
-          }
-
-          </div>
-
-        </section>
-
-      }
-
-      @if (!previewLoading() && !preview() && !error()) {
-
-        <section class="reports-preview reports-preview--empty app-card">
-
-          <p class="reports-preview-empty-text">กด «ดูตัวอย่าง» เพื่อดูสรุปก่อนดาวน์โหลด</p>
-
-        </section>
-
-      }
-
+  <section class="reports-toolbar app-card">
+    <div class="reports-date-range">
+      <label class="reports-date-field">
+        <span class="reports-date-label">ตั้งแต่วันที่</span>
+        <app-shop-date-input
+          class="reports-date-input"
+          extraInputClass="dashboard-date-input"
+          [requireConfirm]="false"
+          [ngModel]="rangeFrom()"
+          (ngModelChange)="rangeFrom.set($event)"
+        />
+      </label>
+      <label class="reports-date-field">
+        <span class="reports-date-label">ถึง</span>
+        <app-shop-date-input
+          class="reports-date-input"
+          extraInputClass="dashboard-date-input"
+          [requireConfirm]="false"
+          [ngModel]="rangeTo()"
+          (ngModelChange)="rangeTo.set($event)"
+        />
+      </label>
+      <button type="button" class="dashboard-date-apply reports-btn-compact" (click)="applyRange()">
+        ใช้ช่วงนี้
+      </button>
     </div>
+  </section>
 
-  </div>
+  @if (error()) {
+    <div class="app-alert-error">{{ error() }}</div>
+  }
 
+  @if (previewLoading()) {
+    <div class="reports-cards" aria-hidden="true">
+      @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
+        <section class="reports-card app-card">
+          <div class="app-skeleton h-4 w-36 rounded"></div>
+          <div class="app-skeleton mt-3 h-8 w-24 rounded"></div>
+          <div class="reports-skeleton-rows mt-4">
+            @for (row of [1, 2, 3]; track row) {
+              <div class="app-skeleton h-5 w-full rounded"></div>
+            }
+          </div>
+        </section>
+      }
+    </div>
+  }
+
+  @if (!previewLoading() && preview(); as p) {
+    <p class="reports-range-label">{{ p.fromDate }} – {{ p.toDate }} · อัปเดต {{ p.generatedAtLabel }}</p>
+
+    <div class="reports-cards">
+      <!-- 1 ยอดบิล -->
+      <section class="reports-card app-card">
+        <header class="reports-card-head">
+          <h2 class="reports-card-title">1. ยอดบิลรวม</h2>
+          @if (p.bills) {
+            <p class="reports-card-total">{{ formatMoney(p.bills.totalAmount) }} บาท</p>
+            <p class="reports-card-meta">{{ p.bills.billCount }} บิล</p>
+          }
+        </header>
+        @if (p.bills && p.bills.bySale.length > 0) {
+          <div class="reports-card-body app-scroll-region">
+            <table class="reports-table">
+              <thead>
+                <tr>
+                  <th>เซลล์</th>
+                  <th class="reports-num">บิล</th>
+                  <th class="reports-num">ยอด</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of p.bills.bySale; track row.saleEmployeeId) {
+                  <tr>
+                    <td>{{ row.nickname }}</td>
+                    <td class="reports-num">{{ row.billCount }}</td>
+                    <td class="reports-num">{{ formatMoney(row.totalAmount) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="app-empty-state">ไม่มีบิลในช่วงนี้</p>
+        }
+      </section>
+
+      <!-- 2 ยอดดื่ม -->
+      <section class="reports-card app-card">
+        <header class="reports-card-head">
+          <h2 class="reports-card-title">2. ยอดดื่มรวม</h2>
+          @if (p.drinks) {
+            <p class="reports-card-total">{{ p.drinks.totalDrinks | number }} แก้ว</p>
+            <p class="reports-card-meta">
+              พนักงาน {{ p.drinks.totalStaffDrinks | number }} · พีอาร์
+              {{ p.drinks.totalEntertainerDrinks | number }}
+            </p>
+          }
+        </header>
+        @if (drinkPeopleRows(p).length > 0) {
+          <div class="reports-card-body app-scroll-region">
+            <table class="reports-table">
+              <thead>
+                <tr>
+                  <th>ชื่อ</th>
+                  <th>ตำแหน่ง</th>
+                  <th class="reports-num">แก้ว</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of drinkPeopleRows(p); track row.employeeId + row.team) {
+                  <tr>
+                    <td>{{ row.nickname }}</td>
+                    <td>{{ row.roleName }}</td>
+                    <td class="reports-num">{{ row.totalDrinks | number }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="app-empty-state">ไม่มียอดดื่มในช่วงนี้</p>
+        }
+      </section>
+
+      <!-- 3 รายจ่าย -->
+      <section class="reports-card app-card">
+        <header class="reports-card-head">
+          <h2 class="reports-card-title">3. รายจ่ายร้าน</h2>
+          @if (p.expenses) {
+            <p class="reports-card-total">{{ formatMoney(p.expenses.totalAmount) }} บาท</p>
+            <p class="reports-card-meta">{{ p.expenses.rows.length }} รายการ</p>
+          }
+        </header>
+        @if (p.expenses && p.expenses.rows.length > 0) {
+          <div class="reports-card-body app-scroll-region">
+            <table class="reports-table">
+              <thead>
+                <tr>
+                  <th>วันที่</th>
+                  <th>รายการ</th>
+                  <th class="reports-num">ยอด</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of p.expenses.rows; track row.businessDate + row.description + $index) {
+                  <tr>
+                    <td>{{ row.businessDate }}</td>
+                    <td>{{ row.description }}</td>
+                    <td class="reports-num">{{ formatMoney(row.amount) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="app-empty-state">ไม่มีรายจ่ายในช่วงนี้</p>
+        }
+      </section>
+
+      <!-- 4 สต๊อก -->
+      <section class="reports-card app-card">
+        <header class="reports-card-head">
+          <h2 class="reports-card-title">4. สต๊อกสินค้า</h2>
+          @if (p.stock) {
+            <p class="reports-card-total">{{ p.stock.totalUsed | number }} ขวด</p>
+          }
+        </header>
+        @if (p.stock && p.stock.rows.length > 0) {
+          <div class="reports-card-body app-scroll-region">
+            <table class="reports-table">
+              <thead>
+                <tr>
+                  <th>สต๊อก</th>
+                  <th class="reports-num">ขาย</th>
+                  <th class="reports-num">เหลือ</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of p.stock.rows; track row.stockItemId) {
+                  <tr>
+                    <td>
+                      {{ row.name }}
+                      <span class="reports-unit">{{ row.unitLabelTh }}</span>
+                    </td>
+                    <td class="reports-num">{{ row.usedQuantity | number }}</td>
+                    <td class="reports-num">{{ row.remainingQuantity | number }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="app-empty-state">ยังไม่มีรายการสต๊อก</p>
+        }
+      </section>
+
+      <!-- 5 อาหารรวม -->
+      <section class="reports-card app-card">
+        <header class="reports-card-head">
+          <h2 class="reports-card-title">5. รายการอาหารรวม</h2>
+          @if (p.food) {
+            <p class="reports-card-total">{{ p.food.totalDishes | number }} จาน</p>
+            <p class="reports-card-meta">{{ formatMoney(p.food.totalAmount) }} บาท</p>
+          }
+        </header>
+        @if (p.food && p.food.byFood.length > 0) {
+          <div class="reports-card-body app-scroll-region">
+            <table class="reports-table">
+              <thead>
+                <tr>
+                  <th>เมนู</th>
+                  <th class="reports-num">จาน</th>
+                  <th class="reports-num">ยอด</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of p.food.byFood; track row.foodName) {
+                  <tr>
+                    <td>{{ row.foodName }}</td>
+                    <td class="reports-num">{{ row.quantity | number }}</td>
+                    <td class="reports-num">{{ formatMoney(row.totalAmount) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="app-empty-state">ไม่มีอาหารในช่วงนี้</p>
+        }
+      </section>
+
+      <!-- 6 เซล × เครื่องดื่มจากสต๊อก -->
+      <section class="reports-card app-card">
+        <header class="reports-card-head">
+          <h2 class="reports-card-title">6. เซลล์ × เครื่องดื่ม</h2>
+          <p class="reports-card-meta">นับจากสต๊อกในบิลที่เช็กเอาต์แล้ว</p>
+        </header>
+        @if (p.saleBreakdown && p.saleBreakdown.productRows.length > 0) {
+          <div class="reports-card-body app-scroll-region">
+            <table class="reports-table">
+              <thead>
+                <tr>
+                  <th>เซลล์</th>
+                  <th>สต๊อก</th>
+                  <th class="reports-num">จำนวน</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of p.saleBreakdown.productRows; track row.saleEmployeeId + row.stockItemLabel) {
+                  <tr>
+                    <td>{{ row.saleNickname }}</td>
+                    <td>{{ row.stockItemLabel }}</td>
+                    <td class="reports-num">{{ row.quantity | number }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="app-empty-state">ไม่มีขายเครื่องดื่มจากสต๊อกในช่วงนี้</p>
+        }
+      </section>
+
+      <!-- 7 เซล × พีอาร์ -->
+      <section class="reports-card app-card">
+        <header class="reports-card-head">
+          <h2 class="reports-card-title">7. เซลล์ × ดื่มพีอาร์</h2>
+          <p class="reports-card-meta">เด็กพีอาร์ที่นั่งโต๊ะของแต่ละเซลล์</p>
+        </header>
+        @if (p.saleBreakdown && p.saleBreakdown.entertainerRows.length > 0) {
+          <div class="reports-card-body app-scroll-region">
+            <table class="reports-table">
+              <thead>
+                <tr>
+                  <th>เซลล์</th>
+                  <th>พีอาร์</th>
+                  <th>ตำแหน่ง</th>
+                  <th class="reports-num">แก้ว</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (
+                  row of p.saleBreakdown.entertainerRows;
+                  track row.saleEmployeeId + row.entertainerEmployeeId
+                ) {
+                  <tr>
+                    <td>{{ row.saleNickname }}</td>
+                    <td>{{ row.entertainerNickname }}</td>
+                    <td>{{ row.roleName }}</td>
+                    <td class="reports-num">{{ row.totalDrinks | number }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="app-empty-state">ไม่มีดื่มพีอาร์ในช่วงนี้</p>
+        }
+      </section>
+
+      <!-- 8 เซล × อาหาร -->
+      <section class="reports-card app-card">
+        <header class="reports-card-head">
+          <h2 class="reports-card-title">8. เซลล์ × อาหาร</h2>
+          <p class="reports-card-meta">จำนวนจานตามเซลล์</p>
+        </header>
+        @if (foodDishTotalsBySale(p).length > 0) {
+          <div class="reports-card-body app-scroll-region">
+            <table class="reports-table">
+              <thead>
+                <tr>
+                  <th>เซลล์</th>
+                  <th class="reports-num">จำนวนจาน</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of foodDishTotalsBySale(p); track row.saleEmployeeId) {
+                  <tr>
+                    <td>{{ row.saleNickname }}</td>
+                    <td class="reports-num">{{ row.quantity | number }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="app-empty-state">ไม่มีอาหารตามเซลล์ในช่วงนี้</p>
+        }
+      </section>
+    </div>
+  }
 </div>
-

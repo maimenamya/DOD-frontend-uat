@@ -80,6 +80,22 @@
           <label class="app-label">อีเมล (ไม่บังคับ)</label>
           <input type="email" formControlName="email" class="app-input" />
         </div>
+        @if (showWorkDutiesForCreate()) {
+          <div class="app-form-group">
+            <label class="app-label">หน้าที่ทำงาน</label>
+            <app-custom-dropdown
+              formControlName="workDuties"
+              [options]="workDutyDropdownOptions"
+              [multiple]="true"
+              placeholder="เลือกหน้าที่ (เช่น เซลล์, เซอร์วิส, ครัว, บาร์)"
+            />
+            <p class="app-field-hint">
+              กำหนดเมนูที่เห็น — เซลล์=บิลของฉัน · ครัว/บาร์/เซอร์วิส=ออเดอร์ (ไม่มีภาพรวม)
+            </p>
+          </div>
+        } @else if (showEntertainerDutyHintForCreate()) {
+          <p class="app-field-hint">เด็กนั่งดริ้ง — เห็นภาพรวมและลงเวลา (ไม่มีบิลของฉัน/ออเดอร์)</p>
+        }
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreateForm()">ยกเลิก</button>
           <button type="submit" class="app-btn-primary" [disabled]="submitting()">
@@ -108,6 +124,22 @@
               placeholder="เลือกตำแหน่ง"
             />
           </div>
+          @if (showWorkDutiesForEdit()) {
+            <div class="app-form-group">
+              <label class="app-label">หน้าที่ทำงาน</label>
+              <app-custom-dropdown
+                formControlName="workDuties"
+                [options]="workDutyDropdownOptions"
+                [multiple]="true"
+                placeholder="เลือกหน้าที่ (เช่น เซลล์, เซอร์วิส, ครัว, บาร์)"
+              />
+              <p class="app-field-hint">
+                กำหนดเมนูที่เห็น — เซลล์=บิลของฉัน · ครัว/บาร์/เซอร์วิส=ออเดอร์ (ไม่มีภาพรวม)
+              </p>
+            </div>
+          } @else if (showEntertainerDutyHintForEdit()) {
+            <p class="app-field-hint">เด็กนั่งดริ้ง — เห็นภาพรวมและลงเวลา (ไม่มีบิลของฉัน/ออเดอร์)</p>
+          }
           <div class="app-form-group">
             <label class="app-label">ชื่อเล่น</label>
             <input type="text" formControlName="nickname" class="app-input" />
@@ -167,6 +199,7 @@
                 <col />
                 <col />
                 <col />
+                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -177,6 +210,7 @@
                   <th>รหัสพนักงาน</th>
                   <th>ชื่อเล่น</th>
                   <th>ตำแหน่ง</th>
+                  <th>หน้าที่</th>
                   @if (canManage()) {
                     <th class="app-cell-right">จัดการ</th>
                   }
@@ -188,6 +222,7 @@
             <table class="app-data-table app-split-table-grid">
               <colgroup>
                 <col class="app-col-id" />
+                <col />
                 <col />
                 <col />
                 <col />
@@ -204,6 +239,7 @@
                     <td>
                       <span [class]="roleBadgeClassForEmployee(emp)">{{ roleBadgeLabel(emp) }}</span>
                     </td>
+                    <td>{{ workDutyLabels(emp.workDuties) }}</td>
                     @if (canManage()) {
                       <td class="app-cell-right">
                         @if (canMutateRow(emp) || canDeleteRow(emp)) {

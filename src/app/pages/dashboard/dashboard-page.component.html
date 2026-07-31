@@ -97,32 +97,28 @@
       @if (canPickBillSale()) {
         <div class="dashboard-bill-bar-row dashboard-bill-bar-row--manager">
           <h2 class="dashboard-bill-bar-title">{{ billSectionTitle() }}</h2>
-          @if (saleStaff().length === 0) {
-            <p class="dashboard-bill-bar-empty">ไม่มีพนักงาน SALE ในร้าน</p>
-          } @else {
-            <div class="dashboard-bill-bar-picker">
-              <app-custom-dropdown
-                [options]="saleBillDropdownOptions()"
-                [ngModel]="selectedSaleEmployeeId()"
-                (ngModelChange)="onSaleEmployeeChange($event)"
-                placeholder="เลือกเซลล์"
-              />
-            </div>
-            <div
-              class="dashboard-bill-bar-amount"
-              [class.dashboard-bill-bar-amount--pending]="billLoading()"
-              aria-live="polite"
-            >
-              <span class="dashboard-bill-bar-amount-value">
-                @if (billAmountIsBaht()) {
-                  <span class="dashboard-bill-bar-amount-symbol" aria-hidden="true">฿</span>
-                  <span>{{ billAmountBahtValue() }}</span>
-                } @else {
-                  {{ billAmountDisplay() }}
-                }
-              </span>
-            </div>
-          }
+          <div class="dashboard-bill-bar-picker">
+            <app-custom-dropdown
+              [options]="saleBillDropdownOptions()"
+              [ngModel]="selectedSaleEmployeeId()"
+              (ngModelChange)="onSaleEmployeeChange($event)"
+              placeholder="เลือกยอด"
+            />
+          </div>
+          <div
+            class="dashboard-bill-bar-amount"
+            [class.dashboard-bill-bar-amount--pending]="billLoading()"
+            aria-live="polite"
+          >
+            <span class="dashboard-bill-bar-amount-value">
+              @if (billAmountIsBaht()) {
+                <span class="dashboard-bill-bar-amount-symbol" aria-hidden="true">฿</span>
+                <span>{{ billAmountBahtValue() }}</span>
+              } @else {
+                {{ billAmountDisplay() }}
+              }
+            </span>
+          </div>
         </div>
       } @else {
         <div class="dashboard-bill-bar-row dashboard-bill-bar-row--self">

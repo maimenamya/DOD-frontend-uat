@@ -28,8 +28,10 @@
       @for (zone of zones(); track zone.id) {
         <button
           type="button"
+          role="tab"
           class="app-filter-chip"
           [class.app-filter-chip-active]="selectedZoneId() === zone.id"
+          [attr.aria-selected]="selectedZoneId() === zone.id"
           (click)="selectZone(zone.id)"
         >
           {{ zone.name }}

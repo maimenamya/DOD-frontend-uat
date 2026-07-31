@@ -21,8 +21,8 @@
         class="app-profile-trigger"
         (click)="toggleProfileMenu()"
         [attr.aria-expanded]="profileMenuOpen()"
-        aria-haspopup="true"
-        aria-label="เมนูโปรไฟล์"
+        aria-haspopup="menu"
+        [attr.aria-label]="displayNickname() + ' ' + avatarInitial() + ' เมนูโปรไฟล์'"
       >
         <div class="app-profile-text">
           <span class="app-profile-name">{{ displayNickname() }}</span>

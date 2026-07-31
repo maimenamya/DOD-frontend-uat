@@ -43,7 +43,7 @@ export interface AuthUser {
   roleDisplayNameTh: string;
   roleCategory: RoleCategory;
   permissionGroup: PermissionGroup;
-  /** Station duties for in-app notifications (from MstRole.workDuties). */
+  /** Station duties for menus / notifications (from MstEmployee.workDuties). */
   workDuties?: WorkDuty[];
   shop: {
     id: number;

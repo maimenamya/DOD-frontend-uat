@@ -138,10 +138,9 @@ export function applyShopFlatpickrTimeFromInputs(instance: flatpickr.Instance): 
   hourEl.value = pad2(hours);
   minuteEl.value = pad2(minutes);
 
-  const base = instance.selectedDates[0] ?? new Date();
-  const next = new Date(base.getTime());
-  next.setHours(hours, minutes, 0, 0);
-  instance.setDate(next, true);
+  // Wall-clock string path (same as mobile wheels) — avoid browser-local Date/setHours.
+  const datePart = shopFlatpickrResolveWheelDatePart(instance);
+  instance.setDate(`${datePart} ${pad2(hours)}:${pad2(minutes)}`, true);
 }
 
 type ShopFlatpickrTimeConfirmHooks = {
@@ -646,9 +645,97 @@ export function unmountShopFlatpickrMobileTimeWheels(): void {
 
 function clearShopFlatpickrMobileSheetLayout(instance: flatpickr.Instance): void {
   const cal = instance.calendarContainer;
-  for (const prop of ['position', 'left', 'right', 'bottom', 'top', 'width', 'max-width', 'margin', 'transform']) {
+  for (const prop of [
+    'position',
+    'left',
+    'right',
+    'bottom',
+    'top',
+    'width',
+    'max-width',
+    'max-height',
+    'margin',
+    'transform',
+    'overflow-y',
+    'overflow-x',
+  ]) {
     cal.style.removeProperty(prop);
   }
+  cal.classList.remove('app-scroll-region');
+}
+
+const SHOP_FLATPICKR_VIEWPORT_PAD_PX = 10;
+
+/**
+ * Keep desktop/tablet floating calendar inside the viewport.
+ * Flatpickr `position: auto` often opens below the field and clips time + ยืนยัน.
+ */
+export function fitShopFlatpickrCalendarInViewport(instance: flatpickr.Instance): void {
+  if (isShopFlatpickrMobileViewport()) return;
+  if (!instance.isOpen) return;
+
+  const cal = instance.calendarContainer;
+  cal.style.removeProperty('max-height');
+  cal.style.removeProperty('overflow-y');
+  cal.style.removeProperty('overflow-x');
+  cal.classList.remove('app-scroll-region');
+
+  instance._positionCalendar();
+
+  const pad = SHOP_FLATPICKR_VIEWPORT_PAD_PX;
+  const viewH = globalThis.innerHeight;
+  const viewW = globalThis.innerWidth;
+  const input = (instance.altInput ?? instance.input) as HTMLElement;
+  const inputRect = input.getBoundingClientRect();
+  let rect = cal.getBoundingClientRect();
+
+  const maxH = Math.max(220, viewH - pad * 2);
+  if (rect.height > maxH) {
+    cal.style.setProperty('max-height', `${maxH}px`, 'important');
+    cal.style.setProperty('overflow-y', 'auto', 'important');
+    cal.style.setProperty('overflow-x', 'hidden', 'important');
+    cal.classList.add('app-scroll-region');
+    rect = cal.getBoundingClientRect();
+  }
+
+  let top = rect.top;
+  let left = rect.left;
+
+  const overflowsBottom = rect.bottom > viewH - pad;
+  const overflowsTop = rect.top < pad;
+  if (overflowsBottom || overflowsTop) {
+    const spaceBelow = viewH - inputRect.bottom - pad;
+    const spaceAbove = inputRect.top - pad;
+    const needed = rect.height;
+    if (spaceAbove >= needed || (overflowsBottom && spaceAbove > spaceBelow)) {
+      top = inputRect.top - needed - 6;
+    } else if (overflowsBottom) {
+      top = Math.max(pad, viewH - pad - needed);
+    }
+    if (top < pad) {
+      top = pad;
+      cal.style.setProperty('max-height', `${viewH - pad * 2}px`, 'important');
+      cal.style.setProperty('overflow-y', 'auto', 'important');
+      cal.style.setProperty('overflow-x', 'hidden', 'important');
+      cal.classList.add('app-scroll-region');
+    }
+  }
+
+  if (left + rect.width > viewW - pad) {
+    left = viewW - pad - rect.width;
+  }
+  if (left < pad) left = pad;
+
+  const position = getComputedStyle(cal).position;
+  if (position === 'fixed') {
+    cal.style.setProperty('top', `${top}px`, 'important');
+    cal.style.setProperty('left', `${left}px`, 'important');
+  } else {
+    cal.style.setProperty('top', `${top + globalThis.scrollY}px`, 'important');
+    cal.style.setProperty('left', `${left + globalThis.scrollX}px`, 'important');
+  }
+  cal.style.removeProperty('right');
+  cal.style.removeProperty('bottom');
 }
 
 /** Remove mobile scrim/sheet chrome when picker closes or component destroys. */
@@ -704,7 +791,9 @@ export function syncShopFlatpickrOnOpen(instance: flatpickr.Instance): void {
   } else {
     closeShopFlatpickrMobileChrome();
     clearShopFlatpickrMobileSheetLayout(instance);
-    requestAnimationFrame(() => instance._positionCalendar());
+    // Flatpickr positions after open hooks — fit once layout settles.
+    requestAnimationFrame(() => fitShopFlatpickrCalendarInViewport(instance));
+    globalThis.setTimeout(() => fitShopFlatpickrCalendarInViewport(instance), 0);
   }
 }
 

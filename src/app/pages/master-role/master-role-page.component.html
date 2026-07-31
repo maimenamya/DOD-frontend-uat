@@ -40,22 +40,6 @@
             placeholder="เลือกประเภท"
           />
         </div>
-        @if (showWorkDutiesForForm('create')) {
-          <div class="app-form-group">
-            <label class="app-label">หน้าที่ทำงาน</label>
-            <app-custom-dropdown
-              formControlName="workDuties"
-              [options]="workDutyDropdownOptions"
-              [multiple]="true"
-              placeholder="เลือกหน้าที่ (เช่น เซลล์, เซอร์วิส, ครัว, บาร์)"
-            />
-            <p class="app-field-hint">
-              กำหนดเมนูที่เห็น — เซลล์=บิลของฉัน · ครัว/บาร์/เซอร์วิส=ออเดอร์ (ไม่มีภาพรวม)
-            </p>
-          </div>
-        } @else if (showEntertainerMenuHint('create')) {
-          <p class="app-field-hint">เด็กนั่งดริ้ง — เห็นภาพรวมและลงเวลา (ไม่มีบิลของฉัน/ออเดอร์)</p>
-        }
         @if (createIsStaff() || createIsEntertainer()) {
           <div class="app-form-group">
             <label class="app-label">โควต้าลา (วัน/เดือน)</label>
@@ -214,22 +198,6 @@
             placeholder="เลือกประเภท"
           />
         </div>
-        @if (showWorkDutiesForForm('edit')) {
-          <div class="app-form-group">
-            <label class="app-label">หน้าที่ทำงาน</label>
-            <app-custom-dropdown
-              formControlName="workDuties"
-              [options]="workDutyDropdownOptions"
-              [multiple]="true"
-              placeholder="เลือกหน้าที่ (เช่น เซลล์, เซอร์วิส, ครัว, บาร์)"
-            />
-            <p class="app-field-hint">
-              กำหนดเมนูที่เห็น — เซลล์=บิลของฉัน · ครัว/บาร์/เซอร์วิส=ออเดอร์ (ไม่มีภาพรวม)
-            </p>
-          </div>
-        } @else if (showEntertainerMenuHint('edit')) {
-          <p class="app-field-hint">เด็กนั่งดริ้ง — เห็นภาพรวมและลงเวลา (ไม่มีบิลของฉัน/ออเดอร์)</p>
-        }
         @if (editIsStaff() || editIsEntertainer()) {
           <div class="app-form-group">
             <label class="app-label">โควต้าลา (วัน/เดือน)</label>
@@ -393,7 +361,6 @@
                 <col />
                 <col />
                 <col />
-                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -405,7 +372,6 @@
                   <th>ชื่อแสดง</th>
                   <th>กลุ่มสิทธิ์</th>
                   <th>ประเภท</th>
-                  <th>รับแจ้งเตือน</th>
                   <th class="app-cell-right">สตาร์ทดื่ม</th>
                   <th class="app-cell-right">รันดื่ม/ชม.</th>
                   <th class="app-cell-right">ราคา</th>
@@ -429,7 +395,6 @@
                 <col />
                 <col />
                 <col />
-                <col />
                 @if (canManage()) {
                   <col class="app-col-actions" />
                 }
@@ -442,7 +407,6 @@
                     <td>{{ roleDisplayNameTh(role) }}</td>
                     <td>{{ permissionGroupLabel(role.permissionGroup) }}</td>
                     <td>{{ categoryLabel(role.category) }}</td>
-                    <td>{{ workDutyLabels(role.workDuties) }}</td>
                     <td class="app-cell-right">{{ role.startDrinks }}</td>
                     <td class="app-cell-right">{{ role.nextHourDrinks }}</td>
                     <td class="app-cell-right app-cell-highlight-violet">
