@@ -196,10 +196,9 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
         this.drag = null;
         return;
       }
-      const scaleX = this.canvasWidth() / rect.width;
-      const scaleY = this.canvasHeight() / rect.height;
-      const x = (ev.clientX - rect.left) * scaleX - 40;
-      const y = (ev.clientY - rect.top) * scaleY - 40;
+      // Seats use fixed design px (not % of stretched canvas) — do not scale by rect size.
+      const x = ev.clientX - rect.left - 40;
+      const y = ev.clientY - rect.top - 40;
       this.placeSeat(this.drag.seatingId, x, y);
       this.drag = null;
     };
@@ -250,10 +249,10 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     if (this.drag.kind === 'move') {
       const canvas = event.currentTarget as HTMLElement;
       const rect = canvas.getBoundingClientRect();
-      const scaleX = this.canvasWidth() / rect.width;
-      const scaleY = this.canvasHeight() / rect.height;
-      const x = (event.clientX - rect.left) * scaleX - this.drag.offsetX * scaleX;
-      const y = (event.clientY - rect.top) * scaleY - this.drag.offsetY * scaleY;
+      // Seats use fixed design px; canvas may stretch wider than 1200 via grid.
+      // Scaling by canvasWidth/rect.width made tables jump left on first move.
+      const x = event.clientX - rect.left - this.drag.offsetX;
+      const y = event.clientY - rect.top - this.drag.offsetY;
       this.moveSeat(this.drag.seatingId, x, y);
       return;
     }
