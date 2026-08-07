@@ -1340,28 +1340,14 @@
 
         @if (orderLedgerCategory() === 'PROMOTION' || orderLedgerCategory() === 'MEMBER') {
           <div class="app-form-group">
-            <div class="app-filter-bar" role="tablist" aria-label="โหมดเปิดโปรหรือเมม">
-              <button
-                type="button"
-                role="tab"
-                class="app-filter-chip"
-                [class.app-filter-chip-active]="packageOpenMode() === 'NEW'"
-                [attr.aria-selected]="packageOpenMode() === 'NEW'"
-                (click)="onPackageOpenModeChange('NEW')"
-              >
-                เปิดใหม่
-              </button>
-              <button
-                type="button"
-                role="tab"
-                class="app-filter-chip"
-                [class.app-filter-chip-active]="packageOpenMode() === 'DEPOSIT'"
-                [attr.aria-selected]="packageOpenMode() === 'DEPOSIT'"
-                (click)="onPackageOpenModeChange('DEPOSIT')"
-              >
-                ฝาก
-              </button>
-            </div>
+            <label class="app-label" for="open-table-โหมดโปรเมม">โหมดโปร / เมม</label>
+            <app-custom-dropdown
+              inputId="open-table-โหมดโปรเมม"
+              [options]="packageOpenModeOptions"
+              [ngModel]="packageOpenMode()"
+              (ngModelChange)="onPackageOpenModeChange($event)"
+              placeholder="เลือกโหมด"
+            />
           </div>
         }
 
@@ -1506,20 +1492,14 @@
 
       @if (addModalMode() === 'STAFF_LEDGER') {
         <div class="app-form-group">
-          <div class="app-filter-bar" role="tablist" aria-label="โหมดลงดื่ม">
-            @for (opt of staffLedgerEntryModeOptions; track opt.value) {
-              <button
-                type="button"
-                role="tab"
-                class="app-filter-chip"
-                [class.app-filter-chip-active]="staffLedgerEntryMode() === opt.value"
-                [attr.aria-selected]="staffLedgerEntryMode() === opt.value"
-                (click)="onStaffLedgerEntryModeChange(opt.value)"
-              >
-                {{ opt.label }}
-              </button>
-            }
-          </div>
+          <label class="app-label" for="open-table-ประเภทลงดื่ม">ประเภทลงดื่ม</label>
+          <app-custom-dropdown
+            inputId="open-table-ประเภทลงดื่ม"
+            [options]="staffLedgerEntryModeOptions"
+            [ngModel]="staffLedgerEntryMode()"
+            (ngModelChange)="onStaffLedgerEntryModeChange($event)"
+            placeholder="เลือกประเภท"
+          />
         </div>
 
         <div class="app-form-group">

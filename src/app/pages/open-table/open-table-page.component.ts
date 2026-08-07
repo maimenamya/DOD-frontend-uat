@@ -321,6 +321,10 @@ export class OpenTablePageComponent implements OnInit {
   readonly orderCocktailStaffEmployeeId = signal<number | null>(null);
   readonly orderQtyText = signal('1');
   readonly packageOpenMode = signal<PackageOpenMode>('NEW');
+  readonly packageOpenModeOptions: DropdownOption[] = [
+    { value: 'NEW', label: 'เปิดใหม่' },
+    { value: 'DEPOSIT', label: 'ฝาก' },
+  ];
   readonly packageCustomerCode = signal('');
   readonly packageCustomerName = signal('');
   readonly selectedPackageDepositId = signal<number | null>(null);
@@ -2145,7 +2149,8 @@ export class OpenTablePageComponent implements OnInit {
     );
   }
 
-  onPackageOpenModeChange(mode: PackageOpenMode): void {
+  onPackageOpenModeChange(value: number | string | null): void {
+    const mode: PackageOpenMode = value === 'DEPOSIT' ? 'DEPOSIT' : 'NEW';
     this.packageOpenMode.set(mode);
     this.syncPackageDepositSelection();
   }
