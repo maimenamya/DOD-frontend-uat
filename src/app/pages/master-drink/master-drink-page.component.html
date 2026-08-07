@@ -144,7 +144,7 @@
           }
         </div>
         <div class="app-form-group">
-          <span class="app-label">รูปเมนู (สำหรับ QR สั่ง)</span>
+          <span class="app-label">รูปเมนู</span>
           <div class="mt-1 flex flex-wrap items-center gap-3">
             @if (item.imageUrl) {
               <img
@@ -159,7 +159,7 @@
                 ไม่มีรูป
               </div>
             }
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               <label class="app-btn-secondary-sm cursor-pointer">
                 {{ uploadingImage() ? 'กำลังอัปโหลด...' : 'เลือกรูป' }}
                 <input
@@ -182,7 +182,6 @@
               }
             </div>
           </div>
-          <p class="app-hint mt-1">ระบบจะย่อรูปอัตโนมัติก่อนอัปโหลด (แนะนำรูปสี่เหลี่ยมจัตุรัส)</p>
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-drink-เหตุผลการแก้ไข-ลบ-11">เหตุผลการแก้ไข/ลบ</label>
