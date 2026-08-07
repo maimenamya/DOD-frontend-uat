@@ -172,33 +172,35 @@
               <p class="floor-editor__toolbar-empty">ยังไม่ได้เลือก</p>
               <p class="app-hint mb-0">กด «เพิ่มพื้นที่» หรือคลิกกล่องบนผัง</p>
             }
-          } @else if (selected(); as sel) {
-            <p class="floor-editor__toolbar-label">แก้ไข {{ sel.code }}</p>
-            <div class="floor-editor__toolbar-fields">
-              <div class="app-form-group">
-                <label class="app-label" for="master-seating-floor-layout-รูปทรง-1">รูปทรง</label>
-                <app-custom-dropdown inputId="master-seating-floor-layout-รูปทรง-1"
-                  [options]="shapeOptions"
-                  [ngModel]="sel.shape"
-                  (ngModelChange)="onShapeChange($event)"
-                />
-              </div>
-              <div class="app-form-group">
-                <label class="app-label" for="master-seating-floor-layout-ขนาด-2">ขนาด</label>
-                <app-custom-dropdown inputId="master-seating-floor-layout-ขนาด-2"
-                  [options]="sizeOptions"
-                  [ngModel]="sel.size"
-                  (ngModelChange)="onSizeChange($event)"
-                />
-              </div>
-              <button type="button" class="app-btn-danger self-end" (click)="removeSelected()">
-                เอาออกจากผัง
-              </button>
-            </div>
           } @else {
-            <p class="floor-editor__toolbar-label">แก้ไขโต๊ะ</p>
-            <p class="floor-editor__toolbar-empty">ไม่มีข้อมูล</p>
-            <p class="app-hint mb-0">คลิกโต๊ะบนผังเพื่อแก้ขนาด / รูปทรง</p>
+            @if (selected(); as sel) {
+              <p class="floor-editor__toolbar-label">แก้ไข {{ sel.code }}</p>
+              <div class="floor-editor__toolbar-fields">
+                <div class="app-form-group">
+                  <label class="app-label" for="master-seating-floor-layout-รูปทรง-1">รูปทรง</label>
+                  <app-custom-dropdown inputId="master-seating-floor-layout-รูปทรง-1"
+                    [options]="shapeOptions"
+                    [ngModel]="sel.shape"
+                    (ngModelChange)="onShapeChange($event)"
+                  />
+                </div>
+                <div class="app-form-group">
+                  <label class="app-label" for="master-seating-floor-layout-ขนาด-2">ขนาด</label>
+                  <app-custom-dropdown inputId="master-seating-floor-layout-ขนาด-2"
+                    [options]="sizeOptions"
+                    [ngModel]="sel.size"
+                    (ngModelChange)="onSizeChange($event)"
+                  />
+                </div>
+                <button type="button" class="app-btn-danger self-end" (click)="removeSelected()">
+                  เอาออกจากผัง
+                </button>
+              </div>
+            } @else {
+              <p class="floor-editor__toolbar-label">แก้ไขโต๊ะ</p>
+              <p class="floor-editor__toolbar-empty">ไม่มีข้อมูล</p>
+              <p class="app-hint mb-0">คลิกโต๊ะบนผังเพื่อแก้ขนาด / รูปทรง</p>
+            }
           }
         </div>
 
