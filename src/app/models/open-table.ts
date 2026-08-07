@@ -11,6 +11,15 @@ export type FloorPlanSeatLayout = {
   size: FloorLayoutSize;
 };
 
+export type FloorPlanArea = {
+  id: number;
+  name: string;
+  posX: number;
+  posY: number;
+  width: number;
+  height: number;
+};
+
 export type FloorPlanSeat = {
   id: number;
   code: string;
@@ -60,6 +69,8 @@ export type FloorPlanSeatingType = {
 export type OpenTableFloorPlan = {
   viewMode?: 'full' | 'self_bill';
   floorCanvas?: { width: number; height: number };
+  /** Non-seat markers (bathroom, stage, …) — display only. */
+  floorAreas?: FloorPlanArea[];
   kpi?: FloorPlanKpi;
   seatingTypes: FloorPlanSeatingType[];
   seatings: FloorPlanSeat[];

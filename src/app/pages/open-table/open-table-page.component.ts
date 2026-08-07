@@ -27,6 +27,7 @@ import type {
   AddItemsPayload,
   CheckoutPreview,
   CheckoutResult,
+  FloorPlanArea,
   FloorPlanKpi,
   FloorPlanSeatLayout,
   StopStaffDrinkPreview,
@@ -37,7 +38,7 @@ import type {
   SessionRoomCharge,
   SessionStaffDrink,
 } from '../../models/open-table';
-import { floorLayoutSeatBoxStyle } from '../../models/seating-floor-layout';
+import { floorLayoutAreaBoxStyle, floorLayoutSeatBoxStyle } from '../../models/seating-floor-layout';
 import type { SeatingRateType } from '../../models/seating';
 import {
   ROOM_CHARGE_MODE_OPTIONS,
@@ -194,6 +195,7 @@ export class OpenTablePageComponent implements OnInit {
   readonly statusFilter = signal<SeatStatusFilter>('ALL');
   readonly floorDisplayMode = signal<FloorDisplayMode>(readFloorDisplayMode());
   readonly floorCanvas = signal<{ width: number; height: number }>({ width: 1200, height: 800 });
+  readonly floorAreas = signal<FloorPlanArea[]>([]);
   readonly checkInGuestCountText = signal('1');
   readonly selectedSeatKey = signal<string | null>(null);
   readonly showMobileSheet = signal(false);
@@ -1630,7 +1632,13 @@ export class OpenTablePageComponent implements OnInit {
       .pipe(
         catchError(() => {
           this.toast.showError('ไม่สามารถโหลดแผนผังโต๊ะได้');
-          return of({ seatingTypes: [], seatings: [], kpi: undefined, floorCanvas: undefined });
+          return of({
+            seatingTypes: [],
+            seatings: [],
+            kpi: undefined,
+            floorCanvas: undefined,
+            floorAreas: [],
+          });
         }),
         finalize(() => {
           this.loading.set(false);
@@ -1646,6 +1654,7 @@ export class OpenTablePageComponent implements OnInit {
         if (plan.floorCanvas) {
           this.floorCanvas.set(plan.floorCanvas);
         }
+        this.floorAreas.set(plan.floorAreas ?? []);
         this.seatingTypeZones.set(
           plan.seatingTypes.map((t) => ({
             id: t.id,
@@ -2602,6 +2611,10 @@ export class OpenTablePageComponent implements OnInit {
       canvas.width,
       canvas.height,
     );
+  }
+
+  layoutAreaStyle(area: FloorPlanArea): Record<string, string> {
+    return floorLayoutAreaBoxStyle(area.posX, area.posY, area.width, area.height);
   }
 
   selectSeat(seat: SeatTile): void {

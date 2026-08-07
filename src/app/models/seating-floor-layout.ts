@@ -26,12 +26,24 @@ export type FloorLayoutZone = {
   code: string;
 };
 
+export type FloorLayoutArea = {
+  /** Stable client key (server id or temp). */
+  key: string;
+  id: number;
+  name: string;
+  posX: number;
+  posY: number;
+  width: number;
+  height: number;
+};
+
 export type FloorLayoutBoard = {
   canvasWidth: number;
   canvasHeight: number;
   zones: FloorLayoutZone[];
   placed: FloorLayoutPlacedSeat[];
   unplaced: FloorLayoutUnplacedSeat[];
+  areas?: FloorLayoutArea[];
 };
 
 export type FloorLayoutWriteItem = {
@@ -41,6 +53,17 @@ export type FloorLayoutWriteItem = {
   shape: FloorLayoutShape;
   size: FloorLayoutSize;
 };
+
+export type FloorLayoutAreaWriteItem = {
+  name: string;
+  posX: number;
+  posY: number;
+  width: number;
+  height: number;
+};
+
+export const DEFAULT_FLOOR_AREA_WIDTH = 120;
+export const DEFAULT_FLOOR_AREA_HEIGHT = 80;
 
 export const FLOOR_LAYOUT_SHAPE_OPTIONS: Array<{ value: FloorLayoutShape; label: string }> = [
   { value: 'RECT_H', label: 'สี่เหลี่ยมผืนผ้า (แนวนอน)' },
@@ -100,4 +123,39 @@ export function floorLayoutSeatBoxStyle(
     height: `${box.height}px`,
     borderRadius: shape === 'CIRCLE' ? '999px' : '8px',
   };
+}
+
+export function floorLayoutAreaBoxStyle(
+  posX: number,
+  posY: number,
+  width: number,
+  height: number,
+): Record<string, string> {
+  return {
+    left: `${Math.round(posX)}px`,
+    top: `${Math.round(posY)}px`,
+    width: `${Math.round(width)}px`,
+    height: `${Math.round(height)}px`,
+  };
+}
+
+export function mapFloorLayoutAreasFromApi(
+  rows: Array<{
+    id: number;
+    name: string;
+    posX: number;
+    posY: number;
+    width: number;
+    height: number;
+  }> | null | undefined,
+): FloorLayoutArea[] {
+  return (rows ?? []).map((row) => ({
+    key: `area-${row.id}`,
+    id: row.id,
+    name: row.name,
+    posX: row.posX,
+    posY: row.posY,
+    width: row.width,
+    height: row.height,
+  }));
 }

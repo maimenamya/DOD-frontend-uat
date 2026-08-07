@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import { ApiConfig } from '../core/api-config';
 import type {
+  FloorLayoutAreaWriteItem,
   FloorLayoutBoard,
   FloorLayoutWriteItem,
 } from '../models/seating-floor-layout';
@@ -17,9 +18,13 @@ export class SeatingFloorLayoutService {
     return this.http.get<FloorLayoutBoard>(this.api.resource('seating-floor-layouts'));
   }
 
-  saveBoard(items: FloorLayoutWriteItem[]): Observable<FloorLayoutBoard> {
+  saveBoard(
+    items: FloorLayoutWriteItem[],
+    areas: FloorLayoutAreaWriteItem[],
+  ): Observable<FloorLayoutBoard> {
     return this.http.put<FloorLayoutBoard>(this.api.resource('seating-floor-layouts'), {
       items,
+      areas,
     });
   }
 }

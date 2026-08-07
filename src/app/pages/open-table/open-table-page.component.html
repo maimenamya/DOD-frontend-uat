@@ -211,6 +211,15 @@
               [style.--floor-canvas-w]="floorCanvas().width"
               [style.--floor-canvas-h]="floorCanvas().height"
             >
+              @for (area of floorAreas(); track area.id) {
+                <div
+                  class="open-table-layout-area"
+                  [style]="layoutAreaStyle(area)"
+                  aria-hidden="true"
+                >
+                  {{ area.name }}
+                </div>
+              }
               @for (seat of layoutSeats(); track seat.key) {
                 <button
                   type="button"

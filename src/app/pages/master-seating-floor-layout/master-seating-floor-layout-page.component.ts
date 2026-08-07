@@ -4,10 +4,16 @@ import { FormsModule } from '@angular/forms';
 import { CustomDropdownComponent } from '../../components/custom-dropdown/custom-dropdown.component';
 import type { DropdownOption } from '../../components/custom-dropdown/custom-dropdown.component';
 import {
+  DEFAULT_FLOOR_AREA_HEIGHT,
+  DEFAULT_FLOOR_AREA_WIDTH,
   FLOOR_LAYOUT_SHAPE_OPTIONS,
   FLOOR_LAYOUT_SIZE_OPTIONS,
+  floorLayoutAreaBoxStyle,
   floorLayoutBoxSize,
   floorLayoutSeatBoxStyle,
+  mapFloorLayoutAreasFromApi,
+  type FloorLayoutArea,
+  type FloorLayoutAreaWriteItem,
   type FloorLayoutPlacedSeat,
   type FloorLayoutShape,
   type FloorLayoutSize,
@@ -20,6 +26,7 @@ import { ToastService } from '../../services/toast.service';
 
 type DragState =
   | { kind: 'move'; seatingId: number; offsetX: number; offsetY: number }
+  | { kind: 'move-area'; areaKey: string; offsetX: number; offsetY: number }
   | { kind: 'place'; seatingId: number }
   | { kind: 'pan'; startX: number; startY: number; scrollLeft: number; scrollTop: number }
   | null;
@@ -42,12 +49,17 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   readonly zones = signal<FloorLayoutZone[]>([]);
   readonly placed = signal<FloorLayoutPlacedSeat[]>([]);
   readonly unplaced = signal<FloorLayoutUnplacedSeat[]>([]);
+  readonly areas = signal<FloorLayoutArea[]>([]);
   readonly selectedZoneId = signal<number | null>(null);
+  /** When true, edit non-seat areas (ห้องน้ำ / เวที / …). */
+  readonly areasTabActive = signal(false);
   readonly selectedSeatingId = signal<number | null>(null);
+  readonly selectedAreaKey = signal<string | null>(null);
   readonly dirty = signal(false);
   readonly isPanning = signal(false);
 
   private drag: DragState = null;
+  private nextTempAreaId = -1;
 
   constructor() {
     effect((onCleanup) => {
@@ -70,6 +82,7 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   }));
 
   readonly selectedZone = computed(() => {
+    if (this.areasTabActive()) return null;
     const id = this.selectedZoneId();
     if (id == null) return null;
     return this.zones().find((z) => z.id === id) ?? null;
@@ -93,6 +106,12 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     return this.zonePlaced().find((row) => row.seatingId === id) ?? null;
   });
 
+  readonly selectedArea = computed(() => {
+    const key = this.selectedAreaKey();
+    if (key == null) return null;
+    return this.areas().find((row) => row.key === key) ?? null;
+  });
+
   ngOnInit(): void {
     this.reload();
   }
@@ -106,7 +125,9 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
         this.zones.set(board.zones ?? []);
         this.placed.set(board.placed);
         this.unplaced.set(sortUnplacedByCode(board.unplaced));
+        this.areas.set(mapFloorLayoutAreasFromApi(board.areas));
         this.selectedSeatingId.set(null);
+        this.selectedAreaKey.set(null);
         this.dirty.set(false);
         this.ensureZoneSelection(board.zones ?? []);
         this.loading.set(false);
@@ -119,9 +140,17 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   }
 
   selectZone(zoneId: number): void {
+    this.areasTabActive.set(false);
     if (this.selectedZoneId() === zoneId) return;
     this.selectedZoneId.set(zoneId);
     this.selectedSeatingId.set(null);
+    this.selectedAreaKey.set(null);
+  }
+
+  selectAreasTab(): void {
+    this.areasTabActive.set(true);
+    this.selectedSeatingId.set(null);
+    this.selectedAreaKey.set(null);
   }
 
   boxStyle(row: FloorLayoutPlacedSeat): Record<string, string> {
@@ -135,8 +164,64 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     );
   }
 
+  areaStyle(row: FloorLayoutArea): Record<string, string> {
+    return floorLayoutAreaBoxStyle(row.posX, row.posY, row.width, row.height);
+  }
+
   selectSeat(seatingId: number): void {
     this.selectedSeatingId.set(seatingId);
+    this.selectedAreaKey.set(null);
+  }
+
+  selectArea(key: string): void {
+    this.selectedAreaKey.set(key);
+    this.selectedSeatingId.set(null);
+  }
+
+  addArea(): void {
+    const id = this.nextTempAreaId--;
+    const width = DEFAULT_FLOOR_AREA_WIDTH;
+    const height = DEFAULT_FLOOR_AREA_HEIGHT;
+    const clamped = this.clampPos(40, 40, width, height);
+    const key = `temp-${id}`;
+    const row: FloorLayoutArea = {
+      key,
+      id,
+      name: 'พื้นที่ว่าง',
+      posX: clamped.x,
+      posY: clamped.y,
+      width,
+      height,
+    };
+    this.areas.update((rows) => [...rows, row]);
+    this.selectedAreaKey.set(key);
+    this.dirty.set(true);
+  }
+
+  onAreaNameChange(value: string): void {
+    const key = this.selectedAreaKey();
+    if (key == null) return;
+    const name = value.trim().slice(0, 40);
+    this.areas.update((rows) =>
+      rows.map((row) => (row.key === key ? { ...row, name: name || row.name } : row)),
+    );
+    this.dirty.set(true);
+  }
+
+  onAreaWidthChange(value: string | number): void {
+    this.patchSelectedAreaSize({ width: Number(value) });
+  }
+
+  onAreaHeightChange(value: string | number): void {
+    this.patchSelectedAreaSize({ height: Number(value) });
+  }
+
+  removeSelectedArea(): void {
+    const key = this.selectedAreaKey();
+    if (key == null) return;
+    this.areas.update((rows) => rows.filter((r) => r.key !== key));
+    this.selectedAreaKey.set(null);
+    this.dirty.set(true);
   }
 
   onShapeChange(value: string | number | null): void {
@@ -196,7 +281,6 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
         this.drag = null;
         return;
       }
-      // Seats use fixed design px (not % of stretched canvas) — do not scale by rect size.
       const x = ev.clientX - rect.left - 40;
       const y = ev.clientY - rect.top - 40;
       this.placeSeat(this.drag.seatingId, x, y);
@@ -207,6 +291,7 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   }
 
   onPlacedPointerDown(event: PointerEvent, seat: FloorLayoutPlacedSeat): void {
+    if (this.areasTabActive()) return;
     event.preventDefault();
     event.stopPropagation();
     this.selectSeat(seat.seatingId);
@@ -222,17 +307,35 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     target.setPointerCapture?.(event.pointerId);
   }
 
+  onAreaPointerDown(event: PointerEvent, area: FloorLayoutArea): void {
+    if (!this.areasTabActive()) return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.selectArea(area.key);
+    const target = event.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    this.drag = {
+      kind: 'move-area',
+      areaKey: area.key,
+      offsetX: event.clientX - rect.left,
+      offsetY: event.clientY - rect.top,
+    };
+    this.isPanning.set(false);
+    target.setPointerCapture?.(event.pointerId);
+  }
+
   /** Pan the scroll wrap by dragging empty canvas (no Shift needed; works on touch). */
   onCanvasBackgroundPointerDown(event: PointerEvent): void {
     if (event.button !== 0) return;
     const target = event.target as HTMLElement | null;
-    if (target?.closest('.floor-editor__seat')) return;
+    if (target?.closest('.floor-editor__seat, .floor-editor__area')) return;
     const wrap = (event.currentTarget as HTMLElement).closest(
       '.floor-editor__canvas-wrap',
     ) as HTMLElement | null;
     if (!wrap) return;
     event.preventDefault();
     this.selectedSeatingId.set(null);
+    this.selectedAreaKey.set(null);
     this.drag = {
       kind: 'pan',
       startX: event.clientX,
@@ -249,11 +352,17 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     if (this.drag.kind === 'move') {
       const canvas = event.currentTarget as HTMLElement;
       const rect = canvas.getBoundingClientRect();
-      // Seats use fixed design px; canvas may stretch wider than 1200 via grid.
-      // Scaling by canvasWidth/rect.width made tables jump left on first move.
       const x = event.clientX - rect.left - this.drag.offsetX;
       const y = event.clientY - rect.top - this.drag.offsetY;
       this.moveSeat(this.drag.seatingId, x, y);
+      return;
+    }
+    if (this.drag.kind === 'move-area') {
+      const canvas = event.currentTarget as HTMLElement;
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left - this.drag.offsetX;
+      const y = event.clientY - rect.top - this.drag.offsetY;
+      this.moveArea(this.drag.areaKey, x, y);
       return;
     }
     if (this.drag.kind === 'pan') {
@@ -267,23 +376,27 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   }
 
   onCanvasPointerUp(_event: PointerEvent): void {
-    if (this.drag?.kind === 'move' || this.drag?.kind === 'pan') {
+    if (
+      this.drag?.kind === 'move' ||
+      this.drag?.kind === 'move-area' ||
+      this.drag?.kind === 'pan'
+    ) {
       this.drag = null;
       this.isPanning.set(false);
     }
   }
 
   onWindowPointerUp(): void {
-    if (this.drag?.kind === 'move' || this.drag?.kind === 'pan') {
+    if (
+      this.drag?.kind === 'move' ||
+      this.drag?.kind === 'move-area' ||
+      this.drag?.kind === 'pan'
+    ) {
       this.drag = null;
       this.isPanning.set(false);
     }
   }
 
-  /**
-   * Mouse wheel scrolls the floor without requiring Shift (also pans horizontally).
-   * Trackpad two-finger scroll uses both deltaX and deltaY.
-   */
   onCanvasWrapWheel(event: WheelEvent, el: HTMLElement): void {
     if (event.ctrlKey) return;
     event.preventDefault();
@@ -293,6 +406,12 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
 
   save(): void {
     if (this.saving()) return;
+    for (const area of this.areas()) {
+      if (!area.name.trim()) {
+        this.toast.showError('กรุณาใส่ชื่อพื้นที่ให้ครบ');
+        return;
+      }
+    }
     const items: FloorLayoutWriteItem[] = this.placed().map((row) => ({
       seatingId: row.seatingId,
       posX: row.posX,
@@ -300,12 +419,21 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
       shape: row.shape,
       size: row.size,
     }));
+    const areaItems: FloorLayoutAreaWriteItem[] = this.areas().map((row) => ({
+      name: row.name.trim(),
+      posX: row.posX,
+      posY: row.posY,
+      width: row.width,
+      height: row.height,
+    }));
     this.saving.set(true);
-    this.layoutService.saveBoard(items).subscribe({
+    this.layoutService.saveBoard(items, areaItems).subscribe({
       next: (board) => {
         this.zones.set(board.zones ?? []);
         this.placed.set(board.placed);
         this.unplaced.set(sortUnplacedByCode(board.unplaced));
+        this.areas.set(mapFloorLayoutAreasFromApi(board.areas));
+        this.selectedAreaKey.set(null);
         this.ensureZoneSelection(board.zones ?? []);
         this.dirty.set(false);
         this.saving.set(false);
@@ -321,11 +449,14 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   private ensureZoneSelection(zones: FloorLayoutZone[]): void {
     if (zones.length === 0) {
       this.selectedZoneId.set(null);
+      if (!this.areasTabActive()) this.areasTabActive.set(true);
       return;
     }
     const current = this.selectedZoneId();
     if (current != null && zones.some((z) => z.id === current)) return;
-    this.selectedZoneId.set(zones[0]!.id);
+    if (!this.areasTabActive()) {
+      this.selectedZoneId.set(zones[0]!.id);
+    }
   }
 
   private placeSeat(seatingId: number, posX: number, posY: number): void {
@@ -367,6 +498,18 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     this.dirty.set(true);
   }
 
+  private moveArea(areaKey: string, posX: number, posY: number): void {
+    const area = this.areas().find((row) => row.key === areaKey);
+    if (!area) return;
+    const clamped = this.clampPos(posX, posY, area.width, area.height);
+    this.areas.update((rows) =>
+      rows.map((row) =>
+        row.key === areaKey ? { ...row, posX: clamped.x, posY: clamped.y } : row,
+      ),
+    );
+    this.dirty.set(true);
+  }
+
   private patchSelected(patch: Partial<Pick<FloorLayoutPlacedSeat, 'shape' | 'size'>>): void {
     const id = this.selectedSeatingId();
     if (id == null) return;
@@ -377,6 +520,21 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
         const box = floorLayoutBoxSize(next.shape, next.size);
         const clamped = this.clampPos(next.posX, next.posY, box.width, box.height);
         return { ...next, posX: clamped.x, posY: clamped.y };
+      }),
+    );
+    this.dirty.set(true);
+  }
+
+  private patchSelectedAreaSize(patch: Partial<Pick<FloorLayoutArea, 'width' | 'height'>>): void {
+    const key = this.selectedAreaKey();
+    if (key == null) return;
+    this.areas.update((rows) =>
+      rows.map((row) => {
+        if (row.key !== key) return row;
+        const width = clampAreaEdge(patch.width ?? row.width);
+        const height = clampAreaEdge(patch.height ?? row.height);
+        const clamped = this.clampPos(row.posX, row.posY, width, height);
+        return { ...row, width, height, posX: clamped.x, posY: clamped.y };
       }),
     );
     this.dirty.set(true);
@@ -399,4 +557,9 @@ function sortUnplacedByCode(rows: FloorLayoutUnplacedSeat[]): FloorLayoutUnplace
   return [...rows].sort((a, b) =>
     a.code.localeCompare(b.code, 'th', { numeric: true, sensitivity: 'base' }),
   );
+}
+
+function clampAreaEdge(n: number): number {
+  if (!Number.isFinite(n)) return DEFAULT_FLOOR_AREA_WIDTH;
+  return Math.min(Math.max(Math.round(n), 24), 600);
 }

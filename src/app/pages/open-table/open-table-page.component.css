@@ -905,9 +905,31 @@
   margin-bottom: 0.75rem;
 }
 
+.open-table-layout-area {
+  position: absolute;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 1.5px dashed color-mix(in srgb, var(--text-secondary) 50%, var(--border));
+  background: color-mix(in srgb, var(--text-secondary) 8%, var(--card-bg));
+  color: var(--text-secondary);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.15;
+  padding: 0.15rem;
+  overflow: hidden;
+  border-radius: 8px;
+  pointer-events: none;
+  user-select: none;
+}
+
 .open-table-layout-seat {
   --seat-card-accent-rgb: 148, 163, 184;
   position: absolute;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
