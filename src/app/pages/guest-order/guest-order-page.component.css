@@ -211,19 +211,6 @@
   padding-inline: 0.5rem;
 }
 
-.guest-order-cart-row__deposit {
-  display: grid;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.guest-order-cart-row__deposit label {
-  display: grid;
-  gap: 0.25rem;
-  font-size: 0.85rem;
-  color: var(--text-secondary, #94a3b8);
-}
-
 .guest-order-cart-sheet__footer {
   padding: 1rem;
   border-top: 1px solid var(--theme-border, #334155);

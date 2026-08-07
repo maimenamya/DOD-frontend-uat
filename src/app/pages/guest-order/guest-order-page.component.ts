@@ -119,7 +119,6 @@ export class GuestOrderPageComponent implements OnInit {
 
   addToCart(item: GuestMenuItem, type: GuestOrderItemType): void {
     this.successMessage.set(null);
-    const allowDeposit = item.allowDeposit === true;
     const key = `${type}:${item.id}`;
     const existing = this.cart().find((row) => row.key === key);
     if (existing) {
@@ -140,9 +139,6 @@ export class GuestOrderPageComponent implements OnInit {
         unitPrice: item.price,
         unitLabelTh: item.unitLabelTh,
         quantity: 1,
-        allowDeposit,
-        customerName: '',
-        customerCode: '',
       },
     ]);
   }
@@ -156,12 +152,6 @@ export class GuestOrderPageComponent implements OnInit {
             : row,
         )
         .filter((row) => row.quantity > 0),
-    );
-  }
-
-  updateCartCustomer(key: string, field: 'customerName' | 'customerCode', value: string): void {
-    this.cart.update((rows) =>
-      rows.map((row) => (row.key === key ? { ...row, [field]: value } : row)),
     );
   }
 
@@ -184,13 +174,6 @@ export class GuestOrderPageComponent implements OnInit {
       this.error.set('กรุณาเลือกรายการอย่างน้อย 1 รายการ');
       return;
     }
-    for (const row of lines) {
-      if (row.allowDeposit && !row.customerCode.trim()) {
-        this.error.set(`โปร/เมม “${row.name}” ต้องกรอกรหัสลูกค้า`);
-        this.cartOpen.set(true);
-        return;
-      }
-    }
 
     this.submitting.set(true);
     this.error.set(null);
@@ -203,8 +186,6 @@ export class GuestOrderPageComponent implements OnInit {
           itemId: row.itemId,
           quantity: row.quantity,
           type: row.type,
-          customerName: row.allowDeposit ? row.customerName.trim() || undefined : undefined,
-          customerCode: row.allowDeposit ? row.customerCode.trim() || undefined : undefined,
         })),
         this.shopPublicId() || undefined,
       )

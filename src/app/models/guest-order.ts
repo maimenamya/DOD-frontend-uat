@@ -33,17 +33,12 @@ export type GuestOrderCartLine = {
   unitPrice: number;
   unitLabelTh: string;
   quantity: number;
-  allowDeposit: boolean;
-  customerName: string;
-  customerCode: string;
 };
 
 export type GuestOrderSubmitItem = {
   itemId: number;
   quantity: number;
   type: GuestOrderItemType;
-  customerName?: string;
-  customerCode?: string;
 };
 
 export type GuestOrderSubmitResult = {

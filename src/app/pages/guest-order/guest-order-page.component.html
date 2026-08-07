@@ -146,26 +146,6 @@
               <span>{{ row.quantity }}</span>
               <button type="button" class="app-btn-secondary" (click)="changeQty(row.key, 1)">+</button>
             </div>
-            @if (row.allowDeposit) {
-              <div class="guest-order-cart-row__deposit">
-                <label>
-                  ชื่อลูกค้า
-                  <input
-                    class="app-input"
-                    [ngModel]="row.customerName"
-                    (ngModelChange)="updateCartCustomer(row.key, 'customerName', $event)"
-                  />
-                </label>
-                <label>
-                  รหัสลูกค้า *
-                  <input
-                    class="app-input"
-                    [ngModel]="row.customerCode"
-                    (ngModelChange)="updateCartCustomer(row.key, 'customerCode', $event)"
-                  />
-                </label>
-              </div>
-            }
           </div>
         } @empty {
           <p class="guest-order-empty">ตะกร้าว่าง</p>
