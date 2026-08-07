@@ -1174,20 +1174,14 @@
           </p>
         }
         <div class="app-form-group">
-          <div class="app-filter-bar" role="tablist" aria-label="ประเภทที่นั่งคิดค่าบริการ">
-            @for (opt of roomChargeSeatingTypeOptions(); track opt.value) {
-              <button
-                type="button"
-                role="tab"
-                class="app-filter-chip"
-                [class.app-filter-chip-active]="roomChargeSeatingTypeId() === opt.value"
-                [attr.aria-selected]="roomChargeSeatingTypeId() === opt.value"
-                (click)="onRoomChargeSeatingTypeChange(opt.value)"
-              >
-                {{ opt.label }}
-              </button>
-            }
-          </div>
+          <label class="app-label" for="open-table-ประเภทที่นั่ง-ห้อง">ประเภทที่นั่ง</label>
+          <app-custom-dropdown
+            inputId="open-table-ประเภทที่นั่ง-ห้อง"
+            [options]="roomChargeSeatingTypeOptions()"
+            [ngModel]="roomChargeSeatingTypeId()"
+            (ngModelChange)="onRoomChargeSeatingTypeChange($event)"
+            placeholder="เลือกประเภทที่นั่ง"
+          />
         </div>
         @if (roomChargeSeatingTypeId() != null) {
           <div class="app-form-group">
@@ -1248,34 +1242,16 @@
         }
 
         @if (orderLedgerCategory() === 'FOOD') {
-          @if (isPcBillWorkspace()) {
-            <div class="app-form-group">
-              <div class="app-filter-bar" role="tablist" aria-label="หมวดอาหาร">
-                @for (opt of foodCategoryDropdownOptions(); track opt.value) {
-                  <button
-                    type="button"
-                    role="tab"
-                    class="app-filter-chip"
-                    [class.app-filter-chip-active]="selectedFoodCategoryId() === opt.value"
-                    [attr.aria-selected]="selectedFoodCategoryId() === opt.value"
-                    (click)="onFoodCategoryChange(opt.value)"
-                  >
-                    {{ opt.label }}
-                  </button>
-                }
-              </div>
-            </div>
-          } @else {
-            <div class="app-form-group">
-              <label class="app-label" for="open-table-หมวดอาหาร-6">หมวดอาหาร</label>
-              <app-custom-dropdown inputId="open-table-หมวดอาหาร-6"
-                [options]="foodCategoryDropdownOptions()"
-                [ngModel]="selectedFoodCategoryId()"
-                (ngModelChange)="onFoodCategoryChange($event)"
-                placeholder="เลือกหมวดอาหาร"
-              />
-            </div>
-          }
+          <div class="app-form-group">
+            <label class="app-label" for="open-table-หมวดอาหาร-6">หมวดอาหาร</label>
+            <app-custom-dropdown
+              inputId="open-table-หมวดอาหาร-6"
+              [options]="foodCategoryDropdownOptions()"
+              [ngModel]="selectedFoodCategoryId()"
+              (ngModelChange)="onFoodCategoryChange($event)"
+              placeholder="เลือกหมวดอาหาร"
+            />
+          </div>
           <div class="app-form-group">
             <span class="app-label">เลือกรายการอาหาร</span>
             @for (catId of [selectedFoodCategoryId()]; track catId) {
@@ -1290,34 +1266,16 @@
         }
 
         @if (orderLedgerCategory() === 'BEVERAGE') {
-          @if (isPcBillWorkspace()) {
-            <div class="app-form-group">
-              <div class="app-filter-bar" role="tablist" aria-label="หมวดเครื่องดื่ม">
-                @for (opt of beverageCategoryDropdownOptions(); track opt.value) {
-                  <button
-                    type="button"
-                    role="tab"
-                    class="app-filter-chip"
-                    [class.app-filter-chip-active]="selectedBeverageCategoryId() === opt.value"
-                    [attr.aria-selected]="selectedBeverageCategoryId() === opt.value"
-                    (click)="onBeverageCategoryChange(opt.value)"
-                  >
-                    {{ opt.label }}
-                  </button>
-                }
-              </div>
-            </div>
-          } @else {
-            <div class="app-form-group">
-              <span class="app-label">หมวดเครื่องดื่ม</span>
-              <app-custom-dropdown
-                [options]="beverageCategoryDropdownOptions()"
-                [ngModel]="selectedBeverageCategoryId()"
-                (ngModelChange)="onBeverageCategoryChange($event)"
-                placeholder="เลือกหมวด"
-              />
-            </div>
-          }
+          <div class="app-form-group">
+            <label class="app-label" for="open-table-หมวดเครื่องดื่ม-7">หมวดเครื่องดื่ม</label>
+            <app-custom-dropdown
+              inputId="open-table-หมวดเครื่องดื่ม-7"
+              [options]="beverageCategoryDropdownOptions()"
+              [ngModel]="selectedBeverageCategoryId()"
+              (ngModelChange)="onBeverageCategoryChange($event)"
+              placeholder="เลือกหมวดเครื่องดื่ม"
+            />
+          </div>
           <div class="app-form-group">
             <span class="app-label">เลือกเครื่องดื่ม</span>
             @for (catId of [selectedBeverageCategoryId()]; track catId) {
@@ -1562,11 +1520,6 @@
               </button>
             }
           </div>
-          @if (isStaffLedgerOffDutyPurchase()) {
-            <p class="app-field-hint mt-1">
-              ทุกตำแหน่ง · ลงตามจำนวนดื่ม (ไม่นับเวลานั่ง · ไม่ใช้โควต้าฟรี PR)
-            </p>
-          }
         </div>
 
         <div class="app-form-group">

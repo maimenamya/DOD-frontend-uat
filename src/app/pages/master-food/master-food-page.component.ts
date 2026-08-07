@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
+﻿import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import {
   highlightInvalidForm,
   resetFormValidationFlag,
@@ -6,6 +6,7 @@ import {
 import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import {
+  FormsModule,
   NonNullableFormBuilder,
   ReactiveFormsModule,
   Validators,
@@ -13,6 +14,10 @@ import {
 import { forkJoin } from 'rxjs';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import {
+  CustomDropdownComponent,
+  type DropdownOption,
+} from '../../components/custom-dropdown/custom-dropdown.component';
 import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
 import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
 import { MasterListSkeletonComponent } from '../../components/master-list-skeleton/master-list-skeleton.component';
@@ -21,6 +26,7 @@ import { AuthService } from '../../services/auth.service';
 import { ShopMasterService } from '../../services/shop-master.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
+import { APP_MOBILE_MEDIA_QUERY, isAppMobileViewport } from '../../utils/app-viewport.util';
 import {
   MasterListQueryState,
   createMasterListView,
@@ -30,7 +36,17 @@ import { prepareMenuThumbnail } from '../../utils/menu-thumbnail.util';
 
 @Component({
   selector: 'app-master-food-page',
-  imports: [DecimalPipe, ReactiveFormsModule, AppModalComponent, RouterLink, MasterListToolbarComponent, MasterListSkeletonComponent, ListPaginatorComponent],
+  imports: [
+    DecimalPipe,
+    FormsModule,
+    ReactiveFormsModule,
+    AppModalComponent,
+    CustomDropdownComponent,
+    RouterLink,
+    MasterListToolbarComponent,
+    MasterListSkeletonComponent,
+    ListPaginatorComponent,
+  ],
   templateUrl: './master-food-page.component.html',
 })
 export class MasterFoodPageComponent implements OnInit {
@@ -39,11 +55,16 @@ export class MasterFoodPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly canManage = computed(() => this.auth.canWriteOnPage('master_data'));
   readonly foods = signal<MstFood[]>([]);
   readonly categories = signal<MstFoodCategory[]>([]);
   readonly selectedCategoryId = signal<number | null>(null);
+  readonly mobileViewport = signal(isAppMobileViewport());
+  readonly categoryDropdownOptions = computed<DropdownOption[]>(() =>
+    this.categories().map((category) => ({ value: category.id, label: category.name })),
+  );
   readonly loading = signal(true);
   readonly submitting = signal(false);
   readonly uploadingImage = signal(false);
@@ -82,6 +103,12 @@ export class MasterFoodPageComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    if (typeof window !== 'undefined') {
+      const mq = window.matchMedia(APP_MOBILE_MEDIA_QUERY);
+      const onChange = (): void => this.mobileViewport.set(mq.matches);
+      mq.addEventListener('change', onChange);
+      this.destroyRef.onDestroy(() => mq.removeEventListener('change', onChange));
+    }
     this.loadItems();
   }
 
@@ -119,8 +146,11 @@ export class MasterFoodPageComponent implements OnInit {
     this.selectedCategoryId.set(categories[0].id);
   }
 
-  selectCategoryTab(categoryId: number): void {
-    this.selectedCategoryId.set(categoryId);
+  selectCategoryTab(categoryId: number | string | null): void {
+    if (categoryId == null || categoryId === '') return;
+    const id = typeof categoryId === 'number' ? categoryId : Number(categoryId);
+    if (!Number.isFinite(id)) return;
+    this.selectedCategoryId.set(id);
     this.listQuery.resetPage();
     this.showCreateModal.set(false);
     this.editingItem.set(null);

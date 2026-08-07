@@ -12,6 +12,7 @@ export interface MstOtherCharge {
   unitLabelTh: string;
   isActive: boolean;
   chargeGroup: OtherChargeGroup;
+  imageUrl?: string | null;
   createdAt: string;
 }
 

@@ -143,6 +143,46 @@
           />
         </div>
         <div class="app-form-group">
+          <span class="app-label">รูปเมนู</span>
+          <div class="mt-1 flex flex-wrap items-center gap-3">
+            @if (item.imageUrl) {
+              <img
+                [src]="item.imageUrl"
+                alt=""
+                class="h-16 w-16 rounded-md bg-surface object-contain ring-1 ring-theme-border"
+              />
+            } @else {
+              <div
+                class="flex h-16 w-16 items-center justify-center rounded-md bg-surface text-xs text-text-secondary ring-1 ring-theme-border"
+              >
+                ไม่มีรูป
+              </div>
+            }
+            <div class="flex flex-wrap items-center gap-2">
+              <label class="app-btn-secondary-sm cursor-pointer">
+                {{ uploadingImage() ? 'กำลังเตรียมรูป...' : 'เลือกรูป' }}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  class="sr-only"
+                  [disabled]="uploadingImage()"
+                  (change)="onPickPromotionImage($event)"
+                />
+              </label>
+              @if (item.imageUrl) {
+                <button
+                  type="button"
+                  class="app-btn-danger-sm"
+                  [disabled]="uploadingImage()"
+                  (click)="removePromotionImage()"
+                >
+                  ลบรูป
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+        <div class="app-form-group">
           <label class="app-label" for="master-promotion-เหตุผลการแก้ไข-ลบ-11">เหตุผลการแก้ไข/ลบ</label>
           <textarea id="master-promotion-เหตุผลการแก้ไข-ลบ-11"
             rows="3"
@@ -226,7 +266,18 @@
                 @for (item of listView().items; track item.id; let i = $index) {
                   <tr>
                     <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
-                    <td class="app-cell-primary">{{ item.name }}</td>
+                    <td class="app-cell-primary">
+                      <span class="inline-flex items-center gap-2">
+                        @if (item.imageUrl) {
+                          <img
+                            [src]="item.imageUrl"
+                            alt=""
+                            class="h-8 w-8 shrink-0 rounded bg-surface object-contain"
+                          />
+                        }
+                        <span>{{ item.name }}</span>
+                      </span>
+                    </td>
                     <td>{{ itemsSummary(item) }}</td>
                     <td class="app-cell-right app-cell-highlight-violet">
                       {{ item.packagePrice | number: '1.0-0' }}

@@ -150,7 +150,7 @@
               <img
                 [src]="item.imageUrl"
                 alt=""
-                class="h-16 w-16 rounded-md object-cover ring-1 ring-theme-border"
+                class="h-16 w-16 rounded-md bg-surface object-contain ring-1 ring-theme-border"
               />
             } @else {
               <div
@@ -161,7 +161,7 @@
             }
             <div class="flex flex-wrap items-center gap-2">
               <label class="app-btn-secondary-sm cursor-pointer">
-                {{ uploadingImage() ? 'กำลังอัปโหลด...' : 'เลือกรูป' }}
+                {{ uploadingImage() ? 'กำลังเตรียมรูป...' : 'เลือกรูป' }}
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
@@ -205,20 +205,33 @@
   @if (loading()) {
     <app-master-list-skeleton [tabs]="4" [columns]="4" ariaLabel="กำลังโหลดเครื่องดื่ม" />
   } @else if (categories().length > 0) {
-    <div class="app-filter-bar app-role-tabs" role="tablist" aria-label="กรองตามประเภทเครื่องดื่ม">
-      @for (category of categories(); track category.id) {
-        <button
-          type="button"
-          role="tab"
-          class="app-filter-chip"
-          [class.app-filter-chip-active]="selectedCategoryId() === category.id"
-          [attr.aria-selected]="selectedCategoryId() === category.id"
-          (click)="selectCategoryTab(category.id)"
-        >
-          {{ category.name }}
-        </button>
-      }
-    </div>
+    @if (mobileViewport()) {
+      <div class="app-form-group mb-3">
+        <label class="app-label" for="master-drink-ประเภท-มือถือ">ประเภทเครื่องดื่ม</label>
+        <app-custom-dropdown
+          inputId="master-drink-ประเภท-มือถือ"
+          [options]="categoryDropdownOptions()"
+          [ngModel]="selectedCategoryId()"
+          (ngModelChange)="selectCategoryTab($event)"
+          placeholder="เลือกประเภทเครื่องดื่ม"
+        />
+      </div>
+    } @else {
+      <div class="app-filter-bar app-role-tabs" role="tablist" aria-label="กรองตามประเภทเครื่องดื่ม">
+        @for (category of categories(); track category.id) {
+          <button
+            type="button"
+            role="tab"
+            class="app-filter-chip"
+            [class.app-filter-chip-active]="selectedCategoryId() === category.id"
+            [attr.aria-selected]="selectedCategoryId() === category.id"
+            (click)="selectCategoryTab(category.id)"
+          >
+            {{ category.name }}
+          </button>
+        }
+      </div>
+    }
 
     <app-master-list-toolbar
       [search]="listQuery.search()"
@@ -299,7 +312,7 @@
                             <img
                               [src]="item.imageUrl"
                               alt=""
-                              class="h-8 w-8 shrink-0 rounded object-cover"
+                              class="h-8 w-8 shrink-0 rounded bg-surface object-contain"
                             />
                           }
                           <span>{{ item.name }}</span>

@@ -40,6 +40,7 @@ import {
   createMasterListView,
   masterListRowNumber,
 } from '../../utils/master-list.util';
+import { prepareMenuThumbnail } from '../../utils/menu-thumbnail.util';
 
 @Component({
   selector: 'app-master-promotion-page',
@@ -76,6 +77,7 @@ export class MasterPromotionPageComponent implements OnInit {
   readonly createFormValidated = signal(false);
   readonly editFormValidated = signal(false);
   readonly editingItem = signal<MstPromotion | null>(null);
+  readonly uploadingImage = signal(false);
   readonly showCreateModal = signal(false);
 
   readonly createForm = this.fb.group({
@@ -84,7 +86,7 @@ export class MasterPromotionPageComponent implements OnInit {
     items: this.fb.array<DrinkPackageLineForm>([]),
     isFreeMixer: [false],
     allowDeposit: [false],
-    freeDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    freeDrinks: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
     changeReason: ['', Validators.minLength(3)],
   });
 
@@ -94,7 +96,7 @@ export class MasterPromotionPageComponent implements OnInit {
     items: this.fb.array<DrinkPackageLineForm>([]),
     isFreeMixer: [false],
     allowDeposit: [false],
-    freeDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    freeDrinks: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
     changeReason: ['', Validators.minLength(3)],
   });
 
@@ -160,7 +162,7 @@ export class MasterPromotionPageComponent implements OnInit {
       packagePrice: '',
       isFreeMixer: false,
       allowDeposit: false,
-      freeDrinks: '',
+      freeDrinks: '0',
     });
     this.showCreateModal.set(true);
   }
@@ -188,6 +190,55 @@ export class MasterPromotionPageComponent implements OnInit {
 
   closeEdit(): void {
     this.editingItem.set(null);
+  }
+
+  async onPickPromotionImage(event: Event): Promise<void> {
+    const item = this.editingItem();
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!item || !file || this.uploadingImage()) return;
+    this.uploadingImage.set(true);
+    try {
+      const thumb = await prepareMenuThumbnail(file);
+      this.shopMaster.uploadPromotionImage(item.id, thumb.blob, thumb.fileName).subscribe({
+        next: (updated) => {
+          this.uploadingImage.set(false);
+          this.editingItem.set(updated);
+          this.promotions.update((rows) =>
+            rows.map((row) => (row.id === updated.id ? updated : row)),
+          );
+          this.toast.showSuccess('อัปโหลดรูปเรียบร้อย');
+        },
+        error: (err: { error?: { error?: string } }) => {
+          this.uploadingImage.set(false);
+          this.toast.showError(err.error?.error ?? 'ไม่สามารถอัปโหลดรูปได้');
+        },
+      });
+    } catch (error) {
+      this.uploadingImage.set(false);
+      this.toast.showError(error instanceof Error ? error.message : 'ไม่สามารถย่อรูปได้');
+    }
+  }
+
+  removePromotionImage(): void {
+    const item = this.editingItem();
+    if (!item?.imageUrl || this.uploadingImage()) return;
+    this.uploadingImage.set(true);
+    this.shopMaster.deletePromotionImage(item.id).subscribe({
+      next: (updated) => {
+        this.uploadingImage.set(false);
+        this.editingItem.set(updated);
+        this.promotions.update((rows) =>
+          rows.map((row) => (row.id === updated.id ? updated : row)),
+        );
+        this.toast.showSuccess('ลบรูปเรียบร้อย');
+      },
+      error: (err: { error?: { error?: string } }) => {
+        this.uploadingImage.set(false);
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถลบรูปได้');
+      },
+    });
   }
 
   addCreateLine(): void {

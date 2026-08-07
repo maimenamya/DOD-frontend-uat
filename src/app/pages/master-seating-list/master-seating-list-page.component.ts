@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
+﻿import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { MasterListSkeletonComponent } from '../../components/master-list-skeleton/master-list-skeleton.component';
 import {
   highlightInvalidForm,
@@ -7,12 +7,17 @@ import {
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import {
+  FormsModule,
   NonNullableFormBuilder,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import {
+  CustomDropdownComponent,
+  type DropdownOption,
+} from '../../components/custom-dropdown/custom-dropdown.component';
 import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
 import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
 import type { MstSeating, MstSeatingType } from '../../models/seating';
@@ -20,6 +25,7 @@ import { AuthService } from '../../services/auth.service';
 import { ShopMasterService } from '../../services/shop-master.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
+import { APP_MOBILE_MEDIA_QUERY, isAppMobileViewport } from '../../utils/app-viewport.util';
 import {
   MasterListQueryState,
   createMasterListView,
@@ -28,7 +34,16 @@ import {
 
 @Component({
   selector: 'app-master-seating-list-page',
-  imports: [MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent, RouterLink, MasterListToolbarComponent, ListPaginatorComponent],
+  imports: [
+    MasterListSkeletonComponent,
+    FormsModule,
+    ReactiveFormsModule,
+    AppModalComponent,
+    CustomDropdownComponent,
+    RouterLink,
+    MasterListToolbarComponent,
+    ListPaginatorComponent,
+  ],
   templateUrl: './master-seating-list-page.component.html',
 })
 export class MasterSeatingListPageComponent implements OnInit {
@@ -37,11 +52,19 @@ export class MasterSeatingListPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly canManage = computed(() => this.auth.canWriteOnPage('master_data'));
   readonly seatings = signal<MstSeating[]>([]);
   readonly seatingTypes = signal<MstSeatingType[]>([]);
   readonly selectedSeatingTypeId = signal<number | null>(null);
+  readonly mobileViewport = signal(isAppMobileViewport());
+  readonly seatingTypeDropdownOptions = computed<DropdownOption[]>(() =>
+    this.seatingTypes().map((type) => ({
+      value: type.id,
+      label: `${type.name} (${type.code})`,
+    })),
+  );
   readonly loading = signal(true);
   readonly submitting = signal(false);
   readonly createFormValidated = signal(false);
@@ -76,6 +99,12 @@ export class MasterSeatingListPageComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    if (typeof window !== 'undefined') {
+      const mq = window.matchMedia(APP_MOBILE_MEDIA_QUERY);
+      const onChange = (): void => this.mobileViewport.set(mq.matches);
+      mq.addEventListener('change', onChange);
+      this.destroyRef.onDestroy(() => mq.removeEventListener('change', onChange));
+    }
     this.loadAll();
   }
 
@@ -112,8 +141,11 @@ export class MasterSeatingListPageComponent implements OnInit {
     this.selectSeatingType(nextId);
   }
 
-  selectSeatingType(typeId: number): void {
-    this.selectedSeatingTypeId.set(typeId);
+  selectSeatingType(typeId: number | string | null): void {
+    if (typeId == null || typeId === '') return;
+    const id = typeof typeId === 'number' ? typeId : Number(typeId);
+    if (!Number.isFinite(id)) return;
+    this.selectedSeatingTypeId.set(id);
     this.listQuery.resetPage();
     this.showCreateModal.set(false);
     this.editingItem.set(null);

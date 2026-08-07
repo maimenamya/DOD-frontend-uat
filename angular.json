@@ -29,7 +29,13 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "onnxruntime-common",
+              "onnxruntime-web",
+              "sharp",
+              "guid-typescript"
+            ]
           },
           "configurations": {
             "production": {

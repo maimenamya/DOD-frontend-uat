@@ -182,6 +182,16 @@ export class ShopMasterService {
     });
   }
 
+  uploadPromotionImage(id: number, file: Blob, fileName: string): Observable<MstPromotion> {
+    const body = new FormData();
+    body.append('image', file, fileName);
+    return this.http.post<MstPromotion>(this.api.resource(`promotions/${id}/image`), body);
+  }
+
+  deletePromotionImage(id: number): Observable<MstPromotion> {
+    return this.http.delete<MstPromotion>(this.api.resource(`promotions/${id}/image`));
+  }
+
   getMemberships(): Observable<MstMembership[]> {
     return this.http.get<MstMembership[]>(this.api.resource('memberships'));
   }
@@ -201,5 +211,15 @@ export class ShopMasterService {
     return this.http.delete<void>(this.api.resource(`memberships/${id}`), {
       body: { changeReason },
     });
+  }
+
+  uploadMembershipImage(id: number, file: Blob, fileName: string): Observable<MstMembership> {
+    const body = new FormData();
+    body.append('image', file, fileName);
+    return this.http.post<MstMembership>(this.api.resource(`memberships/${id}/image`), body);
+  }
+
+  deleteMembershipImage(id: number): Observable<MstMembership> {
+    return this.http.delete<MstMembership>(this.api.resource(`memberships/${id}/image`));
   }
 }

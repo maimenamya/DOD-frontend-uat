@@ -58,6 +58,7 @@ export interface DrinkPackageRow {
   isFreeMixer: boolean;
   allowDeposit: boolean;
   freeDrinks?: number;
+  imageUrl?: string | null;
   shopId: number;
   createdAt: string;
 }

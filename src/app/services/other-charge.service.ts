@@ -32,4 +32,14 @@ export class OtherChargeService {
       body: { changeReason },
     });
   }
+
+  uploadImage(id: number, file: Blob, fileName: string): Observable<MstOtherCharge> {
+    const body = new FormData();
+    body.append('image', file, fileName);
+    return this.http.post<MstOtherCharge>(this.api.resource(`other-charges/${id}/image`), body);
+  }
+
+  deleteImage(id: number): Observable<MstOtherCharge> {
+    return this.http.delete<MstOtherCharge>(this.api.resource(`other-charges/${id}/image`));
+  }
 }

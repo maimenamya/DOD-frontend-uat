@@ -17,20 +17,33 @@
   }
 
   @if (!loading() && seatingTypes().length > 0) {
-    <div class="app-filter-bar app-role-tabs" role="tablist" aria-label="กรองตามประเภทที่นั่ง">
-      @for (type of seatingTypes(); track type.id) {
-        <button
-          type="button"
-          role="tab"
-          class="app-filter-chip"
-          [class.app-filter-chip-active]="selectedSeatingTypeId() === type.id"
-          [attr.aria-selected]="selectedSeatingTypeId() === type.id"
-          (click)="selectSeatingType(type.id)"
-        >
-          {{ type.name }}
-        </button>
-      }
-    </div>
+    @if (mobileViewport()) {
+      <div class="app-form-group mb-3">
+        <label class="app-label" for="master-seating-ประเภท-มือถือ">ประเภทที่นั่ง</label>
+        <app-custom-dropdown
+          inputId="master-seating-ประเภท-มือถือ"
+          [options]="seatingTypeDropdownOptions()"
+          [ngModel]="selectedSeatingTypeId()"
+          (ngModelChange)="selectSeatingType($event)"
+          placeholder="เลือกประเภทที่นั่ง"
+        />
+      </div>
+    } @else {
+      <div class="app-filter-bar app-role-tabs" role="tablist" aria-label="กรองตามประเภทที่นั่ง">
+        @for (type of seatingTypes(); track type.id) {
+          <button
+            type="button"
+            role="tab"
+            class="app-filter-chip"
+            [class.app-filter-chip-active]="selectedSeatingTypeId() === type.id"
+            [attr.aria-selected]="selectedSeatingTypeId() === type.id"
+            (click)="selectSeatingType(type.id)"
+          >
+            {{ type.name }}
+          </button>
+        }
+      </div>
+    }
   }
 
   @if (showCreateModal() && canManage()) {

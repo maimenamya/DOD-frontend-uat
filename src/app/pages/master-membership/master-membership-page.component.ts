@@ -40,6 +40,7 @@ import {
   createMasterListView,
   masterListRowNumber,
 } from '../../utils/master-list.util';
+import { prepareMenuThumbnail } from '../../utils/menu-thumbnail.util';
 
 @Component({
   selector: 'app-master-membership-page',
@@ -76,6 +77,7 @@ export class MasterMembershipPageComponent implements OnInit {
   readonly createFormValidated = signal(false);
   readonly editFormValidated = signal(false);
   readonly editingItem = signal<MstMembership | null>(null);
+  readonly uploadingImage = signal(false);
   readonly showCreateModal = signal(false);
 
   readonly createForm = this.fb.group({
@@ -183,6 +185,55 @@ export class MasterMembershipPageComponent implements OnInit {
 
   closeEdit(): void {
     this.editingItem.set(null);
+  }
+
+  async onPickMembershipImage(event: Event): Promise<void> {
+    const item = this.editingItem();
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!item || !file || this.uploadingImage()) return;
+    this.uploadingImage.set(true);
+    try {
+      const thumb = await prepareMenuThumbnail(file);
+      this.shopMaster.uploadMembershipImage(item.id, thumb.blob, thumb.fileName).subscribe({
+        next: (updated) => {
+          this.uploadingImage.set(false);
+          this.editingItem.set(updated);
+          this.memberships.update((rows) =>
+            rows.map((row) => (row.id === updated.id ? updated : row)),
+          );
+          this.toast.showSuccess('อัปโหลดรูปเรียบร้อย');
+        },
+        error: (err: { error?: { error?: string } }) => {
+          this.uploadingImage.set(false);
+          this.toast.showError(err.error?.error ?? 'ไม่สามารถอัปโหลดรูปได้');
+        },
+      });
+    } catch (error) {
+      this.uploadingImage.set(false);
+      this.toast.showError(error instanceof Error ? error.message : 'ไม่สามารถย่อรูปได้');
+    }
+  }
+
+  removeMembershipImage(): void {
+    const item = this.editingItem();
+    if (!item?.imageUrl || this.uploadingImage()) return;
+    this.uploadingImage.set(true);
+    this.shopMaster.deleteMembershipImage(item.id).subscribe({
+      next: (updated) => {
+        this.uploadingImage.set(false);
+        this.editingItem.set(updated);
+        this.memberships.update((rows) =>
+          rows.map((row) => (row.id === updated.id ? updated : row)),
+        );
+        this.toast.showSuccess('ลบรูปเรียบร้อย');
+      },
+      error: (err: { error?: { error?: string } }) => {
+        this.uploadingImage.set(false);
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถลบรูปได้');
+      },
+    });
   }
 
   addCreateLine(): void {

@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
+﻿import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { MasterListSkeletonComponent } from '../../components/master-list-skeleton/master-list-skeleton.component';
 import {
   highlightInvalidForm,
@@ -7,6 +7,7 @@ import {
 import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import {
+  FormsModule,
   NonNullableFormBuilder,
   ReactiveFormsModule,
   Validators,
@@ -14,7 +15,10 @@ import {
 import { forkJoin } from 'rxjs';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
-import { CustomDropdownComponent } from '../../components/custom-dropdown/custom-dropdown.component';
+import {
+  CustomDropdownComponent,
+  type DropdownOption,
+} from '../../components/custom-dropdown/custom-dropdown.component';
 import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
 import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
 import type { MstBeverage, MstBeverageCategory } from '../../models/beverage';
@@ -26,6 +30,7 @@ import { ShopMasterService } from '../../services/shop-master.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
 import { isMixerCategoryKind } from '../../utils/beverage-category-kind.util';
+import { APP_MOBILE_MEDIA_QUERY, isAppMobileViewport } from '../../utils/app-viewport.util';
 import {
   MasterListQueryState,
   createMasterListView,
@@ -35,7 +40,17 @@ import { prepareMenuThumbnail } from '../../utils/menu-thumbnail.util';
 
 @Component({
   selector: 'app-master-drink-page',
-  imports: [MasterListSkeletonComponent, DecimalPipe, ReactiveFormsModule, AppModalComponent, CustomDropdownComponent, RouterLink, MasterListToolbarComponent, ListPaginatorComponent],
+  imports: [
+    MasterListSkeletonComponent,
+    DecimalPipe,
+    FormsModule,
+    ReactiveFormsModule,
+    AppModalComponent,
+    CustomDropdownComponent,
+    RouterLink,
+    MasterListToolbarComponent,
+    ListPaginatorComponent,
+  ],
   templateUrl: './master-drink-page.component.html',
 })
 export class MasterDrinkPageComponent implements OnInit {
@@ -46,12 +61,17 @@ export class MasterDrinkPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly canManage = computed(() => this.auth.canWriteOnPage('master_data'));
   readonly beverages = signal<MstBeverage[]>([]);
   readonly stockItems = signal<MstStockItem[]>([]);
   readonly categories = signal<MstBeverageCategory[]>([]);
   readonly selectedCategoryId = signal<number | null>(null);
+  readonly mobileViewport = signal(isAppMobileViewport());
+  readonly categoryDropdownOptions = computed<DropdownOption[]>(() =>
+    this.categories().map((category) => ({ value: category.id, label: category.name })),
+  );
   readonly loading = signal(true);
   readonly submitting = signal(false);
   readonly uploadingImage = signal(false);
@@ -109,6 +129,12 @@ export class MasterDrinkPageComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    if (typeof window !== 'undefined') {
+      const mq = window.matchMedia(APP_MOBILE_MEDIA_QUERY);
+      const onChange = (): void => this.mobileViewport.set(mq.matches);
+      mq.addEventListener('change', onChange);
+      this.destroyRef.onDestroy(() => mq.removeEventListener('change', onChange));
+    }
     this.loadItems();
   }
 
@@ -148,8 +174,11 @@ export class MasterDrinkPageComponent implements OnInit {
     this.selectedCategoryId.set(categories[0].id);
   }
 
-  selectCategoryTab(categoryId: number): void {
-    this.selectedCategoryId.set(categoryId);
+  selectCategoryTab(categoryId: number | string | null): void {
+    if (categoryId == null || categoryId === '') return;
+    const id = typeof categoryId === 'number' ? categoryId : Number(categoryId);
+    if (!Number.isFinite(id)) return;
+    this.selectedCategoryId.set(id);
     this.listQuery.resetPage();
     this.showCreateModal.set(false);
     this.editingBeverage.set(null);
