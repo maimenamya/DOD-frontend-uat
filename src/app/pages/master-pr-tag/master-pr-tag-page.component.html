@@ -16,13 +16,13 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="createFormValidated()" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
-          <label class="app-label">ชื่อแท็ก</label>
-          <input type="text" formControlName="name" class="app-input" placeholder="เช่น แท็ก10วัน" />
+          <label class="app-label" for="master-pr-tag-ชื่อแท็ก-1">ชื่อแท็ก</label>
+          <input id="master-pr-tag-ชื่อแท็ก-1" type="text" formControlName="name" class="app-input" placeholder="เช่น แท็ก10วัน" />
         </div>
         <div class="app-form-row">
           <div class="app-form-group">
-            <label class="app-label">จำนวนวันลงแท็ก</label>
-            <input
+            <label class="app-label" for="master-pr-tag-จำนวนวันลงแท็ก-2">จำนวนวันลงแท็ก</label>
+            <input id="master-pr-tag-จำนวนวันลงแท็ก-2"
               type="text"
               inputmode="numeric"
               formControlName="requiredWorkingDays"
@@ -31,8 +31,8 @@
             />
           </div>
           <div class="app-form-group">
-            <label class="app-label">วันหยุดสูงสุด</label>
-            <input
+            <label class="app-label" for="master-pr-tag-วันหยุดสูงสุด-3">วันหยุดสูงสุด</label>
+            <input id="master-pr-tag-วันหยุดสูงสุด-3"
               type="text"
               inputmode="numeric"
               formControlName="allowedOffDays"
@@ -42,8 +42,8 @@
           </div>
         </div>
         <div class="app-form-group">
-          <label class="app-label">จำนวนยอดดื่มที่ต้องทำ</label>
-          <input
+          <label class="app-label" for="master-pr-tag-จำนวนยอดดื่มที่ต้องทำ-4">จำนวนยอดดื่มที่ต้องทำ</label>
+          <input id="master-pr-tag-จำนวนยอดดื่มที่ต้องทำ-4"
             type="text"
             inputmode="numeric"
             formControlName="targetDrinks"
@@ -53,8 +53,8 @@
         </div>
         <div class="app-form-row">
           <div class="app-form-group">
-            <label class="app-label">เงินการันตีจบแท็ก (บาท)</label>
-            <input
+            <label class="app-label" for="master-pr-tag-เงินการันตีจบแท็ก-บาท-5">เงินการันตีจบแท็ก (บาท)</label>
+            <input id="master-pr-tag-เงินการันตีจบแท็ก-บาท-5"
               type="text"
               inputmode="numeric"
               formControlName="guaranteeAmount"
@@ -63,8 +63,8 @@
             />
           </div>
           <div class="app-form-group">
-            <label class="app-label">เงินจ่ายเมื่อตกแท็ก (บาท)</label>
-            <input
+            <label class="app-label" for="master-pr-tag-เงินจ่ายเมื่อตกแท็ก-บาท-6">เงินจ่ายเมื่อตกแท็ก (บาท)</label>
+            <input id="master-pr-tag-เงินจ่ายเมื่อตกแท็ก-บาท-6"
               type="text"
               inputmode="numeric"
               formControlName="dropoutPayoutAmount"
@@ -74,7 +74,7 @@
           </div>
         </div>
         <div class="app-form-group">
-          <label class="app-label">สถานะ</label>
+          <span class="app-label">สถานะ</span>
           <label class="app-toggle" aria-label="เปิดหรือปิดแพ็กเกจ">
             <input type="checkbox" class="app-toggle-input" formControlName="isActive" />
             <span class="app-toggle-track"></span>
@@ -101,13 +101,13 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
         <div class="app-form-group">
-          <label class="app-label">ชื่อแท็ก</label>
-          <input type="text" formControlName="name" class="app-input" />
+          <label class="app-label" for="master-pr-tag-ชื่อแท็ก-8">ชื่อแท็ก</label>
+          <input id="master-pr-tag-ชื่อแท็ก-8" type="text" formControlName="name" class="app-input" />
         </div>
         <div class="app-form-row">
           <div class="app-form-group">
-            <label class="app-label">จำนวนวันลงแท็ก</label>
-            <input
+            <label class="app-label" for="master-pr-tag-จำนวนวันลงแท็ก-9">จำนวนวันลงแท็ก</label>
+            <input id="master-pr-tag-จำนวนวันลงแท็ก-9"
               type="text"
               inputmode="numeric"
               formControlName="requiredWorkingDays"
@@ -116,8 +116,8 @@
             />
           </div>
           <div class="app-form-group">
-            <label class="app-label">วันหยุดสูงสุด</label>
-            <input
+            <label class="app-label" for="master-pr-tag-วันหยุดสูงสุด-10">วันหยุดสูงสุด</label>
+            <input id="master-pr-tag-วันหยุดสูงสุด-10"
               type="text"
               inputmode="numeric"
               formControlName="allowedOffDays"
@@ -127,8 +127,8 @@
           </div>
         </div>
         <div class="app-form-group">
-          <label class="app-label">จำนวนยอดดื่มที่ต้องทำ</label>
-          <input
+          <label class="app-label" for="master-pr-tag-จำนวนยอดดื่มที่ต้องทำ-11">จำนวนยอดดื่มที่ต้องทำ</label>
+          <input id="master-pr-tag-จำนวนยอดดื่มที่ต้องทำ-11"
             type="text"
             inputmode="numeric"
             formControlName="targetDrinks"
@@ -138,8 +138,8 @@
         </div>
         <div class="app-form-row">
           <div class="app-form-group">
-            <label class="app-label">เงินการันตีจบแท็ก (บาท)</label>
-            <input
+            <label class="app-label" for="master-pr-tag-เงินการันตีจบแท็ก-บาท-12">เงินการันตีจบแท็ก (บาท)</label>
+            <input id="master-pr-tag-เงินการันตีจบแท็ก-บาท-12"
               type="text"
               inputmode="numeric"
               formControlName="guaranteeAmount"
@@ -148,8 +148,8 @@
             />
           </div>
           <div class="app-form-group">
-            <label class="app-label">เงินจ่ายเมื่อตกแท็ก (บาท)</label>
-            <input
+            <label class="app-label" for="master-pr-tag-เงินจ่ายเมื่อตกแท็ก-บาท-13">เงินจ่ายเมื่อตกแท็ก (บาท)</label>
+            <input id="master-pr-tag-เงินจ่ายเมื่อตกแท็ก-บาท-13"
               type="text"
               inputmode="numeric"
               formControlName="dropoutPayoutAmount"
@@ -159,7 +159,7 @@
           </div>
         </div>
         <div class="app-form-group">
-          <label class="app-label">สถานะ</label>
+          <span class="app-label">สถานะ</span>
           <label class="app-toggle" aria-label="เปิดหรือปิดแพ็กเกจ">
             <input type="checkbox" class="app-toggle-input" formControlName="isActive" />
             <span class="app-toggle-track"></span>
@@ -169,8 +169,8 @@
           </label>
         </div>
         <div class="app-form-group">
-          <label class="app-label">เหตุผลการแก้ไข/ลบ</label>
-          <textarea
+          <label class="app-label" for="master-pr-tag-เหตุผลการแก้ไข-ลบ-15">เหตุผลการแก้ไข/ลบ</label>
+          <textarea id="master-pr-tag-เหตุผลการแก้ไข-ลบ-15"
             rows="3"
             formControlName="changeReason"
             class="app-input app-scroll-region"
@@ -249,6 +249,21 @@
                   <col class="app-col-actions" />
                 }
               </colgroup>
+              <thead class="sr-only">
+                <tr>
+                  <th>No.</th>
+                  <th>ชื่อแท็ก</th>
+                  <th class="app-cell-center">วันทำงาน</th>
+                  <th class="app-cell-center">วันหยุด</th>
+                  <th class="app-cell-center">ยอดดื่ม</th>
+                  <th class="app-cell-right">การันตี</th>
+                  <th class="app-cell-right">ตกแท็ก</th>
+                  <th class="app-cell-center">สถานะ</th>
+                  @if (canManage()) {
+                    <th class="app-cell-right">จัดการ</th>
+                  }
+                </tr>
+              </thead>
               <tbody>
                 @for (row of listView().items; track row.id; let i = $index) {
                   <tr>

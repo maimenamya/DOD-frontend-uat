@@ -87,8 +87,8 @@
       }
       <form class="app-form-stack" [class.app-form-was-validated]="changeTagFormValidated()" [formGroup]="changeTagForm" (ngSubmit)="submitChangeTag()">
         <div class="app-form-group">
-          <label class="app-label">แพ็กเกจแท็กใหม่</label>
-          <app-custom-dropdown
+          <label class="app-label" for="pr-tag-operations-แพ็กเกจแท็กใหม่-1">แพ็กเกจแท็กใหม่</label>
+          <app-custom-dropdown inputId="pr-tag-operations-แพ็กเกจแท็กใหม่-1"
             formControlName="prTagId"
             [options]="changeTagDropdownOptions()"
             placeholder="เลือกแพ็กเกจ"
@@ -112,16 +112,16 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="assignFormValidated()" [formGroup]="assignForm" (ngSubmit)="submitAssign()">
         <div class="app-form-group">
-          <label class="app-label">พนักงาน PR</label>
-          <app-custom-dropdown
+          <label class="app-label" for="pr-tag-operations-พนักงาน-pr-2">พนักงาน PR</label>
+          <app-custom-dropdown inputId="pr-tag-operations-พนักงาน-pr-2"
             formControlName="employeeId"
             [options]="employeeOptions()"
             placeholder="เลือกพนักงาน"
           />
         </div>
         <div class="app-form-group">
-          <label class="app-label">แพ็กเกจแท็ก</label>
-          <app-custom-dropdown
+          <label class="app-label" for="pr-tag-operations-แพ็กเกจแท็ก-3">แพ็กเกจแท็ก</label>
+          <app-custom-dropdown inputId="pr-tag-operations-แพ็กเกจแท็ก-3"
             formControlName="prTagId"
             [options]="tagDropdownOptions()"
             placeholder="เลือกแพ็กเกจ"
@@ -292,6 +292,22 @@
                   <col class="app-col-action-btn" />
                 }
               </colgroup>
+              <thead class="sr-only">
+                <tr>
+                  <th>No.</th>
+                  <th>ชื่อ PR</th>
+                  <th>แพ็กเกจแท็ก</th>
+                  <th class="app-cell-center">วันทำงาน</th>
+                  <th class="app-cell-center">วันหยุด</th>
+                  <th class="app-cell-center">ดื่มสะสม</th>
+                  @if (canOperateTags()) {
+                    <th class="app-cell-center">+ วันทำงาน</th>
+                    <th class="app-cell-center">+ วันหยุด</th>
+                    <th class="app-cell-center">ตัด/จบแท็ก</th>
+                    <th class="app-cell-center">เปลี่ยนแท็ก</th>
+                  }
+                </tr>
+              </thead>
               <tbody>
                 @for (row of rows(); track row.employeeId; let i = $index) {
                   <tr>

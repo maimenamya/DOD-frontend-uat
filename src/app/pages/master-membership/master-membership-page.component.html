@@ -16,8 +16,8 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="createFormValidated()" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
-          <label class="app-label">ชื่อเมมเบอร์</label>
-          <input type="text" formControlName="name" class="app-input" />
+          <label class="app-label" for="master-membership-ชื่อเมมเบอร์-1">ชื่อเมมเบอร์</label>
+          <input id="master-membership-ชื่อเมมเบอร์-1" type="text" formControlName="name" class="app-input" />
         </div>
         <app-drink-package-lines-editor
           [beverages]="beverages()"
@@ -29,8 +29,8 @@
           </button>
         </app-drink-package-lines-editor>
         <div class="app-form-group">
-          <label class="app-label">ราคาแพ็กเกจ</label>
-          <input
+          <label class="app-label" for="master-membership-ราคาแพ็กเกจ-2">ราคาแพ็กเกจ</label>
+          <input id="master-membership-ราคาแพ็กเกจ-2"
             type="text"
             inputmode="numeric"
             pattern="[0-9]*"
@@ -40,7 +40,7 @@
           />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ฟรีมิกซ์เซอร์</label>
+          <span class="app-label">ฟรีมิกซ์เซอร์</span>
           <label class="app-toggle" aria-label="เปิดหรือปิดฟรีมิกซ์เซอร์">
             <input type="checkbox" class="app-toggle-input" formControlName="isFreeMixer" />
             <span class="app-toggle-track"></span>
@@ -50,7 +50,7 @@
           </label>
         </div>
         <div class="app-form-group">
-          <label class="app-label">ฝากได้</label>
+          <span class="app-label">ฝากได้</span>
           <label class="app-toggle" aria-label="เปิดหรือปิดการฝากขวดคงเหลือ">
             <input type="checkbox" class="app-toggle-input" formControlName="allowDeposit" />
             <span class="app-toggle-track"></span>
@@ -60,8 +60,8 @@
           </label>
         </div>
         <div class="app-form-group">
-          <label class="app-label">จำนวนฟรี PR ดริ้งก์</label>
-          <input
+          <label class="app-label" for="master-membership-จำนวนฟรี-pr-ดริ้งก์-5">จำนวนฟรี PR ดริ้งก์</label>
+          <input id="master-membership-จำนวนฟรี-pr-ดริ้งก์-5"
             type="text"
             inputmode="numeric"
             pattern="[0-9]*"
@@ -88,8 +88,8 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
         <div class="app-form-group">
-          <label class="app-label">ชื่อเมมเบอร์</label>
-          <input type="text" formControlName="name" class="app-input" />
+          <label class="app-label" for="master-membership-ชื่อเมมเบอร์-6">ชื่อเมมเบอร์</label>
+          <input id="master-membership-ชื่อเมมเบอร์-6" type="text" formControlName="name" class="app-input" />
         </div>
         <app-drink-package-lines-editor
           [beverages]="beverages()"
@@ -101,8 +101,8 @@
           </button>
         </app-drink-package-lines-editor>
         <div class="app-form-group">
-          <label class="app-label">ราคาแพ็กเกจ</label>
-          <input
+          <label class="app-label" for="master-membership-ราคาแพ็กเกจ-7">ราคาแพ็กเกจ</label>
+          <input id="master-membership-ราคาแพ็กเกจ-7"
             type="text"
             inputmode="numeric"
             pattern="[0-9]*"
@@ -112,7 +112,7 @@
           />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ฟรีมิกซ์เซอร์</label>
+          <span class="app-label">ฟรีมิกซ์เซอร์</span>
           <label class="app-toggle" aria-label="เปิดหรือปิดฟรีมิกซ์เซอร์">
             <input type="checkbox" class="app-toggle-input" formControlName="isFreeMixer" />
             <span class="app-toggle-track"></span>
@@ -122,7 +122,7 @@
           </label>
         </div>
         <div class="app-form-group">
-          <label class="app-label">ฝากได้</label>
+          <span class="app-label">ฝากได้</span>
           <label class="app-toggle" aria-label="เปิดหรือปิดการฝากขวดคงเหลือ">
             <input type="checkbox" class="app-toggle-input" formControlName="allowDeposit" />
             <span class="app-toggle-track"></span>
@@ -132,8 +132,8 @@
           </label>
         </div>
         <div class="app-form-group">
-          <label class="app-label">จำนวนฟรี PR ดริ้งก์</label>
-          <input
+          <label class="app-label" for="master-membership-จำนวนฟรี-pr-ดริ้งก์-10">จำนวนฟรี PR ดริ้งก์</label>
+          <input id="master-membership-จำนวนฟรี-pr-ดริ้งก์-10"
             type="text"
             inputmode="numeric"
             pattern="[0-9]*"
@@ -143,8 +143,8 @@
           />
         </div>
         <div class="app-form-group">
-          <label class="app-label">เหตุผลการแก้ไข/ลบ</label>
-          <textarea
+          <label class="app-label" for="master-membership-เหตุผลการแก้ไข-ลบ-11">เหตุผลการแก้ไข/ลบ</label>
+          <textarea id="master-membership-เหตุผลการแก้ไข-ลบ-11"
             rows="3"
             formControlName="changeReason"
             class="app-input app-scroll-region"
@@ -208,6 +208,20 @@
                   <col class="app-col-actions" />
                 }
               </colgroup>
+              <thead class="sr-only">
+                <tr>
+                  <th>No.</th>
+                  <th>ชื่อ</th>
+                  <th>รายการในแพ็ก</th>
+                  <th class="app-cell-right">ราคาแพ็กเกจ</th>
+                  <th>ฟรีมิกซ์เซอร์</th>
+                  <th>ฝากได้</th>
+                  <th class="app-cell-right">ฟรี PR ดริ้งก์</th>
+                  @if (canManage()) {
+                    <th class="app-cell-right">จัดการ</th>
+                  }
+                </tr>
+              </thead>
               <tbody>
                 @for (item of listView().items; track item.id; let i = $index) {
                   <tr>

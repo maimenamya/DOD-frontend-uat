@@ -1,9 +1,10 @@
-import { AfterViewInit, Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import {
   PRIVACY_CONSENT_CHECKBOX_LABEL,
+  PRIVACY_PARTNER_SHARE_CHECKBOX_LABEL,
   PRIVACY_POLICY_SECTIONS,
   PRIVACY_POLICY_TITLE,
   PRIVACY_POLICY_VERSION,
@@ -19,7 +20,7 @@ const SCROLL_END_THRESHOLD_PX = 12;
   imports: [FormsModule],
   templateUrl: './accept-privacy-page.component.html',
 })
-export class AcceptPrivacyPageComponent implements AfterViewInit {
+export class AcceptPrivacyPageComponent implements OnInit, AfterViewInit {
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
@@ -30,13 +31,15 @@ export class AcceptPrivacyPageComponent implements AfterViewInit {
   readonly policyVersion = PRIVACY_POLICY_VERSION;
   readonly sections = PRIVACY_POLICY_SECTIONS;
   readonly checkboxLabel = PRIVACY_CONSENT_CHECKBOX_LABEL;
+  readonly partnerShareLabel = PRIVACY_PARTNER_SHARE_CHECKBOX_LABEL;
 
   readonly agreed = signal(false);
+  readonly partnerShare = signal(this.auth.allowBusinessDataPartnerShare());
   readonly submitting = signal(false);
   /** Unlocks checkbox after user scrolls policy text to the bottom (or content fits without scroll). */
   readonly scrolledToEnd = signal(false);
 
-  constructor() {
+  ngOnInit(): void {
     if (!this.auth.needsPrivacyConsent()) {
       void this.router.navigate([this.auth.homePathAfterLogin()]);
     }
@@ -60,7 +63,7 @@ export class AcceptPrivacyPageComponent implements AfterViewInit {
     }
 
     this.submitting.set(true);
-    this.auth.acceptPrivacyPolicy(PRIVACY_POLICY_VERSION).subscribe({
+    this.auth.acceptPrivacyPolicy(PRIVACY_POLICY_VERSION, this.partnerShare()).subscribe({
       next: () => {
         this.submitting.set(false);
         this.toast.showSuccess('บันทึกความยินยอมเรียบร้อย');

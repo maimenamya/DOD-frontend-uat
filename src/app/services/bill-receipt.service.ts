@@ -673,7 +673,7 @@ export class BillReceiptService {
     const itemsHeadFont = narrow ? '23px' : '25px';
     const headFont = narrow ? '30px' : '32px';
     const grandFont = narrow ? '28px' : '31px';
-    const footFont = narrow ? '16px' : '16px';
+    const footFont = '16px';
     const infoFont = narrow ? '17px' : '18px';
     const amtPadRightPx = narrow ? 8 : 10;
     const footerGapPx = 100;
@@ -1077,7 +1077,7 @@ export class BillReceiptService {
     const binary = atob(receipt.escPosBase64);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i += 1) {
-      bytes[i] = binary.charCodeAt(i);
+      bytes[i] = binary.codePointAt(i) ?? 0;
     }
     const blob = new Blob([bytes], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
@@ -1148,10 +1148,10 @@ function formatReceiptDateTimeLabel(value: string): string {
 
 function escapeHtml(value: string): string {
   return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
 }
 
 function formatReceiptMoney(amount: number): string {
@@ -1166,15 +1166,32 @@ function truncateReceiptName(name: string, maxChars: number): string {
   return `${name.slice(0, Math.max(1, maxChars - 1))}…`;
 }
 
+/** Strip a single trailing `(…)` group and surrounding spaces (no regex backtracking). */
+function stripTrailingParenGroup(value: string): string {
+  let end = value.length;
+  while (end > 0 && /\s/.test(value[end - 1]!)) end -= 1;
+  if (end === 0 || value[end - 1] !== ')') {
+    return value.trimEnd();
+  }
+  const open = value.lastIndexOf('(', end - 1);
+  if (open < 0) {
+    return value.trimEnd();
+  }
+  const inner = value.slice(open + 1, end - 1);
+  if (inner.includes('(') || inner.includes(')')) {
+    return value.trimEnd();
+  }
+  let start = open;
+  while (start > 0 && /\s/.test(value[start - 1]!)) start -= 1;
+  return value.slice(0, start).trimEnd();
+}
+
 /** บิลเก่าอาจเก็บ "รันดื่ม ชื่อ (ตำแหน่ง)" — แสดงบนใบเสร็จเป็น "ดื่ม ชื่อ" */
 function receiptLineDisplayName(name: string): string {
   const trimmed = name.trim();
   if (trimmed.startsWith('ดื่ม ')) return trimmed;
   if (trimmed.startsWith('รันดื่ม ')) {
-    const rest = trimmed
-      .slice('รันดื่ม '.length)
-      .replace(/\s*\([^)]*\)\s*$/, '')
-      .trim();
+    const rest = stripTrailingParenGroup(trimmed.slice('รันดื่ม '.length));
     return rest ? `ดื่ม ${rest}` : 'ดื่ม';
   }
   return trimmed;

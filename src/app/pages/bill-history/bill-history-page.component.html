@@ -11,24 +11,26 @@
   <section class="app-card mb-4 p-4">
     <h2 class="mb-3 text-sm font-semibold text-text-primary">ช่วงวันที่</h2>
     <div class="flex flex-wrap items-end gap-3">
-      <label class="flex min-w-[10rem] flex-col gap-1">
-        <span class="text-xs text-text-secondary">ตั้งแต่</span>
+      <div class="flex min-w-[10rem] flex-col gap-1">
+        <label class="text-xs text-text-secondary" for="bill-history-range-from">ตั้งแต่</label>
         <app-shop-date-input
+          inputId="bill-history-range-from"
           extraInputClass="dashboard-date-input"
           [requireConfirm]="false"
           [ngModel]="rangeFrom()"
           (ngModelChange)="onRangeFromChange($event)"
         />
-      </label>
-      <label class="flex min-w-[10rem] flex-col gap-1">
-        <span class="text-xs text-text-secondary">ถึง</span>
+      </div>
+      <div class="flex min-w-[10rem] flex-col gap-1">
+        <label class="text-xs text-text-secondary" for="bill-history-range-to">ถึง</label>
         <app-shop-date-input
+          inputId="bill-history-range-to"
           extraInputClass="dashboard-date-input"
           [requireConfirm]="false"
           [ngModel]="rangeTo()"
           (ngModelChange)="onRangeToChange($event)"
         />
-      </label>
+      </div>
       <button type="button" class="app-btn-secondary min-h-[2.75rem]" (click)="applyRange()">
         ค้นหา
       </button>
@@ -108,7 +110,20 @@
                   <col class="bill-history-col-pay" />
                   <col class="bill-history-col-actions" />
                 </colgroup>
-                <tbody>
+                <thead class="sr-only">
+                  <tr>
+                    <th>No.</th>
+                    <th>วันที่</th>
+                    <th>เช็กเอาต์</th>
+                    <th>เลขบิล</th>
+                    <th>โต๊ะ / โซน</th>
+                    <th>เซลล์</th>
+                    <th class="app-cell-right">ยอด</th>
+                    <th>ชำระ</th>
+                    <th class="app-cell-right">จัดการ</th>
+                  </tr>
+                </thead>
+              <tbody>
                   @for (row of listView().items; track row.id; let i = $index) {
                     <tr>
                       <td class="bill-history-cell-no app-cell-mono">

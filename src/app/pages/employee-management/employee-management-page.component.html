@@ -43,9 +43,10 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="createFormValidated()" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
-          <label class="app-label">ตำแหน่ง</label>
+          <label class="app-label" for="employee-management-create-role">ตำแหน่ง</label>
           @if (showCreateRolePicker()) {
             <app-custom-dropdown
+              inputId="employee-management-create-role"
               formControlName="roleId"
               [options]="createRoleDropdownOptions()"
               placeholder="เลือกตำแหน่ง"
@@ -55,8 +56,9 @@
           }
         </div>
         <div class="app-form-group">
-          <label class="app-label">รหัสพนักงาน</label>
+          <label class="app-label" for="employee-management-employee-id">รหัสพนักงาน</label>
           <input
+            id="employee-management-employee-id"
             type="text"
             formControlName="employeeId"
             class="app-input"
@@ -66,24 +68,24 @@
           <p class="app-hint">{{ localCodeHint }}</p>
         </div>
         <div class="app-form-group">
-          <label class="app-label">ชื่อเล่น</label>
-          <input type="text" formControlName="nickname" class="app-input" />
+          <label class="app-label" for="employee-management-ชื่อเล่น-1">ชื่อเล่น</label>
+          <input id="employee-management-ชื่อเล่น-1" type="text" formControlName="nickname" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">รหัสผ่านเริ่มต้น</label>
-          <input type="password" formControlName="password" class="app-input" />
+          <label class="app-label" for="employee-management-รหัสผ่านเริ่มต้น-2">รหัสผ่านเริ่มต้น</label>
+          <input id="employee-management-รหัสผ่านเริ่มต้น-2" type="password" formControlName="password" class="app-input" />
           <p class="mt-1.5 text-sm text-text-secondary">
             อย่างน้อย {{ minPasswordLength }} ตัวอักษร — เจ้าของ/ผู้จัดการตั้งให้ ผู้ใช้ต้องเปลี่ยนเองเมื่อเข้าระบบครั้งแรก (รวมผู้จัดการ)
           </p>
         </div>
         <div class="app-form-group">
-          <label class="app-label">อีเมล (ไม่บังคับ)</label>
-          <input type="email" formControlName="email" class="app-input" />
+          <label class="app-label" for="employee-management-อีเมล-ไม่บังคับ-3">อีเมล (ไม่บังคับ)</label>
+          <input id="employee-management-อีเมล-ไม่บังคับ-3" type="email" formControlName="email" class="app-input" />
         </div>
         @if (showWorkDutiesForCreate()) {
           <div class="app-form-group">
-            <label class="app-label">หน้าที่ทำงาน</label>
-            <app-custom-dropdown
+            <label class="app-label" for="employee-management-หน้าที่ทำงาน-4">หน้าที่ทำงาน</label>
+            <app-custom-dropdown inputId="employee-management-หน้าที่ทำงาน-4"
               formControlName="workDuties"
               [options]="workDutyDropdownOptions"
               [multiple]="true"
@@ -117,8 +119,8 @@
       </p>
       <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
           <div class="app-form-group">
-            <label class="app-label">ตำแหน่ง</label>
-            <app-custom-dropdown
+            <label class="app-label" for="employee-management-ตำแหน่ง-5">ตำแหน่ง</label>
+            <app-custom-dropdown inputId="employee-management-ตำแหน่ง-5"
               formControlName="roleId"
               [options]="editRoleDropdownOptions()"
               placeholder="เลือกตำแหน่ง"
@@ -126,8 +128,8 @@
           </div>
           @if (showWorkDutiesForEdit()) {
             <div class="app-form-group">
-              <label class="app-label">หน้าที่ทำงาน</label>
-              <app-custom-dropdown
+              <label class="app-label" for="employee-management-หน้าที่ทำงาน-6">หน้าที่ทำงาน</label>
+              <app-custom-dropdown inputId="employee-management-หน้าที่ทำงาน-6"
                 formControlName="workDuties"
                 [options]="workDutyDropdownOptions"
                 [multiple]="true"
@@ -141,31 +143,31 @@
             <p class="app-field-hint">เด็กนั่งดริ้ง — เห็นภาพรวมและลงเวลา (ไม่มีบิลของฉัน/ออเดอร์)</p>
           }
           <div class="app-form-group">
-            <label class="app-label">ชื่อเล่น</label>
-            <input type="text" formControlName="nickname" class="app-input" />
+            <label class="app-label" for="employee-management-ชื่อเล่น-7">ชื่อเล่น</label>
+            <input id="employee-management-ชื่อเล่น-7" type="text" formControlName="nickname" class="app-input" />
           </div>
           <div class="app-form-group">
-            <label class="app-label">อีเมล</label>
-            <input type="email" formControlName="email" class="app-input" />
+            <label class="app-label" for="employee-management-อีเมล-8">อีเมล</label>
+            <input id="employee-management-อีเมล-8" type="email" formControlName="email" class="app-input" />
           </div>
           <div class="app-form-group">
-            <label class="app-label">สถานะ</label>
-            <app-custom-dropdown
+            <label class="app-label" for="employee-management-สถานะ-9">สถานะ</label>
+            <app-custom-dropdown inputId="employee-management-สถานะ-9"
               formControlName="status"
               [options]="statusDropdownOptions"
               placeholder="เลือกสถานะ"
             />
           </div>
           <div class="app-form-group">
-            <label class="app-label">รหัสผ่านใหม่ (ไม่บังคับ)</label>
-            <input type="password" formControlName="password" class="app-input" />
+            <label class="app-label" for="employee-management-รหัสผ่านใหม่-ไม่บังคับ-10">รหัสผ่านใหม่ (ไม่บังคับ)</label>
+            <input id="employee-management-รหัสผ่านใหม่-ไม่บังคับ-10" type="password" formControlName="password" class="app-input" />
             <p class="mt-1.5 text-sm text-text-secondary">
               ถ้าตั้งรหัสใหม่ ผู้ใช้ต้องเปลี่ยนอีกครั้งเมื่อเข้าระบบครั้งถัดไป
             </p>
           </div>
           <div class="app-form-group">
-            <label class="app-label">เหตุผลการแก้ไข/ลบ</label>
-            <textarea
+            <label class="app-label" for="employee-management-เหตุผลการแก้ไข-ลบ-11">เหตุผลการแก้ไข/ลบ</label>
+            <textarea id="employee-management-เหตุผลการแก้ไข-ลบ-11"
               rows="3"
               formControlName="changeReason"
               class="app-input app-scroll-region"
@@ -230,6 +232,18 @@
                   <col class="app-col-actions" />
                 }
               </colgroup>
+              <thead class="sr-only">
+                <tr>
+                  <th>No.</th>
+                  <th>รหัสพนักงาน</th>
+                  <th>ชื่อเล่น</th>
+                  <th>ตำแหน่ง</th>
+                  <th>หน้าที่</th>
+                  @if (canManage()) {
+                    <th class="app-cell-right">จัดการ</th>
+                  }
+                </tr>
+              </thead>
               <tbody>
                 @for (emp of listView().items; track emp.id; let i = $index) {
                   <tr>

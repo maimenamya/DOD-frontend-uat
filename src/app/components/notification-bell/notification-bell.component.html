@@ -34,7 +34,13 @@
         aria-label="ปิดการแจ้งเตือน"
         (click)="closeMenu()"
       ></button>
-      <div class="app-notification-menu" #menu role="menu" (click)="$event.stopPropagation()">
+      <div
+        class="app-notification-menu"
+        #menu
+        role="menu"
+        (click)="$event.stopPropagation()"
+        (keydown)="$event.stopPropagation()"
+      >
         <div class="app-notification-menu-header">
           <span class="app-notification-menu-title">การแจ้งเตือน</span>
         </div>

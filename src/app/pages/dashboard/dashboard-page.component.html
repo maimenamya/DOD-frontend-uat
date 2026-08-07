@@ -176,7 +176,9 @@
           <h2 class="app-card-title">อันดับพนักงาน</h2>
         </div>
         <div class="dashboard-table-search">
+          <label class="sr-only" for="dashboard-staff-search">ค้นหาชื่อพนักงาน</label>
           <input
+            id="dashboard-staff-search"
             type="search"
             class="dashboard-table-search-input"
             placeholder="ช่องค้นหาชื่อ"
@@ -221,6 +223,13 @@
                       <col />
                       <col class="dashboard-rank-col-num" />
                     </colgroup>
+                    <thead class="sr-only">
+                      <tr>
+                        <th>#</th>
+                        <th>ชื่อ</th>
+                        <th>ดื่ม</th>
+                      </tr>
+                    </thead>
                     <tbody>
                       @for (row of filteredTopStaff(); track row.employeeId; let i = $index) {
                         <tr>
@@ -247,7 +256,9 @@
           <h2 class="app-card-title">อันดับเด็กนั่งดริ๊งค์</h2>
         </div>
         <div class="dashboard-table-search">
+          <label class="sr-only" for="dashboard-entertainer-search">ค้นหาชื่อเด็กนั่งดริ๊งค์</label>
           <input
+            id="dashboard-entertainer-search"
             type="search"
             class="dashboard-table-search-input"
             placeholder="ช่องค้นหาชื่อ"
@@ -292,6 +303,13 @@
                       <col />
                       <col class="dashboard-rank-col-num" />
                     </colgroup>
+                    <thead class="sr-only">
+                      <tr>
+                        <th>#</th>
+                        <th>ชื่อ</th>
+                        <th>ดื่ม</th>
+                      </tr>
+                    </thead>
                     <tbody>
                       @for (row of filteredTopEntertainers(); track row.employeeId; let i = $index) {
                         <tr>

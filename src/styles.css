@@ -2029,6 +2029,20 @@
     overflow-x: hidden;
   }
 
+  /* Sonar S5256: body table needs <th>; keep visible header on the split header table only */
+  /* Inline styles — `@apply sr-only` circular-deps with angular-css / Tailwind. */
+  .app-split-table-body thead.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
   /* Match bill-history row air — avoid cramped master/report tables on mobile */
   .app-split-table-body .app-data-table td {
     @apply box-border px-5 py-4 text-center;
@@ -2653,7 +2667,15 @@
   }
 
   .app-toggle-input {
-    @apply sr-only;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
   }
 
   .app-toggle-track {
@@ -4287,6 +4309,30 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  .accept-privacy-consent--optional {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--theme-border, rgba(148, 163, 184, 0.35));
+  }
+
+  .app-profile-partner-share {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    margin-top: 0.75rem;
+    cursor: pointer;
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+
+  .app-profile-partner-share input {
+    margin-top: 0.2rem;
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-shrink: 0;
+    accent-color: var(--primary, #f59e0b);
+  }
+
   .accept-privacy-consent--locked {
     @apply cursor-not-allowed opacity-60;
   }
@@ -5203,10 +5249,10 @@ input.app-input.app-shop-date-input.flatpickr-input.active {
 
   @keyframes app-flatpickr-sheet-in {
     from {
-      transform: translateY(100%) !important;
+      transform: translateY(100%);
     }
     to {
-      transform: translateY(0) !important;
+      transform: translateY(0);
     }
   }
 

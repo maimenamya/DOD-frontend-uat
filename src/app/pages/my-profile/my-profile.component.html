@@ -17,25 +17,48 @@
     </div>
   </div>
 
+  @if (isOwner() && !forcePasswordChange()) {
+    <section class="app-card app-profile-card" style="margin-bottom: 1rem">
+      <h2 class="app-card-title">การแชร์ข้อมูลธุรกิจกับพาร์ทเนอร์</h2>
+      <p class="app-card-subtitle">
+        อนุญาตให้แชร์เฉพาะข้อมูลธุรกิจ (ชื่อร้าน/สาขา ที่อยู่สาขา รายการในเมนู)
+        กับซัพพลายเออร์ — ไม่รวมข้อมูลส่วนบุคคลของพนักงานหรือลูกค้า ค่าเริ่มต้นปิด
+      </p>
+      <label class="app-profile-partner-share">
+        <input
+          type="checkbox"
+          [ngModel]="partnerShareEnabled()"
+          (ngModelChange)="onPartnerShareToggle($event)"
+          [disabled]="partnerShareBusy()"
+          name="partnerShareEnabled"
+        />
+        <span>อนุญาตแชร์ข้อมูลธุรกิจกับซัพพลายเออร์ / พาร์ทเนอร์สินค้า</span>
+      </label>
+      @if (partnerShareUpdatedLabel()) {
+        <p class="app-profile-hint">อัปเดตล่าสุด {{ partnerShareUpdatedLabel() }}</p>
+      }
+    </section>
+  }
+
   <section class="app-card app-profile-card">
     <form class="app-form-stack" [class.app-form-was-validated]="formValidated()" [formGroup]="form" (ngSubmit)="submit()">
       <div class="app-form-group">
-        <label class="app-label">ชื่อเล่น</label>
-        <input type="text" formControlName="nickname" class="app-input" />
+        <label class="app-label" for="my-profile-ชื่อเล่น-1">ชื่อเล่น</label>
+        <input id="my-profile-ชื่อเล่น-1" type="text" formControlName="nickname" class="app-input" />
       </div>
       <div class="app-form-group">
-        <label class="app-label">อีเมล</label>
-        <input type="email" formControlName="email" class="app-input" />
+        <label class="app-label" for="my-profile-อีเมล-2">อีเมล</label>
+        <input id="my-profile-อีเมล-2" type="email" formControlName="email" class="app-input" />
       </div>
       <div class="app-form-group">
-        <label class="app-label">
+        <label class="app-label" for="my-profile-if-forcepasswordchange-รหัสผ่านใหม่-else-3">
           @if (forcePasswordChange()) {
             รหัสผ่านใหม่
           } @else {
             รหัสผ่านใหม่ (ไม่บังคับ)
           }
         </label>
-        <input
+        <input id="my-profile-if-forcepasswordchange-รหัสผ่านใหม่-else-3"
           type="password"
           formControlName="password"
           class="app-input"
@@ -44,8 +67,8 @@
       </div>
       @if (forcePasswordChange() || form.controls.password.value.trim()) {
         <div class="app-form-group">
-          <label class="app-label">ยืนยันรหัสผ่าน</label>
-          <input
+          <label class="app-label" for="my-profile-ยืนยันรหัสผ่าน-4">ยืนยันรหัสผ่าน</label>
+          <input id="my-profile-ยืนยันรหัสผ่าน-4"
             type="password"
             formControlName="confirmPassword"
             class="app-input"

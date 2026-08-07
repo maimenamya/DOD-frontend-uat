@@ -133,8 +133,8 @@ export function applyShopFlatpickrTimeFromInputs(instance: flatpickr.Instance): 
   const minuteEl = instance.minuteElement;
   if (!hourEl || !minuteEl) return;
 
-  const hours = (parseInt(hourEl.value.slice(-2), 10) || 0) % 24;
-  const minutes = (parseInt(minuteEl.value, 10) || 0) % 60;
+  const hours = (Number.parseInt(hourEl.value.slice(-2), 10) || 0) % 24;
+  const minutes = (Number.parseInt(minuteEl.value, 10) || 0) % 60;
   hourEl.value = pad2(hours);
   minuteEl.value = pad2(minutes);
 
@@ -506,8 +506,8 @@ function shopFlatpickrWheelInitialTime(
   hooks: ShopFlatpickrTimeWheelHooks,
 ): { hour: number; minute: number } {
   const parts = splitShopDatetimeLocal(shopFlatpickrWheelInitialShopDatetime(instance, hooks));
-  const hours = Math.min(23, Math.max(0, parseInt(parts.hour, 10) || 0));
-  const minutes = Math.min(59, Math.max(0, parseInt(parts.minute, 10) || 0));
+  const hours = Math.min(23, Math.max(0, Number.parseInt(parts.hour, 10) || 0));
+  const minutes = Math.min(59, Math.max(0, Number.parseInt(parts.minute, 10) || 0));
   shopFlatpickrApplyWallClockTime(instance, hours, minutes, hooks, false);
   return { hour: hours, minute: minutes };
 }

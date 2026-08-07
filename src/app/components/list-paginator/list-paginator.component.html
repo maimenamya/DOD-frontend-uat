@@ -7,15 +7,16 @@
     }
   </p>
   <div class="app-list-paginator-controls">
-    <label class="app-list-paginator-limit">
-      <span class="app-list-paginator-limit-label">ต่อหน้า</span>
+    <div class="app-list-paginator-limit">
+      <label class="app-list-paginator-limit-label" for="list-paginator-page-size">ต่อหน้า</label>
       <app-custom-dropdown
         class="app-list-paginator-select"
+        inputId="list-paginator-page-size"
         [options]="pageSizeDropdownOptions"
         [ngModel]="limit()"
         (ngModelChange)="onLimitChange($event)"
       />
-    </label>
+    </div>
     <div class="app-list-paginator-nav" aria-label="เปลี่ยนหน้า">
       <button
         type="button"

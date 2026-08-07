@@ -99,8 +99,9 @@
                 @for (row of rows.controls; track row; let i = $index) {
                   <div class="record-drinks-row" [formGroupName]="i">
                     <div class="record-drinks-row-field record-drinks-row-role">
-                      <label class="record-drinks-label">เลือกประเภทตำแหน่ง</label>
+                      <label class="record-drinks-label" [attr.for]="'record-drinks-role-' + i">เลือกประเภทตำแหน่ง</label>
                       <app-custom-dropdown
+                        [inputId]="'record-drinks-role-' + i"
                         formControlName="roleId"
                         [options]="roleDropdownOptions()"
                         placeholder="เลือกตำแหน่ง"
@@ -111,8 +112,9 @@
                     </div>
 
                     <div class="record-drinks-row-field record-drinks-row-employee">
-                      <label class="record-drinks-label">เลือกพนักงาน</label>
+                      <label class="record-drinks-label" [attr.for]="'record-drinks-employee-' + i">เลือกพนักงาน</label>
                       <app-custom-dropdown
+                        [inputId]="'record-drinks-employee-' + i"
                         formControlName="employeeId"
                         [options]="employeeOptionsForRow(row)"
                         [placeholder]="hasRoleSelected(row) ? 'เลือกพนักงาน' : 'เลือกตำแหน่งก่อน'"
@@ -124,7 +126,7 @@
 
                     @if (rowHasActivePrTag(row)) {
                       <div class="record-drinks-row-field record-drinks-row-tag">
-                        <label class="record-drinks-label">ลงแท็ก</label>
+                        <span class="record-drinks-label">ลงแท็ก</span>
                         <label class="app-toggle">
                           <input
                             type="checkbox"
@@ -144,10 +146,11 @@
                     }
 
                     <div class="record-drinks-row-field record-drinks-row-qty">
-                      <label class="record-drinks-label">จำนวนดื่ม</label>
+                      <label class="record-drinks-label" [attr.for]="'record-drinks-qty-' + i">จำนวนดื่ม</label>
                       <input
                         type="text"
                         class="app-input app-input-number"
+                        [id]="'record-drinks-qty-' + i"
                         formControlName="quantity"
                         inputmode="numeric"
                         pattern="[0-9]*"

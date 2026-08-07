@@ -41,18 +41,18 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="createFormValidated()" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
-          <label class="app-label">ประเภทที่นั่ง</label>
+          <span class="app-label">ประเภทที่นั่ง</span>
           <p class="text-sm text-text-primary">
             {{ selectedSeatingType()?.name }}
             <span class="text-text-secondary">({{ selectedSeatingType()?.code }})</span>
           </p>
         </div>
         <div class="app-form-group">
-          <label class="app-label">รหัสที่นั่ง</label>
-          <input type="text" formControlName="code" class="app-input" placeholder="เช่น A1, V3" />
+          <label class="app-label" for="master-seating-list-รหัสที่นั่ง-2">รหัสที่นั่ง</label>
+          <input id="master-seating-list-รหัสที่นั่ง-2" type="text" formControlName="code" class="app-input" placeholder="เช่น A1, V3" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">การคิดค่าใช้จ่าย</label>
+          <span class="app-label">การคิดค่าใช้จ่าย</span>
           <label class="app-toggle" aria-label="สลับคิดค่าบริการ">
             <input type="checkbox" class="app-toggle-input" formControlName="chargesRoomFee" />
             <span class="app-toggle-track" aria-hidden="true"></span>
@@ -83,18 +83,18 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
         <div class="app-form-group">
-          <label class="app-label">ประเภทที่นั่ง</label>
+          <span class="app-label">ประเภทที่นั่ง</span>
           <p class="text-sm text-text-primary">
             {{ seatingTypeName(item) }}
             <span class="text-text-secondary">({{ item.seatingType?.code }})</span>
           </p>
         </div>
         <div class="app-form-group">
-          <label class="app-label">รหัสที่นั่ง</label>
-          <input type="text" formControlName="code" class="app-input" />
+          <label class="app-label" for="master-seating-list-รหัสที่นั่ง-5">รหัสที่นั่ง</label>
+          <input id="master-seating-list-รหัสที่นั่ง-5" type="text" formControlName="code" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">การคิดค่าใช้จ่าย</label>
+          <span class="app-label">การคิดค่าใช้จ่าย</span>
           <label class="app-toggle" aria-label="สลับคิดค่าบริการ">
             <input type="checkbox" class="app-toggle-input" formControlName="chargesRoomFee" />
             <span class="app-toggle-track" aria-hidden="true"></span>
@@ -174,6 +174,17 @@
                   <col class="app-col-actions" />
                 }
               </colgroup>
+              <thead class="sr-only">
+                <tr>
+                  <th>No.</th>
+                  <th>รหัส</th>
+                  <th>การคิดค่า</th>
+                  <th>สถานะ</th>
+                  @if (canManage()) {
+                    <th class="app-cell-right">จัดการ</th>
+                  }
+                </tr>
+              </thead>
               <tbody>
                 @for (item of listView().items; track item.id; let i = $index) {
                   <tr>

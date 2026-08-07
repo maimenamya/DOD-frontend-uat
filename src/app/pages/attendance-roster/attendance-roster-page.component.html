@@ -73,6 +73,15 @@
                 <col />
                 <col />
               </colgroup>
+              <thead class="sr-only">
+                <tr>
+                  <th>#</th>
+                  <th>รหัส</th>
+                  <th>ชื่อเล่น</th>
+                  <th>ตำแหน่ง</th>
+                  <th>สถานะวันนี้</th>
+                </tr>
+              </thead>
               <tbody>
                 @for (row of listView().items; track row.id; let i = $index) {
                   <tr
@@ -148,8 +157,8 @@
         ยอดที่ระบบคำนวณ {{ shift.rawDeductionBaht | number: '1.0-0' }} บาท — แก้ยอดได้ หรือใส่ 0 หากอนุโลม
       </p>
       <div class="app-form-group">
-        <label class="app-label">ยอดหัก (บาท)</label>
-        <input
+        <label class="app-label" for="attendance-roster-ยอดหัก-บาท-1">ยอดหัก (บาท)</label>
+        <input id="attendance-roster-ยอดหัก-บาท-1"
           type="text"
           inputmode="numeric"
           pattern="[0-9]*"

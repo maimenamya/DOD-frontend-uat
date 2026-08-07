@@ -1,6 +1,6 @@
 <div class="app-form-group">
   <div class="app-form-group-header">
-    <label class="app-label">รายการในแพ็กเกจ</label>
+    <span class="app-label">รายการในแพ็กเกจ</span>
     <ng-content select="[addLineButton]" />
   </div>
 
@@ -18,8 +18,9 @@
         </button>
         <div class="drink-package-line-body">
           <div class="drink-package-line-field">
-            <span class="app-label-sm">ประเภท</span>
+            <label class="app-label-sm" [attr.for]="'pkg-line-cat-' + i">ประเภท</label>
             <app-custom-dropdown
+              [inputId]="'pkg-line-cat-' + i"
               [options]="categoryOptions()"
               [ngModel]="row.controls.categoryId.value"
               (ngModelChange)="onCategoryChange(row, $event)"
@@ -28,19 +29,21 @@
             />
           </div>
           <div class="drink-package-line-field">
-            <span class="app-label-sm">เครื่องดื่ม</span>
+            <label class="app-label-sm" [attr.for]="'pkg-line-drink-' + i">เครื่องดื่ม</label>
             <app-custom-dropdown
+              [inputId]="'pkg-line-drink-' + i"
               formControlName="drinkId"
               [options]="drinkOptionsForRow(row)"
               placeholder="เลือกเครื่องดื่ม"
             />
           </div>
           <div class="drink-package-line-field drink-package-line-field--qty">
-            <span class="app-label-sm">จำนวน</span>
+            <label class="app-label-sm" [attr.for]="'pkg-line-qty-' + i">จำนวน</label>
             <input
               type="text"
               inputmode="numeric"
               pattern="[0-9]*"
+              [id]="'pkg-line-qty-' + i"
               formControlName="quantity"
               class="app-input"
               (input)="sanitizeQuantity(row, $event)"

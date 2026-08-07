@@ -21,7 +21,7 @@ import { ConfirmDialogComponent } from './confirm-dialog.component';
       [reasonValidated]="confirm.reasonValidated()"
       (reasonTextChange)="confirm.onReasonTextChange($event)"
       (confirm)="confirm.onConfirm()"
-      (cancel)="confirm.onCancel()"
+      (cancelled)="confirm.onCancel()"
     />
   `,
 })

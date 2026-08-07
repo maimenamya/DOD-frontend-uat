@@ -23,17 +23,17 @@ export class StationQueuePageComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly embedded = input(false);
-  readonly kindInput = input<StationTicketKind | undefined>(undefined, { alias: 'kind' });
+  readonly kind = input<StationTicketKind | undefined>(undefined);
 
-  readonly kind = signal<StationTicketKind>('FOOD');
+  readonly queueKind = signal<StationTicketKind>('FOOD');
   readonly tickets = signal<StationTicket[]>([]);
   readonly loading = signal(true);
   readonly actingId = signal<number | null>(null);
 
   readonly pageTitle = computed(() =>
-    this.kind() === 'FOOD' ? 'คิวครัว' : 'คิวบาร์น้ำ',
+    this.queueKind() === 'FOOD' ? 'คิวครัว' : 'คิวบาร์น้ำ',
   );
-  readonly kindLabel = computed(() => STATION_TICKET_KIND_LABEL[this.kind()]);
+  readonly kindLabel = computed(() => STATION_TICKET_KIND_LABEL[this.queueKind()]);
   readonly pendingTickets = computed(() =>
     this.tickets().filter((ticket) => ticket.status === 'PENDING'),
   );
@@ -43,13 +43,13 @@ export class StationQueuePageComponent implements OnInit {
   readonly statusLabel = STATION_TICKET_STATUS_LABEL;
 
   ngOnInit(): void {
-    const fromInput = this.kindInput();
+    const fromInput = this.kind();
     if (fromInput === 'FOOD' || fromInput === 'DRINK') {
-      this.kind.set(fromInput);
+      this.queueKind.set(fromInput);
     } else {
       const dataKind = this.route.snapshot.data['kind'] as StationTicketKind | undefined;
       if (dataKind === 'FOOD' || dataKind === 'DRINK') {
-        this.kind.set(dataKind);
+        this.queueKind.set(dataKind);
       }
     }
     this.load();
@@ -74,7 +74,7 @@ export class StationQueuePageComponent implements OnInit {
 
   private load(): void {
     this.loading.set(true);
-    this.stationTickets.listPrep(this.kind()).subscribe({
+    this.stationTickets.listPrep(this.queueKind()).subscribe({
       next: (rows) => {
         this.tickets.set(rows);
         this.loading.set(false);
@@ -89,7 +89,7 @@ export class StationQueuePageComponent implements OnInit {
   private startPolling(): void {
     const timer = setInterval(() => {
       if (document.visibilityState !== 'visible' || this.actingId() != null) return;
-      this.stationTickets.listPrep(this.kind()).subscribe({
+      this.stationTickets.listPrep(this.queueKind()).subscribe({
         next: (rows) => this.tickets.set(rows),
       });
     }, POLL_MS);

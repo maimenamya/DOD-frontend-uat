@@ -11,24 +11,26 @@
   <section class="app-card mb-4 p-4">
     <h2 class="mb-3 text-sm font-semibold text-text-primary">ช่วงวันที่</h2>
     <div class="flex flex-wrap items-end gap-3">
-      <label class="flex min-w-[10rem] flex-col gap-1">
-        <span class="text-xs text-text-secondary">ตั้งแต่</span>
+      <div class="flex min-w-[10rem] flex-col gap-1">
+        <label class="text-xs text-text-secondary" for="daily-expenses-range-from">ตั้งแต่</label>
         <app-shop-date-input
+          inputId="daily-expenses-range-from"
           extraInputClass="dashboard-date-input"
           [requireConfirm]="false"
           [ngModel]="rangeFrom()"
           (ngModelChange)="onRangeFromChange($event)"
         />
-      </label>
-      <label class="flex min-w-[10rem] flex-col gap-1">
-        <span class="text-xs text-text-secondary">ถึง</span>
+      </div>
+      <div class="flex min-w-[10rem] flex-col gap-1">
+        <label class="text-xs text-text-secondary" for="daily-expenses-range-to">ถึง</label>
         <app-shop-date-input
+          inputId="daily-expenses-range-to"
           extraInputClass="dashboard-date-input"
           [requireConfirm]="false"
           [ngModel]="rangeTo()"
           (ngModelChange)="onRangeToChange($event)"
         />
-      </label>
+      </div>
     </div>
     @if (rangeLabelFrom() && rangeLabelTo()) {
       <p class="mt-2 text-xs text-text-secondary">
@@ -56,8 +58,8 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="createFormValidated()" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
-          <label class="app-label">รายการ / ค่าอะไร</label>
-          <input
+          <label class="app-label" for="daily-expenses-รายการ-ค่าอะไร-1">รายการ / ค่าอะไร</label>
+          <input id="daily-expenses-รายการ-ค่าอะไร-1"
             type="text"
             formControlName="description"
             class="app-input"
@@ -65,8 +67,8 @@
           />
         </div>
         <div class="app-form-group">
-          <label class="app-label">จำนวนเงิน (บาท)</label>
-          <input
+          <label class="app-label" for="daily-expenses-จำนวนเงิน-บาท-2">จำนวนเงิน (บาท)</label>
+          <input id="daily-expenses-จำนวนเงิน-บาท-2"
             type="text"
             inputmode="numeric"
             formControlName="amount"
@@ -101,12 +103,12 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
         <div class="app-form-group">
-          <label class="app-label">รายการ / ค่าอะไร</label>
-          <input type="text" formControlName="description" class="app-input" />
+          <label class="app-label" for="daily-expenses-รายการ-ค่าอะไร-3">รายการ / ค่าอะไร</label>
+          <input id="daily-expenses-รายการ-ค่าอะไร-3" type="text" formControlName="description" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">จำนวนเงิน (บาท)</label>
-          <input
+          <label class="app-label" for="daily-expenses-จำนวนเงิน-บาท-4">จำนวนเงิน (บาท)</label>
+          <input id="daily-expenses-จำนวนเงิน-บาท-4"
             type="text"
             inputmode="numeric"
             formControlName="amount"
@@ -189,6 +191,15 @@
                 <col class="app-col-narrow" />
                 <col class="app-col-actions" />
               </colgroup>
+              <thead class="sr-only">
+                <tr>
+                  <th>No.</th>
+                  <th>วันที่</th>
+                  <th>รายการ</th>
+                  <th class="app-cell-right">จำนวนเงิน</th>
+                  <th class="app-cell-right">จัดการ</th>
+                </tr>
+              </thead>
               <tbody>
                 @for (row of listView().items; track row.id; let i = $index) {
                   <tr>

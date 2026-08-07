@@ -26,16 +26,16 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="createFormValidated()" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
-          <label class="app-label">ประเภท</label>
+          <span class="app-label">ประเภท</span>
           <p class="text-sm text-text-primary">{{ selectedCategory()?.name }}</p>
         </div>
         <div class="app-form-group">
-          <label class="app-label">ชื่อเครื่องดื่ม</label>
-          <input type="text" formControlName="name" class="app-input" />
+          <label class="app-label" for="master-drink-ชื่อเครื่องดื่ม-2">ชื่อเครื่องดื่ม</label>
+          <input id="master-drink-ชื่อเครื่องดื่ม-2" type="text" formControlName="name" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ราคา</label>
-          <input
+          <label class="app-label" for="master-drink-ราคา-3">ราคา</label>
+          <input id="master-drink-ราคา-3"
             type="text"
             inputmode="numeric"
             pattern="[0-9]*"
@@ -57,7 +57,7 @@
           />
         </div>
         <div class="app-form-group">
-          <label class="app-label">คืนได้</label>
+          <span class="app-label">คืนได้</span>
           <label class="app-toggle" aria-label="เปิดหรือปิดการคืนเครื่องดื่ม">
             <input type="checkbox" class="app-toggle-input" formControlName="canReturn" />
             <span class="app-toggle-track"></span>
@@ -67,8 +67,8 @@
           </label>
         </div>
         <div class="app-form-group">
-          <label class="app-label">สินค้าสต็อก</label>
-          <app-custom-dropdown
+          <label class="app-label" for="master-drink-สินค้าสต็อก-5">สินค้าสต็อก</label>
+          <app-custom-dropdown inputId="master-drink-สินค้าสต็อก-5"
             formControlName="stockItemId"
             [options]="stockItemOptions()"
             placeholder="เลือกสินค้าสต็อก"
@@ -92,16 +92,16 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
         <div class="app-form-group">
-          <label class="app-label">ประเภท</label>
+          <span class="app-label">ประเภท</span>
           <p class="text-sm text-text-primary">{{ categoryName(item) }}</p>
         </div>
         <div class="app-form-group">
-          <label class="app-label">ชื่อเครื่องดื่ม</label>
-          <input type="text" formControlName="name" class="app-input" />
+          <label class="app-label" for="master-drink-ชื่อเครื่องดื่ม-7">ชื่อเครื่องดื่ม</label>
+          <input id="master-drink-ชื่อเครื่องดื่ม-7" type="text" formControlName="name" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ราคา</label>
-          <input
+          <label class="app-label" for="master-drink-ราคา-8">ราคา</label>
+          <input id="master-drink-ราคา-8"
             type="text"
             inputmode="numeric"
             pattern="[0-9]*"
@@ -123,7 +123,7 @@
           />
         </div>
         <div class="app-form-group">
-          <label class="app-label">คืนได้</label>
+          <span class="app-label">คืนได้</span>
           <label class="app-toggle" aria-label="เปิดหรือปิดการคืนเครื่องดื่ม">
             <input type="checkbox" class="app-toggle-input" formControlName="canReturn" />
             <span class="app-toggle-track"></span>
@@ -133,8 +133,8 @@
           </label>
         </div>
         <div class="app-form-group">
-          <label class="app-label">สินค้าสต็อก</label>
-          <app-custom-dropdown
+          <label class="app-label" for="master-drink-สินค้าสต็อก-10">สินค้าสต็อก</label>
+          <app-custom-dropdown inputId="master-drink-สินค้าสต็อก-10"
             formControlName="stockItemId"
             [options]="stockItemOptions()"
             placeholder="เลือกสินค้าสต็อก"
@@ -144,8 +144,49 @@
           }
         </div>
         <div class="app-form-group">
-          <label class="app-label">เหตุผลการแก้ไข/ลบ</label>
-          <textarea
+          <span class="app-label">รูปเมนู (สำหรับ QR สั่ง)</span>
+          <div class="mt-1 flex flex-wrap items-center gap-3">
+            @if (item.imageUrl) {
+              <img
+                [src]="item.imageUrl"
+                alt=""
+                class="h-16 w-16 rounded-md object-cover ring-1 ring-theme-border"
+              />
+            } @else {
+              <div
+                class="flex h-16 w-16 items-center justify-center rounded-md bg-surface text-xs text-text-secondary ring-1 ring-theme-border"
+              >
+                ไม่มีรูป
+              </div>
+            }
+            <div class="flex flex-col gap-2">
+              <label class="app-btn-secondary-sm cursor-pointer">
+                {{ uploadingImage() ? 'กำลังอัปโหลด...' : 'เลือกรูป' }}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  class="sr-only"
+                  [disabled]="uploadingImage()"
+                  (change)="onPickBeverageImage($event)"
+                />
+              </label>
+              @if (item.imageUrl) {
+                <button
+                  type="button"
+                  class="app-btn-danger-sm"
+                  [disabled]="uploadingImage()"
+                  (click)="removeBeverageImage()"
+                >
+                  ลบรูป
+                </button>
+              }
+            </div>
+          </div>
+          <p class="app-hint mt-1">ระบบจะย่อรูปอัตโนมัติก่อนอัปโหลด (แนะนำรูปสี่เหลี่ยมจัตุรัส)</p>
+        </div>
+        <div class="app-form-group">
+          <label class="app-label" for="master-drink-เหตุผลการแก้ไข-ลบ-11">เหตุผลการแก้ไข/ลบ</label>
+          <textarea id="master-drink-เหตุผลการแก้ไข-ลบ-11"
             rows="3"
             formControlName="changeReason"
             class="app-input app-scroll-region"
@@ -236,11 +277,35 @@
                     <col class="app-col-actions" />
                   }
                 </colgroup>
-                <tbody>
+                <thead class="sr-only">
+                  <tr>
+                    <th>No.</th>
+                    <th>ชื่อ</th>
+                    <th class="app-cell-center">หน่วย</th>
+                    <th class="app-cell-center">คืนได้</th>
+                    <th>สต็อก</th>
+                    <th class="app-cell-right">ราคา</th>
+                    @if (canManage()) {
+                      <th class="app-cell-right">จัดการ</th>
+                    }
+                  </tr>
+                </thead>
+              <tbody>
                   @for (item of listView().items; track item.id; let i = $index) {
                     <tr>
                       <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
-                      <td class="app-cell-primary">{{ item.name }}</td>
+                      <td class="app-cell-primary">
+                        <span class="inline-flex items-center gap-2">
+                          @if (item.imageUrl) {
+                            <img
+                              [src]="item.imageUrl"
+                              alt=""
+                              class="h-8 w-8 shrink-0 rounded object-cover"
+                            />
+                          }
+                          <span>{{ item.name }}</span>
+                        </span>
+                      </td>
                       <td class="app-cell-center text-text-secondary">{{ item.unitLabelTh }}</td>
                       <td class="app-cell-center text-text-secondary">
                         {{ item.canReturn ? 'ใช่' : 'ไม่ใช่' }}

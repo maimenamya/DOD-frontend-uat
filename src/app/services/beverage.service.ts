@@ -33,4 +33,14 @@ export class BeverageService {
       body: { changeReason },
     });
   }
+
+  uploadBeverageImage(id: number, file: Blob, fileName: string): Observable<MstBeverage> {
+    const body = new FormData();
+    body.append('image', file, fileName);
+    return this.http.post<MstBeverage>(this.api.resource(`beverages/${id}/image`), body);
+  }
+
+  deleteBeverageImage(id: number): Observable<MstBeverage> {
+    return this.http.delete<MstBeverage>(this.api.resource(`beverages/${id}/image`));
+  }
 }

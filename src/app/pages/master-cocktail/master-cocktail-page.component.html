@@ -16,12 +16,12 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="createFormValidated()" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
-          <label class="app-label">ชื่อค็อกเทล</label>
-          <input type="text" formControlName="name" class="app-input" />
+          <label class="app-label" for="master-cocktail-ชื่อค็อกเทล-1">ชื่อค็อกเทล</label>
+          <input id="master-cocktail-ชื่อค็อกเทล-1" type="text" formControlName="name" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">จำนวนดื่ม</label>
-          <input
+          <label class="app-label" for="master-cocktail-จำนวนดื่ม-2">จำนวนดื่ม</label>
+          <input id="master-cocktail-จำนวนดื่ม-2"
             type="text"
             inputmode="numeric"
             formControlName="drinkValue"
@@ -30,8 +30,8 @@
           />
         </div>
         <div class="app-form-group">
-          <label class="app-label">หน่วยนับ</label>
-          <input type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" />
+          <label class="app-label" for="master-cocktail-หน่วยนับ-3">หน่วยนับ</label>
+          <input id="master-cocktail-หน่วยนับ-3" type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
@@ -51,12 +51,12 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
         <div class="app-form-group">
-          <label class="app-label">ชื่อค็อกเทล</label>
-          <input type="text" formControlName="name" class="app-input" />
+          <label class="app-label" for="master-cocktail-ชื่อค็อกเทล-4">ชื่อค็อกเทล</label>
+          <input id="master-cocktail-ชื่อค็อกเทล-4" type="text" formControlName="name" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">จำนวนดื่ม</label>
-          <input
+          <label class="app-label" for="master-cocktail-จำนวนดื่ม-5">จำนวนดื่ม</label>
+          <input id="master-cocktail-จำนวนดื่ม-5"
             type="text"
             inputmode="numeric"
             formControlName="drinkValue"
@@ -65,12 +65,12 @@
           />
         </div>
         <div class="app-form-group">
-          <label class="app-label">หน่วยนับ</label>
-          <input type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" />
+          <label class="app-label" for="master-cocktail-หน่วยนับ-6">หน่วยนับ</label>
+          <input id="master-cocktail-หน่วยนับ-6" type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">เหตุผลการแก้ไข/ลบ</label>
-          <textarea
+          <label class="app-label" for="master-cocktail-เหตุผลการแก้ไข-ลบ-7">เหตุผลการแก้ไข/ลบ</label>
+          <textarea id="master-cocktail-เหตุผลการแก้ไข-ลบ-7"
             rows="3"
             formControlName="changeReason"
             class="app-input app-scroll-region"
@@ -137,6 +137,17 @@
                   <col class="app-col-actions" />
                 }
               </colgroup>
+              <thead class="sr-only">
+                <tr>
+                  <th>No.</th>
+                  <th>ชื่อ</th>
+                  <th class="app-cell-center">หน่วย</th>
+                  <th class="app-cell-right">จำนวนดื่ม</th>
+                  @if (canManage()) {
+                    <th class="app-cell-right">จัดการ</th>
+                  }
+                </tr>
+              </thead>
               <tbody>
                 @for (item of listView().items; track item.id; let i = $index) {
                   <tr>

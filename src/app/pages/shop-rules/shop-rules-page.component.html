@@ -30,7 +30,7 @@
 
         <div class="shop-rules-tier-grid">
           <div class="app-form-group">
-            <label class="app-label">15 นาที</label>
+            <label class="app-label" for="shop-rules-tier-15">15 นาที</label>
             <div class="app-number-stepper">
               <button
                 type="button"
@@ -42,6 +42,7 @@
                 −
               </button>
               <input
+                id="shop-rules-tier-15"
                 type="number"
                 min="0"
                 step="1"
@@ -63,7 +64,7 @@
           </div>
 
           <div class="app-form-group">
-            <label class="app-label">30 นาที</label>
+            <label class="app-label" for="shop-rules-tier-30">30 นาที</label>
             <div class="app-number-stepper">
               <button
                 type="button"
@@ -75,6 +76,7 @@
                 −
               </button>
               <input
+                id="shop-rules-tier-30"
                 type="number"
                 min="0"
                 step="1"
@@ -96,7 +98,7 @@
           </div>
 
           <div class="app-form-group">
-            <label class="app-label">45 นาที</label>
+            <label class="app-label" for="shop-rules-tier-45">45 นาที</label>
             <div class="app-number-stepper">
               <button
                 type="button"
@@ -108,6 +110,7 @@
                 −
               </button>
               <input
+                id="shop-rules-tier-45"
                 type="number"
                 min="0"
                 step="1"
@@ -130,8 +133,8 @@
         </div>
 
         <div class="app-form-group shop-rules-rounding">
-          <label class="app-label">การปัดผล</label>
-          <app-custom-dropdown
+          <label class="app-label" for="shop-rules-การปัดผล-4">การปัดผล</label>
+          <app-custom-dropdown inputId="shop-rules-การปัดผล-4"
             formControlName="seatDrinkRounding"
             [options]="roundingOptions"
             placeholder="เลือกการปัด"
@@ -217,7 +220,7 @@
               />
             </div>
             <div class="app-form-group">
-              <label class="app-label">หักเพิ่มต่อดื่ม</label>
+              <label class="app-label" for="shop-rules-freelance-extra">หักเพิ่มต่อดื่ม</label>
               <div class="app-number-stepper">
                 <button
                   type="button"
@@ -229,6 +232,7 @@
                   −
                 </button>
                 <input
+                id="shop-rules-freelance-extra"
                   type="number"
                   min="0"
                   step="1"
@@ -255,7 +259,7 @@
           <h2 class="shop-rules-section-title">มาสาย / ขาดงาน(ใช้กับพนักงาน)</h2>
         <div class="shop-rules-attendance-grid">
           <div class="app-form-group">
-            <label class="app-label">มาสาย</label>
+            <label class="app-label" for="shop-rules-late-fine">มาสาย</label>
             <div class="app-number-stepper">
               <button
                 type="button"
@@ -267,6 +271,7 @@
                 −
               </button>
               <input
+                id="shop-rules-late-fine"
                 type="number"
                 min="0"
                 step="1"
@@ -288,7 +293,7 @@
           </div>
 
           <div class="app-form-group">
-            <label class="app-label">ขาด</label>
+            <label class="app-label" for="shop-rules-absence">ขาด</label>
             <div class="app-number-stepper">
               <button
                 type="button"
@@ -300,6 +305,7 @@
                 −
               </button>
               <input
+                id="shop-rules-absence"
                 type="number"
                 min="0"
                 step="1"
@@ -321,7 +327,7 @@
           </div>
 
           <div class="app-form-group">
-            <label class="app-label">ลืมแสกนออก</label>
+            <label class="app-label" for="shop-rules-forgot-checkout">ลืมแสกนออก</label>
             <div class="app-number-stepper">
               <button
                 type="button"
@@ -333,6 +339,7 @@
                 −
               </button>
               <input
+                id="shop-rules-forgot-checkout"
                 type="number"
                 min="0"
                 step="1"

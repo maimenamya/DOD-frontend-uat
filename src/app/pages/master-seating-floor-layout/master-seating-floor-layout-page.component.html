@@ -81,16 +81,16 @@
             <p class="floor-editor__toolbar-label">แก้ไข {{ sel.code }}</p>
             <div class="floor-editor__toolbar-fields">
               <div class="app-form-group">
-                <label class="app-label">รูปทรง</label>
-                <app-custom-dropdown
+                <label class="app-label" for="master-seating-floor-layout-รูปทรง-1">รูปทรง</label>
+                <app-custom-dropdown inputId="master-seating-floor-layout-รูปทรง-1"
                   [options]="shapeOptions"
                   [ngModel]="sel.shape"
                   (ngModelChange)="onShapeChange($event)"
                 />
               </div>
               <div class="app-form-group">
-                <label class="app-label">ขนาด</label>
-                <app-custom-dropdown
+                <label class="app-label" for="master-seating-floor-layout-ขนาด-2">ขนาด</label>
+                <app-custom-dropdown inputId="master-seating-floor-layout-ขนาด-2"
                   [options]="sizeOptions"
                   [ngModel]="sel.size"
                   (ngModelChange)="onSizeChange($event)"

@@ -31,6 +31,7 @@ import {
   createMasterListView,
   masterListRowNumber,
 } from '../../utils/master-list.util';
+import { prepareMenuThumbnail } from '../../utils/menu-thumbnail.util';
 
 @Component({
   selector: 'app-master-drink-page',
@@ -53,6 +54,7 @@ export class MasterDrinkPageComponent implements OnInit {
   readonly selectedCategoryId = signal<number | null>(null);
   readonly loading = signal(true);
   readonly submitting = signal(false);
+  readonly uploadingImage = signal(false);
   readonly createFormValidated = signal(false);
   readonly editFormValidated = signal(false);
   readonly editingBeverage = signal<MstBeverage | null>(null);
@@ -181,6 +183,55 @@ export class MasterDrinkPageComponent implements OnInit {
 
   closeEdit(): void {
     this.editingBeverage.set(null);
+  }
+
+  async onPickBeverageImage(event: Event): Promise<void> {
+    const item = this.editingBeverage();
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!item || !file || this.uploadingImage()) return;
+    this.uploadingImage.set(true);
+    try {
+      const thumb = await prepareMenuThumbnail(file);
+      this.beverageService.uploadBeverageImage(item.id, thumb.blob, thumb.fileName).subscribe({
+        next: (updated) => {
+          this.uploadingImage.set(false);
+          this.editingBeverage.set(updated);
+          this.beverages.update((rows) =>
+            rows.map((row) => (row.id === updated.id ? updated : row)),
+          );
+          this.toast.showSuccess('อัปโหลดรูปเรียบร้อย');
+        },
+        error: (err: { error?: { error?: string } }) => {
+          this.uploadingImage.set(false);
+          this.toast.showError(err.error?.error ?? 'ไม่สามารถอัปโหลดรูปได้');
+        },
+      });
+    } catch (error) {
+      this.uploadingImage.set(false);
+      this.toast.showError(error instanceof Error ? error.message : 'ไม่สามารถย่อรูปได้');
+    }
+  }
+
+  removeBeverageImage(): void {
+    const item = this.editingBeverage();
+    if (!item?.imageUrl || this.uploadingImage()) return;
+    this.uploadingImage.set(true);
+    this.beverageService.deleteBeverageImage(item.id).subscribe({
+      next: (updated) => {
+        this.uploadingImage.set(false);
+        this.editingBeverage.set(updated);
+        this.beverages.update((rows) =>
+          rows.map((row) => (row.id === updated.id ? updated : row)),
+        );
+        this.toast.showSuccess('ลบรูปเรียบร้อย');
+      },
+      error: (err: { error?: { error?: string } }) => {
+        this.uploadingImage.set(false);
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถลบรูปได้');
+      },
+    });
   }
 
   stockItemLabel(item: MstBeverage): string {

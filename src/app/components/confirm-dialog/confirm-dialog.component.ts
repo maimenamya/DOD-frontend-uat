@@ -22,6 +22,6 @@ export class ConfirmDialogComponent {
   readonly reasonValidated = input(false);
 
   readonly confirm = output<void>();
-  readonly cancel = output<void>();
+  readonly cancelled = output<void>();
   readonly reasonTextChange = output<string>();
 }

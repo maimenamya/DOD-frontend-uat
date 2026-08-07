@@ -46,7 +46,12 @@
       </button>
 
       @if (profileMenuOpen()) {
-        <div class="app-profile-menu" role="menu" (click)="$event.stopPropagation()">
+        <div
+          class="app-profile-menu"
+          role="menu"
+          (click)="$event.stopPropagation()"
+          (keydown)="$event.stopPropagation()"
+        >
           @if (showBranchPicker()) {
             <div class="app-profile-branch-list" role="group" aria-label="สลับสาขา">
               @for (branch of switchableBranches(); track branch.shopId) {

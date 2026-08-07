@@ -47,6 +47,7 @@ export class CustomDropdownComponent implements ControlValueAccessor {
   @Input({ required: true }) options: DropdownOption[] = [];
   @Input() placeholder = 'เลือก...';
   @Input() multiple = false;
+  @Input() inputId = '';
 
   readonly isOpen = signal(false);
   readonly value = signal<DropdownScalar | null>(null);
@@ -206,6 +207,16 @@ export class CustomDropdownComponent implements ControlValueAccessor {
 
     this.destroyOverlayMenu();
 
+    const menu = this.createOverlayMenuElement();
+    this.fillMenuContent(menu);
+
+    getDropdownOverlayRoot().appendChild(menu);
+    this.overlayMenu = menu;
+    this.applyMenuPosition(menu, trigger);
+    this.addScrollListener();
+  }
+
+  private createOverlayMenuElement(): HTMLDivElement {
     const menu = document.createElement('div');
     menu.className = 'app-dropdown-menu app-dropdown-menu--visible';
     if (this.multiple) {
@@ -214,51 +225,54 @@ export class CustomDropdownComponent implements ControlValueAccessor {
     menu.setAttribute('role', 'listbox');
     menu.setAttribute('aria-multiselectable', this.multiple ? 'true' : 'false');
     menu.addEventListener('click', (e) => e.stopPropagation());
+    return menu;
+  }
 
+  private fillMenuContent(menu: HTMLElement): void {
     if (this.options.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'app-dropdown-empty';
       empty.textContent = 'ไม่มีรายการ';
       menu.appendChild(empty);
-    } else {
-      for (const option of this.options) {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'app-dropdown-item';
-        btn.setAttribute('role', 'option');
-        if (this.isSelected(option.value)) {
-          btn.classList.add('app-dropdown-item-selected');
-          btn.setAttribute('aria-selected', 'true');
-        }
-        if (this.multiple) {
-          const mark = document.createElement('span');
-          mark.className = 'app-dropdown-item-check';
-          mark.setAttribute('aria-hidden', 'true');
-          mark.textContent = this.isSelected(option.value) ? '✓' : '';
-          btn.appendChild(mark);
-          const label = document.createElement('span');
-          label.className = 'app-dropdown-item-label';
-          label.textContent = option.label;
-          btn.appendChild(label);
-        } else {
-          btn.textContent = option.label;
-        }
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (this.multiple) {
-            this.toggleMultiValue(option.value);
-          } else {
-            this.selectValue(option.value);
-          }
-        });
-        menu.appendChild(btn);
-      }
+      return;
     }
+    for (const option of this.options) {
+      menu.appendChild(this.createOptionButton(option));
+    }
+  }
 
-    getDropdownOverlayRoot().appendChild(menu);
-    this.overlayMenu = menu;
-    this.applyMenuPosition(menu, trigger);
-    this.addScrollListener();
+  private createOptionButton(option: DropdownOption): HTMLButtonElement {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'app-dropdown-item';
+    btn.setAttribute('role', 'option');
+    const selected = this.isSelected(option.value);
+    if (selected) {
+      btn.classList.add('app-dropdown-item-selected');
+      btn.setAttribute('aria-selected', 'true');
+    }
+    if (this.multiple) {
+      const mark = document.createElement('span');
+      mark.className = 'app-dropdown-item-check';
+      mark.setAttribute('aria-hidden', 'true');
+      mark.textContent = selected ? '✓' : '';
+      btn.appendChild(mark);
+      const label = document.createElement('span');
+      label.className = 'app-dropdown-item-label';
+      label.textContent = option.label;
+      btn.appendChild(label);
+    } else {
+      btn.textContent = option.label;
+    }
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (this.multiple) {
+        this.toggleMultiValue(option.value);
+      } else {
+        this.selectValue(option.value);
+      }
+    });
+    return btn;
   }
 
   private selectValue(value: DropdownScalar): void {

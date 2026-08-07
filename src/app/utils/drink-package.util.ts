@@ -8,5 +8,5 @@ export function drinkPackageItemsSummary(items: DrinkPackageLine[] | undefined):
 }
 
 export function drinkPackageItemsSearchText(items: DrinkPackageLine[] | undefined): string {
-  return drinkPackageItemsSummary(items).replace(/,/g, ' ');
+  return drinkPackageItemsSummary(items).replaceAll(',', ' ');
 }

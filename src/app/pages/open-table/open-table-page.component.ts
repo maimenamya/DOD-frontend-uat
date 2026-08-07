@@ -66,7 +66,9 @@ import { AuthService } from '../../services/auth.service';
 import { BeverageService } from '../../services/beverage.service';
 import { EmployeeService } from '../../services/employee.service';
 import { OpenTableService } from '../../services/open-table.service';
+import { ShopRealtimeService } from '../../services/shop-realtime.service';
 import { BillReceiptService } from '../../services/bill-receipt.service';
+import { GuestOrderService } from '../../services/guest-order.service';
 import { APP_MOBILE_MEDIA_QUERY } from '../../utils/app-viewport.util';
 import { detectReceiptPrintPlatform } from '../../utils/receipt-print-platform.util';
 import { RoleService } from '../../services/role.service';
@@ -157,6 +159,7 @@ export class OpenTablePageComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly openTableService = inject(OpenTableService);
   private readonly billReceiptService = inject(BillReceiptService);
+  private readonly guestOrderService = inject(GuestOrderService);
   private readonly shopMaster = inject(ShopMasterService);
   private readonly otherChargeService = inject(OtherChargeService);
   private readonly packageDepositService = inject(PackageDepositService);
@@ -164,6 +167,7 @@ export class OpenTablePageComponent implements OnInit {
   private readonly employeeService = inject(EmployeeService);
   private readonly roleService = inject(RoleService);
   private readonly auth = inject(AuthService);
+  private readonly shopRealtime = inject(ShopRealtimeService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
@@ -242,6 +246,7 @@ export class OpenTablePageComponent implements OnInit {
   readonly checkoutPreview = signal<CheckoutPreview | null>(null);
   readonly checkoutPreviewLoading = signal(false);
   readonly checkoutPrintBusy = signal(false);
+  readonly guestQrPrintBusy = signal(false);
   readonly lastCheckoutBillId = signal<number | null>(null);
   private checkoutPreviewTimer: ReturnType<typeof setTimeout> | null = null;
   readonly stopDrinkTarget = signal<SessionStaffDrink | null>(null);
@@ -373,9 +378,10 @@ export class OpenTablePageComponent implements OnInit {
       if (sessionId == null || !this.drawerOpen() || this.anyModalOpen()) {
         return;
       }
+      // Slow fallback if socket misses an event (primary sync is ShopRealtimeService).
       const timer = setInterval(
         () => this.loadSessionDetail(sessionId, { showLoading: false }),
-        60_000,
+        300_000,
       );
       onCleanup(() => clearInterval(timer));
     });
@@ -1344,26 +1350,104 @@ export class OpenTablePageComponent implements OnInit {
     this.destroyRef.onDestroy(() => mq.removeEventListener('change', onChange));
   }
 
-  /** Keep floor tiles in sync when multiple staff use open-table (demo until Socket.io). */
+  /**
+   * Keep floor / open bill in sync across cashiers:
+   * 1) Socket push (primary) + slow poll safety net
+   * 2) If socket is down → poll every 20s (pre-realtime rate) + toast once
+   * 3) Refresh when tab becomes visible again
+   */
   private startFloorPlanSync(): void {
-    const intervalMs = 20_000;
-    const timer = setInterval(() => {
-      if (!this.anyModalOpen()) {
-        this.refreshFloorPlan(this.selectedSeatKey(), { silent: true });
-      }
-    }, intervalMs);
+    const LIVE_FALLBACK_MS = 300_000;
+    const OFFLINE_FALLBACK_MS = 20_000;
+    const FLOOR_DEBOUNCE_MS = 250;
+
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
+    let offlineToastShown = false;
+    let hadLiveConnection = this.shopRealtime.isConnected();
+
+    const silentRefresh = (): void => {
+      if (this.anyModalOpen()) return;
+      this.refreshFloorPlan(this.selectedSeatKey(), { silent: true });
+      this.reloadSelectedSessionIfIdle();
+    };
+
+    const armPoll = (intervalMs: number): void => {
+      if (pollTimer != null) clearInterval(pollTimer);
+      pollTimer = setInterval(silentRefresh, intervalMs);
+    };
+
+    armPoll(
+      this.shopRealtime.isConnected() ? LIVE_FALLBACK_MS : OFFLINE_FALLBACK_MS,
+    );
+
+    this.shopRealtime.connectionChanged$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((live) => {
+        armPoll(live ? LIVE_FALLBACK_MS : OFFLINE_FALLBACK_MS);
+        silentRefresh();
+        if (live) {
+          hadLiveConnection = true;
+          offlineToastShown = false;
+          return;
+        }
+        // Toast only after a live session drops — not on first page load / logout.
+        if (!hadLiveConnection || !this.auth.session() || offlineToastShown) {
+          return;
+        }
+        offlineToastShown = true;
+        this.toast.showError(
+          'การอัปเดตสดหลุดชั่วคราว — ระบบจะรีเฟรชแผนผังบ่อยขึ้นอัตโนมัติ',
+        );
+      });
 
     const onVisibility = (): void => {
-      if (document.visibilityState === 'visible') {
-        this.refreshFloorPlan(this.selectedSeatKey(), { silent: true });
-      }
+      if (document.visibilityState !== 'visible') return;
+      silentRefresh();
     };
     document.addEventListener('visibilitychange', onVisibility);
 
+    let floorPlanDebounce: ReturnType<typeof setTimeout> | null = null;
+    this.shopRealtime.floorPlanUpdated$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (this.anyModalOpen()) return;
+        if (floorPlanDebounce != null) clearTimeout(floorPlanDebounce);
+        floorPlanDebounce = setTimeout(() => {
+          floorPlanDebounce = null;
+          this.refreshFloorPlan(this.selectedSeatKey(), { silent: true });
+        }, FLOOR_DEBOUNCE_MS);
+      });
+
+    this.shopRealtime.sessionUpdated$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((ev) => this.onRemoteSessionUpdated(ev));
+
     this.destroyRef.onDestroy(() => {
-      clearInterval(timer);
+      if (pollTimer != null) clearInterval(pollTimer);
+      if (floorPlanDebounce != null) clearTimeout(floorPlanDebounce);
       document.removeEventListener('visibilitychange', onVisibility);
     });
+  }
+
+  private onRemoteSessionUpdated(ev: {
+    sessionId: number;
+    sessionClosed?: boolean;
+  }): void {
+    const selectedId = this.selectedSeat()?.sessionId;
+    if (ev.sessionClosed && selectedId === ev.sessionId) {
+      this.closeDrawer();
+      this.refreshFloorPlan(null, { silent: true });
+      return;
+    }
+    if (selectedId === ev.sessionId) {
+      this.reloadSelectedSessionIfIdle();
+    }
+  }
+
+  private reloadSelectedSessionIfIdle(): void {
+    const sessionId = this.selectedSeat()?.sessionId;
+    if (sessionId == null || !this.drawerOpen() || this.anyModalOpen()) return;
+    this.loadSessionDetail(sessionId, { showLoading: false });
   }
 
   private get shopId(): number {
@@ -3971,6 +4055,39 @@ export class OpenTablePageComponent implements OnInit {
 
   confirmCheckout(): void {
     void this.confirmCheckoutAsync();
+  }
+
+  printGuestOrderQr(): void {
+    const sessionId = this.selectedSeat()?.sessionId;
+    if (!sessionId) {
+      this.toast.showError('ไม่พบบิลที่เปิดอยู่');
+      return;
+    }
+    if (this.guestQrPrintBusy() || this.actionBusy()) return;
+
+    const printFrame = this.billReceiptService.shouldPreparePrintFrame()
+      ? this.billReceiptService.createPrintFrame()
+      : null;
+
+    this.guestQrPrintBusy.set(true);
+    this.guestOrderService
+      .printQr(sessionId, window.location.origin)
+      .pipe(
+        finalize(() => this.guestQrPrintBusy.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (response) => {
+          this.tryPrintCheckoutReceipt(response, printFrame);
+          if ((response.receipt.printChannel ?? 'auto') === 'off') {
+            this.toast.showSuccess('สร้าง QR แล้ว — เปิดการพิมพ์ใบเสร็จที่ตั้งค่าเครื่องพิมพ์');
+          }
+        },
+        error: (err: { error?: { error?: string } }) => {
+          this.billReceiptService.removePrintFrame(printFrame);
+          this.toast.showError(err.error?.error ?? 'พิมพ์ QR สั่งอาหารไม่สำเร็จ');
+        },
+      });
   }
 
   printPreCheckoutBill(): void {

@@ -30,7 +30,16 @@
             <col />
             <col />
           </colgroup>
-          <tbody>
+          <thead class="sr-only">
+            <tr>
+              <th>No.</th>
+              <th>ชื่อเล่น</th>
+              <th>Role</th>
+              <th>ร้าน</th>
+              <th>สถานะ</th>
+            </tr>
+          </thead>
+              <tbody>
             @for (emp of employees(); track emp.id; let i = $index) {
               <tr>
                 <td class="app-cell-mono">{{ i + 1 }}</td>

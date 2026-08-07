@@ -41,6 +41,24 @@
         <span class="accept-privacy-check-label">{{ checkboxLabel }}</span>
       </label>
 
+      <label
+        class="accept-privacy-consent accept-privacy-consent--optional"
+        [class.accept-privacy-consent--locked]="!scrolledToEnd()"
+      >
+        <span class="accept-privacy-check-control">
+          <input
+            type="checkbox"
+            class="accept-privacy-check-input"
+            [ngModel]="partnerShare()"
+            (ngModelChange)="partnerShare.set($event)"
+            name="partnerShare"
+            [disabled]="!scrolledToEnd()"
+          />
+          <span class="accept-privacy-check-indicator" aria-hidden="true"></span>
+        </span>
+        <span class="accept-privacy-check-label">{{ partnerShareLabel }}</span>
+      </label>
+
       <button
         type="submit"
         class="app-btn app-btn-primary"

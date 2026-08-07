@@ -1,7 +1,24 @@
 <app-toast />
 <app-confirm-dialog-host />
 
-<div class="app-layout">
+<div class="app-layout" [class.app-layout--privacy-banner]="showPrivacyConsentBanner()">
+  @if (showPrivacyConsentBanner()) {
+    <div class="app-privacy-consent-banner" role="status">
+      <p class="app-privacy-consent-banner__text">
+        มีนโยบายความเป็นส่วนตัวเวอร์ชันใหม่ — กรุณาแจ้งเจ้าของร้านเข้าสู่ระบบเพื่อยอมรับก่อน
+        (พนักงานใช้งานต่อได้)
+      </p>
+      <button
+        type="button"
+        class="app-privacy-consent-banner__close"
+        aria-label="ปิดการแจ้งเตือน"
+        (click)="dismissPrivacyBanner()"
+      >
+        ✕
+      </button>
+    </div>
+  }
+
   <button
     type="button"
     class="app-mobile-overlay"

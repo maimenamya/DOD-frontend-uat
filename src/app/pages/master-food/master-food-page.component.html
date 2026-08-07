@@ -24,16 +24,16 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="createFormValidated()" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
-          <label class="app-label">ประเภทอาหาร</label>
+          <span class="app-label">ประเภทอาหาร</span>
           <p class="text-sm text-text-primary">{{ selectedCategory()?.name }}</p>
         </div>
         <div class="app-form-group">
-          <label class="app-label">ชื่ออาหาร</label>
-          <input type="text" formControlName="name" class="app-input" />
+          <label class="app-label" for="master-food-ชื่ออาหาร-2">ชื่ออาหาร</label>
+          <input id="master-food-ชื่ออาหาร-2" type="text" formControlName="name" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ราคา (บาท)</label>
-          <input
+          <label class="app-label" for="master-food-ราคา-บาท-3">ราคา (บาท)</label>
+          <input id="master-food-ราคา-บาท-3"
             type="text"
             inputmode="numeric"
             pattern="[0-9]*"
@@ -60,16 +60,16 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
         <div class="app-form-group">
-          <label class="app-label">ประเภทอาหาร</label>
+          <span class="app-label">ประเภทอาหาร</span>
           <p class="text-sm text-text-primary">{{ categoryName(item) }}</p>
         </div>
         <div class="app-form-group">
-          <label class="app-label">ชื่ออาหาร</label>
-          <input type="text" formControlName="name" class="app-input" />
+          <label class="app-label" for="master-food-ชื่ออาหาร-5">ชื่ออาหาร</label>
+          <input id="master-food-ชื่ออาหาร-5" type="text" formControlName="name" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ราคา (บาท)</label>
-          <input
+          <label class="app-label" for="master-food-ราคา-บาท-6">ราคา (บาท)</label>
+          <input id="master-food-ราคา-บาท-6"
             type="text"
             inputmode="numeric"
             pattern="[0-9]*"
@@ -79,8 +79,49 @@
           />
         </div>
         <div class="app-form-group">
-          <label class="app-label">เหตุผลการแก้ไข/ลบ</label>
-          <textarea
+          <span class="app-label">รูปเมนู (สำหรับ QR สั่ง)</span>
+          <div class="mt-1 flex flex-wrap items-center gap-3">
+            @if (item.imageUrl) {
+              <img
+                [src]="item.imageUrl"
+                alt=""
+                class="h-16 w-16 rounded-md object-cover ring-1 ring-theme-border"
+              />
+            } @else {
+              <div
+                class="flex h-16 w-16 items-center justify-center rounded-md bg-surface text-xs text-text-secondary ring-1 ring-theme-border"
+              >
+                ไม่มีรูป
+              </div>
+            }
+            <div class="flex flex-col gap-2">
+              <label class="app-btn-secondary-sm cursor-pointer">
+                {{ uploadingImage() ? 'กำลังอัปโหลด...' : 'เลือกรูป' }}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  class="sr-only"
+                  [disabled]="uploadingImage()"
+                  (change)="onPickFoodImage($event)"
+                />
+              </label>
+              @if (item.imageUrl) {
+                <button
+                  type="button"
+                  class="app-btn-danger-sm"
+                  [disabled]="uploadingImage()"
+                  (click)="removeFoodImage()"
+                >
+                  ลบรูป
+                </button>
+              }
+            </div>
+          </div>
+          <p class="app-hint mt-1">ระบบจะย่อรูปอัตโนมัติก่อนอัปโหลด (แนะนำรูปสี่เหลี่ยมจัตุรัส)</p>
+        </div>
+        <div class="app-form-group">
+          <label class="app-label" for="master-food-เหตุผลการแก้ไข-ลบ-7">เหตุผลการแก้ไข/ลบ</label>
+          <textarea id="master-food-เหตุผลการแก้ไข-ลบ-7"
             rows="3"
             formControlName="changeReason"
             class="app-input app-scroll-region"
@@ -162,11 +203,32 @@
                     <col class="app-col-actions" />
                   }
                 </colgroup>
-                <tbody>
+                <thead class="sr-only">
+                  <tr>
+                    <th>No.</th>
+                    <th>ชื่อ</th>
+                    <th class="app-cell-right">ราคา</th>
+                    @if (canManage()) {
+                      <th class="app-cell-right">จัดการ</th>
+                    }
+                  </tr>
+                </thead>
+              <tbody>
                   @for (item of listView().items; track item.id; let i = $index) {
                     <tr>
                       <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
-                      <td class="app-cell-primary">{{ item.name }}</td>
+                      <td class="app-cell-primary">
+                        <span class="inline-flex items-center gap-2">
+                          @if (item.imageUrl) {
+                            <img
+                              [src]="item.imageUrl"
+                              alt=""
+                              class="h-8 w-8 shrink-0 rounded object-cover"
+                            />
+                          }
+                          <span>{{ item.name }}</span>
+                        </span>
+                      </td>
                       <td class="app-cell-right app-cell-highlight-violet">
                         {{ item.price | number: '1.0-0' }}
                       </td>

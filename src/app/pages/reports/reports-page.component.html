@@ -16,26 +16,28 @@
 
   <section class="reports-toolbar app-card">
     <div class="reports-date-range">
-      <label class="reports-date-field">
-        <span class="reports-date-label">ตั้งแต่วันที่</span>
+      <div class="reports-date-field">
+        <label class="reports-date-label" for="reports-range-from">ตั้งแต่วันที่</label>
         <app-shop-date-input
           class="reports-date-input"
+          inputId="reports-range-from"
           extraInputClass="dashboard-date-input"
           [requireConfirm]="false"
           [ngModel]="rangeFrom()"
           (ngModelChange)="rangeFrom.set($event)"
         />
-      </label>
-      <label class="reports-date-field">
-        <span class="reports-date-label">ถึง</span>
+      </div>
+      <div class="reports-date-field">
+        <label class="reports-date-label" for="reports-range-to">ถึง</label>
         <app-shop-date-input
           class="reports-date-input"
+          inputId="reports-range-to"
           extraInputClass="dashboard-date-input"
           [requireConfirm]="false"
           [ngModel]="rangeTo()"
           (ngModelChange)="rangeTo.set($event)"
         />
-      </label>
+      </div>
       <button type="button" class="dashboard-date-apply reports-btn-compact" (click)="applyRange()">
         ใช้ช่วงนี้
       </button>

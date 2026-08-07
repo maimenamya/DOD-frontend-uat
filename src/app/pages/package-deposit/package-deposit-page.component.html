@@ -50,29 +50,30 @@
       } @else {
         <p class="package-deposit-grid-hint">แตะรายการเพื่อดูรายละเอียดและจัดการ</p>
 
-        <div class="package-deposit-grid" role="list">
+        <ul class="package-deposit-grid">
           @for (row of visibleItems(); track row.id) {
-            <button
-              type="button"
-              role="listitem"
-              class="package-deposit-tile"
-              [class.package-deposit-tile--selected]="expandedId() === row.id"
-              [attr.aria-expanded]="expandedId() === row.id"
-              [attr.aria-label]="tileAriaLabel(row)"
-              (click)="toggleExpanded(row)"
-            >
-              <span class="package-deposit-tile__code">{{ customerCodeDisplay(row) }}</span>
-              <span class="package-deposit-tile__name">{{ customerNameDisplay(row) }}</span>
-              <span class="package-deposit-tile__package">{{ row.packageName }}</span>
-              <span class="package-deposit-tile__foot">
-                <span class="package-deposit-tile__bottles">{{ row.bottlesLabel }}</span>
-                @if (row.status === 'OPEN') {
-                  <span class="package-deposit-tile__status package-deposit-tile__status--open">เปิด</span>
-                }
-              </span>
-            </button>
+            <li class="package-deposit-grid__item">
+              <button
+                type="button"
+                class="package-deposit-tile"
+                [class.package-deposit-tile--selected]="expandedId() === row.id"
+                [attr.aria-expanded]="expandedId() === row.id"
+                [attr.aria-label]="tileAriaLabel(row)"
+                (click)="toggleExpanded(row)"
+              >
+                <span class="package-deposit-tile__code">{{ customerCodeDisplay(row) }}</span>
+                <span class="package-deposit-tile__name">{{ customerNameDisplay(row) }}</span>
+                <span class="package-deposit-tile__package">{{ row.packageName }}</span>
+                <span class="package-deposit-tile__foot">
+                  <span class="package-deposit-tile__bottles">{{ row.bottlesLabel }}</span>
+                  @if (row.status === 'OPEN') {
+                    <span class="package-deposit-tile__status package-deposit-tile__status--open">เปิด</span>
+                  }
+                </span>
+              </button>
+            </li>
           }
-        </div>
+        </ul>
 
         @if (expandedRow(); as row) {
           @if (!mobileViewport()) {
@@ -245,7 +246,7 @@
       </p>
 
       <div class="app-form-group">
-        <label class="app-label">เลือกแพ็กเกจ</label>
+        <span class="app-label">เลือกแพ็กเกจ</span>
         @if (createPackageOptions().length === 0) {
           <p class="app-hint text-text-secondary">
             ยังไม่มี{{ sourceTab() === 'MEMBERSHIP' ? 'เมม' : 'โปร' }}ที่เปิดใช้ระบบฝาก

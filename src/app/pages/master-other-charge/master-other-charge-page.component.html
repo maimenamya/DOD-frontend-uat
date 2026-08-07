@@ -16,12 +16,12 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="createFormValidated()" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
-          <label class="app-label">ชื่อรายการ</label>
-          <input type="text" formControlName="name" class="app-input" [placeholder]="namePlaceholder()" />
+          <label class="app-label" for="master-other-charge-ชื่อรายการ-1">ชื่อรายการ</label>
+          <input id="master-other-charge-ชื่อรายการ-1" type="text" formControlName="name" class="app-input" [placeholder]="namePlaceholder()" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ราคา (บาท)</label>
-          <input
+          <label class="app-label" for="master-other-charge-ราคา-บาท-2">ราคา (บาท)</label>
+          <input id="master-other-charge-ราคา-บาท-2"
             type="text"
             inputmode="numeric"
             formControlName="price"
@@ -30,11 +30,11 @@
           />
         </div>
         <div class="app-form-group">
-          <label class="app-label">หน่วยนับ</label>
-          <input type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" [placeholder]="unitPlaceholder()" />
+          <label class="app-label" for="master-other-charge-หน่วยนับ-3">หน่วยนับ</label>
+          <input id="master-other-charge-หน่วยนับ-3" type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" [placeholder]="unitPlaceholder()" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">สถานะ</label>
+          <span class="app-label">สถานะ</span>
           <label class="app-toggle" aria-label="เปิดหรือปิดรายการ">
             <input type="checkbox" class="app-toggle-input" formControlName="isActive" />
             <span class="app-toggle-track"></span>
@@ -61,12 +61,12 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
         <div class="app-form-group">
-          <label class="app-label">ชื่อรายการ</label>
-          <input type="text" formControlName="name" class="app-input" />
+          <label class="app-label" for="master-other-charge-ชื่อรายการ-5">ชื่อรายการ</label>
+          <input id="master-other-charge-ชื่อรายการ-5" type="text" formControlName="name" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ราคา (บาท)</label>
-          <input
+          <label class="app-label" for="master-other-charge-ราคา-บาท-6">ราคา (บาท)</label>
+          <input id="master-other-charge-ราคา-บาท-6"
             type="text"
             inputmode="numeric"
             formControlName="price"
@@ -75,11 +75,11 @@
           />
         </div>
         <div class="app-form-group">
-          <label class="app-label">หน่วยนับ</label>
-          <input type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" [placeholder]="unitPlaceholder()" />
+          <label class="app-label" for="master-other-charge-หน่วยนับ-7">หน่วยนับ</label>
+          <input id="master-other-charge-หน่วยนับ-7" type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" [placeholder]="unitPlaceholder()" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">สถานะ</label>
+          <span class="app-label">สถานะ</span>
           <label class="app-toggle" aria-label="เปิดหรือปิดรายการ">
             <input type="checkbox" class="app-toggle-input" formControlName="isActive" />
             <span class="app-toggle-track"></span>
@@ -89,8 +89,8 @@
           </label>
         </div>
         <div class="app-form-group">
-          <label class="app-label">เหตุผลการแก้ไข/ลบ</label>
-          <textarea
+          <label class="app-label" for="master-other-charge-เหตุผลการแก้ไข-ลบ-9">เหตุผลการแก้ไข/ลบ</label>
+          <textarea id="master-other-charge-เหตุผลการแก้ไข-ลบ-9"
             rows="3"
             formControlName="changeReason"
             class="app-input app-scroll-region"
@@ -160,6 +160,18 @@
                   <col class="app-col-actions" />
                 }
               </colgroup>
+              <thead class="sr-only">
+                <tr>
+                  <th>No.</th>
+                  <th>ชื่อ</th>
+                  <th class="app-cell-right">ราคา</th>
+                  <th class="app-cell-center">หน่วย</th>
+                  <th class="app-cell-center">สถานะ</th>
+                  @if (canManage()) {
+                    <th class="app-cell-right">จัดการ</th>
+                  }
+                </tr>
+              </thead>
               <tbody>
                 @for (row of listView().items; track row.id; let i = $index) {
                   <tr>

@@ -1172,6 +1172,17 @@
   font-weight: 700;
 }
 
+.open-table-bill-summary-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+
+.open-table-bill-summary-actions .open-table-checkout-btn {
+  margin-top: 0;
+}
+
 .open-table-seat-card__head {
   display: flex;
   flex-direction: column;

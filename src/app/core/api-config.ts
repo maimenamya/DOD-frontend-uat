@@ -2,6 +2,21 @@ import { Injectable } from '@angular/core';
 
 import { environment } from '../../environments/environment';
 
+/** Trim leading/trailing `/` without regex alternation (Sonar S8786). */
+function trimSlashes(value: string): string {
+  let start = 0;
+  let end = value.length;
+  while (start < end && value.codePointAt(start) === 47 /* / */) start += 1;
+  while (end > start && value.codePointAt(end - 1) === 47) end -= 1;
+  return value.slice(start, end);
+}
+
+function trimTrailingSlashes(value: string): string {
+  let end = value.length;
+  while (end > 0 && value.codePointAt(end - 1) === 47 /* / */) end -= 1;
+  return value.slice(0, end);
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -14,11 +29,11 @@ export class ApiConfig {
    */
   resource(...segments: string[]): string {
     const path = segments
-      .map((segment) => segment.replace(/^\/+|\/+$/g, ''))
+      .map((segment) => trimSlashes(segment))
       .filter(Boolean)
       .join('/');
 
-    const base = this.baseUrl.replace(/\/+$/, '');
+    const base = trimTrailingSlashes(this.baseUrl);
     return path ? `${base}/${path}` : base;
   }
 }

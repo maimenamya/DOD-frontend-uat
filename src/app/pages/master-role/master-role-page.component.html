@@ -16,25 +16,25 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="createFormValidated()" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
-          <label class="app-label">ชื่อตำแหน่ง (ภาษาอังกฤษ)</label>
-          <input type="text" formControlName="name" class="app-input" placeholder="เช่น PR, SALE, MODEL" />
+          <label class="app-label" for="master-role-ชื่อตำแหน่ง-ภาษาอังกฤษ-1">ชื่อตำแหน่ง (ภาษาอังกฤษ)</label>
+          <input id="master-role-ชื่อตำแหน่ง-ภาษาอังกฤษ-1" type="text" formControlName="name" class="app-input" placeholder="เช่น PR, SALE, MODEL" />
           <p class="app-field-hint">ระบบจะแปลงเป็นตัวพิมพ์ใหญ่อัตโนมัติ · ชื่อต้องไม่ซ้ำในร้านเดียวกัน</p>
         </div>
         <div class="app-form-group">
-          <label class="app-label">ชื่อแสดง (ภาษาไทย)</label>
-          <input type="text" formControlName="displayNameTh" class="app-input" placeholder="เช่น โมเดล, โฮสต์" />
+          <label class="app-label" for="master-role-ชื่อแสดง-ภาษาไทย-2">ชื่อแสดง (ภาษาไทย)</label>
+          <input id="master-role-ชื่อแสดง-ภาษาไทย-2" type="text" formControlName="displayNameTh" class="app-input" placeholder="เช่น โมเดล, โฮสต์" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">กลุ่มสิทธิ์</label>
-          <app-custom-dropdown
+          <label class="app-label" for="master-role-กลุ่มสิทธิ์-3">กลุ่มสิทธิ์</label>
+          <app-custom-dropdown inputId="master-role-กลุ่มสิทธิ์-3"
             formControlName="permissionGroup"
             [options]="permissionGroupDropdownOptions()"
             placeholder="เลือกกลุ่มสิทธิ์"
           />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ประเภท</label>
-          <app-custom-dropdown
+          <label class="app-label" for="master-role-ประเภท-4">ประเภท</label>
+          <app-custom-dropdown inputId="master-role-ประเภท-4"
             formControlName="category"
             [options]="categoryDropdownOptions"
             placeholder="เลือกประเภท"
@@ -42,8 +42,8 @@
         </div>
         @if (createIsStaff() || createIsEntertainer()) {
           <div class="app-form-group">
-            <label class="app-label">โควต้าลา (วัน/เดือน)</label>
-            <input
+            <label class="app-label" for="master-role-โควต้าลา-วัน-เดือน-5">โควต้าลา (วัน/เดือน)</label>
+            <input id="master-role-โควต้าลา-วัน-เดือน-5"
               type="text"
               inputmode="numeric"
               pattern="[0-9]*"
@@ -54,8 +54,8 @@
             <p class="app-field-hint">จำนวนวันลาที่ไม่หักเงินต่อเดือน — เกินโควต้าต้องกดหักเงินที่หน้าบันทึกเวลา</p>
           </div>
           <div class="app-form-group">
-            <label class="app-label">เวลาเข้างาน</label>
-            <input
+            <label class="app-label" for="master-role-เวลาเข้างาน-6">เวลาเข้างาน</label>
+            <input id="master-role-เวลาเข้างาน-6"
               type="text"
               class="app-input"
               formControlName="expectedCheckInTime"
@@ -69,8 +69,8 @@
           </div>
           @if (createIsEntertainer()) {
             <div class="app-form-group">
-              <label class="app-label">เวลา on floor (PR แท็ก)</label>
-              <input
+              <label class="app-label" for="master-role-เวลา-on-floor-pr-แท็ก-7">เวลา on floor (PR แท็ก)</label>
+              <input id="master-role-เวลา-on-floor-pr-แท็ก-7"
                 type="text"
                 class="app-input"
                 formControlName="expectedOnFloorTime"
@@ -84,8 +84,8 @@
             </div>
           }
           <div class="app-form-group">
-            <label class="app-label">เวลาออกงาน</label>
-            <input
+            <label class="app-label" for="master-role-เวลาออกงาน-8">เวลาออกงาน</label>
+            <input id="master-role-เวลาออกงาน-8"
               type="text"
               class="app-input"
               formControlName="expectedCheckOutTime"
@@ -103,8 +103,8 @@
           </label>
         }
         <div class="app-form-group">
-          <label class="app-label">ราคาต่อดื่ม (บาท)</label>
-          <input
+          <label class="app-label" for="master-role-ราคาต่อดื่ม-บาท-9">ราคาต่อดื่ม (บาท)</label>
+          <input id="master-role-ราคาต่อดื่ม-บาท-9"
             type="text"
             inputmode="numeric"
             pattern="[0-9]*"
@@ -115,8 +115,8 @@
           <p class="app-field-hint">ใช้คิดยอดรันดื่มของตำแหน่งนี้ (เซลล์ / บริการ / เด็กนั่งดริ้ง)</p>
         </div>
         <div class="app-form-group">
-          <label class="app-label">หักดื่มเข้าร้าน (บาท)</label>
-          <input
+          <label class="app-label" for="master-role-หักดื่มเข้าร้าน-บาท-10">หักดื่มเข้าร้าน (บาท)</label>
+          <input id="master-role-หักดื่มเข้าร้าน-บาท-10"
             type="text"
             inputmode="numeric"
             pattern="[0-9]*"
@@ -128,8 +128,8 @@
         </div>
         @if (createIsEntertainer()) {
           <div class="app-form-group">
-            <label class="app-label">สตาร์ทดื่ม</label>
-            <input
+            <label class="app-label" for="master-role-สตาร์ทดื่ม-11">สตาร์ทดื่ม</label>
+            <input id="master-role-สตาร์ทดื่ม-11"
               type="text"
               inputmode="numeric"
               pattern="[0-9]*"
@@ -140,8 +140,8 @@
             <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ</p>
           </div>
           <div class="app-form-group">
-            <label class="app-label">รันดื่มต่อชม.</label>
-            <input
+            <label class="app-label" for="master-role-รันดื่มต่อชม-12">รันดื่มต่อชม.</label>
+            <input id="master-role-รันดื่มต่อชม-12"
               type="text"
               inputmode="numeric"
               pattern="[0-9]*"
@@ -175,24 +175,24 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
         <div class="app-form-group">
-          <label class="app-label">ชื่อตำแหน่ง (ภาษาอังกฤษ)</label>
-          <input type="text" formControlName="name" class="app-input" />
+          <label class="app-label" for="master-role-ชื่อตำแหน่ง-ภาษาอังกฤษ-13">ชื่อตำแหน่ง (ภาษาอังกฤษ)</label>
+          <input id="master-role-ชื่อตำแหน่ง-ภาษาอังกฤษ-13" type="text" formControlName="name" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ชื่อแสดง (ภาษาไทย)</label>
-          <input type="text" formControlName="displayNameTh" class="app-input" />
+          <label class="app-label" for="master-role-ชื่อแสดง-ภาษาไทย-14">ชื่อแสดง (ภาษาไทย)</label>
+          <input id="master-role-ชื่อแสดง-ภาษาไทย-14" type="text" formControlName="displayNameTh" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">กลุ่มสิทธิ์</label>
-          <app-custom-dropdown
+          <label class="app-label" for="master-role-กลุ่มสิทธิ์-15">กลุ่มสิทธิ์</label>
+          <app-custom-dropdown inputId="master-role-กลุ่มสิทธิ์-15"
             formControlName="permissionGroup"
             [options]="permissionGroupDropdownOptions()"
             placeholder="เลือกกลุ่มสิทธิ์"
           />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ประเภท</label>
-          <app-custom-dropdown
+          <label class="app-label" for="master-role-ประเภท-16">ประเภท</label>
+          <app-custom-dropdown inputId="master-role-ประเภท-16"
             formControlName="category"
             [options]="categoryDropdownOptions"
             placeholder="เลือกประเภท"
@@ -200,8 +200,8 @@
         </div>
         @if (editIsStaff() || editIsEntertainer()) {
           <div class="app-form-group">
-            <label class="app-label">โควต้าลา (วัน/เดือน)</label>
-            <input
+            <label class="app-label" for="master-role-โควต้าลา-วัน-เดือน-17">โควต้าลา (วัน/เดือน)</label>
+            <input id="master-role-โควต้าลา-วัน-เดือน-17"
               type="text"
               inputmode="numeric"
               pattern="[0-9]*"
@@ -212,8 +212,8 @@
             <p class="app-field-hint">จำนวนวันลาที่ไม่หักเงินต่อเดือน — เกินโควต้าต้องกดหักเงินที่หน้าบันทึกเวลา</p>
           </div>
           <div class="app-form-group">
-            <label class="app-label">เวลาเข้างาน</label>
-            <input
+            <label class="app-label" for="master-role-เวลาเข้างาน-18">เวลาเข้างาน</label>
+            <input id="master-role-เวลาเข้างาน-18"
               type="text"
               class="app-input"
               formControlName="expectedCheckInTime"
@@ -227,8 +227,8 @@
           </div>
           @if (editIsEntertainer()) {
             <div class="app-form-group">
-              <label class="app-label">เวลา on floor (PR แท็ก)</label>
-              <input
+              <label class="app-label" for="master-role-เวลา-on-floor-pr-แท็ก-19">เวลา on floor (PR แท็ก)</label>
+              <input id="master-role-เวลา-on-floor-pr-แท็ก-19"
                 type="text"
                 class="app-input"
                 formControlName="expectedOnFloorTime"
@@ -242,8 +242,8 @@
             </div>
           }
           <div class="app-form-group">
-            <label class="app-label">เวลาออกงาน</label>
-            <input
+            <label class="app-label" for="master-role-เวลาออกงาน-20">เวลาออกงาน</label>
+            <input id="master-role-เวลาออกงาน-20"
               type="text"
               class="app-input"
               formControlName="expectedCheckOutTime"
@@ -261,8 +261,8 @@
           </label>
         }
         <div class="app-form-group">
-          <label class="app-label">ราคาต่อดื่ม (บาท)</label>
-          <input
+          <label class="app-label" for="master-role-ราคาต่อดื่ม-บาท-21">ราคาต่อดื่ม (บาท)</label>
+          <input id="master-role-ราคาต่อดื่ม-บาท-21"
             type="text"
             inputmode="numeric"
             pattern="[0-9]*"
@@ -273,8 +273,8 @@
           <p class="app-field-hint">ใช้คิดยอดรันดื่มของตำแหน่งนี้ (เซลล์ / บริการ / เด็กนั่งดริ้ง)</p>
         </div>
         <div class="app-form-group">
-          <label class="app-label">หักดื่มเข้าร้าน (บาท)</label>
-          <input
+          <label class="app-label" for="master-role-หักดื่มเข้าร้าน-บาท-22">หักดื่มเข้าร้าน (บาท)</label>
+          <input id="master-role-หักดื่มเข้าร้าน-บาท-22"
             type="text"
             inputmode="numeric"
             pattern="[0-9]*"
@@ -286,8 +286,8 @@
         </div>
         @if (editIsEntertainer()) {
           <div class="app-form-group">
-            <label class="app-label">สตาร์ทดื่ม</label>
-            <input
+            <label class="app-label" for="master-role-สตาร์ทดื่ม-23">สตาร์ทดื่ม</label>
+            <input id="master-role-สตาร์ทดื่ม-23"
               type="text"
               inputmode="numeric"
               pattern="[0-9]*"
@@ -298,8 +298,8 @@
             <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ</p>
           </div>
           <div class="app-form-group">
-            <label class="app-label">รันดื่มต่อชม.</label>
-            <input
+            <label class="app-label" for="master-role-รันดื่มต่อชม-24">รันดื่มต่อชม.</label>
+            <input id="master-role-รันดื่มต่อชม-24"
               type="text"
               inputmode="numeric"
               pattern="[0-9]*"
@@ -316,8 +316,8 @@
           </div>
         }
         <div class="app-form-group">
-          <label class="app-label">เหตุผลการแก้ไข/ลบ</label>
-          <textarea
+          <label class="app-label" for="master-role-เหตุผลการแก้ไข-ลบ-25">เหตุผลการแก้ไข/ลบ</label>
+          <textarea id="master-role-เหตุผลการแก้ไข-ลบ-25"
             rows="3"
             formControlName="changeReason"
             class="app-input app-scroll-region"
@@ -399,6 +399,22 @@
                   <col class="app-col-actions" />
                 }
               </colgroup>
+              <thead class="sr-only">
+                <tr>
+                  <th>No.</th>
+                  <th>ชื่อระบบ</th>
+                  <th>ชื่อแสดง</th>
+                  <th>กลุ่มสิทธิ์</th>
+                  <th>ประเภท</th>
+                  <th class="app-cell-right">สตาร์ทดื่ม</th>
+                  <th class="app-cell-right">รันดื่ม/ชม.</th>
+                  <th class="app-cell-right">ราคา</th>
+                  <th class="app-cell-right">หักร้าน</th>
+                  @if (canManage()) {
+                    <th class="app-cell-right">จัดการ</th>
+                  }
+                </tr>
+              </thead>
               <tbody>
                 @for (role of listView().items; track role.id; let i = $index) {
                   <tr>

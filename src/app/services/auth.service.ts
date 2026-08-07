@@ -56,7 +56,9 @@ export class AuthService {
   constructor() {
     const restored = this.sessionSignal();
     if (restored && !receivesShopNotifications(restored.user)) {
-      void this.webPush.clearSubscription();
+      queueMicrotask(() => {
+        void this.webPush.clearSubscription();
+      });
     }
   }
 
@@ -109,15 +111,37 @@ export class AuthService {
     if (user.pendingRoleSetup || user.mustChangePassword) {
       return false;
     }
-    return user.needsPrivacyConsent !== false;
+    return user.needsPrivacyConsent === true;
   }
 
-  acceptPrivacyPolicy(version: string): Observable<AuthResponse> {
+  /** Staff reminder: org has not accepted the current privacy version. */
+  orgPrivacyConsentPending(): boolean {
+    return this.getUser()?.orgPrivacyConsentPending === true;
+  }
+
+  allowBusinessDataPartnerShare(): boolean {
+    return this.getUser()?.allowBusinessDataPartnerShare === true;
+  }
+
+  acceptPrivacyPolicy(
+    version: string,
+    allowBusinessDataPartnerShare = false,
+  ): Observable<AuthResponse> {
     return this.http
       .post<AuthResponse>(this.api.resource('auth', 'accept-privacy-policy'), {
         version,
+        allowBusinessDataPartnerShare,
       })
       .pipe(tap((response) => this.persistSessionIfReady(response)));
+  }
+
+  patchAllowBusinessDataPartnerShare(enabled: boolean): void {
+    const user = this.getUser();
+    if (!user) return;
+    this.updateSessionUser({
+      ...user,
+      allowBusinessDataPartnerShare: enabled,
+    });
   }
 
   postLoginPathSegments(): string[] {
@@ -139,6 +163,10 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem(STORAGE_KEY);
     this.sessionSignal.set(null);
+    // Allow privacy reminder banner to show again on next login.
+    void import('../utils/privacy-consent-banner.storage').then((m) =>
+      m.clearPrivacyConsentBannerDismissals(),
+    );
   }
 
   redirectToLogin(): void {
@@ -448,6 +476,9 @@ export class AuthService {
           pendingRoleSetup: false,
           mustChangePassword,
           needsPrivacyConsent: employee.needsPrivacyConsent === true,
+          orgPrivacyConsentPending: employee.orgPrivacyConsentPending === true,
+          allowBusinessDataPartnerShare:
+            employee.allowBusinessDataPartnerShare === true,
           roleId: employee.roleId,
           role: employee.role!.name,
           roleDisplayNameTh: this.resolveRoleDisplayNameTh(
@@ -525,6 +556,8 @@ export class AuthService {
       pendingRoleSetup: false,
       mustChangePassword: user.mustChangePassword === true,
       needsPrivacyConsent: user.needsPrivacyConsent === true,
+      orgPrivacyConsentPending: user.orgPrivacyConsentPending === true,
+      allowBusinessDataPartnerShare: user.allowBusinessDataPartnerShare === true,
       roleId: user.roleId,
       role,
       roleDisplayNameTh,

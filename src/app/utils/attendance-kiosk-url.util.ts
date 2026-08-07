@@ -1,3 +1,5 @@
+import { trimTrailingSlashes } from './trim-slashes.util';
+
 /** Full app path for the shop-scoped attendance kiosk (QR display). */
 export function attendanceKioskPath(publicId: string): string[] {
   const trimmed = publicId.trim();
@@ -9,6 +11,6 @@ export function attendanceKioskUrl(publicId: string): string {
   if (!trimmed || typeof window === 'undefined') {
     return '';
   }
-  const origin = window.location.origin.replace(/\/+$/, '');
+  const origin = trimTrailingSlashes(window.location.origin);
   return `${origin}/s/${encodeURIComponent(trimmed)}/attendance-kiosk`;
 }

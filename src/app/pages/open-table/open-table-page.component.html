@@ -87,7 +87,8 @@
   >
     @if (!isPcBillWorkspace()) {
     <div class="open-table-search-row">
-      <label class="open-table-search-field">
+      <div class="open-table-search-field">
+        <label class="sr-only" for="open-table-floor-search">ค้นหาโต๊ะ</label>
         <svg class="open-table-search-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
           <path
             fill-rule="evenodd"
@@ -96,13 +97,14 @@
           />
         </svg>
         <input
+          id="open-table-floor-search"
           type="search"
           class="app-input open-table-search-input"
           [placeholder]="openTableSelfBillOnly() ? 'ค้นหาเลขโต๊ะ' : 'ค้นหาเลขโต๊ะ, เซลล์ผู้ดูแล'"
           [value]="search()"
           (input)="search.set($any($event.target).value)"
         />
-      </label>
+      </div>
     </div>
     }
 
@@ -502,6 +504,27 @@
                     </svg>
                   </button>
                 </span>
+              }
+              @if (
+                ledgerCanMutate() &&
+                seat.sessionId &&
+                seatLedgerOpen() &&
+                !seatAwaitingClear()
+              ) {
+                <button
+                  type="button"
+                  class="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-text-secondary hover:border-primary/35 hover:text-text-primary"
+                  aria-label="พิมพ์ QR สั่งอาหาร"
+                  title="พิมพ์ QR สั่งอาหาร"
+                  [disabled]="actionBusy() || guestQrPrintBusy()"
+                  (click)="printGuestOrderQr()"
+                >
+                  <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path
+                      d="M3.5 3.5h4v4h-4v-4zm1.25 1.25v1.5h1.5v-1.5h-1.5zM12.5 3.5h4v4h-4v-4zm1.25 1.25v1.5h1.5v-1.5h-1.5zM3.5 12.5h4v4h-4v-4zm1.25 1.25v1.5h1.5v-1.5h-1.5zM11 11h2.25v1.25H11V11zm3.25 0H16v1.25h-1.75V11zM11 14.25h1.25V16H11v-1.75zm2.5 0H15V15h1v1h-1.25v-1.25H13.5v-.5z"
+                    />
+                  </svg>
+                </button>
               }
               @if (isPcBillWorkspace() && ledgerCanMutate() && seat.sessionId) {
                 <button
@@ -1038,14 +1061,24 @@
               <span class="open-table-bill-summary-net">฿{{ totalAmount() | number: '1.0-0' }}</span>
             </div>
             @if (ledgerCanMutate()) {
-              <button
-                type="button"
-                class="app-btn-primary open-table-checkout-btn"
-                [disabled]="actionBusy()"
-                (click)="openCheckoutModal()"
-              >
-                เช็กบิล
-              </button>
+              <div class="open-table-bill-summary-actions">
+                <button
+                  type="button"
+                  class="app-btn-secondary open-table-checkout-btn"
+                  [disabled]="actionBusy() || guestQrPrintBusy()"
+                  (click)="printGuestOrderQr()"
+                >
+                  {{ guestQrPrintBusy() ? 'กำลังพิมพ์ QR...' : 'พิมพ์ QR สั่ง' }}
+                </button>
+                <button
+                  type="button"
+                  class="app-btn-primary open-table-checkout-btn"
+                  [disabled]="actionBusy()"
+                  (click)="openCheckoutModal()"
+                >
+                  เช็กบิล
+                </button>
+              </div>
             }
           </div>
           </div>
@@ -1106,8 +1139,8 @@
       @if (isPcAddMasterEmpty(navKey)) {
         @if (!isPcBillWorkspace() && addModalMode() === 'ORDER_LEDGER') {
           <div class="app-form-group mb-3">
-            <label class="app-label">หมวดการลงรายการ</label>
-            <app-custom-dropdown
+            <label class="app-label" for="open-table-หมวดการลงรายการ-1">หมวดการลงรายการ</label>
+            <app-custom-dropdown inputId="open-table-หมวดการลงรายการ-1"
               [options]="orderMasterCategoryOptions()"
               [ngModel]="orderLedgerCategory()"
               (ngModelChange)="onOrderLedgerCategoryChange($event)"
@@ -1166,8 +1199,8 @@
         </div>
         @if (roomChargeSeatingTypeId() != null) {
           <div class="app-form-group">
-            <label class="app-label">ที่นั่ง / ห้อง</label>
-            <app-custom-dropdown
+            <label class="app-label" for="open-table-ที่นั่ง-ห้อง-2">ที่นั่ง / ห้อง</label>
+            <app-custom-dropdown inputId="open-table-ที่นั่ง-ห้อง-2"
               [options]="roomChargeSeatOptions()"
               [ngModel]="roomChargeSeatingId()"
               (ngModelChange)="onRoomChargeSeatingChange($event)"
@@ -1176,8 +1209,8 @@
           </div>
         }
         <div class="app-form-group">
-          <label class="app-label">ค่าห้อง</label>
-          <app-custom-dropdown
+          <label class="app-label" for="open-table-ค่าห้อง-3">ค่าห้อง</label>
+          <app-custom-dropdown inputId="open-table-ค่าห้อง-3"
             [options]="roomChargeRateTypeOptions"
             [ngModel]="roomChargeRateType()"
             (ngModelChange)="onRoomChargeRateTypeChange($event)"
@@ -1186,8 +1219,8 @@
         </div>
         @if (roomChargeShowsPriceInput()) {
           <div class="app-form-group">
-            <label class="app-label">ราคา (บาท)</label>
-            <input
+            <label class="app-label" for="open-table-ราคา-บาท-4">ราคา (บาท)</label>
+            <input id="open-table-ราคา-บาท-4"
               type="text"
               inputmode="numeric"
               class="app-input"
@@ -1212,8 +1245,8 @@
       @if (addModalMode() === 'ORDER_LEDGER') {
         @if (!isPcBillWorkspace()) {
           <div class="app-form-group">
-            <label class="app-label">หมวดการลงรายการ</label>
-            <app-custom-dropdown
+            <label class="app-label" for="open-table-หมวดการลงรายการ-5">หมวดการลงรายการ</label>
+            <app-custom-dropdown inputId="open-table-หมวดการลงรายการ-5"
               [options]="orderMasterCategoryOptions()"
               [ngModel]="orderLedgerCategory()"
               (ngModelChange)="onOrderLedgerCategoryChange($event)"
@@ -1242,8 +1275,8 @@
             </div>
           } @else {
             <div class="app-form-group">
-              <label class="app-label">หมวดอาหาร</label>
-              <app-custom-dropdown
+              <label class="app-label" for="open-table-หมวดอาหาร-6">หมวดอาหาร</label>
+              <app-custom-dropdown inputId="open-table-หมวดอาหาร-6"
                 [options]="foodCategoryDropdownOptions()"
                 [ngModel]="selectedFoodCategoryId()"
                 (ngModelChange)="onFoodCategoryChange($event)"
@@ -1252,7 +1285,7 @@
             </div>
           }
           <div class="app-form-group">
-            <label class="app-label">เลือกรายการอาหาร</label>
+            <span class="app-label">เลือกรายการอาหาร</span>
             @for (catId of [selectedFoodCategoryId()]; track catId) {
               <app-custom-dropdown
                 [options]="foodItemDropdownOptions()"
@@ -1284,7 +1317,7 @@
             </div>
           } @else {
             <div class="app-form-group">
-              <label class="app-label">หมวดเครื่องดื่ม</label>
+              <span class="app-label">หมวดเครื่องดื่ม</span>
               <app-custom-dropdown
                 [options]="beverageCategoryDropdownOptions()"
                 [ngModel]="selectedBeverageCategoryId()"
@@ -1294,7 +1327,7 @@
             </div>
           }
           <div class="app-form-group">
-            <label class="app-label">เลือกเครื่องดื่ม</label>
+            <span class="app-label">เลือกเครื่องดื่ม</span>
             @for (catId of [selectedBeverageCategoryId()]; track catId) {
               <app-custom-dropdown
                 [options]="beverageDropdownOptions()"
@@ -1306,7 +1339,7 @@
           </div>
           @if (selectedBeverageIsMixer() && selectedBeverageId() != null) {
             <div class="app-form-group">
-              <label class="app-label">มิกซ์เซอร์</label>
+              <span class="app-label">มิกซ์เซอร์</span>
               <label class="app-toggle" aria-label="ฟรีมิกซ์หรือคิดเงิน">
                 <input
                   type="checkbox"
@@ -1325,8 +1358,8 @@
 
         @if (orderLedgerCategory() === 'COCKTAIL') {
           <div class="app-form-group">
-            <label class="app-label">เลือกค็อกเทล</label>
-            <app-custom-dropdown
+            <label class="app-label" for="open-table-เลือกค็อกเทล-7">เลือกค็อกเทล</label>
+            <app-custom-dropdown inputId="open-table-เลือกค็อกเทล-7"
               [options]="cocktailDropdownOptions()"
               [ngModel]="selectedCocktailId()"
               (ngModelChange)="onCocktailChange($event)"
@@ -1334,8 +1367,8 @@
             />
           </div>
           <div class="app-form-group">
-            <label class="app-label">เลือกตำแหน่งพนักงาน</label>
-            <app-custom-dropdown
+            <label class="app-label" for="open-table-เลือกตำแหน่งพนักงาน-8">เลือกตำแหน่งพนักงาน</label>
+            <app-custom-dropdown inputId="open-table-เลือกตำแหน่งพนักงาน-8"
               [options]="cocktailHostRoleOptions()"
               [ngModel]="orderCocktailStaffRoleId()"
               (ngModelChange)="onOrderCocktailRoleChange($event)"
@@ -1343,7 +1376,7 @@
             />
           </div>
           <div class="app-form-group">
-            <label class="app-label">เลือกพนักงานพ่วงดื่ม</label>
+            <span class="app-label">เลือกพนักงานพ่วงดื่ม</span>
             @for (roleId of [orderCocktailStaffRoleId()]; track roleId) {
               <app-custom-dropdown
                 [options]="cocktailHostEmployeeOptions()"
@@ -1385,7 +1418,7 @@
         @if (orderLedgerCategory() === 'PROMOTION') {
           @if (packageOpenMode() === 'DEPOSIT') {
             <div class="app-form-group">
-              <label class="app-label">เลือกรายการฝาก</label>
+              <span class="app-label">เลือกรายการฝาก</span>
               <app-custom-dropdown
                 [options]="packageDepositDropdownOptions()"
                 [ngModel]="selectedPackageDepositId()"
@@ -1396,8 +1429,8 @@
             </div>
           } @else {
             <div class="app-form-group">
-              <label class="app-label">เลือกโปร</label>
-              <app-custom-dropdown
+              <label class="app-label" for="open-table-เลือกโปร-9">เลือกโปร</label>
+              <app-custom-dropdown inputId="open-table-เลือกโปร-9"
                 [options]="promotionDropdownOptions()"
                 [ngModel]="selectedPromotionId()"
                 (ngModelChange)="onPromotionChange($event)"
@@ -1406,8 +1439,8 @@
             </div>
             @if (selectedPackageAllowsDeposit()) {
               <div class="app-form-group">
-                <label class="app-label">รหัสลูกค้า</label>
-                <input
+                <label class="app-label" for="open-table-รหัสลูกค้า-10">รหัสลูกค้า</label>
+                <input id="open-table-รหัสลูกค้า-10"
                   type="text"
                   class="app-input font-mono tracking-widest"
                   maxlength="10"
@@ -1418,8 +1451,8 @@
                 <p class="app-hint">{{ packageCustomerCodeHint }} · รหัสเดิม + โปรเดิม → รวมเข้าฝากเดิมอัตโนมัติ</p>
               </div>
               <div class="app-form-group">
-                <label class="app-label">ชื่อลูกค้า (ไม่บังคับ)</label>
-                <input
+                <label class="app-label" for="open-table-ชื่อลูกค้า-ไม่บังคับ-11">ชื่อลูกค้า (ไม่บังคับ)</label>
+                <input id="open-table-ชื่อลูกค้า-ไม่บังคับ-11"
                   type="text"
                   class="app-input"
                   [ngModel]="packageCustomerName()"
@@ -1434,8 +1467,8 @@
         @if (orderLedgerCategory() === 'MEMBER') {
           @if (packageOpenMode() === 'DEPOSIT') {
             <div class="app-form-group">
-              <label class="app-label">เลือกรายการฝาก</label>
-              <app-custom-dropdown
+              <label class="app-label" for="open-table-เลือกรายการฝาก-12">เลือกรายการฝาก</label>
+              <app-custom-dropdown inputId="open-table-เลือกรายการฝาก-12"
                 [options]="packageDepositDropdownOptions()"
                 [ngModel]="selectedPackageDepositId()"
                 (ngModelChange)="onPackageDepositChange($event)"
@@ -1445,8 +1478,8 @@
             </div>
           } @else {
             <div class="app-form-group">
-              <label class="app-label">เลือกเมมเบอร์</label>
-              <app-custom-dropdown
+              <label class="app-label" for="open-table-เลือกเมมเบอร์-13">เลือกเมมเบอร์</label>
+              <app-custom-dropdown inputId="open-table-เลือกเมมเบอร์-13"
                 [options]="membershipDropdownOptions()"
                 [ngModel]="selectedMembershipId()"
                 (ngModelChange)="onMembershipChange($event)"
@@ -1455,8 +1488,8 @@
             </div>
             @if (selectedPackageAllowsDeposit()) {
               <div class="app-form-group">
-                <label class="app-label">รหัสลูกค้า</label>
-                <input
+                <label class="app-label" for="open-table-รหัสลูกค้า-14">รหัสลูกค้า</label>
+                <input id="open-table-รหัสลูกค้า-14"
                   type="text"
                   class="app-input font-mono tracking-widest"
                   maxlength="10"
@@ -1467,8 +1500,8 @@
                 <p class="app-hint">{{ packageCustomerCodeHint }} · รหัสเดิม + เมมเดิม → รวมเข้าฝากเดิมอัตโนมัติ</p>
               </div>
               <div class="app-form-group">
-                <label class="app-label">ชื่อลูกค้า (ไม่บังคับ)</label>
-                <input
+                <label class="app-label" for="open-table-ชื่อลูกค้า-ไม่บังคับ-15">ชื่อลูกค้า (ไม่บังคับ)</label>
+                <input id="open-table-ชื่อลูกค้า-ไม่บังคับ-15"
                   type="text"
                   class="app-input"
                   [ngModel]="packageCustomerName()"
@@ -1482,8 +1515,8 @@
 
         @if (orderLedgerCategory() === 'OTHER') {
           <div class="app-form-group">
-            <label class="app-label">เลือกรายการเบ็ดเตล็ด</label>
-            <app-custom-dropdown
+            <label class="app-label" for="open-table-เลือกรายการเบ็ดเตล็ด-16">เลือกรายการเบ็ดเตล็ด</label>
+            <app-custom-dropdown inputId="open-table-เลือกรายการเบ็ดเตล็ด-16"
               [options]="otherChargeDropdownOptions()"
               [ngModel]="selectedOtherChargeId()"
               (ngModelChange)="onOtherChargeChange($event)"
@@ -1494,8 +1527,8 @@
 
         @if (orderLedgerCategory() === 'TABLE_OPENING') {
           <div class="app-form-group">
-            <label class="app-label">เลือกค่าเปิดโต๊ะ</label>
-            <app-custom-dropdown
+            <label class="app-label" for="open-table-เลือกค่าเปิดโต๊ะ-17">เลือกค่าเปิดโต๊ะ</label>
+            <app-custom-dropdown inputId="open-table-เลือกค่าเปิดโต๊ะ-17"
               [options]="otherChargeDropdownOptions()"
               [ngModel]="selectedOtherChargeId()"
               (ngModelChange)="onOtherChargeChange($event)"
@@ -1506,8 +1539,8 @@
 
         @if (showOrderQtyField()) {
           <div class="app-form-group">
-            <label class="app-label">จำนวน</label>
-            <input
+            <label class="app-label" for="open-table-จำนวน-18">จำนวน</label>
+            <input id="open-table-จำนวน-18"
               type="text"
               inputmode="numeric"
               autocomplete="off"
@@ -1545,8 +1578,8 @@
         </div>
 
         <div class="app-form-group">
-          <label class="app-label">เลือกตำแหน่งพนักงาน</label>
-          <app-custom-dropdown
+          <label class="app-label" for="open-table-เลือกตำแหน่งพนักงาน-19">เลือกตำแหน่งพนักงาน</label>
+          <app-custom-dropdown inputId="open-table-เลือกตำแหน่งพนักงาน-19"
             [options]="staffLedgerRoleOptions()"
             [ngModel]="staffLedgerRoleId()"
             (ngModelChange)="onStaffLedgerRoleChange($event)"
@@ -1555,7 +1588,7 @@
         </div>
 
         <div class="app-form-group">
-          <label class="app-label">เลือกพนักงาน</label>
+          <span class="app-label">เลือกพนักงาน</span>
           @for (roleId of [staffLedgerRoleId()]; track roleId) {
             <app-custom-dropdown
               [options]="staffLedgerEmployeeOptions()"
@@ -1658,7 +1691,7 @@
 
         @if (showStaffSeatStartTime()) {
           <div class="app-form-group">
-            <label class="app-label">เวลาเริ่มนั่งโต๊ะ</label>
+            <span class="app-label">เวลาเริ่มนั่งโต๊ะ</span>
             <app-shop-datetime-input
               #staffSeatDatetimeInput
               inputId="staff-seat-started-at"
@@ -1673,8 +1706,8 @@
 
         @if (showStaffFixedDrinkQty()) {
           <div class="app-form-group">
-            <label class="app-label">ระบุจำนวนดื่ม</label>
-            <input
+            <label class="app-label" for="open-table-ระบุจำนวนดื่ม-20">ระบุจำนวนดื่ม</label>
+            <input id="open-table-ระบุจำนวนดื่ม-20"
               type="text"
               inputmode="numeric"
               autocomplete="off"
@@ -1712,8 +1745,8 @@
     </div>
     <div class="app-form-stack">
       <div class="app-form-group">
-        <label class="app-label">เซลล์</label>
-        <app-custom-dropdown
+        <label class="app-label" for="open-table-เซลล์-21">เซลล์</label>
+        <app-custom-dropdown inputId="open-table-เซลล์-21"
           [class.app-field-invalid]="newBillSaleValidated() && newBillSaleId() == null"
           [options]="saleEmployeeOptions()"
           [ngModel]="newBillSaleId()"
@@ -1749,8 +1782,8 @@
     </div>
     <div class="app-form-stack">
       <div class="app-form-group">
-        <label class="app-label">ประเภทที่นั่ง</label>
-        <app-custom-dropdown
+        <label class="app-label" for="open-table-ประเภทที่นั่ง-22">ประเภทที่นั่ง</label>
+        <app-custom-dropdown inputId="open-table-ประเภทที่นั่ง-22"
           [options]="transferSeatingTypeOptions()"
           [ngModel]="transferSeatingTypeId()"
           (ngModelChange)="onTransferSeatingTypeChange($event)"
@@ -1759,8 +1792,8 @@
       </div>
       @if (transferSeatingTypeId() != null) {
         <div class="app-form-group">
-          <label class="app-label">ที่นั่งปลายทาง (ว่าง)</label>
-          <app-custom-dropdown
+          <label class="app-label" for="open-table-ที่นั่งปลายทาง-ว่าง-23">ที่นั่งปลายทาง (ว่าง)</label>
+          <app-custom-dropdown inputId="open-table-ที่นั่งปลายทาง-ว่าง-23"
             [options]="transferDestinationOptions()"
             [ngModel]="transferDestinationKey()"
             (ngModelChange)="onTransferDestinationChange($event)"
@@ -2051,8 +2084,8 @@
       }
     </p>
     <div class="app-form-group">
-      <label class="app-label">ประเภทค่าใช้จ่าย</label>
-      <app-custom-dropdown
+      <label class="app-label" for="open-table-ประเภทค่าใช้จ่าย-24">ประเภทค่าใช้จ่าย</label>
+      <app-custom-dropdown inputId="open-table-ประเภทค่าใช้จ่าย-24"
         [options]="roomChargeRateTypeOptions"
         [ngModel]="editRoomChargeRateType()"
         (ngModelChange)="onEditRoomChargeRateTypeChange($event)"
@@ -2096,8 +2129,8 @@
       </button>
     </div>
     <div class="app-form-group">
-      <label class="app-label">เมม / โปร</label>
-      <app-custom-dropdown
+      <label class="app-label" for="open-table-เมม-โปร-25">เมม / โปร</label>
+      <app-custom-dropdown inputId="open-table-เมม-โปร-25"
         [options]="packageBottleModalOptions()"
         [ngModel]="packageBottleBillItemKey()"
         (ngModelChange)="onPackageBottleBillItemChange($event)"
@@ -2269,8 +2302,8 @@
       </div>
 
       <div class="app-form-group">
-        <label class="app-label">วิธีชำระเงิน</label>
-        <app-custom-dropdown
+        <label class="app-label" for="open-table-วิธีชำระเงิน-26">วิธีชำระเงิน</label>
+        <app-custom-dropdown inputId="open-table-วิธีชำระเงิน-26"
           [options]="checkoutPaymentMethodOptions"
           [ngModel]="checkoutPaymentMethod()"
           (ngModelChange)="onCheckoutPaymentMethodChange($event)"

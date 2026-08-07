@@ -16,8 +16,8 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="createFormValidated()" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
-          <label class="app-label">ชื่อประเภท</label>
-          <input type="text" formControlName="name" class="app-input" />
+          <label class="app-label" for="master-food-category-ชื่อประเภท-1">ชื่อประเภท</label>
+          <input id="master-food-category-ชื่อประเภท-1" type="text" formControlName="name" class="app-input" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
@@ -37,8 +37,8 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
         <div class="app-form-group">
-          <label class="app-label">ชื่อประเภท</label>
-          <input type="text" formControlName="name" class="app-input" />
+          <label class="app-label" for="master-food-category-ชื่อประเภท-2">ชื่อประเภท</label>
+          <input id="master-food-category-ชื่อประเภท-2" type="text" formControlName="name" class="app-input" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
@@ -94,6 +94,15 @@
                   <col class="app-col-actions" />
                 }
               </colgroup>
+              <thead class="sr-only">
+                <tr>
+                  <th>No.</th>
+                  <th>ชื่อ</th>
+                  @if (canManage()) {
+                    <th class="app-cell-right">จัดการ</th>
+                  }
+                </tr>
+              </thead>
               <tbody>
                 @for (item of listView().items; track item.id; let i = $index) {
                   <tr>

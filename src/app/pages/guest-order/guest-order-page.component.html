@@ -1,0 +1,190 @@
+<div class="guest-order-page">
+  <header class="guest-order-header">
+    @if (menu(); as headerMenu) {
+      <h1 class="guest-order-title">ร้าน {{ headerMenu.shop.name }}</h1>
+      <p class="guest-order-table">{{ headerMenu.session.tableLabel }}</p>
+    } @else {
+      <h1 class="guest-order-title">สั่งอาหาร</h1>
+    }
+  </header>
+
+  @if (loading()) {
+    <p class="guest-order-status">กำลังโหลดเมนู...</p>
+  } @else if (error() && !menu()) {
+    <p class="guest-order-error" role="alert">{{ error() }}</p>
+  } @else if (menu()) {
+    @if (successMessage()) {
+      <p class="guest-order-success" role="status">{{ successMessage() }}</p>
+    }
+    @if (error()) {
+      <p class="guest-order-error" role="alert">{{ error() }}</p>
+    }
+
+    <div class="guest-order-tabs app-scroll-region" role="tablist" aria-label="หมวดเมนู">
+      @if (menu()!.foods.length > 0) {
+        <button
+          type="button"
+          class="app-filter-chip"
+          [class.app-filter-chip-active]="activeTab() === 'FOOD'"
+          (click)="setTab('FOOD')"
+        >
+          อาหาร
+        </button>
+      }
+      @if (menu()!.beverages.length > 0) {
+        <button
+          type="button"
+          class="app-filter-chip"
+          [class.app-filter-chip-active]="activeTab() === 'DRINK'"
+          (click)="setTab('DRINK')"
+        >
+          เครื่องดื่ม
+        </button>
+      }
+      @if (menu()!.promotions.length > 0) {
+        <button
+          type="button"
+          class="app-filter-chip"
+          [class.app-filter-chip-active]="activeTab() === 'PROMOTION'"
+          (click)="setTab('PROMOTION')"
+        >
+          โปร
+        </button>
+      }
+      @if (menu()!.memberships.length > 0) {
+        <button
+          type="button"
+          class="app-filter-chip"
+          [class.app-filter-chip-active]="activeTab() === 'MEMBERSHIP'"
+          (click)="setTab('MEMBERSHIP')"
+        >
+          เมม
+        </button>
+      }
+    </div>
+
+    <label class="guest-order-search">
+      <span class="sr-only">ค้นหา</span>
+      <input
+        type="search"
+        class="app-input"
+        placeholder="ค้นหาเมนู"
+        [ngModel]="search()"
+        (ngModelChange)="search.set($event)"
+      />
+    </label>
+
+    <ul class="guest-order-list app-scroll-region">
+      @for (item of visibleItems(); track itemTypeForTab() + ':' + item.id) {
+        <li class="guest-order-item">
+          @if (item.imageUrl) {
+            <img
+              class="guest-order-item__thumb"
+              [src]="item.imageUrl"
+              [alt]="item.name"
+              loading="lazy"
+              decoding="async"
+            />
+          } @else {
+            <div class="guest-order-item__thumb guest-order-item__thumb--empty" aria-hidden="true"></div>
+          }
+          <div class="guest-order-item__info">
+            <p class="guest-order-item__name">{{ item.name }}</p>
+            <p class="guest-order-item__meta">
+              @if (item.categoryName) {
+                <span>{{ item.categoryName }} · </span>
+              }
+              ฿{{ item.price | number: '1.0-0' }}
+              @if (item.unitLabelTh) {
+                <span> / {{ item.unitLabelTh }}</span>
+              }
+            </p>
+          </div>
+          <button
+            type="button"
+            class="app-btn-primary guest-order-item__add"
+            (click)="addToCart(item, itemTypeForTab())"
+          >
+            เพิ่ม
+          </button>
+        </li>
+      } @empty {
+        <li class="guest-order-empty">ไม่มีรายการในหมวดนี้</li>
+      }
+    </ul>
+
+    <button
+      type="button"
+      class="guest-order-cart-fab app-btn-primary"
+      [disabled]="cartCount() === 0"
+      (click)="openCart()"
+    >
+      ตะกร้า {{ cartCount() }} · ฿{{ cartTotal() | number: '1.0-0' }}
+    </button>
+  }
+</div>
+
+@if (cartOpen()) {
+  <div class="guest-order-cart-layer" role="dialog" aria-modal="true" aria-label="ตะกร้า">
+    <button type="button" class="guest-order-cart-scrim" aria-label="ปิดตะกร้า" (click)="closeCart()"></button>
+    <div class="guest-order-cart-sheet">
+      <div class="guest-order-cart-sheet__header">
+        <h2>ตะกร้า</h2>
+        <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeCart()">✕</button>
+      </div>
+      <div class="guest-order-cart-sheet__body app-scroll-region">
+        @for (row of cart(); track row.key) {
+          <div class="guest-order-cart-row">
+            <div class="guest-order-cart-row__main">
+              <p class="guest-order-cart-row__name">{{ row.name }}</p>
+              <p class="guest-order-cart-row__price">
+                ฿{{ row.unitPrice * row.quantity | number: '1.0-0' }}
+              </p>
+            </div>
+            <div class="guest-order-cart-row__qty">
+              <button type="button" class="app-btn-secondary" (click)="changeQty(row.key, -1)">−</button>
+              <span>{{ row.quantity }}</span>
+              <button type="button" class="app-btn-secondary" (click)="changeQty(row.key, 1)">+</button>
+            </div>
+            @if (row.allowDeposit) {
+              <div class="guest-order-cart-row__deposit">
+                <label>
+                  ชื่อลูกค้า
+                  <input
+                    class="app-input"
+                    [ngModel]="row.customerName"
+                    (ngModelChange)="updateCartCustomer(row.key, 'customerName', $event)"
+                  />
+                </label>
+                <label>
+                  รหัสลูกค้า *
+                  <input
+                    class="app-input"
+                    [ngModel]="row.customerCode"
+                    (ngModelChange)="updateCartCustomer(row.key, 'customerCode', $event)"
+                  />
+                </label>
+              </div>
+            }
+          </div>
+        } @empty {
+          <p class="guest-order-empty">ตะกร้าว่าง</p>
+        }
+      </div>
+      <div class="guest-order-cart-sheet__footer">
+        <div class="guest-order-cart-total">
+          <span>รวม</span>
+          <strong>฿{{ cartTotal() | number: '1.0-0' }}</strong>
+        </div>
+        <button
+          type="button"
+          class="app-btn-primary"
+          [disabled]="submitting() || cartCount() === 0"
+          (click)="confirmOrder()"
+        >
+          {{ submitting() ? 'กำลังส่ง...' : 'ยืนยันออเดอร์' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

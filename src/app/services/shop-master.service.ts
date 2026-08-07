@@ -114,6 +114,16 @@ export class ShopMasterService {
     });
   }
 
+  uploadFoodImage(id: number, file: Blob, fileName: string): Observable<MstFood> {
+    const body = new FormData();
+    body.append('image', file, fileName);
+    return this.http.post<MstFood>(this.api.resource(`foods/${id}/image`), body);
+  }
+
+  deleteFoodImage(id: number): Observable<MstFood> {
+    return this.http.delete<MstFood>(this.api.resource(`foods/${id}/image`));
+  }
+
   getSeatingTypes(): Observable<MstSeatingType[]> {
     return this.http.get<MstSeatingType[]>(this.api.resource('seating-types'));
   }

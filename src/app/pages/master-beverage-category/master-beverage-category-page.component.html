@@ -16,8 +16,8 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="createFormValidated()" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
-          <label class="app-label">ชื่อประเภท</label>
-          <input
+          <label class="app-label" for="master-beverage-category-ชื่อประเภท-1">ชื่อประเภท</label>
+          <input id="master-beverage-category-ชื่อประเภท-1"
             type="text"
             formControlName="name"
             class="app-input"
@@ -25,8 +25,8 @@
           />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ประเภท</label>
-          <app-custom-dropdown
+          <label class="app-label" for="master-beverage-category-ประเภท-2">ประเภท</label>
+          <app-custom-dropdown inputId="master-beverage-category-ประเภท-2"
             formControlName="kind"
             [options]="kindDropdownOptions"
             placeholder="เลือกประเภท"
@@ -51,12 +51,12 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
         <div class="app-form-group">
-          <label class="app-label">ชื่อประเภท</label>
-          <input type="text" formControlName="name" class="app-input" />
+          <label class="app-label" for="master-beverage-category-ชื่อประเภท-3">ชื่อประเภท</label>
+          <input id="master-beverage-category-ชื่อประเภท-3" type="text" formControlName="name" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ประเภท</label>
-          <app-custom-dropdown
+          <label class="app-label" for="master-beverage-category-ประเภท-4">ประเภท</label>
+          <app-custom-dropdown inputId="master-beverage-category-ประเภท-4"
             formControlName="kind"
             [options]="kindDropdownOptions"
             placeholder="เลือกประเภท"
@@ -119,6 +119,16 @@
                   <col class="app-col-actions" />
                 }
               </colgroup>
+              <thead class="sr-only">
+                <tr>
+                  <th>No.</th>
+                  <th>ชื่อประเภท</th>
+                  <th>กลุ่ม</th>
+                  @if (canManage()) {
+                    <th class="app-cell-right">จัดการ</th>
+                  }
+                </tr>
+              </thead>
               <tbody>
                 @for (item of listView().items; track item.id; let i = $index) {
                   <tr>

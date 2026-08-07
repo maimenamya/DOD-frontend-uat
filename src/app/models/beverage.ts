@@ -24,6 +24,7 @@ export interface MstBeverage {
   categoryId: number;
   canReturn: boolean;
   stockItemId?: number | null;
+  imageUrl?: string | null;
   createdAt: string;
   category?: MstBeverageCategory;
   stockItem?: {

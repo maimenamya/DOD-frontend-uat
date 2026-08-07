@@ -16,12 +16,12 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="createFormValidated()" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
-          <label class="app-label">รหัสห้อง</label>
-          <input type="text" formControlName="roomCode" class="app-input" />
+          <label class="app-label" for="master-room-รหัสห้อง-1">รหัสห้อง</label>
+          <input id="master-room-รหัสห้อง-1" type="text" formControlName="roomCode" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ราคา</label>
-          <input
+          <label class="app-label" for="master-room-ราคา-2">ราคา</label>
+          <input id="master-room-ราคา-2"
             type="text"
             inputmode="numeric"
             pattern="[0-9]*"
@@ -31,8 +31,8 @@
           />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ประเภทราคา</label>
-          <app-custom-dropdown
+          <label class="app-label" for="master-room-ประเภทราคา-3">ประเภทราคา</label>
+          <app-custom-dropdown inputId="master-room-ประเภทราคา-3"
             formControlName="pricingType"
             [options]="pricingTypeOptions"
             placeholder="เลือกประเภทราคา"
@@ -56,12 +56,12 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
         <div class="app-form-group">
-          <label class="app-label">รหัสห้อง</label>
-          <input type="text" formControlName="roomCode" class="app-input" />
+          <label class="app-label" for="master-room-รหัสห้อง-4">รหัสห้อง</label>
+          <input id="master-room-รหัสห้อง-4" type="text" formControlName="roomCode" class="app-input" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ราคา</label>
-          <input
+          <label class="app-label" for="master-room-ราคา-5">ราคา</label>
+          <input id="master-room-ราคา-5"
             type="text"
             inputmode="numeric"
             pattern="[0-9]*"
@@ -71,8 +71,8 @@
           />
         </div>
         <div class="app-form-group">
-          <label class="app-label">ประเภทราคา</label>
-          <app-custom-dropdown
+          <label class="app-label" for="master-room-ประเภทราคา-6">ประเภทราคา</label>
+          <app-custom-dropdown inputId="master-room-ประเภทราคา-6"
             formControlName="pricingType"
             [options]="pricingTypeOptions"
             placeholder="เลือกประเภทราคา"
@@ -131,6 +131,17 @@
                   <col class="app-col-actions" />
                 }
               </colgroup>
+              <thead class="sr-only">
+                <tr>
+                  <th>No.</th>
+                  <th>รหัสห้อง</th>
+                  <th class="app-cell-right">ราคา</th>
+                  <th>ประเภทราคา</th>
+                  @if (canManage()) {
+                    <th class="app-cell-right">จัดการ</th>
+                  }
+                </tr>
+              </thead>
               <tbody>
                 @for (item of rooms(); track item.id; let i = $index) {
                   <tr>

@@ -61,6 +61,22 @@ export const routes: Routes = [
     canActivate: [attendancePunchGuard],
   },
   {
+    /** Canonical guest order — `/order?shop=&t=` (aligned with `/login?shop=`). */
+    path: 'order',
+    loadComponent: () =>
+      import('./pages/guest-order/guest-order-page.component').then(
+        (m) => m.GuestOrderPageComponent,
+      ),
+  },
+  {
+    /** Legacy path — component redirects to `/order?shop=&t=`. */
+    path: 's/:shopPublicId/order',
+    loadComponent: () =>
+      import('./pages/guest-order/guest-order-page.component').then(
+        (m) => m.GuestOrderPageComponent,
+      ),
+  },
+  {
     path: 'login',
     component: LoginComponent,
     canActivate: [guestGuard],

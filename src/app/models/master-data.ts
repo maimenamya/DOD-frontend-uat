@@ -20,6 +20,7 @@ export interface MstFood {
   price: number;
   categoryId: number;
   shopId: number;
+  imageUrl?: string | null;
   createdAt: string;
   category?: MstFoodCategory;
 }

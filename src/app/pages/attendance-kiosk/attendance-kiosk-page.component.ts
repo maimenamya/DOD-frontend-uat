@@ -13,6 +13,7 @@ import { distinctUntilChanged, map } from 'rxjs';
 import { writeStoredShopPublicId } from '../../core/shop-public-id.storage';
 import type { AttendanceKioskPayload } from '../../models/attendance';
 import { AttendanceService } from '../../services/attendance.service';
+import { trimTrailingSlashes } from '../../utils/trim-slashes.util';
 
 @Component({
   selector: 'app-attendance-kiosk-page',
@@ -111,7 +112,7 @@ export class AttendanceKioskPageComponent implements OnInit {
   }
 
   private buildScanUrl(shopPublicId: string, token: string): string {
-    const origin = window.location.origin.replace(/\/+$/, '');
+    const origin = trimTrailingSlashes(window.location.origin);
     const query = new URLSearchParams({ t: token });
     return `${origin}/s/${encodeURIComponent(shopPublicId)}/attendance/punch?${query.toString()}`;
   }

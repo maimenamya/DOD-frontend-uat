@@ -16,8 +16,8 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="createFormValidated()" [formGroup]="createForm" (ngSubmit)="submitCreate()">
         <div class="app-form-group">
-          <label class="app-label">รหัสโต๊ะ</label>
-          <input type="text" formControlName="tableCode" class="app-input" />
+          <label class="app-label" for="master-table-รหัสโต๊ะ-1">รหัสโต๊ะ</label>
+          <input id="master-table-รหัสโต๊ะ-1" type="text" formControlName="tableCode" class="app-input" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
@@ -37,8 +37,8 @@
       </div>
       <form class="app-form-stack" [class.app-form-was-validated]="editFormValidated()" [formGroup]="editForm" (ngSubmit)="submitEdit()">
         <div class="app-form-group">
-          <label class="app-label">รหัสโต๊ะ</label>
-          <input type="text" formControlName="tableCode" class="app-input" />
+          <label class="app-label" for="master-table-รหัสโต๊ะ-2">รหัสโต๊ะ</label>
+          <input id="master-table-รหัสโต๊ะ-2" type="text" formControlName="tableCode" class="app-input" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
@@ -87,6 +87,15 @@
                   <col class="app-col-actions" />
                 }
               </colgroup>
+              <thead class="sr-only">
+                <tr>
+                  <th>No.</th>
+                  <th>รหัสโต๊ะ</th>
+                  @if (canManage()) {
+                    <th class="app-cell-right">จัดการ</th>
+                  }
+                </tr>
+              </thead>
               <tbody>
                 @for (item of tables(); track item.id; let i = $index) {
                   <tr>

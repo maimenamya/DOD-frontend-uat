@@ -8,8 +8,10 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 
 import { AuthService } from '../../services/auth.service';
+import { OrganizationService } from '../../services/organization.service';
 import { ToastService } from '../../services/toast.service';
 import {
   MIN_PASSWORD_LENGTH,
@@ -19,19 +21,24 @@ import {
 
 @Component({
   selector: 'app-my-profile',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, FormsModule],
   templateUrl: './my-profile.component.html',
 })
 export class MyProfileComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly auth = inject(AuthService);
+  private readonly organization = inject(OrganizationService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
 
   readonly user = this.auth.getUser();
   readonly forcePasswordChange = computed(() => this.auth.needsPasswordChange());
+  readonly isOwner = computed(() => this.auth.isOwner());
   readonly submitting = signal(false);
   readonly formValidated = signal(false);
+  readonly partnerShareEnabled = signal(false);
+  readonly partnerShareUpdatedLabel = signal<string | null>(null);
+  readonly partnerShareBusy = signal(false);
 
   readonly form = this.fb.group({
     nickname: ['', [Validators.required, Validators.minLength(1)]],
@@ -49,6 +56,22 @@ export class MyProfileComponent implements OnInit {
         password: '',
         confirmPassword: '',
       });
+      this.partnerShareEnabled.set(user.allowBusinessDataPartnerShare === true);
+    }
+
+    if (this.isOwner() && !this.forcePasswordChange()) {
+      this.organization.getBusinessDataPartnerShare().subscribe({
+        next: (settings) => {
+          this.partnerShareEnabled.set(settings.allowBusinessDataPartnerShare);
+          this.partnerShareUpdatedLabel.set(settings.updatedAtLabel);
+          this.auth.patchAllowBusinessDataPartnerShare(
+            settings.allowBusinessDataPartnerShare,
+          );
+        },
+        error: () => {
+          /* keep session flag */
+        },
+      });
     }
 
     if (this.forcePasswordChange()) {
@@ -61,6 +84,33 @@ export class MyProfileComponent implements OnInit {
         Validators.minLength(MIN_PASSWORD_LENGTH),
       ]);
     }
+  }
+
+  onPartnerShareToggle(enabled: boolean): void {
+    if (!this.isOwner() || this.partnerShareBusy()) return;
+    const previous = this.partnerShareEnabled();
+    this.partnerShareEnabled.set(enabled);
+    this.partnerShareBusy.set(true);
+    this.organization.setBusinessDataPartnerShare(enabled).subscribe({
+      next: (settings) => {
+        this.partnerShareBusy.set(false);
+        this.partnerShareEnabled.set(settings.allowBusinessDataPartnerShare);
+        this.partnerShareUpdatedLabel.set(settings.updatedAtLabel);
+        this.auth.patchAllowBusinessDataPartnerShare(
+          settings.allowBusinessDataPartnerShare,
+        );
+        this.toast.showSuccess(
+          settings.allowBusinessDataPartnerShare
+            ? 'เปิดอนุญาตแชร์ข้อมูลธุรกิจกับพาร์ทเนอร์แล้ว'
+            : 'ปิดการแชร์ข้อมูลธุรกิจกับพาร์ทเนอร์แล้ว',
+        );
+      },
+      error: (err: { error?: { error?: string } }) => {
+        this.partnerShareBusy.set(false);
+        this.partnerShareEnabled.set(previous);
+        this.toast.showError(err.error?.error ?? 'บันทึกการตั้งค่าไม่สำเร็จ');
+      },
+    });
   }
 
   submit(): void {

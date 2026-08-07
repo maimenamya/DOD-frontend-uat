@@ -21,8 +21,8 @@
         (ngSubmit)="submitCreate()"
       >
         <div class="app-form-group">
-          <label class="app-label">ชื่อสินค้า</label>
-          <input type="text" formControlName="name" class="app-input" placeholder="เช่น โซดา, น้ำ, เอส" />
+          <label class="app-label" for="stock-ชื่อสินค้า-1">ชื่อสินค้า</label>
+          <input id="stock-ชื่อสินค้า-1" type="text" formControlName="name" class="app-input" placeholder="เช่น โซดา, น้ำ, เอส" />
           @if (selectedCreateStockItem(); as stock) {
             <p class="app-hint">
               มีชื่อนี้แล้ว — จะบวกจำนวนที่ใส่เข้ายอดเดิม (ปัจจุบัน {{ stock.quantityOnHand }}
@@ -31,12 +31,12 @@
           }
         </div>
         <div class="app-form-group">
-          <label class="app-label">หน่วยนับ</label>
-          <input type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" />
+          <label class="app-label" for="stock-หน่วยนับ-2">หน่วยนับ</label>
+          <input id="stock-หน่วยนับ-2" type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" />
         </div>
         <div class="app-form-group">
-          <label class="app-label">จำนวนที่เพิ่ม</label>
-          <input
+          <label class="app-label" for="stock-จำนวนที่เพิ่ม-3">จำนวนที่เพิ่ม</label>
+          <input id="stock-จำนวนที่เพิ่ม-3"
             type="text"
             inputmode="numeric"
             formControlName="quantityOnHand"
@@ -80,8 +80,8 @@
         (ngSubmit)="submitEdit()"
       >
         <div class="app-form-group">
-          <label class="app-label">จำนวนคงเหลือ ({{ item.unitLabelTh }})</label>
-          <input
+          <label class="app-label" for="stock-จำนวนคงเหลือ-x-4">จำนวนคงเหลือ ({{ item.unitLabelTh }})</label>
+          <input id="stock-จำนวนคงเหลือ-x-4"
             type="text"
             inputmode="numeric"
             formControlName="quantityOnHand"
@@ -160,6 +160,16 @@
                   <col class="stock-col-actions" />
                 }
               </colgroup>
+              <thead class="sr-only">
+                <tr>
+                  <th>No.</th>
+                  <th>สินค้าสต็อก</th>
+                  <th class="app-cell-right">คงเหลือ</th>
+                  @if (canManage()) {
+                    <th class="app-cell-right">จัดการ</th>
+                  }
+                </tr>
+              </thead>
               <tbody>
                 @for (row of listView().items; track row.id; let i = $index) {
                   <tr>

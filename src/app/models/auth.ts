@@ -36,6 +36,10 @@ export interface AuthUser {
   mustChangePassword: boolean;
   /** OWNER only — org has not accepted current privacy policy. */
   needsPrivacyConsent?: boolean;
+  /** Any role — org privacy version behind; show staff reminder banner. */
+  orgPrivacyConsentPending?: boolean;
+  /** Org opt-in to share business data with supplier partners. */
+  allowBusinessDataPartnerShare?: boolean;
   roleId: number | null;
   /** MstRole name from master (e.g. SALE, PR, COYOTY). */
   role: string;
@@ -69,6 +73,8 @@ export interface AuthResponse {
     pendingRoleSetup: boolean;
     mustChangePassword: boolean;
     needsPrivacyConsent?: boolean;
+    orgPrivacyConsentPending?: boolean;
+    allowBusinessDataPartnerShare?: boolean;
     roleId: number | null;
     role: {
       id: number;
