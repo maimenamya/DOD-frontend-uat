@@ -2,7 +2,7 @@
   <div class="app-page-header">
     <div>
       <h1 class="app-page-title">จัดผังโต๊ะ</h1>
-      <p class="app-page-subtitle">เลือกโซนเพื่อวางโต๊ะ หรือแท็บพื้นที่สำหรับห้องน้ำ / เวที / ทางเข้า</p>
+      <p class="app-page-subtitle">เลือกโซนก่อน แล้ววางโต๊ะ หรือแท็บพื้นที่ของโซนนั้น (ห้องน้ำ / เวที / ทางเข้า)</p>
     </div>
     <div class="flex flex-wrap gap-2">
       <button type="button" class="app-btn-secondary" [disabled]="loading() || saving()" (click)="reload()">
@@ -21,11 +21,8 @@
 
   @if (loading()) {
     <p class="app-empty-state">กำลังโหลดผังโต๊ะ...</p>
-  } @else if (zones().length === 0 && areas().length === 0 && !areasTabActive()) {
+  } @else if (zones().length === 0) {
     <p class="app-empty-state">ยังไม่มีโซนที่นั่ง — ตั้งค่าที่เมนู โซนที่นั่ง / ประเภทโซนที่นั่ง</p>
-    <button type="button" class="app-btn-secondary mt-3" (click)="selectAreasTab()">
-      ไปจัดพื้นที่ (ห้องน้ำ / เวที)
-    </button>
   } @else {
     <div class="floor-editor__zones app-filter-bar mb-3" role="tablist" aria-label="เลือกโซนผัง">
       @for (zone of zones(); track zone.id) {
@@ -33,8 +30,8 @@
           type="button"
           role="tab"
           class="app-filter-chip"
-          [class.app-filter-chip-active]="!areasTabActive() && selectedZoneId() === zone.id"
-          [attr.aria-selected]="!areasTabActive() && selectedZoneId() === zone.id"
+          [class.app-filter-chip-active]="selectedZoneId() === zone.id"
+          [attr.aria-selected]="selectedZoneId() === zone.id"
           (click)="selectZone(zone.id)"
         >
           {{ zone.name }}
@@ -56,15 +53,20 @@
       <aside class="floor-editor__palette">
         @if (areasTabActive()) {
           <div class="floor-editor__palette-head">
-            <h2 class="floor-editor__palette-title">พื้นที่บนผัง</h2>
-            <p class="app-hint mb-0">ไม่ใช่โต๊ะ — โชว์บน POS แต่กดไม่ได้</p>
+            <h2 class="floor-editor__palette-title">
+              พื้นที่โซน
+              @if (selectedZone(); as zone) {
+                <span class="floor-editor__palette-zone">({{ zone.name }})</span>
+              }
+            </h2>
+            <p class="app-hint mb-0">แยกตามโซน — ไม่ทับโซนอื่น · โชว์บน POS แต่กดไม่ได้</p>
           </div>
           <button type="button" class="app-btn-secondary mb-2" (click)="addArea()">
             + เพิ่มพื้นที่
           </button>
-          @if (areas().length > 0) {
+          @if (zoneAreas().length > 0) {
             <ul class="floor-editor__palette-list app-scroll-region">
-              @for (area of areas(); track area.key) {
+              @for (area of zoneAreas(); track area.key) {
                 <li>
                   <button
                     type="button"
@@ -111,14 +113,14 @@
       <div class="floor-editor__main">
         @if (areasTabActive()) {
           <p class="app-hint mb-2">
-            กำลังจัด<strong>พื้นที่</strong> — กดเพิ่มพื้นที่แล้วพิมพ์ชื่อ (เช่น ห้องน้ำ, เวที, ทางเข้า)
-            · ลากย้ายตำแหน่ง · โต๊ะบนผังเป็นแค่ตัวอ้างอิง
+            กำลังจัด<strong>พื้นที่โซน {{ selectedZone()?.name ?? '—' }}</strong>
+            — กดเพิ่มแล้วพิมพ์ชื่อ (เช่น ห้องน้ำ, เวที) · สลับแท็บโซนด้านบนเพื่อจัดโซนอื่น
           </p>
         } @else {
           <p class="app-hint mb-2">
             กำลังจัดผังโซน
             <strong>{{ selectedZone()?.name ?? '—' }}</strong>
-            — ลากโต๊ะจากแถวบนมาวาง · คลิกโต๊ะเพื่อแก้ไข · ลากพื้นว่างหรือเลื่อนเพื่อเลื่อนผัง
+            — ลากโต๊ะจากแถวบนมาวาง · คลิกโต๊ะเพื่อแก้ไข · แท็บพื้นที่ = ห้องน้ำ/เวทีของโซนนี้
           </p>
         }
 
@@ -185,11 +187,27 @@
                   />
                 </div>
                 <div class="app-form-group">
-                  <label class="app-label" for="master-seating-floor-layout-ขนาด-2">ขนาด</label>
-                  <app-custom-dropdown inputId="master-seating-floor-layout-ขนาด-2"
-                    [options]="sizeOptions"
-                    [ngModel]="sel.size"
-                    (ngModelChange)="onSizeChange($event)"
+                  <label class="app-label" for="floor-seat-width">กว้าง (px)</label>
+                  <input
+                    id="floor-seat-width"
+                    class="app-input"
+                    type="number"
+                    min="24"
+                    max="600"
+                    [ngModel]="sel.width"
+                    (ngModelChange)="onSeatWidthChange($event)"
+                  />
+                </div>
+                <div class="app-form-group">
+                  <label class="app-label" for="floor-seat-height">สูง (px)</label>
+                  <input
+                    id="floor-seat-height"
+                    class="app-input"
+                    type="number"
+                    min="24"
+                    max="600"
+                    [ngModel]="sel.height"
+                    (ngModelChange)="onSeatHeightChange($event)"
                   />
                 </div>
                 <button type="button" class="app-btn-danger self-end" (click)="removeSelected()">
@@ -218,7 +236,7 @@
             (pointerup)="onCanvasPointerUp($event)"
             (pointercancel)="onCanvasPointerUp($event)"
           >
-            @for (area of areas(); track area.key) {
+            @for (area of zoneAreas(); track area.key) {
               <button
                 type="button"
                 class="floor-editor__area"
@@ -232,7 +250,7 @@
               </button>
             }
             @if (areasTabActive()) {
-              @for (seat of placed(); track seat.seatingId) {
+              @for (seat of zonePlaced(); track seat.seatingId) {
                 <div class="floor-editor__seat floor-editor__seat--ghost" [style]="boxStyle(seat)">
                   {{ seat.code }}
                 </div>

@@ -211,7 +211,7 @@
               [style.--floor-canvas-w]="floorCanvas().width"
               [style.--floor-canvas-h]="floorCanvas().height"
             >
-              @for (area of floorAreas(); track area.id) {
+              @for (area of layoutAreas(); track area.id) {
                 <div
                   class="open-table-layout-area"
                   [style]="layoutAreaStyle(area)"

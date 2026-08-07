@@ -1,6 +1,6 @@
 import type { SeatingRateType } from './seating';
 import type { BillReceiptResponse } from './bill-receipt';
-import type { FloorLayoutShape, FloorLayoutSize } from './seating-floor-layout';
+import type { FloorLayoutShape } from './seating-floor-layout';
 
 export type SeatStatus = 'AVAILABLE' | 'RESERVED' | 'OCCUPIED' | 'AWAITING_CLEAR';
 
@@ -8,11 +8,13 @@ export type FloorPlanSeatLayout = {
   posX: number;
   posY: number;
   shape: FloorLayoutShape;
-  size: FloorLayoutSize;
+  width: number;
+  height: number;
 };
 
 export type FloorPlanArea = {
   id: number;
+  seatingTypeId: number;
   name: string;
   posX: number;
   posY: number;

@@ -6,17 +6,17 @@ import type { DropdownOption } from '../../components/custom-dropdown/custom-dro
 import {
   DEFAULT_FLOOR_AREA_HEIGHT,
   DEFAULT_FLOOR_AREA_WIDTH,
+  DEFAULT_FLOOR_SEAT_HEIGHT,
+  DEFAULT_FLOOR_SEAT_WIDTH,
   FLOOR_LAYOUT_SHAPE_OPTIONS,
-  FLOOR_LAYOUT_SIZE_OPTIONS,
+  clampFloorLayoutEdge,
   floorLayoutAreaBoxStyle,
-  floorLayoutBoxSize,
   floorLayoutSeatBoxStyle,
   mapFloorLayoutAreasFromApi,
   type FloorLayoutArea,
   type FloorLayoutAreaWriteItem,
   type FloorLayoutPlacedSeat,
   type FloorLayoutShape,
-  type FloorLayoutSize,
   type FloorLayoutUnplacedSeat,
   type FloorLayoutWriteItem,
   type FloorLayoutZone,
@@ -76,13 +76,8 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     value: o.value,
     label: o.label,
   }));
-  readonly sizeOptions: DropdownOption[] = FLOOR_LAYOUT_SIZE_OPTIONS.map((o) => ({
-    value: o.value,
-    label: o.label,
-  }));
 
   readonly selectedZone = computed(() => {
-    if (this.areasTabActive()) return null;
     const id = this.selectedZoneId();
     if (id == null) return null;
     return this.zones().find((z) => z.id === id) ?? null;
@@ -100,6 +95,13 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     return this.unplaced().filter((row) => row.seatingTypeId === zoneId);
   });
 
+  /** Areas belonging to the selected zone only. */
+  readonly zoneAreas = computed(() => {
+    const zoneId = this.selectedZoneId();
+    if (zoneId == null) return [];
+    return this.areas().filter((row) => row.seatingTypeId === zoneId);
+  });
+
   readonly selected = computed(() => {
     const id = this.selectedSeatingId();
     if (id == null) return null;
@@ -109,7 +111,7 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   readonly selectedArea = computed(() => {
     const key = this.selectedAreaKey();
     if (key == null) return null;
-    return this.areas().find((row) => row.key === key) ?? null;
+    return this.zoneAreas().find((row) => row.key === key) ?? null;
   });
 
   ngOnInit(): void {
@@ -140,28 +142,32 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   }
 
   selectZone(zoneId: number): void {
-    this.areasTabActive.set(false);
-    if (this.selectedZoneId() === zoneId) return;
+    const sameZone = this.selectedZoneId() === zoneId;
+    const wasAreas = this.areasTabActive();
     this.selectedZoneId.set(zoneId);
+    // Same zone while editing areas → back to seats; other zone while on areas → stay on areas.
+    this.areasTabActive.set(wasAreas && !sameZone);
+    if (sameZone && !wasAreas) return;
     this.selectedSeatingId.set(null);
     this.selectedAreaKey.set(null);
   }
 
   selectAreasTab(): void {
+    if (this.selectedZoneId() == null) {
+      const first = this.zones()[0];
+      if (!first) {
+        this.toast.showError('ยังไม่มีโซนที่นั่ง — สร้างโซนก่อนแล้วค่อยจัดพื้นที่');
+        return;
+      }
+      this.selectedZoneId.set(first.id);
+    }
     this.areasTabActive.set(true);
     this.selectedSeatingId.set(null);
     this.selectedAreaKey.set(null);
   }
 
   boxStyle(row: FloorLayoutPlacedSeat): Record<string, string> {
-    return floorLayoutSeatBoxStyle(
-      row.posX,
-      row.posY,
-      row.shape,
-      row.size,
-      this.canvasWidth(),
-      this.canvasHeight(),
-    );
+    return floorLayoutSeatBoxStyle(row.posX, row.posY, row.shape, row.width, row.height);
   }
 
   areaStyle(row: FloorLayoutArea): Record<string, string> {
@@ -179,6 +185,11 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   }
 
   addArea(): void {
+    const zoneId = this.selectedZoneId();
+    if (zoneId == null) {
+      this.toast.showError('เลือกโซนก่อน แล้วค่อยเพิ่มพื้นที่');
+      return;
+    }
     const id = this.nextTempAreaId--;
     const width = DEFAULT_FLOOR_AREA_WIDTH;
     const height = DEFAULT_FLOOR_AREA_HEIGHT;
@@ -187,6 +198,7 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     const row: FloorLayoutArea = {
       key,
       id,
+      seatingTypeId: zoneId,
       name: 'พื้นที่ว่าง',
       posX: clamped.x,
       posY: clamped.y,
@@ -228,14 +240,15 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     const selected = this.selected();
     if (!selected) return;
     const shape = String(value ?? 'SQUARE') as FloorLayoutShape;
-    this.patchSelected({ shape });
+    this.patchSelectedSeat({ shape });
   }
 
-  onSizeChange(value: string | number | null): void {
-    const selected = this.selected();
-    if (!selected) return;
-    const size = String(value ?? 'M') as FloorLayoutSize;
-    this.patchSelected({ size });
+  onSeatWidthChange(value: string | number): void {
+    this.patchSelectedSeat({ width: Number(value) });
+  }
+
+  onSeatHeightChange(value: string | number): void {
+    this.patchSelectedSeat({ height: Number(value) });
   }
 
   removeSelected(): void {
@@ -417,9 +430,11 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
       posX: row.posX,
       posY: row.posY,
       shape: row.shape,
-      size: row.size,
+      width: row.width,
+      height: row.height,
     }));
     const areaItems: FloorLayoutAreaWriteItem[] = this.areas().map((row) => ({
+      seatingTypeId: row.seatingTypeId,
       name: row.name.trim(),
       posX: row.posX,
       posY: row.posY,
@@ -449,21 +464,20 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   private ensureZoneSelection(zones: FloorLayoutZone[]): void {
     if (zones.length === 0) {
       this.selectedZoneId.set(null);
-      if (!this.areasTabActive()) this.areasTabActive.set(true);
+      this.areasTabActive.set(false);
       return;
     }
     const current = this.selectedZoneId();
     if (current != null && zones.some((z) => z.id === current)) return;
-    if (!this.areasTabActive()) {
-      this.selectedZoneId.set(zones[0]!.id);
-    }
+    this.selectedZoneId.set(zones[0]!.id);
   }
 
   private placeSeat(seatingId: number, posX: number, posY: number): void {
     const seat = this.unplaced().find((row) => row.seatingId === seatingId);
     if (!seat) return;
-    const box = floorLayoutBoxSize('SQUARE', 'M');
-    const clamped = this.clampPos(posX, posY, box.width, box.height);
+    const width = DEFAULT_FLOOR_SEAT_WIDTH;
+    const height = DEFAULT_FLOOR_SEAT_HEIGHT;
+    const clamped = this.clampPos(posX, posY, width, height);
     this.unplaced.update((rows) => rows.filter((r) => r.seatingId !== seatingId));
     this.placed.update((rows) => [
       ...rows,
@@ -476,7 +490,8 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
         posX: clamped.x,
         posY: clamped.y,
         shape: 'SQUARE',
-        size: 'M',
+        width,
+        height,
       },
     ]);
     this.selectedSeatingId.set(seatingId);
@@ -486,8 +501,7 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   private moveSeat(seatingId: number, posX: number, posY: number): void {
     const seat = this.placed().find((row) => row.seatingId === seatingId);
     if (!seat) return;
-    const box = floorLayoutBoxSize(seat.shape, seat.size);
-    const clamped = this.clampPos(posX, posY, box.width, box.height);
+    const clamped = this.clampPos(posX, posY, seat.width, seat.height);
     this.placed.update((rows) =>
       rows.map((row) =>
         row.seatingId === seatingId
@@ -510,15 +524,18 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     this.dirty.set(true);
   }
 
-  private patchSelected(patch: Partial<Pick<FloorLayoutPlacedSeat, 'shape' | 'size'>>): void {
+  private patchSelectedSeat(
+    patch: Partial<Pick<FloorLayoutPlacedSeat, 'shape' | 'width' | 'height'>>,
+  ): void {
     const id = this.selectedSeatingId();
     if (id == null) return;
     this.placed.update((rows) =>
       rows.map((row) => {
         if (row.seatingId !== id) return row;
-        const next = { ...row, ...patch };
-        const box = floorLayoutBoxSize(next.shape, next.size);
-        const clamped = this.clampPos(next.posX, next.posY, box.width, box.height);
+        const width = clampFloorLayoutEdge(patch.width ?? row.width);
+        const height = clampFloorLayoutEdge(patch.height ?? row.height);
+        const next = { ...row, ...patch, width, height };
+        const clamped = this.clampPos(next.posX, next.posY, width, height);
         return { ...next, posX: clamped.x, posY: clamped.y };
       }),
     );
@@ -531,8 +548,8 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     this.areas.update((rows) =>
       rows.map((row) => {
         if (row.key !== key) return row;
-        const width = clampAreaEdge(patch.width ?? row.width);
-        const height = clampAreaEdge(patch.height ?? row.height);
+        const width = clampFloorLayoutEdge(patch.width ?? row.width, DEFAULT_FLOOR_AREA_WIDTH);
+        const height = clampFloorLayoutEdge(patch.height ?? row.height, DEFAULT_FLOOR_AREA_HEIGHT);
         const clamped = this.clampPos(row.posX, row.posY, width, height);
         return { ...row, width, height, posX: clamped.x, posY: clamped.y };
       }),
@@ -559,7 +576,3 @@ function sortUnplacedByCode(rows: FloorLayoutUnplacedSeat[]): FloorLayoutUnplace
   );
 }
 
-function clampAreaEdge(n: number): number {
-  if (!Number.isFinite(n)) return DEFAULT_FLOOR_AREA_WIDTH;
-  return Math.min(Math.max(Math.round(n), 24), 600);
-}

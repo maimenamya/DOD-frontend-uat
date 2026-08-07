@@ -1,5 +1,4 @@
 export type FloorLayoutShape = 'RECT_H' | 'RECT_V' | 'SQUARE' | 'CIRCLE';
-export type FloorLayoutSize = 'S' | 'M' | 'L';
 
 export type FloorLayoutPlacedSeat = {
   id: number;
@@ -10,7 +9,8 @@ export type FloorLayoutPlacedSeat = {
   posX: number;
   posY: number;
   shape: FloorLayoutShape;
-  size: FloorLayoutSize;
+  width: number;
+  height: number;
 };
 
 export type FloorLayoutUnplacedSeat = {
@@ -30,6 +30,7 @@ export type FloorLayoutArea = {
   /** Stable client key (server id or temp). */
   key: string;
   id: number;
+  seatingTypeId: number;
   name: string;
   posX: number;
   posY: number;
@@ -51,10 +52,12 @@ export type FloorLayoutWriteItem = {
   posX: number;
   posY: number;
   shape: FloorLayoutShape;
-  size: FloorLayoutSize;
+  width: number;
+  height: number;
 };
 
 export type FloorLayoutAreaWriteItem = {
+  seatingTypeId: number;
   name: string;
   posX: number;
   posY: number;
@@ -62,6 +65,8 @@ export type FloorLayoutAreaWriteItem = {
   height: number;
 };
 
+export const DEFAULT_FLOOR_SEAT_WIDTH = 40;
+export const DEFAULT_FLOOR_SEAT_HEIGHT = 40;
 export const DEFAULT_FLOOR_AREA_WIDTH = 120;
 export const DEFAULT_FLOOR_AREA_HEIGHT = 80;
 
@@ -72,37 +77,6 @@ export const FLOOR_LAYOUT_SHAPE_OPTIONS: Array<{ value: FloorLayoutShape; label:
   { value: 'CIRCLE', label: 'วงกลม' },
 ];
 
-export const FLOOR_LAYOUT_SIZE_OPTIONS: Array<{ value: FloorLayoutSize; label: string }> = [
-  { value: 'S', label: 'เล็ก' },
-  { value: 'M', label: 'กลาง' },
-  { value: 'L', label: 'ใหญ่' },
-];
-
-/** Short edge in canvas px — long = 2× (RECT 10∶5, square/circle 5∶5). */
-const SHORT_EDGE: Record<FloorLayoutSize, number> = { S: 28, M: 40, L: 56 };
-
-/**
- * Shared short edge so sizes match across shapes (user units 5 / 10):
- * RECT_H = 10×5, RECT_V = 5×10, SQUARE/CIRCLE = 5×5.
- */
-export function floorLayoutBoxSize(
-  shape: FloorLayoutShape,
-  size: FloorLayoutSize,
-): { width: number; height: number } {
-  const short = SHORT_EDGE[size];
-  const long = short * 2;
-  switch (shape) {
-    case 'RECT_H':
-      return { width: long, height: short };
-    case 'RECT_V':
-      return { width: short, height: long };
-    case 'CIRCLE':
-    case 'SQUARE':
-    default:
-      return { width: short, height: short };
-  }
-}
-
 /**
  * Seat box on the floor canvas — fixed design pixels (canvas is also fixed size).
  * Editor and POS share this so tables never scale with the viewport.
@@ -111,16 +85,14 @@ export function floorLayoutSeatBoxStyle(
   posX: number,
   posY: number,
   shape: FloorLayoutShape,
-  size: FloorLayoutSize,
-  _canvasW: number,
-  _canvasH: number,
+  width: number,
+  height: number,
 ): Record<string, string> {
-  const box = floorLayoutBoxSize(shape, size);
   return {
     left: `${Math.round(posX)}px`,
     top: `${Math.round(posY)}px`,
-    width: `${box.width}px`,
-    height: `${box.height}px`,
+    width: `${Math.round(width)}px`,
+    height: `${Math.round(height)}px`,
     borderRadius: shape === 'CIRCLE' ? '999px' : '8px',
   };
 }
@@ -142,6 +114,7 @@ export function floorLayoutAreaBoxStyle(
 export function mapFloorLayoutAreasFromApi(
   rows: Array<{
     id: number;
+    seatingTypeId: number;
     name: string;
     posX: number;
     posY: number;
@@ -152,10 +125,16 @@ export function mapFloorLayoutAreasFromApi(
   return (rows ?? []).map((row) => ({
     key: `area-${row.id}`,
     id: row.id,
+    seatingTypeId: row.seatingTypeId,
     name: row.name,
     posX: row.posX,
     posY: row.posY,
     width: row.width,
     height: row.height,
   }));
+}
+
+export function clampFloorLayoutEdge(n: number, fallback = DEFAULT_FLOOR_SEAT_WIDTH): number {
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(Math.max(Math.round(n), 24), 600);
 }

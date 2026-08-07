@@ -454,6 +454,13 @@ export class OpenTablePageComponent implements OnInit {
 
   readonly layoutZoneId = signal<number | null>(null);
 
+  readonly layoutAreas = computed(() => {
+    const zoneId = this.layoutZoneId();
+    const areas = this.floorAreas();
+    if (zoneId == null) return areas;
+    return areas.filter((area) => area.seatingTypeId === zoneId);
+  });
+
   readonly layoutSeats = computed(() => {
     const zoneId = this.layoutZoneId();
     return this.filteredSeats().filter((seat) => {
@@ -2602,14 +2609,12 @@ export class OpenTablePageComponent implements OnInit {
   layoutSeatStyle(seat: SeatTile): Record<string, string> {
     const layout = seat.floorLayout;
     if (!layout) return {};
-    const canvas = this.floorCanvas();
     return floorLayoutSeatBoxStyle(
       layout.posX,
       layout.posY,
       layout.shape,
-      layout.size,
-      canvas.width,
-      canvas.height,
+      layout.width,
+      layout.height,
     );
   }
 
