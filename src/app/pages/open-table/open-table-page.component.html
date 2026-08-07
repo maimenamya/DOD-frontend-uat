@@ -521,7 +521,7 @@
                 >
                   <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path
-                      d="M3.5 3.5h4v4h-4v-4zm1.25 1.25v1.5h1.5v-1.5h-1.5zM12.5 3.5h4v4h-4v-4zm1.25 1.25v1.5h1.5v-1.5h-1.5zM3.5 12.5h4v4h-4v-4zm1.25 1.25v1.5h1.5v-1.5h-1.5zM11 11h2.25v1.25H11V11zm3.25 0H16v1.25h-1.75V11zM11 14.25h1.25V16H11v-1.75zm2.5 0H15V15h1v1h-1.25v-1.25H13.5v-.5z"
+                      d="M6 2a1 1 0 00-1 1v3H3a2 2 0 00-2 2v5a2 2 0 002 2h1v3a1 1 0 001 1h10a1 1 0 001-1v-3h1a2 2 0 002-2V8a2 2 0 00-2-2h-2V3a1 1 0 00-1-1H6zm0 4V3h8v3H6zm9 3a1 1 0 110 2 1 1 0 010-2zM7 13h6v3H7v-3z"
                     />
                   </svg>
                 </button>
@@ -1062,14 +1062,6 @@
             </div>
             @if (ledgerCanMutate()) {
               <div class="open-table-bill-summary-actions">
-                <button
-                  type="button"
-                  class="app-btn-secondary open-table-checkout-btn"
-                  [disabled]="actionBusy() || guestQrPrintBusy()"
-                  (click)="printGuestOrderQr()"
-                >
-                  {{ guestQrPrintBusy() ? 'กำลังพิมพ์ QR...' : 'พิมพ์ QR สั่ง' }}
-                </button>
                 <button
                   type="button"
                   class="app-btn-primary open-table-checkout-btn"
