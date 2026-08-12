@@ -2,7 +2,20 @@
   min-width: 0;
 }
 
-/* Column % — layout/scroll lives on shared .app-split-table--list / --xl */
+/*
+ * Bill-history owns its layout: min-width + column %.
+ * Shared --list only provides scroll shell + visual air.
+ */
+.bill-history-page .bill-history-split {
+  --app-list-table-min: 72rem;
+}
+
+@media (max-width: 999px) {
+  .bill-history-page .bill-history-split {
+    --app-list-table-min: 68rem;
+  }
+}
+
 .bill-history-table col.bill-history-col-id {
   width: 5%;
 }

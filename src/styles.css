@@ -2067,19 +2067,11 @@
   }
 
   .app-split-table-grid col.app-col-actions {
-    width: 14%;
-  }
-
-  .app-split-table--list .app-split-table-grid col.app-col-actions {
     width: 11.5rem;
   }
 
-  .app-split-table--list .app-split-table-grid col.app-col-narrow {
-    width: 8rem;
-  }
-
   .app-split-table-grid col.app-col-narrow {
-    width: 7%;
+    width: 8rem;
   }
 
   .app-split-table-grid col.app-col-action-btn {
@@ -2121,9 +2113,10 @@
   }
 
   /**
-   * Master / bill-history list tables (not dashboard ranking).
-   * One horizontal scroll on the shell; min-width keeps columns from crushing;
-   * stretches when the card is wider. Match bill-history air + ellipsis.
+   * List table shell — visual language from bill-history (scroll, air, nowrap actions).
+   * Column widths / table min-width: owned by each page (colgroup or page CSS).
+   * Set --app-list-table-min on the split root when a page needs a floor width.
+   * Dashboard ranking uses .dashboard-rank-split — leave alone.
    */
   .app-data-table-shell--list {
     overflow-x: auto;
@@ -2140,18 +2133,9 @@
   }
 
   .app-split-table--list {
-    --app-list-table-min: 48rem;
-    width: max(100%, var(--app-list-table-min));
-    min-width: var(--app-list-table-min);
+    width: max(100%, var(--app-list-table-min, 100%));
+    min-width: var(--app-list-table-min, 0);
     max-width: none;
-  }
-
-  .app-split-table--list.app-split-table--wide {
-    --app-list-table-min: 64rem;
-  }
-
-  .app-split-table--list.app-split-table--xl {
-    --app-list-table-min: 72rem;
   }
 
   .app-split-table--list .app-split-table-header,
@@ -2168,25 +2152,19 @@
 
   .app-split-table--list .app-split-table-header .app-split-table-grid,
   .app-split-table--list .app-split-table-body .app-split-table-grid {
-    table-layout: fixed;
     width: 100%;
-    min-width: var(--app-list-table-min);
+    min-width: var(--app-list-table-min, 100%);
     max-width: none;
   }
 
   .app-split-table--list .app-data-table th,
   .app-split-table--list .app-data-table td {
-    /* No ellipsis — bill-history avoids "…" by wide cols; masters must show full amounts/labels */
     vertical-align: middle;
     white-space: nowrap;
   }
 
   .app-split-table--list .app-data-table th {
     letter-spacing: 0.02em;
-  }
-
-  .app-split-table--list .app-data-table td:has(.app-table-actions) {
-    white-space: nowrap;
   }
 
   .app-split-table--list .app-table-actions {
@@ -2469,7 +2447,7 @@
       }
     }
 
-    /** List masters / bill-history: keep real table + air (no crush, no card stack) */
+    /** List tables: same shell scroll + air; min-width from page (--app-list-table-min) */
     .app-card-flush:has(.app-data-table-shell--list) {
       overflow: hidden;
     }
@@ -2480,16 +2458,8 @@
     }
 
     .app-split-table--list {
-      width: max(100%, var(--app-list-table-min));
-      min-width: var(--app-list-table-min);
-    }
-
-    .app-split-table--list.app-split-table--wide {
-      --app-list-table-min: 60rem;
-    }
-
-    .app-split-table--list.app-split-table--xl {
-      --app-list-table-min: 68rem;
+      width: max(100%, var(--app-list-table-min, 100%));
+      min-width: var(--app-list-table-min, 0);
     }
 
     .app-split-table--list .app-split-table-header {
@@ -2506,7 +2476,7 @@
     .app-split-table--list .app-split-table-header .app-split-table-grid,
     .app-split-table--list .app-split-table-body .app-split-table-grid {
       width: 100%;
-      min-width: var(--app-list-table-min);
+      min-width: var(--app-list-table-min, 100%);
       max-width: none;
     }
 
@@ -2655,19 +2625,11 @@
     }
 
     .app-split-table-grid col.app-col-actions {
-      width: 14%;
-    }
-
-    .app-split-table--list .app-split-table-grid col.app-col-actions {
       width: 11.5rem;
     }
 
-    .app-split-table--list .app-split-table-grid col.app-col-narrow {
-      width: 8rem;
-    }
-
     .app-split-table-grid col.app-col-narrow {
-      width: 7%;
+      width: 8rem;
     }
 
     .app-split-table-grid col.app-col-action-btn {

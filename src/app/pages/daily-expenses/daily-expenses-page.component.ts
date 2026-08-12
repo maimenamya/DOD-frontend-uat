@@ -41,6 +41,7 @@ function shopCalendarMonthStartInput(): string {
     ListPaginatorComponent,
   ],
   templateUrl: './daily-expenses-page.component.html',
+  styleUrl: './daily-expenses-page.component.css',
 })
 export class DailyExpensesPageComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);

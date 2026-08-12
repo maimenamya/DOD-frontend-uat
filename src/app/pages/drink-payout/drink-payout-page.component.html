@@ -88,7 +88,7 @@
       @if (freelanceRows().length === 0) {
         <p class="app-empty-state">ไม่มีรายการค้างจ่าย Freelance ในช่วงนี้</p>
       } @else {
-        <div class="app-data-table-shell">
+        <div class="app-data-table-shell app-scroll-region app-data-table-shell--list">
           <table class="app-data-table">
             <thead>
               <tr>
@@ -148,7 +148,7 @@
       @if (tagRows().length === 0) {
         <p class="app-empty-state">ไม่มีรายการจบแท็กค้างจ่ายในช่วงวันที่นี้</p>
       } @else {
-        <div class="app-data-table-shell">
+        <div class="app-data-table-shell app-scroll-region app-data-table-shell--list">
           <table class="app-data-table">
             <thead>
               <tr>
