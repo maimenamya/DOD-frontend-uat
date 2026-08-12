@@ -3973,10 +3973,23 @@
   .attendance-roster-modal-table {
     flex: 1;
     min-height: 0;
+    /* Beat .app-data-table-shell:not(:has(.app-split-table)) { overflow-y: hidden } */
     overflow-x: auto;
     overflow-y: auto;
-    max-height: min(24rem, 50vh);
+    max-height: min(32rem, 65vh);
     --app-scroll-track: var(--table-body-bg);
+  }
+
+  .attendance-roster-modal-table.app-data-table-shell {
+    overflow-x: auto;
+    overflow-y: auto;
+  }
+
+  .attendance-roster-modal-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--table-header-bg, var(--card-bg));
   }
 
   .app-modal-overlay--mobile-fullscreen .attendance-roster-modal-table {

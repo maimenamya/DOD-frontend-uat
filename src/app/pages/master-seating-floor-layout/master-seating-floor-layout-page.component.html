@@ -51,37 +51,16 @@
 
     <div class="floor-editor" (pointerup)="onWindowPointerUp()">
       <aside class="floor-editor__palette">
-        @if (areasTabActive()) {
-          <div class="floor-editor__palette-head">
+        <div class="floor-editor__palette-head">
+          @if (areasTabActive()) {
             <h2 class="floor-editor__palette-title">
               พื้นที่โซน
               @if (selectedZone(); as zone) {
                 <span class="floor-editor__palette-zone">({{ zone.name }})</span>
               }
             </h2>
-            <p class="app-hint mb-0">แยกตามโซน — ไม่ทับโซนอื่น · โชว์บน POS แต่กดไม่ได้</p>
-          </div>
-          <button type="button" class="app-btn-secondary mb-2" (click)="addArea()">
-            + เพิ่มพื้นที่
-          </button>
-          @if (zoneAreas().length > 0) {
-            <ul class="floor-editor__palette-list app-scroll-region">
-              @for (area of zoneAreas(); track area.key) {
-                <li>
-                  <button
-                    type="button"
-                    class="floor-editor__palette-item"
-                    [class.floor-editor__palette-item--active]="selectedAreaKey() === area.key"
-                    (click)="selectArea(area.key)"
-                  >
-                    <span class="font-semibold">{{ area.name }}</span>
-                  </button>
-                </li>
-              }
-            </ul>
-          }
-        } @else {
-          <div class="floor-editor__palette-head">
+            <p class="app-hint mb-0">แยกตามโซน · โชว์บน POS แต่กดไม่ได้</p>
+          } @else {
             <h2 class="floor-editor__palette-title">
               โต๊ะยังไม่วาง
               @if (selectedZone(); as zone) {
@@ -91,23 +70,62 @@
             @if (zoneUnplaced().length === 0) {
               <p class="app-hint mb-0">โซนนี้วางครบแล้ว</p>
             }
-          </div>
-          @if (zoneUnplaced().length > 0) {
-            <ul class="floor-editor__palette-list app-scroll-region">
-              @for (seat of zoneUnplaced(); track seat.seatingId) {
-                <li>
-                  <button
-                    type="button"
-                    class="floor-editor__palette-item"
-                    (pointerdown)="onUnplacedPointerDown($event, seat)"
-                  >
-                    <span class="font-semibold">{{ seat.code }}</span>
-                  </button>
-                </li>
-              }
-            </ul>
           }
-        }
+        </div>
+
+        <div class="floor-editor__palette-row">
+          <div class="floor-editor__palette-scroll app-scroll-region">
+            @if (areasTabActive()) {
+              @if (zoneAreas().length > 0) {
+                <ul class="floor-editor__palette-list">
+                  @for (area of zoneAreas(); track area.key) {
+                    <li>
+                      <button
+                        type="button"
+                        class="floor-editor__palette-item"
+                        [class.floor-editor__palette-item--active]="selectedAreaKey() === area.key"
+                        (click)="selectArea(area.key)"
+                      >
+                        <span class="font-semibold">{{ area.name }}</span>
+                      </button>
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p class="floor-editor__palette-empty">ยังไม่มีพื้นที่ — กด + พื้นที่ว่าง</p>
+              }
+            } @else {
+              @if (zoneUnplaced().length > 0) {
+                <ul class="floor-editor__palette-list">
+                  @for (seat of zoneUnplaced(); track seat.seatingId) {
+                    <li>
+                      <button
+                        type="button"
+                        class="floor-editor__palette-item"
+                        (pointerdown)="onUnplacedPointerDown($event, seat)"
+                      >
+                        <span class="font-semibold">{{ seat.code }}</span>
+                      </button>
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p class="floor-editor__palette-empty">ไม่มีโต๊ะค้างวาง</p>
+              }
+            }
+          </div>
+          <div class="floor-editor__palette-add">
+            <button
+              type="button"
+              class="floor-editor__palette-add-btn"
+              (click)="addEmptyAreaFromPalette()"
+              title="เพิ่มพื้นที่ว่างในโซนนี้"
+            >
+              <span class="floor-editor__palette-add-plus" aria-hidden="true">+</span>
+              <span>พื้นที่ว่าง</span>
+            </button>
+          </div>
+        </div>
       </aside>
 
       <div class="floor-editor__main">

@@ -13,6 +13,7 @@ import {
   floorLayoutAreaBoxStyle,
   floorLayoutSeatBoxStyle,
   mapFloorLayoutAreasFromApi,
+  normalizeFloorLayoutShape,
   type FloorLayoutArea,
   type FloorLayoutAreaWriteItem,
   type FloorLayoutPlacedSeat,
@@ -125,7 +126,12 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
         this.canvasWidth.set(board.canvasWidth);
         this.canvasHeight.set(board.canvasHeight);
         this.zones.set(board.zones ?? []);
-        this.placed.set(board.placed);
+        this.placed.set(
+          board.placed.map((row) => ({
+            ...row,
+            shape: normalizeFloorLayoutShape(row.shape),
+          })),
+        );
         this.unplaced.set(sortUnplacedByCode(board.unplaced));
         this.areas.set(mapFloorLayoutAreasFromApi(board.areas));
         this.selectedSeatingId.set(null);
@@ -210,6 +216,21 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     this.dirty.set(true);
   }
 
+  /** Palette “+ พื้นที่ว่าง” — add area for current zone and switch to areas mode. */
+  addEmptyAreaFromPalette(): void {
+    if (this.selectedZoneId() == null) {
+      const first = this.zones()[0];
+      if (!first) {
+        this.toast.showError('ยังไม่มีโซนที่นั่ง — สร้างโซนก่อนแล้วค่อยจัดพื้นที่');
+        return;
+      }
+      this.selectedZoneId.set(first.id);
+    }
+    this.areasTabActive.set(true);
+    this.selectedSeatingId.set(null);
+    this.addArea();
+  }
+
   onAreaNameChange(value: string): void {
     const key = this.selectedAreaKey();
     if (key == null) return;
@@ -239,7 +260,7 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   onShapeChange(value: string | number | null): void {
     const selected = this.selected();
     if (!selected) return;
-    const shape = String(value ?? 'SQUARE') as FloorLayoutShape;
+    const shape = normalizeFloorLayoutShape(String(value ?? 'SQUARE'));
     this.patchSelectedSeat({ shape });
   }
 
@@ -429,7 +450,7 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
       seatingId: row.seatingId,
       posX: row.posX,
       posY: row.posY,
-      shape: row.shape,
+      shape: normalizeFloorLayoutShape(row.shape),
       width: row.width,
       height: row.height,
     }));
@@ -445,7 +466,12 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     this.layoutService.saveBoard(items, areaItems).subscribe({
       next: (board) => {
         this.zones.set(board.zones ?? []);
-        this.placed.set(board.placed);
+        this.placed.set(
+          board.placed.map((row) => ({
+            ...row,
+            shape: normalizeFloorLayoutShape(row.shape),
+          })),
+        );
         this.unplaced.set(sortUnplacedByCode(board.unplaced));
         this.areas.set(mapFloorLayoutAreasFromApi(board.areas));
         this.selectedAreaKey.set(null);

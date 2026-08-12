@@ -71,11 +71,14 @@ export const DEFAULT_FLOOR_AREA_WIDTH = 120;
 export const DEFAULT_FLOOR_AREA_HEIGHT = 80;
 
 export const FLOOR_LAYOUT_SHAPE_OPTIONS: Array<{ value: FloorLayoutShape; label: string }> = [
-  { value: 'RECT_H', label: 'สี่เหลี่ยมผืนผ้า (แนวนอน)' },
-  { value: 'RECT_V', label: 'สี่เหลี่ยมผืนผ้า (แนวตั้ง)' },
-  { value: 'SQUARE', label: 'สี่เหลี่ยมจัตุรัส' },
+  { value: 'SQUARE', label: 'สี่เหลี่ยม' },
   { value: 'CIRCLE', label: 'วงกลม' },
 ];
+
+/** Legacy RECT_H / RECT_V → สี่เหลี่ยม (ขนาดกำหนดด้วย width/height แล้ว). */
+export function normalizeFloorLayoutShape(shape: string | null | undefined): FloorLayoutShape {
+  return shape === 'CIRCLE' ? 'CIRCLE' : 'SQUARE';
+}
 
 /**
  * Seat box on the floor canvas — fixed design pixels (canvas is also fixed size).

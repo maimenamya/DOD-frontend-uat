@@ -38,7 +38,7 @@ import type {
   SessionRoomCharge,
   SessionStaffDrink,
 } from '../../models/open-table';
-import { floorLayoutAreaBoxStyle, floorLayoutSeatBoxStyle } from '../../models/seating-floor-layout';
+import { floorLayoutAreaBoxStyle, floorLayoutSeatBoxStyle, normalizeFloorLayoutShape } from '../../models/seating-floor-layout';
 import type { SeatingRateType } from '../../models/seating';
 import {
   ROOM_CHARGE_MODE_OPTIONS,
@@ -2612,7 +2612,7 @@ export class OpenTablePageComponent implements OnInit {
     return floorLayoutSeatBoxStyle(
       layout.posX,
       layout.posY,
-      layout.shape,
+      normalizeFloorLayoutShape(layout.shape),
       layout.width,
       layout.height,
     );
