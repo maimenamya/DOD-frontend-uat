@@ -2080,28 +2080,107 @@
 
   /** Wide master tables: fill card on tablet/desktop (phones use rem min-width in mobile block). */
   @media (min-width: 640px) {
-    .app-split-table--wide,
-    .app-split-table--wide .app-split-table-header,
-    .app-split-table--wide .app-split-table-body {
+    .app-split-table--wide:not(.app-split-table--list),
+    .app-split-table--wide:not(.app-split-table--list) .app-split-table-header,
+    .app-split-table--wide:not(.app-split-table--list) .app-split-table-body {
       width: 100%;
       max-width: 100%;
       min-width: 0;
     }
 
-    .app-split-table:not(.app-split-table--mobile-stack) .app-split-table-header .app-split-table-grid,
-    .app-split-table:not(.app-split-table--mobile-stack) .app-split-table-body .app-split-table-grid,
-    .app-split-table:has(.app-col-actions):not(.app-split-table--mobile-stack)
+    .app-split-table:not(.app-split-table--mobile-stack):not(.app-split-table--list)
       .app-split-table-header
       .app-split-table-grid,
-    .app-split-table:has(.app-col-actions):not(.app-split-table--mobile-stack)
+    .app-split-table:not(.app-split-table--mobile-stack):not(.app-split-table--list)
       .app-split-table-body
       .app-split-table-grid,
-    .app-split-table--wide:not(.app-split-table--mobile-stack) .app-split-table-header .app-split-table-grid,
-    .app-split-table--wide:not(.app-split-table--mobile-stack) .app-split-table-body .app-split-table-grid {
+    .app-split-table:has(.app-col-actions):not(.app-split-table--mobile-stack):not(.app-split-table--list)
+      .app-split-table-header
+      .app-split-table-grid,
+    .app-split-table:has(.app-col-actions):not(.app-split-table--mobile-stack):not(.app-split-table--list)
+      .app-split-table-body
+      .app-split-table-grid,
+    .app-split-table--wide:not(.app-split-table--mobile-stack):not(.app-split-table--list)
+      .app-split-table-header
+      .app-split-table-grid,
+    .app-split-table--wide:not(.app-split-table--mobile-stack):not(.app-split-table--list)
+      .app-split-table-body
+      .app-split-table-grid {
       width: 100%;
       min-width: 0;
       max-width: 100%;
     }
+  }
+
+  /**
+   * Master / bill-history list tables (not dashboard ranking).
+   * One horizontal scroll on the shell; min-width keeps columns from crushing;
+   * stretches when the card is wider. Match bill-history air + ellipsis.
+   */
+  .app-data-table-shell--list {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-gutter: auto;
+    --app-scroll-track: var(--table-body-bg);
+  }
+
+  .app-card-flush .app-data-table-shell--list:has(.app-split-table--list) {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .app-split-table--list {
+    --app-list-table-min: 48rem;
+    width: max(100%, var(--app-list-table-min));
+    min-width: var(--app-list-table-min);
+    max-width: none;
+  }
+
+  .app-split-table--list.app-split-table--wide {
+    --app-list-table-min: 64rem;
+  }
+
+  .app-split-table--list.app-split-table--xl {
+    --app-list-table-min: 72rem;
+  }
+
+  .app-split-table--list .app-split-table-header,
+  .app-split-table--list .app-split-table-body {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    overflow-x: hidden;
+  }
+
+  .app-split-table--list .app-split-table-body {
+    overflow-y: auto;
+  }
+
+  .app-split-table--list .app-split-table-header .app-split-table-grid,
+  .app-split-table--list .app-split-table-body .app-split-table-grid {
+    table-layout: fixed;
+    width: 100%;
+    min-width: var(--app-list-table-min);
+    max-width: none;
+  }
+
+  .app-split-table--list .app-data-table th,
+  .app-split-table--list .app-data-table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  .app-split-table--list .app-data-table th {
+    letter-spacing: 0.02em;
+  }
+
+  .app-split-table--list .app-data-table td:has(.app-table-actions) {
+    overflow: visible;
+    text-overflow: unset;
   }
 
   /** @deprecated — use .app-split-table */
@@ -2320,16 +2399,20 @@
 
     /** Phones: wider min-width (like bill-history) so cells are not cramped */
     @media (max-width: 639px) {
-      .app-split-table-header .app-split-table-grid,
-      .app-split-table-body .app-split-table-grid {
+      .app-split-table:not(.app-split-table--list) .app-split-table-header .app-split-table-grid,
+      .app-split-table:not(.app-split-table--list) .app-split-table-body .app-split-table-grid {
         width: 40rem;
         min-width: 40rem;
       }
 
-      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack)
+      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack):not(
+          .app-split-table--list
+        )
         .app-split-table-header
         .app-split-table-grid,
-      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack)
+      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack):not(
+          .app-split-table--list
+        )
         .app-split-table-body
         .app-split-table-grid {
         width: 44rem;
@@ -2338,33 +2421,87 @@
 
       .app-data-table-scroll-10.app-data-table-wrap--wide .app-data-table,
       .app-data-table-wrap.app-data-table-scroll-10--wide .app-data-table,
-      .app-split-table--wide .app-split-table-header .app-split-table-grid,
-      .app-split-table--wide .app-split-table-body .app-split-table-grid {
+      .app-split-table--wide:not(.app-split-table--list) .app-split-table-header .app-split-table-grid,
+      .app-split-table--wide:not(.app-split-table--list) .app-split-table-body .app-split-table-grid {
         width: 56rem;
         min-width: 56rem;
       }
     }
 
-    /** Tablet in mobile shell (640–999): stretch tables to card width */
+    /** Tablet in mobile shell (640–999): stretch non-list tables to card width */
     @media (min-width: 640px) {
-      .app-split-table:not(.app-split-table--mobile-stack) .app-split-table-header .app-split-table-grid,
-      .app-split-table:not(.app-split-table--mobile-stack) .app-split-table-body .app-split-table-grid,
-      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack)
+      .app-split-table:not(.app-split-table--mobile-stack):not(.app-split-table--list)
         .app-split-table-header
         .app-split-table-grid,
-      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack)
+      .app-split-table:not(.app-split-table--mobile-stack):not(.app-split-table--list)
         .app-split-table-body
         .app-split-table-grid,
-      .app-split-table--wide .app-split-table-header .app-split-table-grid,
-      .app-split-table--wide .app-split-table-body .app-split-table-grid {
+      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack):not(
+          .app-split-table--list
+        )
+        .app-split-table-header
+        .app-split-table-grid,
+      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack):not(
+          .app-split-table--list
+        )
+        .app-split-table-body
+        .app-split-table-grid,
+      .app-split-table--wide:not(.app-split-table--list) .app-split-table-header .app-split-table-grid,
+      .app-split-table--wide:not(.app-split-table--list) .app-split-table-body .app-split-table-grid {
         width: 100%;
         min-width: 0;
         max-width: 100%;
       }
 
-      .app-split-table-grid col.app-col-actions {
+      .app-split-table:not(.app-split-table--list) .app-split-table-grid col.app-col-actions {
         width: 20%;
       }
+    }
+
+    /** List masters / bill-history: keep real table + air (no crush, no card stack) */
+    .app-card-flush:has(.app-data-table-shell--list) {
+      overflow: hidden;
+    }
+
+    .app-data-table-shell--list {
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    .app-split-table--list {
+      width: max(100%, var(--app-list-table-min));
+      min-width: var(--app-list-table-min);
+    }
+
+    .app-split-table--list.app-split-table--wide {
+      --app-list-table-min: 60rem;
+    }
+
+    .app-split-table--list.app-split-table--xl {
+      --app-list-table-min: 68rem;
+    }
+
+    .app-split-table--list .app-split-table-header {
+      display: block;
+      padding-inline-end: 0;
+    }
+
+    .app-split-table--list .app-split-table-body {
+      max-height: none;
+      overflow-x: hidden;
+      overflow-y: visible;
+    }
+
+    .app-split-table--list .app-split-table-header .app-split-table-grid,
+    .app-split-table--list .app-split-table-body .app-split-table-grid {
+      width: 100%;
+      min-width: var(--app-list-table-min);
+      max-width: none;
+    }
+
+    .app-split-table--list .app-split-table-header th,
+    .app-split-table--list .app-split-table-body .app-data-table td {
+      @apply px-4 py-3.5 text-sm;
     }
 
     .app-split-table--mobile-stack .app-split-table-header .app-split-table-grid,

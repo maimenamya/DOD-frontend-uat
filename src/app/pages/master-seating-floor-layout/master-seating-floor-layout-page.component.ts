@@ -52,8 +52,6 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   readonly unplaced = signal<FloorLayoutUnplacedSeat[]>([]);
   readonly areas = signal<FloorLayoutArea[]>([]);
   readonly selectedZoneId = signal<number | null>(null);
-  /** When true, edit non-seat areas (ห้องน้ำ / เวที / …). */
-  readonly areasTabActive = signal(false);
   readonly selectedSeatingId = signal<number | null>(null);
   readonly selectedAreaKey = signal<string | null>(null);
   readonly dirty = signal(false);
@@ -148,26 +146,8 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   }
 
   selectZone(zoneId: number): void {
-    const sameZone = this.selectedZoneId() === zoneId;
-    const wasAreas = this.areasTabActive();
+    if (this.selectedZoneId() === zoneId) return;
     this.selectedZoneId.set(zoneId);
-    // Same zone while editing areas → back to seats; other zone while on areas → stay on areas.
-    this.areasTabActive.set(wasAreas && !sameZone);
-    if (sameZone && !wasAreas) return;
-    this.selectedSeatingId.set(null);
-    this.selectedAreaKey.set(null);
-  }
-
-  selectAreasTab(): void {
-    if (this.selectedZoneId() == null) {
-      const first = this.zones()[0];
-      if (!first) {
-        this.toast.showError('ยังไม่มีโซนที่นั่ง — สร้างโซนก่อนแล้วค่อยจัดพื้นที่');
-        return;
-      }
-      this.selectedZoneId.set(first.id);
-    }
-    this.areasTabActive.set(true);
     this.selectedSeatingId.set(null);
     this.selectedAreaKey.set(null);
   }
@@ -216,7 +196,7 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     this.dirty.set(true);
   }
 
-  /** Palette “+ พื้นที่ว่าง” — add area for current zone and switch to areas mode. */
+  /** Palette “+ พื้นที่ว่าง” — add area in the currently selected zone. */
   addEmptyAreaFromPalette(): void {
     if (this.selectedZoneId() == null) {
       const first = this.zones()[0];
@@ -226,7 +206,6 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
       }
       this.selectedZoneId.set(first.id);
     }
-    this.areasTabActive.set(true);
     this.selectedSeatingId.set(null);
     this.addArea();
   }
@@ -325,7 +304,6 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   }
 
   onPlacedPointerDown(event: PointerEvent, seat: FloorLayoutPlacedSeat): void {
-    if (this.areasTabActive()) return;
     event.preventDefault();
     event.stopPropagation();
     this.selectSeat(seat.seatingId);
@@ -342,7 +320,6 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   }
 
   onAreaPointerDown(event: PointerEvent, area: FloorLayoutArea): void {
-    if (!this.areasTabActive()) return;
     event.preventDefault();
     event.stopPropagation();
     this.selectArea(area.key);
@@ -490,7 +467,6 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   private ensureZoneSelection(zones: FloorLayoutZone[]): void {
     if (zones.length === 0) {
       this.selectedZoneId.set(null);
-      this.areasTabActive.set(false);
       return;
     }
     const current = this.selectedZoneId();

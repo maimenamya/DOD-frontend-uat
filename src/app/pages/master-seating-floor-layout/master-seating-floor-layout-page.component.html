@@ -2,7 +2,7 @@
   <div class="app-page-header">
     <div>
       <h1 class="app-page-title">จัดผังโต๊ะ</h1>
-      <p class="app-page-subtitle">เลือกโซนก่อน แล้ววางโต๊ะ หรือแท็บพื้นที่ของโซนนั้น (ห้องน้ำ / เวที / ทางเข้า)</p>
+      <p class="app-page-subtitle">เลือกโซนแล้ววางโต๊ะ — กด + พื้นที่ว่าง เพื่อเพิ่มป้าย (ห้องน้ำ / เวที / ทางเข้า) ในโซนนั้น</p>
     </div>
     <div class="flex flex-wrap gap-2">
       <button type="button" class="app-btn-secondary" [disabled]="loading() || saving()" (click)="reload()">
@@ -37,81 +37,40 @@
           {{ zone.name }}
         </button>
       }
-      <button
-        type="button"
-        role="tab"
-        class="app-filter-chip"
-        [class.app-filter-chip-active]="areasTabActive()"
-        [attr.aria-selected]="areasTabActive()"
-        (click)="selectAreasTab()"
-      >
-        พื้นที่
-      </button>
     </div>
 
     <div class="floor-editor" (pointerup)="onWindowPointerUp()">
       <aside class="floor-editor__palette">
         <div class="floor-editor__palette-head">
-          @if (areasTabActive()) {
-            <h2 class="floor-editor__palette-title">
-              พื้นที่โซน
-              @if (selectedZone(); as zone) {
-                <span class="floor-editor__palette-zone">({{ zone.name }})</span>
-              }
-            </h2>
-            <p class="app-hint mb-0">แยกตามโซน · โชว์บน POS แต่กดไม่ได้</p>
-          } @else {
-            <h2 class="floor-editor__palette-title">
-              โต๊ะยังไม่วาง
-              @if (selectedZone(); as zone) {
-                <span class="floor-editor__palette-zone">({{ zone.name }})</span>
-              }
-            </h2>
-            @if (zoneUnplaced().length === 0) {
-              <p class="app-hint mb-0">โซนนี้วางครบแล้ว</p>
+          <h2 class="floor-editor__palette-title">
+            โต๊ะยังไม่วาง
+            @if (selectedZone(); as zone) {
+              <span class="floor-editor__palette-zone">({{ zone.name }})</span>
             }
+          </h2>
+          @if (zoneUnplaced().length === 0) {
+            <p class="app-hint mb-0">โซนนี้วางครบแล้ว · กด + เพื่อเพิ่มพื้นที่ว่าง</p>
           }
         </div>
 
         <div class="floor-editor__palette-row">
           <div class="floor-editor__palette-scroll app-scroll-region">
-            @if (areasTabActive()) {
-              @if (zoneAreas().length > 0) {
-                <ul class="floor-editor__palette-list">
-                  @for (area of zoneAreas(); track area.key) {
-                    <li>
-                      <button
-                        type="button"
-                        class="floor-editor__palette-item"
-                        [class.floor-editor__palette-item--active]="selectedAreaKey() === area.key"
-                        (click)="selectArea(area.key)"
-                      >
-                        <span class="font-semibold">{{ area.name }}</span>
-                      </button>
-                    </li>
-                  }
-                </ul>
-              } @else {
-                <p class="floor-editor__palette-empty">ยังไม่มีพื้นที่ — กด + พื้นที่ว่าง</p>
-              }
+            @if (zoneUnplaced().length > 0) {
+              <ul class="floor-editor__palette-list">
+                @for (seat of zoneUnplaced(); track seat.seatingId) {
+                  <li>
+                    <button
+                      type="button"
+                      class="floor-editor__palette-item"
+                      (pointerdown)="onUnplacedPointerDown($event, seat)"
+                    >
+                      <span class="font-semibold">{{ seat.code }}</span>
+                    </button>
+                  </li>
+                }
+              </ul>
             } @else {
-              @if (zoneUnplaced().length > 0) {
-                <ul class="floor-editor__palette-list">
-                  @for (seat of zoneUnplaced(); track seat.seatingId) {
-                    <li>
-                      <button
-                        type="button"
-                        class="floor-editor__palette-item"
-                        (pointerdown)="onUnplacedPointerDown($event, seat)"
-                      >
-                        <span class="font-semibold">{{ seat.code }}</span>
-                      </button>
-                    </li>
-                  }
-                </ul>
-              } @else {
-                <p class="floor-editor__palette-empty">ไม่มีโต๊ะค้างวาง</p>
-              }
+              <p class="floor-editor__palette-empty">ไม่มีโต๊ะค้างวาง</p>
             }
           </div>
           <div class="floor-editor__palette-add">
@@ -129,114 +88,99 @@
       </aside>
 
       <div class="floor-editor__main">
-        @if (areasTabActive()) {
-          <p class="app-hint mb-2">
-            กำลังจัด<strong>พื้นที่โซน {{ selectedZone()?.name ?? '—' }}</strong>
-            — กดเพิ่มแล้วพิมพ์ชื่อ (เช่น ห้องน้ำ, เวที) · สลับแท็บโซนด้านบนเพื่อจัดโซนอื่น
-          </p>
-        } @else {
-          <p class="app-hint mb-2">
-            กำลังจัดผังโซน
-            <strong>{{ selectedZone()?.name ?? '—' }}</strong>
-            — ลากโต๊ะจากแถวบนมาวาง · คลิกโต๊ะเพื่อแก้ไข · แท็บพื้นที่ = ห้องน้ำ/เวทีของโซนนี้
-          </p>
-        }
+        <p class="app-hint mb-2">
+          กำลังจัดผังโซน
+          <strong>{{ selectedZone()?.name ?? '—' }}</strong>
+          — ลากโต๊ะจากแถวบนมาวาง · คลิกโต๊ะหรือพื้นที่เพื่อแก้ไข · + พื้นที่ว่าง = เพิ่มป้ายในโซนนี้
+        </p>
 
         <div class="floor-editor__toolbar">
-          @if (areasTabActive()) {
-            @if (selectedArea(); as area) {
-              <p class="floor-editor__toolbar-label">แก้ไขพื้นที่</p>
-              <div class="floor-editor__toolbar-fields">
-                <div class="app-form-group">
-                  <label class="app-label" for="floor-area-name">ชื่อ</label>
-                  <input
-                    id="floor-area-name"
-                    class="app-input"
-                    type="text"
-                    maxlength="40"
-                    [ngModel]="area.name"
-                    (ngModelChange)="onAreaNameChange($event)"
-                    placeholder="เช่น ห้องน้ำ / เวที / ทางเข้า"
-                  />
-                </div>
-                <div class="app-form-group">
-                  <label class="app-label" for="floor-area-width">กว้าง (px)</label>
-                  <input
-                    id="floor-area-width"
-                    class="app-input"
-                    type="number"
-                    min="24"
-                    max="600"
-                    [ngModel]="area.width"
-                    (ngModelChange)="onAreaWidthChange($event)"
-                  />
-                </div>
-                <div class="app-form-group">
-                  <label class="app-label" for="floor-area-height">สูง (px)</label>
-                  <input
-                    id="floor-area-height"
-                    class="app-input"
-                    type="number"
-                    min="24"
-                    max="600"
-                    [ngModel]="area.height"
-                    (ngModelChange)="onAreaHeightChange($event)"
-                  />
-                </div>
-                <button type="button" class="app-btn-danger self-end" (click)="removeSelectedArea()">
-                  ลบพื้นที่
-                </button>
+          @if (selectedArea(); as area) {
+            <p class="floor-editor__toolbar-label">แก้ไขพื้นที่</p>
+            <div class="floor-editor__toolbar-fields">
+              <div class="app-form-group">
+                <label class="app-label" for="floor-area-name">ชื่อ</label>
+                <input
+                  id="floor-area-name"
+                  class="app-input"
+                  type="text"
+                  maxlength="40"
+                  [ngModel]="area.name"
+                  (ngModelChange)="onAreaNameChange($event)"
+                  placeholder="เช่น ห้องน้ำ / เวที / ทางเข้า"
+                />
               </div>
-            } @else {
-              <p class="floor-editor__toolbar-label">แก้ไขพื้นที่</p>
-              <p class="floor-editor__toolbar-empty">ยังไม่ได้เลือก</p>
-              <p class="app-hint mb-0">กด «เพิ่มพื้นที่» หรือคลิกกล่องบนผัง</p>
-            }
+              <div class="app-form-group">
+                <label class="app-label" for="floor-area-width">กว้าง (px)</label>
+                <input
+                  id="floor-area-width"
+                  class="app-input"
+                  type="number"
+                  min="24"
+                  max="600"
+                  [ngModel]="area.width"
+                  (ngModelChange)="onAreaWidthChange($event)"
+                />
+              </div>
+              <div class="app-form-group">
+                <label class="app-label" for="floor-area-height">สูง (px)</label>
+                <input
+                  id="floor-area-height"
+                  class="app-input"
+                  type="number"
+                  min="24"
+                  max="600"
+                  [ngModel]="area.height"
+                  (ngModelChange)="onAreaHeightChange($event)"
+                />
+              </div>
+              <button type="button" class="app-btn-danger self-end" (click)="removeSelectedArea()">
+                ลบพื้นที่
+              </button>
+            </div>
+          } @else if (selected(); as sel) {
+            <p class="floor-editor__toolbar-label">แก้ไข {{ sel.code }}</p>
+            <div class="floor-editor__toolbar-fields">
+              <div class="app-form-group">
+                <label class="app-label" for="master-seating-floor-layout-รูปทรง-1">รูปทรง</label>
+                <app-custom-dropdown inputId="master-seating-floor-layout-รูปทรง-1"
+                  [options]="shapeOptions"
+                  [ngModel]="sel.shape"
+                  (ngModelChange)="onShapeChange($event)"
+                />
+              </div>
+              <div class="app-form-group">
+                <label class="app-label" for="floor-seat-width">กว้าง (px)</label>
+                <input
+                  id="floor-seat-width"
+                  class="app-input"
+                  type="number"
+                  min="24"
+                  max="600"
+                  [ngModel]="sel.width"
+                  (ngModelChange)="onSeatWidthChange($event)"
+                />
+              </div>
+              <div class="app-form-group">
+                <label class="app-label" for="floor-seat-height">สูง (px)</label>
+                <input
+                  id="floor-seat-height"
+                  class="app-input"
+                  type="number"
+                  min="24"
+                  max="600"
+                  [ngModel]="sel.height"
+                  (ngModelChange)="onSeatHeightChange($event)"
+                />
+              </div>
+              <button type="button" class="app-btn-danger self-end" (click)="removeSelected()">
+                เอาออกจากผัง
+              </button>
+            </div>
           } @else {
-            @if (selected(); as sel) {
-              <p class="floor-editor__toolbar-label">แก้ไข {{ sel.code }}</p>
-              <div class="floor-editor__toolbar-fields">
-                <div class="app-form-group">
-                  <label class="app-label" for="master-seating-floor-layout-รูปทรง-1">รูปทรง</label>
-                  <app-custom-dropdown inputId="master-seating-floor-layout-รูปทรง-1"
-                    [options]="shapeOptions"
-                    [ngModel]="sel.shape"
-                    (ngModelChange)="onShapeChange($event)"
-                  />
-                </div>
-                <div class="app-form-group">
-                  <label class="app-label" for="floor-seat-width">กว้าง (px)</label>
-                  <input
-                    id="floor-seat-width"
-                    class="app-input"
-                    type="number"
-                    min="24"
-                    max="600"
-                    [ngModel]="sel.width"
-                    (ngModelChange)="onSeatWidthChange($event)"
-                  />
-                </div>
-                <div class="app-form-group">
-                  <label class="app-label" for="floor-seat-height">สูง (px)</label>
-                  <input
-                    id="floor-seat-height"
-                    class="app-input"
-                    type="number"
-                    min="24"
-                    max="600"
-                    [ngModel]="sel.height"
-                    (ngModelChange)="onSeatHeightChange($event)"
-                  />
-                </div>
-                <button type="button" class="app-btn-danger self-end" (click)="removeSelected()">
-                  เอาออกจากผัง
-                </button>
-              </div>
-            } @else {
-              <p class="floor-editor__toolbar-label">แก้ไขโต๊ะ</p>
-              <p class="floor-editor__toolbar-empty">ไม่มีข้อมูล</p>
-              <p class="app-hint mb-0">คลิกโต๊ะบนผังเพื่อแก้ขนาด / รูปทรง</p>
-            }
+            <p class="floor-editor__toolbar-label">แก้ไขโต๊ะ / พื้นที่</p>
+            <p class="floor-editor__toolbar-empty">ไม่มีข้อมูล</p>
+            <p class="app-hint mb-0">คลิกโต๊ะหรือพื้นที่บนผังเพื่อแก้ · กด + พื้นที่ว่าง เพื่อเพิ่มป้าย</p>
           }
         </div>
 
@@ -258,33 +202,23 @@
               <button
                 type="button"
                 class="floor-editor__area"
-                [class.floor-editor__area--selected]="areasTabActive() && selectedAreaKey() === area.key"
-                [class.floor-editor__area--muted]="!areasTabActive()"
+                [class.floor-editor__area--selected]="selectedAreaKey() === area.key"
                 [style]="areaStyle(area)"
-                [disabled]="!areasTabActive()"
                 (pointerdown)="onAreaPointerDown($event, area)"
               >
                 {{ area.name }}
               </button>
             }
-            @if (areasTabActive()) {
-              @for (seat of zonePlaced(); track seat.seatingId) {
-                <div class="floor-editor__seat floor-editor__seat--ghost" [style]="boxStyle(seat)">
-                  {{ seat.code }}
-                </div>
-              }
-            } @else {
-              @for (seat of zonePlaced(); track seat.seatingId) {
-                <button
-                  type="button"
-                  class="floor-editor__seat"
-                  [class.floor-editor__seat--selected]="selectedSeatingId() === seat.seatingId"
-                  [style]="boxStyle(seat)"
-                  (pointerdown)="onPlacedPointerDown($event, seat)"
-                >
-                  {{ seat.code }}
-                </button>
-              }
+            @for (seat of zonePlaced(); track seat.seatingId) {
+              <button
+                type="button"
+                class="floor-editor__seat"
+                [class.floor-editor__seat--selected]="selectedSeatingId() === seat.seatingId"
+                [style]="boxStyle(seat)"
+                (pointerdown)="onPlacedPointerDown($event, seat)"
+              >
+                {{ seat.code }}
+              </button>
             }
           </div>
         </div>
