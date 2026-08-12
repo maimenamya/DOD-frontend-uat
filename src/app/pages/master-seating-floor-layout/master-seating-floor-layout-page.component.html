@@ -138,49 +138,51 @@
                 ลบพื้นที่
               </button>
             </div>
-          } @else if (selected(); as sel) {
-            <p class="floor-editor__toolbar-label">แก้ไข {{ sel.code }}</p>
-            <div class="floor-editor__toolbar-fields">
-              <div class="app-form-group">
-                <label class="app-label" for="master-seating-floor-layout-รูปทรง-1">รูปทรง</label>
-                <app-custom-dropdown inputId="master-seating-floor-layout-รูปทรง-1"
-                  [options]="shapeOptions"
-                  [ngModel]="sel.shape"
-                  (ngModelChange)="onShapeChange($event)"
-                />
-              </div>
-              <div class="app-form-group">
-                <label class="app-label" for="floor-seat-width">กว้าง (px)</label>
-                <input
-                  id="floor-seat-width"
-                  class="app-input"
-                  type="number"
-                  min="24"
-                  max="600"
-                  [ngModel]="sel.width"
-                  (ngModelChange)="onSeatWidthChange($event)"
-                />
-              </div>
-              <div class="app-form-group">
-                <label class="app-label" for="floor-seat-height">สูง (px)</label>
-                <input
-                  id="floor-seat-height"
-                  class="app-input"
-                  type="number"
-                  min="24"
-                  max="600"
-                  [ngModel]="sel.height"
-                  (ngModelChange)="onSeatHeightChange($event)"
-                />
-              </div>
-              <button type="button" class="app-btn-danger self-end" (click)="removeSelected()">
-                เอาออกจากผัง
-              </button>
-            </div>
           } @else {
-            <p class="floor-editor__toolbar-label">แก้ไขโต๊ะ / พื้นที่</p>
-            <p class="floor-editor__toolbar-empty">ไม่มีข้อมูล</p>
-            <p class="app-hint mb-0">คลิกโต๊ะหรือพื้นที่บนผังเพื่อแก้ · กด + พื้นที่ว่าง เพื่อเพิ่มป้าย</p>
+            @if (selected(); as sel) {
+              <p class="floor-editor__toolbar-label">แก้ไข {{ sel.code }}</p>
+              <div class="floor-editor__toolbar-fields">
+                <div class="app-form-group">
+                  <label class="app-label" for="master-seating-floor-layout-รูปทรง-1">รูปทรง</label>
+                  <app-custom-dropdown inputId="master-seating-floor-layout-รูปทรง-1"
+                    [options]="shapeOptions"
+                    [ngModel]="sel.shape"
+                    (ngModelChange)="onShapeChange($event)"
+                  />
+                </div>
+                <div class="app-form-group">
+                  <label class="app-label" for="floor-seat-width">กว้าง (px)</label>
+                  <input
+                    id="floor-seat-width"
+                    class="app-input"
+                    type="number"
+                    min="24"
+                    max="600"
+                    [ngModel]="sel.width"
+                    (ngModelChange)="onSeatWidthChange($event)"
+                  />
+                </div>
+                <div class="app-form-group">
+                  <label class="app-label" for="floor-seat-height">สูง (px)</label>
+                  <input
+                    id="floor-seat-height"
+                    class="app-input"
+                    type="number"
+                    min="24"
+                    max="600"
+                    [ngModel]="sel.height"
+                    (ngModelChange)="onSeatHeightChange($event)"
+                  />
+                </div>
+                <button type="button" class="app-btn-danger self-end" (click)="removeSelected()">
+                  เอาออกจากผัง
+                </button>
+              </div>
+            } @else {
+              <p class="floor-editor__toolbar-label">แก้ไขโต๊ะ / พื้นที่</p>
+              <p class="floor-editor__toolbar-empty">ไม่มีข้อมูล</p>
+              <p class="app-hint mb-0">คลิกโต๊ะหรือพื้นที่บนผังเพื่อแก้ · กด + พื้นที่ว่าง เพื่อเพิ่มป้าย</p>
+            }
           }
         </div>
 
