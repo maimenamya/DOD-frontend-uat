@@ -12,8 +12,8 @@ import {
 
 /**
  * Alarm-clock style swipe row:
- * - swipe right (content →) reveals start actions (delete)
- * - swipe left (content ←) reveals end actions (edit / stop)
+ * - swipe right (content →) reveals start actions (แก้ไข / สต็อป / คืนของ)
+ * - swipe left (content ←) reveals end actions (ลบ)
  */
 @Component({
   selector: 'app-swipe-reveal-row',
@@ -33,9 +33,9 @@ export class SwipeRevealRowComponent {
   private readonly startEl = viewChild<ElementRef<HTMLElement>>('startActions');
   private readonly endEl = viewChild<ElementRef<HTMLElement>>('endActions');
 
-  /** Allow swipe right → reveal start (ลบ). */
+  /** Allow swipe right → reveal start (แก้ไข / สต็อป). */
   readonly enableStart = input(true, { transform: (v: unknown) => !!v });
-  /** Allow swipe left → reveal end (แก้ไข / สต็อป). */
+  /** Allow swipe left → reveal end (ลบ). */
   readonly enableEnd = input(true, { transform: (v: unknown) => !!v });
   readonly disabled = input(false, { transform: (v: unknown) => !!v });
 

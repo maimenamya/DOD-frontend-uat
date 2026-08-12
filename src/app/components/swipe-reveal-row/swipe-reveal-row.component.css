@@ -2,6 +2,16 @@
   display: block;
 }
 
+:host-context(.open-table-ledger-list) .swipe-reveal {
+  margin-inline: 0;
+  border-radius: 0;
+  background: var(--surface, var(--card-bg));
+}
+
+:host-context(.open-table-ledger-list) .swipe-reveal__content {
+  background: var(--surface, var(--card-bg));
+}
+
 .swipe-reveal {
   position: relative;
   overflow: hidden;

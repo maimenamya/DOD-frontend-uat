@@ -481,77 +481,79 @@
               @if (seatBillTabs().length > 1 && seat.sessionId && seatLedgerOpen() && !seatAwaitingClear()) {
                 <span class="open-table-bill-tab-badge">บิล {{ activeSeatBillTabLabel() }}</span>
               }
-              @if (seatCanEditSessionInfo(seat)) {
-                <span class="inline-flex items-center gap-0.5">
+              @if (seatHasHeaderActions(seat)) {
+                <div class="open-table-session-overflow">
                   <button
                     type="button"
-                    class="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-text-secondary hover:border-primary/35 hover:text-text-primary"
-                    aria-label="แก้จำนวนลูกค้า"
-                    title="แก้จำนวนลูกค้า"
-                    (click)="openEditGuestCountFromPanel()"
+                    class="open-table-session-overflow__trigger"
+                    aria-label="เมนูการดำเนินการ"
+                    title="เมนู"
+                    [attr.aria-expanded]="sessionHeaderMenuOpen()"
+                    aria-haspopup="menu"
+                    (click)="toggleSessionHeaderMenu($event)"
                   >
-                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path d="M10 3.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" />
                     </svg>
                   </button>
-                  <button
-                    type="button"
-                    class="inline-flex items-center justify-center rounded-md border border-transparent p-1 hover:border-primary/35"
-                    [class.text-amber-500]="sessionDetail()?.creditSaleToShop ?? seat.creditSaleToShop"
-                    [class.text-text-secondary]="!(sessionDetail()?.creditSaleToShop ?? seat.creditSaleToShop)"
-                    [class.hover:text-text-primary]="!(sessionDetail()?.creditSaleToShop ?? seat.creditSaleToShop)"
-                    aria-label="แก้ยอดเข้าร้าน"
-                    title="แก้ยอดเข้าร้าน"
-                    (click)="openEditCreditSaleFromPanel()"
-                  >
-                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path
-                        fill-rule="evenodd"
-                        d="M8.34 1.804A1 1 0 019.82 1h.36a1 1 0 01.98.804l.295 1.473c.497.144.971.361 1.416.629l1.358-1.118a1 1 0 011.27.118l.254.254a1 1 0 01.118 1.27l-1.118 1.358c.268.445.485.919.629 1.416l1.473.294a1 1 0 01.804.98v.361a1 1 0 01-.804.98l-1.473.295a6.47 6.47 0 00-.629 1.416l1.118 1.358a1 1 0 01-.118 1.27l-.254.254a1 1 0 01-1.27.118l-1.358-1.118a6.47 6.47 0 00-1.416.629l-.294 1.473a1 1 0 01-.98.804h-.361a1 1 0 01-.98-.804l-.295-1.473a6.47 6.47 0 00-1.416-.629l-1.358 1.118a1 1 0 01-1.27-.118l-.254-.254a1 1 0 01-.118-1.27l1.118-1.358a6.47 6.47 0 00-.629-1.416l-1.473-.294A1 1 0 012.18 9.82v-.36a1 1 0 01.804-.98l1.473-.295c.144-.497.361-.971.629-1.416L3.964 5.41a1 1 0 01.118-1.27l.254-.254a1 1 0 011.27-.118l1.358 1.118c.445-.268.919-.485 1.416-.629l.294-1.473zM13 9a4 4 0 11-8 0 4 4 0 018 0z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                  </button>
-                </span>
-              }
-              @if (
-                ledgerCanMutate() &&
-                seat.sessionId &&
-                seatLedgerOpen() &&
-                !seatAwaitingClear()
-              ) {
-                <button
-                  type="button"
-                  class="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-text-secondary hover:border-primary/35 hover:text-text-primary"
-                  aria-label="พิมพ์ QR สั่งอาหาร"
-                  title="พิมพ์ QR สั่งอาหาร"
-                  [disabled]="actionBusy() || guestQrPrintBusy()"
-                  (click)="printGuestOrderQr()"
-                >
-                  <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path
-                      d="M6 2a1 1 0 00-1 1v3H3a2 2 0 00-2 2v5a2 2 0 002 2h1v3a1 1 0 001 1h10a1 1 0 001-1v-3h1a2 2 0 002-2V8a2 2 0 00-2-2h-2V3a1 1 0 00-1-1H6zm0 4V3h8v3H6zm9 3a1 1 0 110 2 1 1 0 010-2zM7 13h6v3H7v-3z"
-                    />
-                  </svg>
-                </button>
-              }
-              @if (isPcBillWorkspace() && ledgerCanMutate() && seat.sessionId) {
-                <button
-                  type="button"
-                  class="inline-flex items-center justify-center rounded-md border border-transparent p-1 text-text-secondary hover:border-primary/35 hover:text-text-primary"
-                  aria-label="ย้ายโต๊ะ"
-                  title="ย้ายโต๊ะ"
-                  [disabled]="actionBusy()"
-                  (click)="handleSeatTransfer()"
-                >
-                  <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path
-                      fill-rule="evenodd"
-                      d="M2.24 6.8a.75.75 0 001.06-.04l1.95-2.1v6.59a.75.75 0 001.5 0V4.66l1.95 2.1a.75.75 0 101.1-1.02l-3.25-3.5a.75.75 0 00-1.1 0L2.2 5.74a.75.75 0 00.04 1.06zm10 6.4a.75.75 0 00-.04 1.06l3.25 3.5a.75.75 0 001.1 0l3.25-3.5a.75.75 0 10-1.1-1.02l-1.95 2.1V8.75a.75.75 0 00-1.5 0v6.59l-1.95-2.1a.75.75 0 00-1.06-.04z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                </button>
+                  @if (sessionHeaderMenuOpen() && sessionHeaderMenuPos(); as menuPos) {
+                    <div
+                      class="open-table-session-overflow__menu app-scroll-region"
+                      role="menu"
+                      appPortalToBody
+                      [style.top.px]="menuPos.top"
+                      [style.left.px]="menuPos.left"
+                      (click)="$event.stopPropagation()"
+                    >
+                      @if (seatCanEditSessionInfo(seat)) {
+                        <button
+                          type="button"
+                          class="open-table-session-overflow__item"
+                          role="menuitem"
+                          (click)="closeSessionHeaderMenu(); openEditGuestCountFromPanel()"
+                        >
+                          แก้จำนวนลูกค้า
+                        </button>
+                        <button
+                          type="button"
+                          class="open-table-session-overflow__item"
+                          role="menuitem"
+                          [class.open-table-session-overflow__item--accent]="
+                            sessionDetail()?.creditSaleToShop ?? seat.creditSaleToShop
+                          "
+                          (click)="closeSessionHeaderMenu(); openEditCreditSaleFromPanel()"
+                        >
+                          แก้ยอดเข้าร้าน
+                          @if (sessionDetail()?.creditSaleToShop ?? seat.creditSaleToShop) {
+                            <span class="open-table-session-overflow__hint">เปิดอยู่</span>
+                          }
+                        </button>
+                      }
+                      @if (seatHasGuestQrAction(seat)) {
+                        <button
+                          type="button"
+                          class="open-table-session-overflow__item"
+                          role="menuitem"
+                          [disabled]="actionBusy() || guestQrPrintBusy()"
+                          (click)="closeSessionHeaderMenu(); printGuestOrderQr()"
+                        >
+                          พิมพ์ QR สั่งอาหาร
+                        </button>
+                      }
+                      @if (seatHasTransferAction(seat)) {
+                        <button
+                          type="button"
+                          class="open-table-session-overflow__item"
+                          role="menuitem"
+                          [disabled]="actionBusy()"
+                          (click)="closeSessionHeaderMenu(); handleSeatTransfer()"
+                        >
+                          ย้ายโต๊ะ
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
               }
               <span [ngClass]="statusDotClass(seat.status)" aria-hidden="true"></span>
               <span class="sr-only">{{ statusText(seat.status) }}</span>
@@ -842,111 +844,106 @@
               รายการในบิล
             </p>
             <p class="mb-2 text-[0.6875rem] leading-snug text-text-secondary">
-              ปัดขวา = ลบ · ปัดซ้าย = แก้ไข / สต็อป / คืนของ
+              ปัดขวา = แก้ไข / สต็อป / คืนของ · ปัดซ้าย = ลบ
             </p>
-            <div class="space-y-1 text-sm text-text-primary">
-              @for (
-                item of sessionDetail()?.items ?? [];
-                track billItemKey(item)
-              ) {
-                <div class="space-y-0.5">
-                  <app-swipe-reveal-row
-                    [disabled]="actionBusy()"
-                    [enableStart]="ledgerCanMutate() && item.canVoid"
-                    [enableEnd]="
-                      (ledgerCanMutate() && item.canWithdrawPackageBottle) || item.canReturn
-                    "
-                  >
-                    @if (ledgerCanMutate() && item.canVoid) {
-                      <button
-                        swipeStart
-                        type="button"
-                        class="swipe-reveal-btn swipe-reveal-btn--danger"
-                        [disabled]="actionBusy()"
-                        (click)="openVoidItemModal(item)"
-                      >
-                        ลบ
-                      </button>
+            @if ((sessionDetail()?.items?.length ?? 0) === 0) {
+              <p class="open-table-ledger-empty">ยังไม่มีรายการ</p>
+            } @else {
+              <div class="open-table-ledger-list">
+                @for (
+                  item of sessionDetail()?.items ?? [];
+                  track billItemKey(item)
+                ) {
+                  <div class="open-table-ledger-item-wrap">
+                    <app-swipe-reveal-row
+                      [disabled]="actionBusy()"
+                      [enableStart]="
+                        (ledgerCanMutate() && item.canWithdrawPackageBottle) || item.canReturn
+                      "
+                      [enableEnd]="ledgerCanMutate() && item.canVoid"
+                    >
+                      @if (ledgerCanMutate() && item.canWithdrawPackageBottle) {
+                        <button
+                          swipeStart
+                          type="button"
+                          class="swipe-reveal-btn swipe-reveal-btn--muted"
+                          [disabled]="actionBusy()"
+                          (click)="openPackageBottleModal('WITHDRAW', item)"
+                        >
+                          เบิก
+                        </button>
+                      }
+                      @if (item.canReturn) {
+                        <button
+                          swipeStart
+                          type="button"
+                          class="swipe-reveal-btn swipe-reveal-btn--accent"
+                          [disabled]="actionBusy()"
+                          (click)="openReturnBeverageModal(item)"
+                        >
+                          คืนของ
+                        </button>
+                      }
+                      @if (ledgerCanMutate() && item.canVoid) {
+                        <button
+                          swipeEnd
+                          type="button"
+                          class="swipe-reveal-btn swipe-reveal-btn--danger"
+                          [disabled]="actionBusy()"
+                          (click)="openVoidItemModal(item)"
+                        >
+                          ลบ
+                        </button>
+                      }
+                      <div class="open-table-ledger-item">
+                        <div class="open-table-ledger-item__body">
+                          <span class="open-table-ledger-item__title">
+                            {{ item.label }}
+                            @if (item.hostLabel) {
+                              <span class="open-table-ledger-item__muted">({{ item.hostLabel }})</span>
+                            }
+                          </span>
+                          <span class="open-table-ledger-item__meta">
+                            × {{ item.quantity }} {{ item.unitLabel }}
+                            @if (item.isFreeMixer) {
+                              <span class="text-theme-accent">· ฟรีมิกซ์</span>
+                            }
+                            @if (packageBottleLabel(item); as bottleLabel) {
+                              <span class="font-mono text-theme-accent">· {{ bottleLabel }}</span>
+                            }
+                          </span>
+                        </div>
+                        <span class="open-table-ledger-item__price">
+                          {{ itemLineTotal(item) | number: '1.0-0' }} บาท
+                        </span>
+                      </div>
+                    </app-swipe-reveal-row>
+                    @for (move of packageBottleWithdrawMoves(item); track move.id) {
+                      <p class="open-table-ledger-item__subline">
+                        <span class="text-theme-accent">↳ เบิก</span>
+                        {{ move.displayName }}
+                        <span class="font-mono">× {{ move.quantity }}</span>
+                      </p>
                     }
-                    @if (ledgerCanMutate() && item.canWithdrawPackageBottle) {
-                      <button
-                        swipeEnd
-                        type="button"
-                        class="swipe-reveal-btn swipe-reveal-btn--muted"
-                        [disabled]="actionBusy()"
-                        (click)="openPackageBottleModal('WITHDRAW', item)"
-                      >
-                        เบิก
-                      </button>
-                    }
-                    @if (item.canReturn) {
-                      <button
-                        swipeEnd
-                        type="button"
-                        class="swipe-reveal-btn swipe-reveal-btn--accent"
-                        [disabled]="actionBusy()"
-                        (click)="openReturnBeverageModal(item)"
-                      >
-                        คืนของ
-                      </button>
-                    }
-                    <div class="open-table-swipe-row flex items-baseline gap-x-2 px-1 py-1.5 leading-snug">
-                      <span class="min-w-0 flex-1">
-                        - {{ item.label }}
-                        @if (item.hostLabel) {
-                          <span class="text-text-secondary">({{ item.hostLabel }})</span>
-                        }
-                        x {{ item.quantity }} {{ item.unitLabel }}
-                        @if (item.isFreeMixer) {
-                          <span class="text-theme-accent">(ฟรีมิกซ์)</span>
-                        }
-                        @if (packageBottleLabel(item); as bottleLabel) {
-                          <span class="font-mono text-theme-accent">{{ bottleLabel }}</span>
-                        }
-                      </span>
-                      <span class="shrink-0 font-medium text-theme-accent">
-                        {{ itemLineTotal(item) | number: '1.0-0' }} บาท
-                      </span>
-                    </div>
-                  </app-swipe-reveal-row>
-                  @for (move of packageBottleWithdrawMoves(item); track move.id) {
-                    <p class="open-table-bill-subline pl-3 text-xs leading-snug text-text-secondary">
-                      <span class="text-theme-accent">↳ เบิก</span>
-                      {{ move.displayName }}
-                      <span class="font-mono">× {{ move.quantity }}</span>
-                    </p>
-                  }
-                </div>
-              } @empty {
-                <p class="text-text-secondary">ยังไม่มีรายการ</p>
-              }
-            </div>
+                  </div>
+                }
+              </div>
+            }
           </div>
 
           @if ((sessionDetail()?.roomCharges?.length ?? 0) > 0) {
             <div>
               <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">ค่าห้อง</p>
-              <div class="space-y-1 text-sm text-text-primary">
+              <div class="open-table-ledger-list">
                 @for (row of sessionDetail()?.roomCharges ?? []; track row.roomChargeId) {
                   <app-swipe-reveal-row
                     [disabled]="actionBusy()"
-                    [enableStart]="ledgerCanMutate() && row.canDeleteRoomCharge"
-                    [enableEnd]="row.canStop || (ledgerCanMutate() && row.canEditRoomCharge)"
+                    [enableStart]="row.canStop || (ledgerCanMutate() && row.canEditRoomCharge)"
+                    [enableEnd]="ledgerCanMutate() && row.canDeleteRoomCharge"
                   >
-                    @if (ledgerCanMutate() && row.canDeleteRoomCharge) {
-                      <button
-                        swipeStart
-                        type="button"
-                        class="swipe-reveal-btn swipe-reveal-btn--danger"
-                        [disabled]="actionBusy()"
-                        (click)="openDeleteRoomChargeModal(row)"
-                      >
-                        ลบ
-                      </button>
-                    }
                     @if (row.canStop) {
                       <button
-                        swipeEnd
+                        swipeStart
                         type="button"
                         class="swipe-reveal-btn swipe-reveal-btn--accent"
                         [disabled]="actionBusy()"
@@ -957,7 +954,7 @@
                     }
                     @if (ledgerCanMutate() && row.canEditRoomCharge) {
                       <button
-                        swipeEnd
+                        swipeStart
                         type="button"
                         class="swipe-reveal-btn swipe-reveal-btn--muted"
                         [disabled]="actionBusy()"
@@ -966,24 +963,32 @@
                         แก้ไข
                       </button>
                     }
-                    <div class="open-table-swipe-row flex items-baseline gap-x-2 px-1 py-1.5 leading-snug">
-                      <span class="min-w-0 flex-1">
-                        - {{ row.roomCode }} x {{ row.quantity }} {{ row.unitLabel }}
-                        @if (row.canStop) {
-                          <span class="whitespace-nowrap text-[0.8125rem] text-text-secondary">
-                            · เริ่มใช้ {{ row.seatStartedLabel }}
-                          </span>
-                        } @else if (row.seatStoppedLabel) {
-                          <span class="whitespace-nowrap text-[0.8125rem] font-medium text-text-secondary">
-                            · สต็อปแล้ว · {{ row.seatStoppedLabel }}
-                          </span>
-                        } @else if (row.seatStartedLabel) {
-                          <span class="whitespace-nowrap text-[0.8125rem] text-text-secondary">
-                            · เริ่มใช้ {{ row.seatStartedLabel }}
-                          </span>
-                        }
-                      </span>
-                      <span class="shrink-0 font-medium text-theme-accent">
+                    @if (ledgerCanMutate() && row.canDeleteRoomCharge) {
+                      <button
+                        swipeEnd
+                        type="button"
+                        class="swipe-reveal-btn swipe-reveal-btn--danger"
+                        [disabled]="actionBusy()"
+                        (click)="openDeleteRoomChargeModal(row)"
+                      >
+                        ลบ
+                      </button>
+                    }
+                    <div class="open-table-ledger-item">
+                      <div class="open-table-ledger-item__body">
+                        <span class="open-table-ledger-item__title">{{ row.roomCode }}</span>
+                        <span class="open-table-ledger-item__meta">
+                          × {{ row.quantity }} {{ row.unitLabel }}
+                          @if (row.canStop) {
+                            <span>· เริ่มใช้ {{ row.seatStartedLabel }}</span>
+                          } @else if (row.seatStoppedLabel) {
+                            <span>· สต็อปแล้ว · {{ row.seatStoppedLabel }}</span>
+                          } @else if (row.seatStartedLabel) {
+                            <span>· เริ่มใช้ {{ row.seatStartedLabel }}</span>
+                          }
+                        </span>
+                      </div>
+                      <span class="open-table-ledger-item__price">
                         {{ row.lineAmount | number: '1.0-0' }} บาท
                       </span>
                     </div>
@@ -995,76 +1000,78 @@
 
           <div>
             <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">รายการรันดื่ม</p>
-            <div class="space-y-1 text-sm text-text-primary">
-              @for (row of sessionDetail()?.staffDrinks ?? []; track row.staffDrinkId) {
-                <app-swipe-reveal-row
-                  [disabled]="actionBusy()"
-                  [enableStart]="ledgerCanMutate() && row.canDeleteStaffDrink"
-                  [enableEnd]="row.canStopDrinks || (ledgerCanMutate() && row.canEditStaffDrink)"
-                >
-                  @if (ledgerCanMutate() && row.canDeleteStaffDrink) {
-                    <button
-                      swipeStart
-                      type="button"
-                      class="swipe-reveal-btn swipe-reveal-btn--danger"
-                      [disabled]="actionBusy()"
-                      (click)="openDeleteStaffDrinkModal(row)"
-                    >
-                      ลบ
-                    </button>
-                  }
-                  @if (row.canStopDrinks) {
-                    <button
-                      swipeEnd
-                      type="button"
-                      class="swipe-reveal-btn swipe-reveal-btn--accent"
-                      [disabled]="actionBusy()"
-                      (click)="openStopDrinkModal(row)"
-                    >
-                      สต็อป
-                    </button>
-                  }
-                  @if (ledgerCanMutate() && row.canEditStaffDrink) {
-                    <button
-                      swipeEnd
-                      type="button"
-                      class="swipe-reveal-btn swipe-reveal-btn--muted"
-                      [disabled]="actionBusy()"
-                      (click)="openEditStaffDrinkModal(row)"
-                    >
-                      แก้ไข
-                    </button>
-                  }
-                  <div class="open-table-swipe-row flex items-baseline gap-x-2 px-1 py-1.5 leading-snug">
-                    <span class="min-w-0 flex-1">
-                      - {{ row.employeeName }}
-                      <span class="text-text-secondary">({{ row.roleDisplayNameTh }})</span>:
-                      {{ row.drinks }} ดื่ม
-                      @if ((row.packageFreeDrinksCount ?? 0) > 0) {
-                        <span class="text-text-secondary">(ฟรีโปร {{ row.packageFreeDrinksCount }} ดื่ม)</span>
-                      }
-                      @if (row.canStopDrinks && row.seatStartedLabel) {
-                        <span class="whitespace-nowrap text-[0.8125rem] text-text-secondary">
-                          · เริ่มนั่ง {{ row.seatStartedLabel }}
+            @if ((sessionDetail()?.staffDrinks?.length ?? 0) === 0) {
+              <p class="open-table-ledger-empty">ยังไม่มีรายการรันดื่ม</p>
+            } @else {
+              <div class="open-table-ledger-list">
+                @for (row of sessionDetail()?.staffDrinks ?? []; track row.staffDrinkId) {
+                  <app-swipe-reveal-row
+                    [disabled]="actionBusy()"
+                    [enableStart]="row.canStopDrinks || (ledgerCanMutate() && row.canEditStaffDrink)"
+                    [enableEnd]="ledgerCanMutate() && row.canDeleteStaffDrink"
+                  >
+                    @if (row.canStopDrinks) {
+                      <button
+                        swipeStart
+                        type="button"
+                        class="swipe-reveal-btn swipe-reveal-btn--accent"
+                        [disabled]="actionBusy()"
+                        (click)="openStopDrinkModal(row)"
+                      >
+                        สต็อป
+                      </button>
+                    }
+                    @if (ledgerCanMutate() && row.canEditStaffDrink) {
+                      <button
+                        swipeStart
+                        type="button"
+                        class="swipe-reveal-btn swipe-reveal-btn--muted"
+                        [disabled]="actionBusy()"
+                        (click)="openEditStaffDrinkModal(row)"
+                      >
+                        แก้ไข
+                      </button>
+                    }
+                    @if (ledgerCanMutate() && row.canDeleteStaffDrink) {
+                      <button
+                        swipeEnd
+                        type="button"
+                        class="swipe-reveal-btn swipe-reveal-btn--danger"
+                        [disabled]="actionBusy()"
+                        (click)="openDeleteStaffDrinkModal(row)"
+                      >
+                        ลบ
+                      </button>
+                    }
+                    <div class="open-table-ledger-item">
+                      <div class="open-table-ledger-item__body">
+                        <span class="open-table-ledger-item__title">
+                          {{ row.employeeName }}
+                          <span class="open-table-ledger-item__muted">({{ row.roleDisplayNameTh }})</span>
                         </span>
-                      } @else if (row.seatStoppedLabel) {
-                        <span class="whitespace-nowrap text-[0.8125rem] font-medium text-text-secondary">
-                          · สต็อปแล้ว · {{ row.seatStoppedLabel }}
+                        <span class="open-table-ledger-item__meta">
+                          {{ row.drinks }} ดื่ม
+                          @if ((row.packageFreeDrinksCount ?? 0) > 0) {
+                            <span>· ฟรีโปร {{ row.packageFreeDrinksCount }} ดื่ม</span>
+                          }
+                          @if (row.canStopDrinks && row.seatStartedLabel) {
+                            <span>· เริ่มนั่ง {{ row.seatStartedLabel }}</span>
+                          } @else if (row.seatStoppedLabel) {
+                            <span>· สต็อปแล้ว · {{ row.seatStoppedLabel }}</span>
+                          }
+                          @if (row.note) {
+                            <span>· {{ row.note }}</span>
+                          }
                         </span>
-                      }
-                      @if (row.note) {
-                        <span class="text-text-secondary"> · {{ row.note }}</span>
-                      }
-                    </span>
-                    <span class="shrink-0 font-medium text-theme-accent">
-                      {{ row.drinkAmount | number: '1.0-0' }} บาท
-                    </span>
-                  </div>
-                </app-swipe-reveal-row>
-              } @empty {
-                <p class="text-text-secondary">ยังไม่มีรายการรันดื่ม</p>
-              }
-            </div>
+                      </div>
+                      <span class="open-table-ledger-item__price">
+                        {{ row.drinkAmount | number: '1.0-0' }} บาท
+                      </span>
+                    </div>
+                  </app-swipe-reveal-row>
+                }
+              </div>
+            }
           </div>
 
           @if (ledgerCanMutate() && !isPcBillWorkspace()) {
@@ -1238,13 +1245,23 @@
           </div>
         }
         <div class="app-form-group">
-          <label class="app-label" for="open-table-ค่าห้อง-3">ค่าห้อง</label>
-          <app-custom-dropdown inputId="open-table-ค่าห้อง-3"
-            [options]="roomChargeRateTypeOptions"
-            [ngModel]="roomChargeRateType()"
-            (ngModelChange)="onRoomChargeRateTypeChange($event)"
-            placeholder="เลือกประเภท"
-          />
+          <span class="app-label">ค่าห้อง</span>
+          <div
+            class="app-segmented-control"
+            role="group"
+            aria-label="ประเภทค่าห้อง"
+          >
+            @for (opt of roomChargeRateTypeOptions; track opt.value) {
+              <button
+                type="button"
+                class="app-segmented-chip"
+                [class.app-segmented-chip-active]="roomChargeRateType() === opt.value"
+                (click)="onRoomChargeRateTypeChange(opt.value)"
+              >
+                {{ opt.label }}
+              </button>
+            }
+          </div>
         </div>
         @if (roomChargeShowsPriceInput()) {
           <div class="app-form-group">
@@ -1286,14 +1303,34 @@
 
         @if (orderLedgerCategory() === 'FOOD') {
           <div class="app-form-group">
-            <label class="app-label" for="open-table-หมวดอาหาร-6">หมวดอาหาร</label>
-            <app-custom-dropdown
-              inputId="open-table-หมวดอาหาร-6"
-              [options]="foodCategoryDropdownOptions()"
-              [ngModel]="selectedFoodCategoryId()"
-              (ngModelChange)="onFoodCategoryChange($event)"
-              placeholder="เลือกหมวดอาหาร"
-            />
+            @if (isPcBillWorkspace()) {
+              <span class="app-label">หมวดอาหาร</span>
+              <div
+                class="app-segmented-control app-scroll-region max-w-full flex-nowrap overflow-x-auto"
+                role="group"
+                aria-label="หมวดอาหาร"
+              >
+                @for (opt of foodCategoryDropdownOptions(); track opt.value) {
+                  <button
+                    type="button"
+                    class="app-segmented-chip shrink-0"
+                    [class.app-segmented-chip-active]="selectedFoodCategoryId() === opt.value"
+                    (click)="onFoodCategoryChange(opt.value)"
+                  >
+                    {{ opt.label }}
+                  </button>
+                }
+              </div>
+            } @else {
+              <label class="app-label" for="open-table-หมวดอาหาร-6">หมวดอาหาร</label>
+              <app-custom-dropdown
+                inputId="open-table-หมวดอาหาร-6"
+                [options]="foodCategoryDropdownOptions()"
+                [ngModel]="selectedFoodCategoryId()"
+                (ngModelChange)="onFoodCategoryChange($event)"
+                placeholder="เลือกหมวดอาหาร"
+              />
+            }
           </div>
           <div class="app-form-group">
             <span class="app-label">เลือกรายการอาหาร</span>
@@ -1310,14 +1347,34 @@
 
         @if (orderLedgerCategory() === 'BEVERAGE') {
           <div class="app-form-group">
-            <label class="app-label" for="open-table-หมวดเครื่องดื่ม-7">หมวดเครื่องดื่ม</label>
-            <app-custom-dropdown
-              inputId="open-table-หมวดเครื่องดื่ม-7"
-              [options]="beverageCategoryDropdownOptions()"
-              [ngModel]="selectedBeverageCategoryId()"
-              (ngModelChange)="onBeverageCategoryChange($event)"
-              placeholder="เลือกหมวดเครื่องดื่ม"
-            />
+            @if (isPcBillWorkspace()) {
+              <span class="app-label">หมวดเครื่องดื่ม</span>
+              <div
+                class="app-segmented-control app-scroll-region max-w-full flex-nowrap overflow-x-auto"
+                role="group"
+                aria-label="หมวดเครื่องดื่ม"
+              >
+                @for (opt of beverageCategoryDropdownOptions(); track opt.value) {
+                  <button
+                    type="button"
+                    class="app-segmented-chip shrink-0"
+                    [class.app-segmented-chip-active]="selectedBeverageCategoryId() === opt.value"
+                    (click)="onBeverageCategoryChange(opt.value)"
+                  >
+                    {{ opt.label }}
+                  </button>
+                }
+              </div>
+            } @else {
+              <label class="app-label" for="open-table-หมวดเครื่องดื่ม-7">หมวดเครื่องดื่ม</label>
+              <app-custom-dropdown
+                inputId="open-table-หมวดเครื่องดื่ม-7"
+                [options]="beverageCategoryDropdownOptions()"
+                [ngModel]="selectedBeverageCategoryId()"
+                (ngModelChange)="onBeverageCategoryChange($event)"
+                placeholder="เลือกหมวดเครื่องดื่ม"
+              />
+            }
           </div>
           <div class="app-form-group">
             <span class="app-label">เลือกเครื่องดื่ม</span>
@@ -1535,14 +1592,23 @@
 
       @if (addModalMode() === 'STAFF_LEDGER') {
         <div class="app-form-group">
-          <label class="app-label" for="open-table-ประเภทลงดื่ม">ประเภทลงดื่ม</label>
-          <app-custom-dropdown
-            inputId="open-table-ประเภทลงดื่ม"
-            [options]="staffLedgerEntryModeOptions"
-            [ngModel]="staffLedgerEntryMode()"
-            (ngModelChange)="onStaffLedgerEntryModeChange($event)"
-            placeholder="เลือกประเภท"
-          />
+          <span class="app-label">ประเภทลงดื่ม</span>
+          <div
+            class="app-segmented-control"
+            role="group"
+            aria-label="ประเภทลงดื่ม"
+          >
+            @for (opt of staffLedgerEntryModeOptions; track opt.value) {
+              <button
+                type="button"
+                class="app-segmented-chip"
+                [class.app-segmented-chip-active]="staffLedgerEntryMode() === opt.value"
+                (click)="onStaffLedgerEntryModeChange(opt.value)"
+              >
+                {{ opt.label }}
+              </button>
+            }
+          </div>
         </div>
 
         <div class="app-form-group">

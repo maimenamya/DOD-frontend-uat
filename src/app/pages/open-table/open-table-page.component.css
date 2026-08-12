@@ -1490,12 +1490,160 @@
   font-weight: 700;
 }
 
-/* Swipe bill rows — match panel surface so no color seam while dragging */
-.open-table-session-panel__ledger .swipe-reveal,
-.open-table-session-panel__ledger .swipe-reveal__content {
-  background: var(--surface-strong, var(--card-bg));
+/* Session header overflow (⋮) */
+.open-table-session-overflow {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
 }
 
-.open-table-session-panel__ledger .swipe-reveal {
-  margin-inline: -0.15rem;
+.open-table-session-overflow__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-input, 0.5rem);
+  color: var(--text-secondary);
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.open-table-session-overflow__trigger:hover {
+  border-color: color-mix(in srgb, var(--primary) 35%, transparent);
+  color: var(--text-primary);
+}
+
+.open-table-session-overflow__trigger:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.open-table-session-overflow__menu {
+  --app-scroll-track: var(--dropdown-menu-bg, var(--card-bg));
+  position: fixed;
+  z-index: 80;
+  min-width: 12.5rem;
+  max-height: min(16rem, 50dvh);
+  overflow-y: auto;
+  padding: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input, 0.5rem);
+  background: var(--dropdown-menu-bg, var(--card-bg));
+  box-shadow: 0 10px 28px rgb(0 0 0 / 0.28);
+}
+
+.open-table-session-overflow__item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border: none;
+  border-radius: calc(var(--radius-input, 0.5rem) - 2px);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.open-table-session-overflow__item:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.open-table-session-overflow__item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.open-table-session-overflow__item--accent {
+  color: #f59e0b;
+}
+
+.open-table-session-overflow__hint {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #f59e0b;
+}
+
+/* Bill ledger — grouped list items (swipe rows) */
+.open-table-ledger-empty {
+  margin: 0;
+  padding: 0.75rem 0.25rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.open-table-ledger-list {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input, 0.5rem);
+  background: var(--surface, var(--card-bg));
+}
+
+.open-table-ledger-list > .open-table-ledger-item-wrap + .open-table-ledger-item-wrap,
+.open-table-ledger-list > .swipe-reveal-host + .swipe-reveal-host {
+  border-top: 1px solid var(--border);
+}
+
+.open-table-ledger-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3rem;
+  padding: 0.7rem 0.85rem;
+}
+
+.open-table-ledger-item__body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.open-table-ledger-item__title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.open-table-ledger-item__muted {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.open-table-ledger-item__meta {
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--text-secondary);
+}
+
+.open-table-ledger-item__price {
+  flex-shrink: 0;
+  align-self: flex-start;
+  padding-top: 0.1rem;
+  font-size: 0.875rem;
+  font-weight: 650;
+  line-height: 1.35;
+  color: var(--primary-light, var(--primary));
+  white-space: nowrap;
+}
+
+.open-table-ledger-item__subline {
+  margin: 0;
+  padding: 0.35rem 0.85rem 0.55rem 1.35rem;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--surface, var(--card-bg)) 88%, #000);
+  border-top: 1px dashed color-mix(in srgb, var(--border) 70%, transparent);
 }

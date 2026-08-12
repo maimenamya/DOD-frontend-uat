@@ -1,5 +1,15 @@
 ﻿import { CommonModule, DecimalPipe } from '@angular/common';
-import { Component, DestroyRef, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  HostListener,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -2702,6 +2712,7 @@ export class OpenTablePageComponent implements OnInit {
     this.sessionDetailRequestSeq += 1;
     this.showMobileSheet.set(false);
     this.showAddModal.set(false);
+    this.sessionHeaderMenuOpen.set(false);
     this.resetSeatBillTabs();
     closeOpenShopFlatpickrCalendars();
     this.forcePurgeBodyModals();
@@ -2778,6 +2789,76 @@ export class OpenTablePageComponent implements OnInit {
 
   seatCanEditSessionInfo(seat: SeatTile | null | undefined): boolean {
     return seat?.status === 'OCCUPIED' && seat.sessionId != null;
+  }
+
+  seatHasGuestQrAction(seat: SeatTile | null | undefined): boolean {
+    return (
+      !!seat?.sessionId &&
+      this.ledgerCanMutate() &&
+      this.seatLedgerOpen() &&
+      !this.seatAwaitingClear()
+    );
+  }
+
+  seatHasTransferAction(seat: SeatTile | null | undefined): boolean {
+    return this.isPcBillWorkspace() && this.ledgerCanMutate() && !!seat?.sessionId;
+  }
+
+  seatHasHeaderActions(seat: SeatTile | null | undefined): boolean {
+    return (
+      this.seatCanEditSessionInfo(seat) ||
+      this.seatHasGuestQrAction(seat) ||
+      this.seatHasTransferAction(seat)
+    );
+  }
+
+  readonly sessionHeaderMenuOpen = signal(false);
+  readonly sessionHeaderMenuPos = signal<{ top: number; left: number } | null>(null);
+
+  @HostListener('document:keydown.escape')
+  onSessionHeaderMenuEscape(): void {
+    this.closeSessionHeaderMenu();
+  }
+
+  @HostListener('document:click', ['$event'])
+  onSessionHeaderMenuDocumentClick(event: MouseEvent): void {
+    if (!this.sessionHeaderMenuOpen()) return;
+    const target = event.target as HTMLElement | null;
+    if (
+      target?.closest('.open-table-session-overflow') ||
+      target?.closest('.open-table-session-overflow__menu')
+    ) {
+      return;
+    }
+    this.closeSessionHeaderMenu();
+  }
+
+  @HostListener('window:resize')
+  onSessionHeaderMenuResize(): void {
+    if (this.sessionHeaderMenuOpen()) this.closeSessionHeaderMenu();
+  }
+
+  toggleSessionHeaderMenu(event: Event): void {
+    event.stopPropagation();
+    if (this.sessionHeaderMenuOpen()) {
+      this.closeSessionHeaderMenu();
+      return;
+    }
+    const trigger = event.currentTarget as HTMLElement | null;
+    const rect = trigger?.getBoundingClientRect();
+    if (!rect) return;
+    const menuWidth = 200;
+    const left = Math.min(
+      Math.max(8, rect.left),
+      Math.max(8, window.innerWidth - menuWidth - 8),
+    );
+    this.sessionHeaderMenuPos.set({ top: rect.bottom + 6, left });
+    this.sessionHeaderMenuOpen.set(true);
+  }
+
+  closeSessionHeaderMenu(): void {
+    this.sessionHeaderMenuOpen.set(false);
+    this.sessionHeaderMenuPos.set(null);
   }
 
   openEditGuestCountFromPanel(): void {
