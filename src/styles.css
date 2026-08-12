@@ -2138,6 +2138,11 @@
     max-width: none;
   }
 
+  /* Soft floor for wide masters — pages may override --app-list-table-min */
+  .app-split-table--list.app-split-table--wide {
+    --app-list-table-min: 56rem;
+  }
+
   .app-split-table--list .app-split-table-header,
   .app-split-table--list .app-split-table-body {
     width: 100%;
@@ -2159,12 +2164,20 @@
 
   .app-split-table--list .app-data-table th,
   .app-split-table--list .app-data-table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
     vertical-align: middle;
     white-space: nowrap;
   }
 
   .app-split-table--list .app-data-table th {
     letter-spacing: 0.02em;
+  }
+
+  /* Buttons must not clip; keep one row */
+  .app-split-table--list .app-data-table td:has(.app-table-actions) {
+    overflow: visible;
+    text-overflow: unset;
   }
 
   .app-split-table--list .app-table-actions {

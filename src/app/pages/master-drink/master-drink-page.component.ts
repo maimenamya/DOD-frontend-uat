@@ -52,6 +52,7 @@ import { prepareMenuThumbnail } from '../../utils/menu-thumbnail.util';
     ListPaginatorComponent,
   ],
   templateUrl: './master-drink-page.component.html',
+  styleUrl: './master-drink-page.component.css',
 })
 export class MasterDrinkPageComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);

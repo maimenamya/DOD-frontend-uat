@@ -252,11 +252,11 @@
               <table class="app-data-table app-split-table-grid">
                 <colgroup>
                   <col class="app-col-id" />
-                  <col />
-                  <col class="app-col-narrow" />
-                  <col class="app-col-narrow" />
-                  <col />
-                  <col />
+                  <col class="drink-col-name" />
+                  <col class="drink-col-unit" />
+                  <col class="drink-col-return" />
+                  <col class="drink-col-stock" />
+                  <col class="drink-col-price" />
                   @if (canManage()) {
                     <col class="app-col-actions" />
                   }
@@ -280,11 +280,11 @@
               <table class="app-data-table app-split-table-grid">
                 <colgroup>
                   <col class="app-col-id" />
-                  <col />
-                  <col class="app-col-narrow" />
-                  <col class="app-col-narrow" />
-                  <col />
-                  <col />
+                  <col class="drink-col-name" />
+                  <col class="drink-col-unit" />
+                  <col class="drink-col-return" />
+                  <col class="drink-col-stock" />
+                  <col class="drink-col-price" />
                   @if (canManage()) {
                     <col class="app-col-actions" />
                   }
@@ -307,7 +307,7 @@
                     <tr>
                       <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
                       <td class="app-cell-primary">
-                        <span class="inline-flex items-center gap-2">
+                        <span class="drink-name-cell">
                           @if (item.imageUrl) {
                             <img
                               [src]="item.imageUrl"
@@ -315,7 +315,7 @@
                               class="h-8 w-8 shrink-0 rounded bg-surface object-contain"
                             />
                           }
-                          <span>{{ item.name }}</span>
+                          <span class="drink-name-cell__label">{{ item.name }}</span>
                         </span>
                       </td>
                       <td class="app-cell-center text-text-secondary">{{ item.unitLabelTh }}</td>

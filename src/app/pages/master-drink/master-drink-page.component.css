@@ -1,0 +1,43 @@
+/* Drink master owns column layout; shared --list only does scroll/air/clip */
+:host .app-split-table--list.app-split-table--wide {
+  --app-list-table-min: 56rem;
+}
+
+:host .app-split-table-grid col.drink-col-name {
+  width: 26%;
+}
+
+:host .app-split-table-grid col.drink-col-unit {
+  width: 5.5rem;
+}
+
+:host .app-split-table-grid col.drink-col-return {
+  width: 5.5rem;
+}
+
+:host .app-split-table-grid col.drink-col-stock {
+  width: 16%;
+}
+
+:host .app-split-table-grid col.drink-col-price {
+  width: 6.5rem;
+}
+
+:host .app-split-table-grid col.app-col-actions {
+  width: 11.5rem;
+}
+
+:host .drink-name-cell {
+  display: inline-flex;
+  max-width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+:host .drink-name-cell__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
