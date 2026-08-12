@@ -1,12 +1,10 @@
-/* คงเหลือ — กว้างพอสำหรับ "999 ขวด" และเว้นระยะจากปุ่มจัดการ */
+/* สต็อก — % ของตาราง (พื้น --wide 72rem); กว้างพอสำหรับจำนวน + ปุ่ม */
 :host .app-split-table-grid col.stock-col-qty {
-  width: 11rem;
-  min-width: 11rem;
+  width: 14%;
 }
 
 :host .app-split-table-grid col.stock-col-actions {
-  width: 10.5rem;
-  min-width: 10.5rem;
+  width: 14%;
 }
 
 :host .stock-qty-cell {

@@ -1,24 +1,24 @@
-/* Role master — rem cols sized for Thai headers + tracking */
+/* Role master — % cols like bill-history; floor keeps Thai headers readable when scrolling */
+:host .app-split-table--wide {
+  --app-split-table-min: 80rem;
+}
+
 :host .app-split-table-grid col.role-col-sys {
-  width: 10rem;
+  width: 12%;
 }
 
 :host .app-split-table-grid col.role-col-name {
-  width: 10rem;
+  width: 12%;
 }
 
 :host .app-split-table-grid col.role-col-group {
-  width: 11rem;
+  width: 13%;
 }
 
 :host .app-split-table-grid col.role-col-type {
-  width: 10rem;
+  width: 12%;
 }
 
 :host .app-split-table-grid col.role-col-num {
-  width: 8rem;
-}
-
-:host .app-split-table-grid col.app-col-actions {
-  width: 12rem;
+  width: 8%;
 }

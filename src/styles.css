@@ -1965,9 +1965,18 @@
     border-radius: 3px;
   }
 
-  /** Split tables inside cards: clip on desktop; below 1000px shell scrolls (see mobile table block). */
+  /** Split tables: shell scrolls horizontally (bill-history pattern). Ranking keeps clip. */
+  .app-data-table-shell:has(.app-split-table):not(:has(.dashboard-rank-split)) {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-gutter: auto;
+    --app-scroll-track: var(--table-body-bg);
+  }
+
   @media (min-width: 1000px) {
-    .app-card-flush .app-data-table-shell:has(.app-split-table) {
+    .app-card-flush .app-data-table-shell:has(.dashboard-rank-split) {
       overflow-x: hidden;
       overflow-y: hidden;
       scrollbar-gutter: auto;
@@ -1985,6 +1994,21 @@
     background-color: var(--table-body-bg);
   }
 
+  /**
+   * Floor width so columns are not crushed into each other on narrow cards.
+   * Wider than the card → shell scrolls. Dashboard ranking is excluded.
+   */
+  .app-split-table:not(.app-split-table--mobile-stack):not(.dashboard-rank-split) {
+    --app-split-table-min: 44rem;
+    width: max(100%, var(--app-split-table-min));
+    min-width: var(--app-split-table-min);
+    max-width: none;
+  }
+
+  .app-split-table--wide:not(.app-split-table--mobile-stack):not(.dashboard-rank-split) {
+    --app-split-table-min: 72rem;
+  }
+
   .app-split-table-header,
   .app-split-table-body {
     width: 100%;
@@ -1993,10 +2017,27 @@
     box-sizing: border-box;
   }
 
+  .app-split-table:not(.app-split-table--mobile-stack):not(.dashboard-rank-split) .app-split-table-header,
+  .app-split-table:not(.app-split-table--mobile-stack):not(.dashboard-rank-split) .app-split-table-body {
+    max-width: none;
+    overflow-x: hidden;
+  }
+
   .app-split-table-header .app-split-table-grid,
   .app-split-table-body .app-split-table-grid {
     width: 100%;
     max-width: 100%;
+  }
+
+  .app-split-table:not(.app-split-table--mobile-stack):not(.dashboard-rank-split)
+    .app-split-table-header
+    .app-split-table-grid,
+  .app-split-table:not(.app-split-table--mobile-stack):not(.dashboard-rank-split)
+    .app-split-table-body
+    .app-split-table-grid {
+    width: 100%;
+    min-width: var(--app-split-table-min);
+    max-width: none;
   }
 
   .app-split-table-header {
@@ -2052,18 +2093,32 @@
     transition: background-color var(--transition-smooth), color var(--transition-smooth);
   }
 
+  .app-split-table:not(.app-split-table--mobile-stack):not(.dashboard-rank-split) .app-data-table th,
+  .app-split-table:not(.app-split-table--mobile-stack):not(.dashboard-rank-split) .app-data-table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  .app-split-table:not(.app-split-table--mobile-stack):not(.dashboard-rank-split)
+    .app-data-table
+    td:has(.app-table-actions) {
+    overflow: visible;
+  }
+
   .app-split-table-body .app-data-table tbody tr:hover td {
     background-color: var(--table-row-hover-bg);
     color: var(--text-primary);
   }
 
   /**
-   * Split-table column widths via <colgroup>.
-   * Declare only fixed columns (No., จัดการ, narrow fields); all other <th>/<td> columns
-   * share the remaining width equally — no per-column <col /> when adding fields.
+   * Split-table column widths via <colgroup> — same idea as bill-history:
+   * declare every column as % of the table; table floor (--app-split-table-min)
+   * keeps absolute space readable; wider cards stretch columns proportionally.
    */
   .app-split-table-grid col.app-col-id {
-    width: 8%;
+    width: 5%;
   }
 
   .app-split-table-grid col.app-col-actions {
@@ -2071,37 +2126,31 @@
   }
 
   .app-split-table-grid col.app-col-narrow {
-    width: 7%;
+    width: 9%;
+  }
+
+  .app-split-table-grid col.app-col-name {
+    width: 16%;
+  }
+
+  .app-split-table-grid col.app-col-text {
+    width: 18%;
+  }
+
+  .app-split-table-grid col.app-col-money {
+    width: 10%;
+  }
+
+  .app-split-table-grid col.app-col-flag {
+    width: 10%;
+  }
+
+  .app-split-table-grid col.app-col-status {
+    width: 10%;
   }
 
   .app-split-table-grid col.app-col-action-btn {
-    width: 6.5rem;
-  }
-
-  /** Wide master tables: fill card on tablet/desktop (phones use rem min-width in mobile block). */
-  @media (min-width: 640px) {
-    .app-split-table--wide,
-    .app-split-table--wide .app-split-table-header,
-    .app-split-table--wide .app-split-table-body {
-      width: 100%;
-      max-width: 100%;
-      min-width: 0;
-    }
-
-    .app-split-table:not(.app-split-table--mobile-stack) .app-split-table-header .app-split-table-grid,
-    .app-split-table:not(.app-split-table--mobile-stack) .app-split-table-body .app-split-table-grid,
-    .app-split-table:has(.app-col-actions):not(.app-split-table--mobile-stack)
-      .app-split-table-header
-      .app-split-table-grid,
-    .app-split-table:has(.app-col-actions):not(.app-split-table--mobile-stack)
-      .app-split-table-body
-      .app-split-table-grid,
-    .app-split-table--wide:not(.app-split-table--mobile-stack) .app-split-table-header .app-split-table-grid,
-    .app-split-table--wide:not(.app-split-table--mobile-stack) .app-split-table-body .app-split-table-grid {
-      width: 100%;
-      min-width: 0;
-      max-width: 100%;
-    }
+    width: 7%;
   }
 
   /** @deprecated — use .app-split-table */
@@ -2274,7 +2323,7 @@
   }
 
   .app-table-actions {
-    @apply flex flex-wrap justify-center gap-2.5;
+    @apply flex flex-nowrap justify-center gap-2.5;
   }
 
   .app-table-empty {
@@ -2297,7 +2346,7 @@
 
     /**
      * Mobile: same table-fixed + colgroup % as desktop so header/body columns line up.
-     * Fixed rem width on both tables (do not squeeze to viewport); shell scrolls horizontally.
+     * Floor min-width comes from shared --app-split-table-min; shell scrolls horizontally.
      */
     .app-data-table-shell:has(.app-split-table) {
       @apply app-scroll-region;
@@ -2308,63 +2357,9 @@
       overscroll-behavior-x: contain;
     }
 
-    .app-split-table {
-      width: 100%;
-      min-width: 0;
-    }
-
     .app-split-table-header .app-split-table-grid,
     .app-split-table-body .app-split-table-grid {
       table-layout: fixed;
-    }
-
-    /** Phones: wider min-width (like bill-history) so cells are not cramped */
-    @media (max-width: 639px) {
-      .app-split-table-header .app-split-table-grid,
-      .app-split-table-body .app-split-table-grid {
-        width: 40rem;
-        min-width: 40rem;
-      }
-
-      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack)
-        .app-split-table-header
-        .app-split-table-grid,
-      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack)
-        .app-split-table-body
-        .app-split-table-grid {
-        width: 44rem;
-        min-width: 44rem;
-      }
-
-      .app-data-table-scroll-10.app-data-table-wrap--wide .app-data-table,
-      .app-data-table-wrap.app-data-table-scroll-10--wide .app-data-table,
-      .app-split-table--wide .app-split-table-header .app-split-table-grid,
-      .app-split-table--wide .app-split-table-body .app-split-table-grid {
-        width: 56rem;
-        min-width: 56rem;
-      }
-    }
-
-    /** Tablet in mobile shell (640–999): stretch tables to card width */
-    @media (min-width: 640px) {
-      .app-split-table:not(.app-split-table--mobile-stack) .app-split-table-header .app-split-table-grid,
-      .app-split-table:not(.app-split-table--mobile-stack) .app-split-table-body .app-split-table-grid,
-      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack)
-        .app-split-table-header
-        .app-split-table-grid,
-      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack)
-        .app-split-table-body
-        .app-split-table-grid,
-      .app-split-table--wide .app-split-table-header .app-split-table-grid,
-      .app-split-table--wide .app-split-table-body .app-split-table-grid {
-        width: 100%;
-        min-width: 0;
-        max-width: 100%;
-      }
-
-      .app-split-table-grid col.app-col-actions {
-        width: 20%;
-      }
     }
 
     .app-split-table--mobile-stack .app-split-table-header .app-split-table-grid,
@@ -2503,7 +2498,7 @@
     }
 
     .app-split-table-grid col.app-col-id {
-      width: 8%;
+      width: 5%;
     }
 
     .app-split-table-grid col.app-col-actions {
@@ -2511,11 +2506,11 @@
     }
 
     .app-split-table-grid col.app-col-narrow {
-      width: 7%;
+      width: 9%;
     }
 
     .app-split-table-grid col.app-col-action-btn {
-      width: 5.5rem;
+      width: 7%;
     }
 
     .app-split-table-header {

@@ -1,26 +1,22 @@
-/* Drink master owns column layout */
+/* Drink master — proportional % cols (bill-history pattern) */
 :host .app-split-table-grid col.drink-col-name {
   width: 26%;
 }
 
 :host .app-split-table-grid col.drink-col-unit {
-  width: 5.5rem;
+  width: 8%;
 }
 
 :host .app-split-table-grid col.drink-col-return {
-  width: 5.5rem;
+  width: 8%;
 }
 
 :host .app-split-table-grid col.drink-col-stock {
-  width: 16%;
+  width: 18%;
 }
 
 :host .app-split-table-grid col.drink-col-price {
-  width: 6.5rem;
-}
-
-:host .app-split-table-grid col.app-col-actions {
-  width: 11.5rem;
+  width: 10%;
 }
 
 :host .drink-name-cell {
@@ -34,5 +30,6 @@
 :host .drink-name-cell__label {
   min-width: 0;
   overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
