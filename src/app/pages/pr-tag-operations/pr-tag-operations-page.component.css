@@ -1,8 +1,4 @@
 /* Card list below 1000px — table on desktop */
-:host .app-split-table--list.app-split-table--wide {
-  --app-list-table-min: 80rem;
-}
-
 @media (max-width: 999px) {
   .pr-tag-ops-mobile-list {
     display: flex;

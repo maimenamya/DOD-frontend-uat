@@ -1,8 +1,0 @@
-/* Amount + actions — page-owned widths (shared --list only does visual shell) */
-:host .app-split-table-grid col.app-col-narrow {
-  width: 9rem;
-}
-
-:host .app-split-table-grid col.app-col-actions {
-  width: 11.5rem;
-}

@@ -3,19 +3,46 @@
 }
 
 /*
- * Bill-history owns its layout: min-width + column %.
- * Shared --list only provides scroll shell + visual air.
+ * One horizontal scroll on the shell (header + body move together).
+ * Table fills the card when wide; keeps min-width so columns never crush.
+ * Mobile stays a real table (no card stack).
  */
+.bill-history-page .bill-history-table-shell {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-gutter: auto;
+  --app-scroll-track: var(--table-body-bg);
+}
+
 .bill-history-page .bill-history-split {
-  --app-list-table-min: 72rem;
+  width: max(100%, 72rem);
+  min-width: 72rem;
+  max-width: none;
 }
 
-@media (max-width: 999px) {
-  .bill-history-page .bill-history-split {
-    --app-list-table-min: 68rem;
-  }
+.bill-history-page .bill-history-split .app-split-table-header,
+.bill-history-page .bill-history-split .app-split-table-body {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  overflow-x: hidden;
 }
 
+.bill-history-page .bill-history-split .app-split-table-body {
+  overflow-y: auto;
+}
+
+.bill-history-page .bill-history-split .app-split-table-header .bill-history-table,
+.bill-history-page .bill-history-split .app-split-table-body .bill-history-table {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 72rem;
+  max-width: none;
+}
+
+/* % cols stretch when the card is wider than 72rem */
 .bill-history-table col.bill-history-col-id {
   width: 5%;
 }
@@ -50,6 +77,18 @@
 
 .bill-history-table col.bill-history-col-actions {
   width: 14%;
+}
+
+.bill-history-page .bill-history-table th,
+.bill-history-page .bill-history-table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.bill-history-page .bill-history-table th {
+  letter-spacing: 0.02em;
 }
 
 .bill-history-cell-date,
@@ -112,4 +151,37 @@
 
 .bill-history-detail-actions {
   flex-shrink: 0;
+}
+
+/* Beat global phone rem-width / card-stack rules — keep a scrollable table */
+@media (max-width: 999px) {
+  .bill-history-page .app-card-flush:has(.bill-history-table-shell) {
+    overflow: hidden;
+  }
+
+  .bill-history-page .bill-history-table-shell {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .bill-history-page .bill-history-split {
+    width: max(100%, 68rem);
+    min-width: 68rem;
+  }
+
+  .bill-history-page .bill-history-split .app-split-table-header .bill-history-table,
+  .bill-history-page .bill-history-split .app-split-table-body .bill-history-table {
+    min-width: 68rem;
+  }
+
+  .bill-history-page .bill-history-split .app-split-table-header {
+    display: block;
+    padding-inline-end: 0;
+  }
+
+  .bill-history-page .bill-history-split .app-split-table-body {
+    max-height: none;
+    overflow-x: hidden;
+    overflow-y: visible;
+  }
 }
