@@ -128,7 +128,6 @@ export class MasterRolePageComponent implements OnInit {
       drinkShopPortionBaht: '60',
       attendanceLeaveQuotaPerMonth: '0',
       expectedCheckInTime: '20:00',
-      expectedOnFloorTime: '',
       expectedCheckOutTime: '04:00',
       expectedCheckOutNextDay: true,
       changeReason: '',
@@ -155,7 +154,6 @@ export class MasterRolePageComponent implements OnInit {
       drinkShopPortionBaht: String(role.drinkShopPortionBaht ?? 60),
       attendanceLeaveQuotaPerMonth: String(role.attendanceLeaveQuotaPerMonth ?? 0),
       expectedCheckInTime: role.expectedCheckInTime ?? '',
-      expectedOnFloorTime: role.expectedOnFloorTime ?? '',
       expectedCheckOutTime: role.expectedCheckOutTime ?? '',
       expectedCheckOutNextDay: role.expectedCheckOutNextDay ?? true,
       changeReason: '',
@@ -190,7 +188,7 @@ export class MasterRolePageComponent implements OnInit {
 
   normalizeTime(
     form: 'create' | 'edit',
-    field: 'expectedCheckInTime' | 'expectedOnFloorTime' | 'expectedCheckOutTime',
+    field: 'expectedCheckInTime' | 'expectedCheckOutTime',
   ): void {
     const targetForm = form === 'create' ? this.createForm : this.editForm;
     const control = targetForm.controls[field];
@@ -283,7 +281,6 @@ export class MasterRolePageComponent implements OnInit {
       drinkShopPortionBaht: ['60', [Validators.pattern(/^\d+$/)]],
       attendanceLeaveQuotaPerMonth: ['0', [Validators.pattern(/^\d+$/)]],
       expectedCheckInTime: [''],
-      expectedOnFloorTime: [''],
       expectedCheckOutTime: [''],
       expectedCheckOutNextDay: [true],
       changeReason: ['', Validators.minLength(3)],
@@ -298,17 +295,11 @@ export class MasterRolePageComponent implements OnInit {
       return true;
     }
     this.normalizeTime(form === this.createForm ? 'create' : 'edit', 'expectedCheckInTime');
-    this.normalizeTime(form === this.createForm ? 'create' : 'edit', 'expectedOnFloorTime');
     this.normalizeTime(form === this.createForm ? 'create' : 'edit', 'expectedCheckOutTime');
     const checkIn = form.controls.expectedCheckInTime.value.trim();
-    const onFloor = form.controls.expectedOnFloorTime.value.trim();
     const checkOut = form.controls.expectedCheckOutTime.value.trim();
     if (!checkIn || !isValidShopTimeHm(checkIn) || !isValidShopTimeHm(checkOut) || !checkOut) {
       this.toast.showError('กรุณาระบุเวลาเข้า–ออกงานเป็นรูปแบบ 24 ชม. เช่น 20:00');
-      return false;
-    }
-    if (onFloor && !isValidShopTimeHm(onFloor)) {
-      this.toast.showError('เวลา on floor ต้องเป็นรูปแบบ 24 ชม. เช่น 21:00');
       return false;
     }
     return true;
@@ -379,9 +370,6 @@ export class MasterRolePageComponent implements OnInit {
       ...(needsWorkHours
         ? {
             expectedCheckInTime: raw.expectedCheckInTime.trim() || null,
-            expectedOnFloorTime: isEntertainer
-              ? raw.expectedOnFloorTime.trim() || null
-              : null,
             expectedCheckOutTime: raw.expectedCheckOutTime.trim() || null,
             expectedCheckOutNextDay: raw.expectedCheckOutNextDay,
           }

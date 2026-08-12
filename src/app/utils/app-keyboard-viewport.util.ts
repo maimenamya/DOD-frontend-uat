@@ -4,7 +4,7 @@ import { APP_MOBILE_MEDIA_QUERY, isAppMobileViewport } from './app-viewport.util
 export const APP_KEYBOARD_OVERLAP_THRESHOLD_PX = 60;
 
 const FOCUSABLE_FIELD_SELECTOR =
-  'input:not([type="hidden"]):not([disabled]):not([readonly]), textarea:not([disabled]), select:not([disabled]), [contenteditable="true"]';
+  'input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="file"]):not([type="image"]):not([disabled]):not([readonly]), textarea:not([disabled]), select:not([disabled]), [contenteditable="true"]';
 
 const APP_SCROLL_CONTAINER_SELECTOR = [
   '.open-table-mobile-sheet',
@@ -213,11 +213,14 @@ export function scheduleAppFieldReveal(target: HTMLElement): void {
 }
 
 export function isAppFocusableField(target: EventTarget | null): target is HTMLElement {
-  return (
-    target instanceof HTMLElement &&
-    typeof target.matches === 'function' &&
-    target.matches(FOCUSABLE_FIELD_SELECTOR)
-  );
+  if (!(target instanceof HTMLElement) || typeof target.matches !== 'function') {
+    return false;
+  }
+  // Toggle checkboxes must not trigger keyboard field-reveal (modal scroll jump).
+  if (target.classList.contains('app-toggle-input')) {
+    return false;
+  }
+  return target.matches(FOCUSABLE_FIELD_SELECTOR);
 }
 
 /**

@@ -20,9 +20,8 @@ export interface ShopPolicyConfig {
 
 export type ShopPolicyInput = Omit<
   ShopPolicyConfig,
-  'shopId' | 'expectedOnFloorTime' | 'expectedCheckOutTime'
+  'shopId' | 'expectedCheckOutTime'
 > & {
-  /** Omit to leave shop legacy columns unchanged (staff times on roles). */
-  expectedOnFloorTime?: string | null;
+  /** Omit to leave shop legacy check-out column unchanged (staff times on roles). */
   expectedCheckOutTime?: string | null;
 };
