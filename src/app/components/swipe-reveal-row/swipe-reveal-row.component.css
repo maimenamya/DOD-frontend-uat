@@ -83,9 +83,9 @@
   align-items: center;
   justify-content: center;
   align-self: stretch;
-  min-width: 4.25rem;
+  min-width: 3.25rem;
   min-height: 100%;
-  padding: 0 0.75rem;
+  padding: 0 0.65rem;
   border: none;
   margin: 0;
   font-size: 0.8125rem;
@@ -94,6 +94,13 @@
   color: #fff;
   cursor: pointer;
   touch-action: manipulation;
+}
+
+:host ::ng-deep .swipe-reveal-btn__icon {
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
 }
 
 :host ::ng-deep .swipe-reveal-btn:disabled {
@@ -107,6 +114,11 @@
 
 :host ::ng-deep .swipe-reveal-btn--accent {
   background: color-mix(in srgb, var(--primary) 88%, #000);
+}
+
+:host ::ng-deep .swipe-reveal-btn--warning {
+  background: color-mix(in srgb, #eab308 88%, #000);
+  color: #1a1a1a;
 }
 
 :host ::ng-deep .swipe-reveal-btn--muted {

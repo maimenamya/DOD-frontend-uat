@@ -839,6 +839,29 @@
           </div>
         } @else {
           <div class="open-table-session-panel__ledger space-y-4">
+          <ng-template #swipeIconTrash>
+            <svg class="swipe-reveal-btn__icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path
+                fill-rule="evenodd"
+                d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.201-2.309.368A2.25 2.25 0 002 6.728V17.25A2.25 2.25 0 004.25 19.5h11.5A2.25 2.25 0 0018 17.25V6.728a2.25 2.25 0 00-1.691-2.167A16.4 16.4 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.532.645 1.745 1.5H8.255A1.75 1.75 0 0110 4zM8.75 7.25a.75.75 0 00-1.5 0v7.5a.75.75 0 001.5 0v-7.5zM12.75 7.25a.75.75 0 00-1.5 0v7.5a.75.75 0 001.5 0v-7.5z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </ng-template>
+          <ng-template #swipeIconEdit>
+            <svg class="swipe-reveal-btn__icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path
+                d="M2.695 14.763l-1.262 3.154a.5.5 0 00.65.65l3.155-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z"
+              />
+            </svg>
+          </ng-template>
+          <ng-template #swipeIconStop>
+            <svg class="swipe-reveal-btn__icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path
+                d="M5.25 3A2.25 2.25 0 003 5.25v9.5A2.25 2.25 0 005.25 17h9.5A2.25 2.25 0 0017 14.75v-9.5A2.25 2.25 0 0014.75 3h-9.5z"
+              />
+            </svg>
+          </ng-template>
           <div>
             <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">
               รายการในบิล
@@ -886,10 +909,12 @@
                           swipeEnd
                           type="button"
                           class="swipe-reveal-btn swipe-reveal-btn--danger"
+                          aria-label="ลบ"
+                          title="ลบ"
                           [disabled]="actionBusy()"
                           (click)="openVoidItemModal(item)"
                         >
-                          ลบ
+                          <ng-container *ngTemplateOutlet="swipeIconTrash" />
                         </button>
                       }
                       <div class="open-table-ledger-item">
@@ -942,22 +967,26 @@
                       <button
                         swipeStart
                         type="button"
-                        class="swipe-reveal-btn swipe-reveal-btn--accent"
+                        class="swipe-reveal-btn swipe-reveal-btn--muted"
+                        aria-label="สต็อป"
+                        title="สต็อป"
                         [disabled]="actionBusy()"
                         (click)="openStopRoomModal(row)"
                       >
-                        สต็อป
+                        <ng-container *ngTemplateOutlet="swipeIconStop" />
                       </button>
                     }
                     @if (ledgerCanMutate() && row.canEditRoomCharge) {
                       <button
                         swipeStart
                         type="button"
-                        class="swipe-reveal-btn swipe-reveal-btn--muted"
+                        class="swipe-reveal-btn swipe-reveal-btn--warning"
+                        aria-label="แก้ไข"
+                        title="แก้ไข"
                         [disabled]="actionBusy()"
                         (click)="openEditRoomChargeModal(row)"
                       >
-                        แก้ไข
+                        <ng-container *ngTemplateOutlet="swipeIconEdit" />
                       </button>
                     }
                     @if (ledgerCanMutate() && row.canDeleteRoomCharge) {
@@ -965,10 +994,12 @@
                         swipeEnd
                         type="button"
                         class="swipe-reveal-btn swipe-reveal-btn--danger"
+                        aria-label="ลบ"
+                        title="ลบ"
                         [disabled]="actionBusy()"
                         (click)="openDeleteRoomChargeModal(row)"
                       >
-                        ลบ
+                        <ng-container *ngTemplateOutlet="swipeIconTrash" />
                       </button>
                     }
                     <div class="open-table-ledger-item">
@@ -1011,22 +1042,26 @@
                       <button
                         swipeStart
                         type="button"
-                        class="swipe-reveal-btn swipe-reveal-btn--accent"
+                        class="swipe-reveal-btn swipe-reveal-btn--muted"
+                        aria-label="สต็อป"
+                        title="สต็อป"
                         [disabled]="actionBusy()"
                         (click)="openStopDrinkModal(row)"
                       >
-                        สต็อป
+                        <ng-container *ngTemplateOutlet="swipeIconStop" />
                       </button>
                     }
                     @if (ledgerCanMutate() && row.canEditStaffDrink) {
                       <button
                         swipeStart
                         type="button"
-                        class="swipe-reveal-btn swipe-reveal-btn--muted"
+                        class="swipe-reveal-btn swipe-reveal-btn--warning"
+                        aria-label="แก้ไข"
+                        title="แก้ไข"
                         [disabled]="actionBusy()"
                         (click)="openEditStaffDrinkModal(row)"
                       >
-                        แก้ไข
+                        <ng-container *ngTemplateOutlet="swipeIconEdit" />
                       </button>
                     }
                     @if (ledgerCanMutate() && row.canDeleteStaffDrink) {
@@ -1034,10 +1069,12 @@
                         swipeEnd
                         type="button"
                         class="swipe-reveal-btn swipe-reveal-btn--danger"
+                        aria-label="ลบ"
+                        title="ลบ"
                         [disabled]="actionBusy()"
                         (click)="openDeleteStaffDrinkModal(row)"
                       >
-                        ลบ
+                        <ng-container *ngTemplateOutlet="swipeIconTrash" />
                       </button>
                     }
                     <div class="open-table-ledger-item">
@@ -1222,7 +1259,6 @@
         }
         <div class="app-form-group">
           @if (isPcBillWorkspace()) {
-            <span class="app-label">ประเภทที่นั่ง</span>
             <div
               class="app-segmented-control app-scroll-region max-w-full flex-nowrap overflow-x-auto"
               role="group"
@@ -1312,7 +1348,6 @@
         @if (orderLedgerCategory() === 'FOOD') {
           <div class="app-form-group">
             @if (isPcBillWorkspace()) {
-              <span class="app-label">หมวดอาหาร</span>
               <div
                 class="app-segmented-control app-scroll-region max-w-full flex-nowrap overflow-x-auto"
                 role="group"
@@ -1356,7 +1391,6 @@
         @if (orderLedgerCategory() === 'BEVERAGE') {
           <div class="app-form-group">
             @if (isPcBillWorkspace()) {
-              <span class="app-label">หมวดเครื่องดื่ม</span>
               <div
                 class="app-segmented-control app-scroll-region max-w-full flex-nowrap overflow-x-auto"
                 role="group"
@@ -1449,7 +1483,6 @@
         @if (orderLedgerCategory() === 'PROMOTION' || orderLedgerCategory() === 'MEMBER') {
           <div class="app-form-group">
             @if (isPcBillWorkspace()) {
-              <span class="app-label">โหมดโปร / เมม</span>
               <div
                 class="app-segmented-control"
                 role="group"
@@ -1621,7 +1654,6 @@
       @if (addModalMode() === 'STAFF_LEDGER') {
         <div class="app-form-group">
           @if (isPcBillWorkspace()) {
-            <span class="app-label">ประเภทลงดื่ม</span>
             <div
               class="app-segmented-control"
               role="group"
@@ -1856,7 +1888,6 @@
     <div class="app-form-stack">
       <div class="app-form-group">
         @if (isPcBillWorkspace()) {
-          <span class="app-label">ประเภทที่นั่ง</span>
           <div
             class="app-segmented-control app-scroll-region max-w-full flex-nowrap overflow-x-auto"
             role="group"
