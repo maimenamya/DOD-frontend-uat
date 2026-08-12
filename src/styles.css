@@ -2063,7 +2063,7 @@
    * share the remaining width equally — no per-column <col /> when adding fields.
    */
   .app-split-table-grid col.app-col-id {
-    width: 8%;
+    width: 3.5rem;
   }
 
   .app-split-table-grid col.app-col-actions {
@@ -2071,7 +2071,7 @@
   }
 
   .app-split-table-grid col.app-col-narrow {
-    width: 8rem;
+    width: 8.5rem;
   }
 
   .app-split-table-grid col.app-col-action-btn {
@@ -2132,15 +2132,16 @@
     overflow-y: hidden;
   }
 
+  /* Soft floor — wide enough that Thai headers/cells fit without "…" */
   .app-split-table--list {
-    width: max(100%, var(--app-list-table-min, 100%));
-    min-width: var(--app-list-table-min, 0);
+    --app-list-table-min: 42rem;
+    width: max(100%, var(--app-list-table-min));
+    min-width: var(--app-list-table-min);
     max-width: none;
   }
 
-  /* Soft floor for wide masters — pages may override --app-list-table-min */
   .app-split-table--list.app-split-table--wide {
-    --app-list-table-min: 56rem;
+    --app-list-table-min: 80rem;
   }
 
   .app-split-table--list .app-split-table-header,
@@ -2157,15 +2158,16 @@
 
   .app-split-table--list .app-split-table-header .app-split-table-grid,
   .app-split-table--list .app-split-table-body .app-split-table-grid {
+    table-layout: fixed;
     width: 100%;
-    min-width: var(--app-list-table-min, 100%);
+    min-width: var(--app-list-table-min);
     max-width: none;
   }
 
   .app-split-table--list .app-data-table th,
   .app-split-table--list .app-data-table td {
+    /* Clip paint bleed between cols — no ellipsis (read full text via wide min + scroll) */
     overflow: hidden;
-    text-overflow: ellipsis;
     vertical-align: middle;
     white-space: nowrap;
   }
@@ -2177,7 +2179,6 @@
   /* Buttons must not clip; keep one row */
   .app-split-table--list .app-data-table td:has(.app-table-actions) {
     overflow: visible;
-    text-overflow: unset;
   }
 
   .app-split-table--list .app-table-actions {
@@ -2471,8 +2472,12 @@
     }
 
     .app-split-table--list {
-      width: max(100%, var(--app-list-table-min, 100%));
-      min-width: var(--app-list-table-min, 0);
+      width: max(100%, var(--app-list-table-min));
+      min-width: var(--app-list-table-min);
+    }
+
+    .app-split-table--list.app-split-table--wide {
+      --app-list-table-min: 72rem;
     }
 
     .app-split-table--list .app-split-table-header {
@@ -2489,7 +2494,7 @@
     .app-split-table--list .app-split-table-header .app-split-table-grid,
     .app-split-table--list .app-split-table-body .app-split-table-grid {
       width: 100%;
-      min-width: var(--app-list-table-min, 100%);
+      min-width: var(--app-list-table-min);
       max-width: none;
     }
 
@@ -2634,7 +2639,7 @@
     }
 
     .app-split-table-grid col.app-col-id {
-      width: 8%;
+      width: 3.5rem;
     }
 
     .app-split-table-grid col.app-col-actions {
@@ -2642,7 +2647,7 @@
     }
 
     .app-split-table-grid col.app-col-narrow {
-      width: 8rem;
+      width: 8.5rem;
     }
 
     .app-split-table-grid col.app-col-action-btn {

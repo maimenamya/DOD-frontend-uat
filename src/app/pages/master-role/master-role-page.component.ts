@@ -44,6 +44,7 @@ const CATEGORY_DROPDOWN_OPTIONS: DropdownOption[] = [
   selector: 'app-master-role-page',
   imports: [MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent, DecimalPipe, CustomDropdownComponent, MasterListToolbarComponent, ListPaginatorComponent, RouterLink],
   templateUrl: './master-role-page.component.html',
+  styleUrl: './master-role-page.component.css',
 })
 export class MasterRolePageComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
