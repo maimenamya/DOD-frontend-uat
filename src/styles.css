@@ -2656,21 +2656,27 @@
   }
 
   .app-toggle {
-    @apply inline-flex items-center gap-3;
+    @apply relative inline-flex items-center gap-3;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
 
+  /**
+   * Keep the real checkbox over the control (opacity 0).
+   * Clipped 1×1 absolute inputs make the browser scrollIntoView to a weird
+   * point inside modal sheets → jump/warp on every toggle click.
+   */
   .app-toggle-input {
     position: absolute;
-    width: 1px;
-    height: 1px;
+    inset: 0;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    margin: 0;
     padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
+    opacity: 0;
+    cursor: pointer;
+    border: 0;
   }
 
   .app-toggle-track {
