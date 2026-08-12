@@ -291,7 +291,7 @@ export class MasterRolePageComponent implements OnInit {
     form: ReturnType<MasterRolePageComponent['buildRoleForm']>,
   ): boolean {
     const raw = form.getRawValue();
-    if (raw.category !== 'STAFF' && raw.category !== 'ENTERTAINER') {
+    if (raw.category !== 'STAFF') {
       return true;
     }
     this.normalizeTime(form === this.createForm ? 'create' : 'edit', 'expectedCheckInTime');
@@ -353,7 +353,6 @@ export class MasterRolePageComponent implements OnInit {
     const raw = form.getRawValue();
     const isEntertainer = raw.category === 'ENTERTAINER';
     const isStaff = raw.category === 'STAFF';
-    const needsWorkHours = isStaff || isEntertainer;
     return {
       name: raw.name.trim().toUpperCase(),
       displayNameTh: raw.displayNameTh.trim(),
@@ -363,17 +362,20 @@ export class MasterRolePageComponent implements OnInit {
       nextHourDrinks: Number.parseInt(isEntertainer ? raw.nextHourDrinks : '0', 10),
       defaultPricePerDrink: Number.parseInt(raw.defaultPricePerDrink, 10),
       drinkShopPortionBaht: Number.parseInt(raw.drinkShopPortionBaht, 10),
-      attendanceLeaveQuotaPerMonth: Number.parseInt(
-        raw.attendanceLeaveQuotaPerMonth || '0',
-        10,
-      ),
-      ...(needsWorkHours
+      attendanceLeaveQuotaPerMonth: isStaff
+        ? Number.parseInt(raw.attendanceLeaveQuotaPerMonth || '0', 10)
+        : 0,
+      ...(isStaff
         ? {
             expectedCheckInTime: raw.expectedCheckInTime.trim() || null,
             expectedCheckOutTime: raw.expectedCheckOutTime.trim() || null,
             expectedCheckOutNextDay: raw.expectedCheckOutNextDay,
           }
-        : {}),
+        : {
+            expectedCheckInTime: null,
+            expectedCheckOutTime: null,
+            expectedCheckOutNextDay: true,
+          }),
     };
   }
 }

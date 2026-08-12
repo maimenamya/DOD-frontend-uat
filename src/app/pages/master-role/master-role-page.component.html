@@ -40,7 +40,7 @@
             placeholder="เลือกประเภท"
           />
         </div>
-        @if (createIsStaff() || createIsEntertainer()) {
+        @if (createIsStaff()) {
           <div class="app-form-group">
             <label class="app-label" for="master-role-โควต้าลา-วัน-เดือน-5">โควต้าลา (วัน/เดือน)</label>
             <input id="master-role-โควต้าลา-วัน-เดือน-5"
@@ -65,13 +65,7 @@
               autocomplete="off"
               (blur)="normalizeTime('create', 'expectedCheckInTime')"
             />
-            <p class="app-field-hint">
-              ใช้เทียบกับเวลาแสกนเข้าเพื่อคิดมาสายของตำแหน่งนี้
-              @if (createIsEntertainer()) {
-                · เวลา on floor ของ PR แท็กตั้งที่
-                <a routerLink="/dashboard/shop-rules" class="app-field-hint-link" (click)="closeCreate()">กฏร้าน</a>
-              }
-            </p>
+            <p class="app-field-hint">ใช้เทียบกับเวลาแสกนเข้าเพื่อคิดมาสายของตำแหน่งนี้</p>
           </div>
           <div class="app-form-group">
             <label class="app-label" for="master-role-เวลาออกงาน-8">เวลาออกงาน</label>
@@ -97,6 +91,13 @@
             </label>
             <p class="app-field-hint">เปิดถ้าเข้างานวันนี้แล้วออกเช้าวันรุ่งขึ้น</p>
           </div>
+        }
+        @if (createIsEntertainer()) {
+          <p class="app-field-hint mb-3">
+            เด็กนั่งดริ้ง: เวลา on floor (แท็ก) และสาย freelance ตั้งที่
+            <a routerLink="/dashboard/shop-rules" class="app-field-hint-link" (click)="closeCreate()">กฏร้าน</a>
+            — ไม่ใช้โควต้าลา / เวลาเข้า–ออกงานแบบพนักงาน
+          </p>
         }
         <div class="app-form-group">
           <label class="app-label" for="master-role-ราคาต่อดื่ม-บาท-9">ราคาต่อดื่ม (บาท)</label>
@@ -194,7 +195,7 @@
             placeholder="เลือกประเภท"
           />
         </div>
-        @if (editIsStaff() || editIsEntertainer()) {
+        @if (editIsStaff()) {
           <div class="app-form-group">
             <label class="app-label" for="master-role-โควต้าลา-วัน-เดือน-17">โควต้าลา (วัน/เดือน)</label>
             <input id="master-role-โควต้าลา-วัน-เดือน-17"
@@ -219,13 +220,7 @@
               autocomplete="off"
               (blur)="normalizeTime('edit', 'expectedCheckInTime')"
             />
-            <p class="app-field-hint">
-              ใช้เทียบกับเวลาแสกนเข้าเพื่อคิดมาสายของตำแหน่งนี้
-              @if (editIsEntertainer()) {
-                · เวลา on floor ของ PR แท็กตั้งที่
-                <a routerLink="/dashboard/shop-rules" class="app-field-hint-link" (click)="closeEdit()">กฏร้าน</a>
-              }
-            </p>
+            <p class="app-field-hint">ใช้เทียบกับเวลาแสกนเข้าเพื่อคิดมาสายของตำแหน่งนี้</p>
           </div>
           <div class="app-form-group">
             <label class="app-label" for="master-role-เวลาออกงาน-20">เวลาออกงาน</label>
@@ -251,6 +246,13 @@
             </label>
             <p class="app-field-hint">เปิดถ้าเข้างานวันนี้แล้วออกเช้าวันรุ่งขึ้น</p>
           </div>
+        }
+        @if (editIsEntertainer()) {
+          <p class="app-field-hint mb-3">
+            เด็กนั่งดริ้ง: เวลา on floor (แท็ก) และสาย freelance ตั้งที่
+            <a routerLink="/dashboard/shop-rules" class="app-field-hint-link" (click)="closeEdit()">กฏร้าน</a>
+            — ไม่ใช้โควต้าลา / เวลาเข้า–ออกงานแบบพนักงาน
+          </p>
         }
         <div class="app-form-group">
           <label class="app-label" for="master-role-ราคาต่อดื่ม-บาท-21">ราคาต่อดื่ม (บาท)</label>
