@@ -38,6 +38,10 @@ export type FloorPlanSeat = {
   reservedOperatorName?: string | null;
   guestCount?: number | null;
   creditSaleToShop?: boolean;
+  packageCustomerCode?: string | null;
+  packageCustomerName?: string | null;
+  reservedPackageCustomerCode?: string | null;
+  reservedPackageCustomerName?: string | null;
   operatorSaleName?: string | null;
   previewTotalAmount?: number | null;
   openDurationLabel?: string | null;
@@ -276,6 +280,8 @@ export type OpenTableSessionDetail = {
   operatorSaleName?: string | null;
   creditSaleToShop?: boolean;
   guestCount?: number | null;
+  packageCustomerCode?: string | null;
+  packageCustomerName?: string | null;
   items: SessionOrderItem[];
   roomCharges?: SessionRoomCharge[];
   staffDrinks: SessionStaffDrink[];
@@ -296,6 +302,8 @@ export type CheckInPayload = {
   guestCount: number;
   /** Bill credit goes to shop, not the selected sale employee. */
   creditSaleToShop?: boolean;
+  packageCustomerCode?: string | null;
+  packageCustomerName?: string | null;
 };
 
 export type AddBillPayload = {
@@ -304,6 +312,8 @@ export type AddBillPayload = {
   salesId: number;
   guestCount?: number;
   creditSaleToShop?: boolean;
+  packageCustomerCode?: string | null;
+  packageCustomerName?: string | null;
 };
 
 export type CancelBillPayload = {
@@ -315,6 +325,8 @@ export type CancelBillPayload = {
 export type UpdateSessionInfoPayload = SessionMutationBase & {
   guestCount?: number;
   creditSaleToShop?: boolean;
+  packageCustomerCode?: string | null;
+  packageCustomerName?: string | null;
 };
 
 export type ReserveSeatPayload = {
@@ -323,6 +335,8 @@ export type ReserveSeatPayload = {
   salesId: number;
   guestCount: number;
   creditSaleToShop?: boolean;
+  packageCustomerCode?: string | null;
+  packageCustomerName?: string | null;
 };
 
 export type CancelReservationPayload = {

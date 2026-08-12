@@ -140,6 +140,10 @@ type SeatTile = {
   reservedOperatorName?: string | null;
   guestCount?: number | null;
   creditSaleToShop?: boolean;
+  packageCustomerCode?: string | null;
+  packageCustomerName?: string | null;
+  reservedPackageCustomerCode?: string | null;
+  reservedPackageCustomerName?: string | null;
   operatorSaleName?: string | null;
   previewTotalAmount?: number | null;
   openDurationLabel?: string | null;
@@ -251,6 +255,9 @@ export class OpenTablePageComponent implements OnInit {
   readonly showCheckoutModal = signal(false);
   readonly showEditGuestCountModal = signal(false);
   readonly showEditCreditSaleModal = signal(false);
+  readonly showEditPackageCustomerModal = signal(false);
+  readonly editPackageCustomerCode = signal('');
+  readonly editPackageCustomerName = signal('');
   readonly editGuestCountText = signal('1');
   readonly editCreditSaleToShop = signal(false);
   readonly sessionInfoEditTarget = signal<SeatTile | null>(null);
@@ -302,6 +309,8 @@ export class OpenTablePageComponent implements OnInit {
   readonly saleEmployees = signal<MstEmployee[]>([]);
   readonly checkInSalesId = signal<number | null>(null);
   readonly checkInCreditSaleToShop = signal(false);
+  readonly checkInPackageCustomerCode = signal('');
+  readonly checkInPackageCustomerName = signal('');
   readonly checkInMode = signal<CheckInMode>('OPEN');
   private readonly openTableOtherChargesRaw = signal<MstOtherCharge[]>([]);
   /** Standalone toggles + one id per choice group. */
@@ -606,6 +615,7 @@ export class OpenTablePageComponent implements OnInit {
       this.showCheckoutModal() ||
       this.showEditGuestCountModal() ||
       this.showEditCreditSaleModal() ||
+      this.showEditPackageCustomerModal() ||
       this.showNewBillSaleModal(),
   );
 
@@ -1698,6 +1708,10 @@ export class OpenTablePageComponent implements OnInit {
             reservedOperatorName: s.reservedOperatorName ?? null,
             guestCount: s.guestCount ?? null,
             creditSaleToShop: s.creditSaleToShop ?? false,
+            packageCustomerCode: s.packageCustomerCode ?? null,
+            packageCustomerName: s.packageCustomerName ?? null,
+            reservedPackageCustomerCode: s.reservedPackageCustomerCode ?? null,
+            reservedPackageCustomerName: s.reservedPackageCustomerName ?? null,
             operatorSaleName: s.operatorSaleName ?? null,
             previewTotalAmount: s.previewTotalAmount ?? null,
             openDurationLabel: s.openDurationLabel ?? null,
@@ -1871,6 +1885,8 @@ export class OpenTablePageComponent implements OnInit {
               sessionRevision: detail.revision,
               guestCount: detail.guestCount ?? s.guestCount ?? null,
               creditSaleToShop: detail.creditSaleToShop ?? s.creditSaleToShop ?? false,
+              packageCustomerCode: detail.packageCustomerCode ?? null,
+              packageCustomerName: detail.packageCustomerName ?? null,
               saleName: detail.saleName ?? s.saleName,
               operatorSaleName: detail.operatorSaleName ?? s.operatorSaleName ?? null,
               previewTotalAmount: detail.totalAmount,
@@ -2396,20 +2412,18 @@ export class OpenTablePageComponent implements OnInit {
           return null;
         }
         if (promo.allowDeposit) {
-          const customerCode = this.normalizePackageCustomerCode(this.packageCustomerCode());
-          if (!customerCode) {
+          if (!this.sessionHasPackageCustomerCode()) {
             this.flagAddItemValidation();
-            this.toast.showError('กรุณาระบุรหัสลูกค้า 1–10 ตัวอักษร (ตัวอักษร/ตัวเลข)');
+            this.toast.showError(
+              'กรุณาตั้งรหัสลูกค้าที่บิลก่อน (เมนู ⋮ หรือตอนเปิดโต๊ะ/จอง)',
+            );
             return null;
           }
-          const customerName = this.packageCustomerName().trim();
           items.push({
             itemId: promoId,
             quantity,
             type: 'PROMOTION',
             packageDepositMode: 'NEW',
-            customerCode,
-            ...(customerName ? { customerName } : {}),
           });
         } else {
           items.push({
@@ -2457,20 +2471,18 @@ export class OpenTablePageComponent implements OnInit {
           return null;
         }
         if (membership.allowDeposit) {
-          const customerCode = this.normalizePackageCustomerCode(this.packageCustomerCode());
-          if (!customerCode) {
+          if (!this.sessionHasPackageCustomerCode()) {
             this.flagAddItemValidation();
-            this.toast.showError('กรุณาระบุรหัสลูกค้า 1–10 ตัวอักษร (ตัวอักษร/ตัวเลข)');
+            this.toast.showError(
+              'กรุณาตั้งรหัสลูกค้าที่บิลก่อน (เมนู ⋮ หรือตอนเปิดโต๊ะ/จอง)',
+            );
             return null;
           }
-          const customerName = this.packageCustomerName().trim();
           items.push({
             itemId: memberId,
             quantity,
             type: 'MEMBERSHIP',
             packageDepositMode: 'NEW',
-            customerCode,
-            ...(customerName ? { customerName } : {}),
           });
         } else {
           items.push({
@@ -2660,6 +2672,8 @@ export class OpenTablePageComponent implements OnInit {
       this.checkInGuestCountText.set(
         seat.guestCount != null && seat.guestCount > 0 ? String(seat.guestCount) : '1',
       );
+      this.checkInPackageCustomerCode.set(seat.reservedPackageCustomerCode ?? '');
+      this.checkInPackageCustomerName.set(seat.reservedPackageCustomerName ?? '');
       this.checkInMode.set('OPEN');
     }
   }
@@ -2891,6 +2905,79 @@ export class OpenTablePageComponent implements OnInit {
     this.sessionInfoEditTarget.set(null);
   }
 
+  sessionHasPackageCustomerCode(): boolean {
+    return !!this.normalizePackageCustomerCode(
+      this.sessionDetail()?.packageCustomerCode ?? '',
+    );
+  }
+
+  private checkInPackageCustomerPayload(): {
+    packageCustomerCode?: string;
+    packageCustomerName?: string;
+  } {
+    const code = this.normalizePackageCustomerCode(this.checkInPackageCustomerCode());
+    if (!code) return {};
+    const name = this.checkInPackageCustomerName().trim();
+    return {
+      packageCustomerCode: code,
+      ...(name ? { packageCustomerName: name } : {}),
+    };
+  }
+
+  onCheckInPackageCustomerCodeChange(value: string): void {
+    this.checkInPackageCustomerCode.set(trimLocalCodeInput(value));
+  }
+
+  openEditPackageCustomerFromPanel(): void {
+    const seat = this.selectedSeat();
+    if (!this.seatCanEditSessionInfo(seat)) return;
+    this.sessionInfoEditTarget.set(seat);
+    this.editPackageCustomerCode.set(this.sessionDetail()?.packageCustomerCode ?? '');
+    this.editPackageCustomerName.set(this.sessionDetail()?.packageCustomerName ?? '');
+    this.showEditPackageCustomerModal.set(true);
+  }
+
+  closeEditPackageCustomerModal(): void {
+    this.showEditPackageCustomerModal.set(false);
+    this.sessionInfoEditTarget.set(null);
+  }
+
+  onEditPackageCustomerCodeChange(value: string): void {
+    this.editPackageCustomerCode.set(trimLocalCodeInput(value));
+  }
+
+  submitEditPackageCustomer(): void {
+    const seat = this.sessionInfoEditTarget() ?? this.selectedSeat();
+    const sessionId = seat?.sessionId;
+    const expectedRevision = seat?.sessionRevision ?? this.expectedRevision();
+    if (!sessionId || expectedRevision == null) {
+      this.toast.showError('กรุณารอโหลดบิลโต๊ะสักครู่');
+      return;
+    }
+    const raw = this.editPackageCustomerCode().trim();
+    const code = raw ? this.normalizePackageCustomerCode(raw) : null;
+    if (raw && !code) {
+      this.toast.showError('รหัสลูกค้าไม่ถูกต้อง');
+      return;
+    }
+    const name = this.editPackageCustomerName().trim();
+    this.runAction(
+      this.openTableService.updateSessionInfo({
+        shopId: this.shopId,
+        sessionId,
+        expectedRevision,
+        packageCustomerCode: code,
+        packageCustomerName: code ? name || null : null,
+      }),
+      'บันทึกรหัสลูกค้าแล้ว',
+      (detail) => {
+        this.closeEditPackageCustomerModal();
+        this.applyBillDetailAfterMutation(detail, sessionId);
+        this.refreshFloorPlan(this.selectedSeatKey(), { silent: true });
+      },
+    );
+  }
+
   onEditGuestCountInput(value: string): void {
     this.editGuestCountText.set(sanitizeDigitsOnly(value));
   }
@@ -3012,6 +3099,7 @@ export class OpenTablePageComponent implements OnInit {
         seatingId: seat.seatId,
         guestCount,
         creditSaleToShop: creditToShop || undefined,
+        ...this.checkInPackageCustomerPayload(),
       }),
       'จองโต๊ะสำเร็จ',
       () => {
@@ -3093,6 +3181,7 @@ export class OpenTablePageComponent implements OnInit {
         seatingId: seat.seatId,
         guestCount,
         creditSaleToShop: creditToShop || undefined,
+        ...this.checkInPackageCustomerPayload(),
       }),
       'เปิดโต๊ะสำเร็จ',
       (session) => {

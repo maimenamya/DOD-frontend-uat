@@ -528,6 +528,17 @@
                             <span class="open-table-session-overflow__hint">เปิดอยู่</span>
                           }
                         </button>
+                        <button
+                          type="button"
+                          class="open-table-session-overflow__item"
+                          role="menuitem"
+                          (click)="closeSessionHeaderMenu(); openEditPackageCustomerFromPanel()"
+                        >
+                          แก้รหัสลูกค้าฝาก
+                          @if (sessionHasPackageCustomerCode()) {
+                            <span class="open-table-session-overflow__hint">{{ sessionDetail()?.packageCustomerCode }}</span>
+                          }
+                        </button>
                       }
                       @if (seatHasGuestQrAction(seat)) {
                         <button
@@ -562,6 +573,15 @@
               เซลล์ผู้ดูแล:
               {{ activeSeatBillSaleName() ?? '—' }}
             </p>
+            @if (sessionDetail()?.packageCustomerCode) {
+              <p class="mt-0.5 text-xs text-text-secondary">
+                รหัสฝาก:
+                <span class="font-mono text-text-primary">{{ sessionDetail()!.packageCustomerCode }}</span>
+                @if (sessionDetail()?.packageCustomerName) {
+                  <span>· {{ sessionDetail()!.packageCustomerName }}</span>
+                }
+              </p>
+            }
             @if (
               !seatAwaitingClear() &&
               sessionDetail()?.sessionStatus === 'BILLED' &&
@@ -671,6 +691,31 @@
                   ยอดเข้าร้าน (ไม่นับยอดเซลล์ที่เลือก)
                 </span>
               </label>
+              <div class="open-table-check-in-grid">
+                <div class="space-y-1">
+                  <label class="text-sm text-text-secondary" for="check-in-package-code">รหัสลูกค้า (ไม่บังคับ)</label>
+                  <input
+                    id="check-in-package-code"
+                    type="text"
+                    class="app-input font-mono tracking-widest"
+                    maxlength="10"
+                    [ngModel]="checkInPackageCustomerCode()"
+                    (ngModelChange)="onCheckInPackageCustomerCodeChange($event)"
+                    placeholder="เช่น 042"
+                  />
+                </div>
+                <div class="space-y-1">
+                  <label class="text-sm text-text-secondary" for="check-in-package-name">ชื่อลูกค้า (ไม่บังคับ)</label>
+                  <input
+                    id="check-in-package-name"
+                    type="text"
+                    class="app-input"
+                    [ngModel]="checkInPackageCustomerName()"
+                    (ngModelChange)="checkInPackageCustomerName.set($event)"
+                    placeholder="เช่น ต้น"
+                  />
+                </div>
+              </div>
               <button
                 type="button"
                 class="app-btn-primary w-full"
@@ -756,6 +801,31 @@
                 ยอดเข้าร้าน (ไม่นับยอดเซลล์ที่เลือก)
               </span>
             </label>
+            <div class="open-table-check-in-grid">
+              <div class="space-y-1">
+                <label class="text-sm text-text-secondary" for="reserved-package-code">รหัสลูกค้า (ไม่บังคับ)</label>
+                <input
+                  id="reserved-package-code"
+                  type="text"
+                  class="app-input font-mono tracking-widest"
+                  maxlength="10"
+                  [ngModel]="checkInPackageCustomerCode()"
+                  (ngModelChange)="onCheckInPackageCustomerCodeChange($event)"
+                  placeholder="เช่น 042"
+                />
+              </div>
+              <div class="space-y-1">
+                <label class="text-sm text-text-secondary" for="reserved-package-name">ชื่อลูกค้า (ไม่บังคับ)</label>
+                <input
+                  id="reserved-package-name"
+                  type="text"
+                  class="app-input"
+                  [ngModel]="checkInPackageCustomerName()"
+                  (ngModelChange)="checkInPackageCustomerName.set($event)"
+                  placeholder="เช่น ต้น"
+                />
+              </div>
+            </div>
             <div class="open-table-awaiting-actions">
               <button
                 type="button"
@@ -1535,28 +1605,15 @@
               />
             </div>
             @if (selectedPackageAllowsDeposit()) {
-              <div class="app-form-group">
-                <label class="app-label" for="open-table-รหัสลูกค้า-10">รหัสลูกค้า</label>
-                <input id="open-table-รหัสลูกค้า-10"
-                  type="text"
-                  class="app-input font-mono tracking-widest"
-                  maxlength="10"
-                  [ngModel]="packageCustomerCode()"
-                  (ngModelChange)="onPackageCustomerCodeChange($event)"
-                  placeholder="เช่น 042, A1"
-                />
-                <p class="app-hint">{{ packageCustomerCodeHint }} · รหัสเดิม + โปรเดิม → รวมเข้าฝากเดิมอัตโนมัติ</p>
-              </div>
-              <div class="app-form-group">
-                <label class="app-label" for="open-table-ชื่อลูกค้า-ไม่บังคับ-11">ชื่อลูกค้า (ไม่บังคับ)</label>
-                <input id="open-table-ชื่อลูกค้า-ไม่บังคับ-11"
-                  type="text"
-                  class="app-input"
-                  [ngModel]="packageCustomerName()"
-                  (ngModelChange)="onPackageCustomerNameChange($event)"
-                  placeholder="ชื่อที่จำง่าย เช่น ต้น, พี่เอ"
-                />
-              </div>
+              @if (sessionHasPackageCustomerCode()) {
+                <p class="app-hint">
+                  ใช้รหัสฝากบิล
+                  <span class="font-mono">{{ sessionDetail()?.packageCustomerCode }}</span>
+                  · แก้ที่เมนู ⋮
+                </p>
+              } @else {
+                <p class="app-field-hint">ตั้งรหัสลูกค้าที่เมนู ⋮ ก่อนเปิดโปรฝาก</p>
+              }
             }
           }
         }
@@ -1584,28 +1641,15 @@
               />
             </div>
             @if (selectedPackageAllowsDeposit()) {
-              <div class="app-form-group">
-                <label class="app-label" for="open-table-รหัสลูกค้า-14">รหัสลูกค้า</label>
-                <input id="open-table-รหัสลูกค้า-14"
-                  type="text"
-                  class="app-input font-mono tracking-widest"
-                  maxlength="10"
-                  [ngModel]="packageCustomerCode()"
-                  (ngModelChange)="onPackageCustomerCodeChange($event)"
-                  placeholder="เช่น 042, A1"
-                />
-                <p class="app-hint">{{ packageCustomerCodeHint }} · รหัสเดิม + เมมเดิม → รวมเข้าฝากเดิมอัตโนมัติ</p>
-              </div>
-              <div class="app-form-group">
-                <label class="app-label" for="open-table-ชื่อลูกค้า-ไม่บังคับ-15">ชื่อลูกค้า (ไม่บังคับ)</label>
-                <input id="open-table-ชื่อลูกค้า-ไม่บังคับ-15"
-                  type="text"
-                  class="app-input"
-                  [ngModel]="packageCustomerName()"
-                  (ngModelChange)="onPackageCustomerNameChange($event)"
-                  placeholder="ชื่อที่จำง่าย เช่น ต้น, พี่เอ"
-                />
-              </div>
+              @if (sessionHasPackageCustomerCode()) {
+                <p class="app-hint">
+                  ใช้รหัสฝากบิล
+                  <span class="font-mono">{{ sessionDetail()?.packageCustomerCode }}</span>
+                  · แก้ที่เมนู ⋮
+                </p>
+              } @else {
+                <p class="app-field-hint">ตั้งรหัสลูกค้าที่เมนู ⋮ ก่อนเปิดเมมฝาก</p>
+              }
             }
           }
         }
@@ -2401,6 +2445,51 @@
       <div class="app-form-actions">
         <button type="button" class="app-btn-secondary" (click)="closeEditCreditSaleModal()">ยกเลิก</button>
         <button type="button" class="app-btn-primary" [disabled]="actionBusy()" (click)="submitEditCreditSale()">
+          {{ actionBusy() ? 'กำลังบันทึก...' : 'บันทึก' }}
+        </button>
+      </div>
+    </div>
+  </app-modal>
+}
+
+@if (showEditPackageCustomerModal()) {
+  <app-modal layout="center" [pinCenterOnMobile]="true" (dismiss)="closeEditPackageCustomerModal()">
+    <div class="app-modal-header">
+      <h2 class="app-modal-title">รหัสลูกค้าฝาก</h2>
+      <button type="button" class="app-btn-ghost" (click)="closeEditPackageCustomerModal()">✕</button>
+    </div>
+    <div class="app-form-stack">
+      <div class="app-form-group">
+        <label class="app-label" for="edit-package-customer-code">รหัสลูกค้า</label>
+        <input
+          id="edit-package-customer-code"
+          type="text"
+          class="app-input font-mono tracking-widest"
+          maxlength="10"
+          [ngModel]="editPackageCustomerCode()"
+          (ngModelChange)="onEditPackageCustomerCodeChange($event)"
+          placeholder="เช่น 042"
+        />
+      </div>
+      <div class="app-form-group">
+        <label class="app-label" for="edit-package-customer-name">ชื่อลูกค้า (ไม่บังคับ)</label>
+        <input
+          id="edit-package-customer-name"
+          type="text"
+          class="app-input"
+          [ngModel]="editPackageCustomerName()"
+          (ngModelChange)="editPackageCustomerName.set($event)"
+          placeholder="เช่น ต้น"
+        />
+      </div>
+      <div class="app-form-actions">
+        <button type="button" class="app-btn-secondary" (click)="closeEditPackageCustomerModal()">ยกเลิก</button>
+        <button
+          type="button"
+          class="app-btn-primary"
+          [disabled]="actionBusy()"
+          (click)="submitEditPackageCustomer()"
+        >
           {{ actionBusy() ? 'กำลังบันทึก...' : 'บันทึก' }}
         </button>
       </div>
