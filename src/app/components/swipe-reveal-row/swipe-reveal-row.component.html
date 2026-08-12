@@ -1,0 +1,35 @@
+<div
+  class="swipe-reveal"
+  [class.swipe-reveal--disabled]="disabled()"
+  [class.swipe-reveal--open]="offsetX() !== 0"
+  [class.swipe-reveal--dragging]="dragging()"
+>
+  <div
+    #startActions
+    class="swipe-reveal__actions swipe-reveal__actions--start"
+    [class.swipe-reveal__actions--empty]="!enableStart()"
+    (click)="onActionActivate()"
+  >
+    <ng-content select="[swipeStart]" />
+  </div>
+  <div
+    #endActions
+    class="swipe-reveal__actions swipe-reveal__actions--end"
+    [class.swipe-reveal__actions--empty]="!enableEnd()"
+    (click)="onActionActivate()"
+  >
+    <ng-content select="[swipeEnd]" />
+  </div>
+  <div
+    #content
+    class="swipe-reveal__content"
+    [style.transform]="'translate3d(' + offsetX() + 'px, 0, 0)'"
+    (pointerdown)="onPointerDown($event)"
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp($event)"
+    (pointercancel)="onPointerUp($event)"
+    (click)="onContentClick($event)"
+  >
+    <ng-content />
+  </div>
+</div>

@@ -7,6 +7,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, finalize, forkJoin, of } from 'rxjs';
 
 import { AppModalComponent, type AppModalLayout } from '../../components/app-modal/app-modal.component';
+import { SwipeRevealRowComponent } from '../../components/swipe-reveal-row/swipe-reveal-row.component';
 import { PortalToBodyDirective } from '../../directives/portal-to-body.directive';
 import {
   APP_MODAL_BODY_LOCK_CLASS,
@@ -150,6 +151,7 @@ const FLOOR_DISPLAY_MODE_KEY = 'dod.openTable.floorDisplayMode';
     CustomDropdownComponent,
     PortalToBodyDirective,
     ShopDatetimeInputComponent,
+    SwipeRevealRowComponent,
   ],
   templateUrl: './open-table-page.component.html',
   styleUrl: './open-table-page.component.css',

@@ -1,0 +1,91 @@
+:host {
+  display: block;
+}
+
+.swipe-reveal {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-input, 0.5rem);
+  background: var(--surface, transparent);
+  touch-action: pan-y;
+}
+
+.swipe-reveal--disabled {
+  touch-action: auto;
+}
+
+.swipe-reveal__actions {
+  position: absolute;
+  inset-block: 0;
+  display: flex;
+  align-items: stretch;
+  z-index: 0;
+}
+
+.swipe-reveal__actions--start {
+  inset-inline-start: 0;
+  justify-content: flex-start;
+}
+
+.swipe-reveal__actions--end {
+  inset-inline-end: 0;
+  justify-content: flex-end;
+}
+
+.swipe-reveal__actions--empty {
+  display: none;
+}
+
+.swipe-reveal__content {
+  position: relative;
+  z-index: 1;
+  background: var(--card-bg, var(--surface));
+  transition: transform 0.18s ease-out;
+  will-change: transform;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.swipe-reveal--dragging .swipe-reveal__content {
+  transition: none;
+  cursor: grabbing;
+}
+
+.swipe-reveal--disabled .swipe-reveal__content {
+  cursor: default;
+}
+
+/* Projected action buttons — alarm-clock style slabs */
+:host ::ng-deep .swipe-reveal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 4.25rem;
+  padding: 0 0.75rem;
+  border: none;
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: #fff;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+:host ::ng-deep .swipe-reveal-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+:host ::ng-deep .swipe-reveal-btn--danger {
+  background: color-mix(in srgb, var(--danger, #c43c3c) 92%, #000);
+}
+
+:host ::ng-deep .swipe-reveal-btn--accent {
+  background: color-mix(in srgb, var(--primary) 88%, #000);
+}
+
+:host ::ng-deep .swipe-reveal-btn--muted {
+  background: color-mix(in srgb, var(--text-secondary) 55%, #1a1a1a);
+}

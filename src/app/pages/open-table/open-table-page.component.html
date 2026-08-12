@@ -841,60 +841,74 @@
             <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">
               รายการในบิล
             </p>
+            <p class="mb-2 text-[0.6875rem] leading-snug text-text-secondary">
+              ปัดขวา = ลบ · ปัดซ้าย = แก้ไข / สต็อป / คืนของ
+            </p>
             <div class="space-y-1 text-sm text-text-primary">
               @for (
                 item of sessionDetail()?.items ?? [];
                 track billItemKey(item)
               ) {
                 <div class="space-y-0.5">
-                  <p class="flex flex-wrap items-baseline gap-x-1 gap-y-0.5 leading-snug">
-                    <span class="min-w-0">
-                      - {{ item.label }}
-                      @if (item.hostLabel) {
-                        <span class="text-text-secondary">({{ item.hostLabel }})</span>
-                      }
-                      x {{ item.quantity }} {{ item.unitLabel }}
-                      @if (item.isFreeMixer) {
-                        <span class="text-theme-accent">(ฟรีมิกซ์)</span>
-                      }
-                      @if (packageBottleLabel(item); as bottleLabel) {
-                        <span class="font-mono text-theme-accent">{{ bottleLabel }}</span>
-                      }
-                    </span>
-                    @if (ledgerCanMutate() && item.canWithdrawPackageBottle) {
-                      <button
-                        type="button"
-                        class="open-table-bill-item-action"
-                        [disabled]="actionBusy()"
-                        (click)="openPackageBottleModal('WITHDRAW', item)"
-                      >
-                        เบิก
-                      </button>
-                    }
+                  <app-swipe-reveal-row
+                    [disabled]="actionBusy()"
+                    [enableStart]="ledgerCanMutate() && item.canVoid"
+                    [enableEnd]="
+                      (ledgerCanMutate() && item.canWithdrawPackageBottle) || item.canReturn
+                    "
+                  >
                     @if (ledgerCanMutate() && item.canVoid) {
                       <button
+                        swipeStart
                         type="button"
-                        class="open-table-bill-item-action"
+                        class="swipe-reveal-btn swipe-reveal-btn--danger"
                         [disabled]="actionBusy()"
                         (click)="openVoidItemModal(item)"
                       >
                         ลบ
                       </button>
                     }
+                    @if (ledgerCanMutate() && item.canWithdrawPackageBottle) {
+                      <button
+                        swipeEnd
+                        type="button"
+                        class="swipe-reveal-btn swipe-reveal-btn--muted"
+                        [disabled]="actionBusy()"
+                        (click)="openPackageBottleModal('WITHDRAW', item)"
+                      >
+                        เบิก
+                      </button>
+                    }
                     @if (item.canReturn) {
                       <button
+                        swipeEnd
                         type="button"
-                        class="open-table-bill-item-action"
+                        class="swipe-reveal-btn swipe-reveal-btn--accent"
                         [disabled]="actionBusy()"
                         (click)="openReturnBeverageModal(item)"
                       >
                         คืนของ
                       </button>
                     }
-                    <span class="ml-auto shrink-0 font-medium text-theme-accent">
-                      {{ itemLineTotal(item) | number: '1.0-0' }} บาท
-                    </span>
-                  </p>
+                    <div class="open-table-swipe-row flex items-baseline gap-x-2 px-1 py-1.5 leading-snug">
+                      <span class="min-w-0 flex-1">
+                        - {{ item.label }}
+                        @if (item.hostLabel) {
+                          <span class="text-text-secondary">({{ item.hostLabel }})</span>
+                        }
+                        x {{ item.quantity }} {{ item.unitLabel }}
+                        @if (item.isFreeMixer) {
+                          <span class="text-theme-accent">(ฟรีมิกซ์)</span>
+                        }
+                        @if (packageBottleLabel(item); as bottleLabel) {
+                          <span class="font-mono text-theme-accent">{{ bottleLabel }}</span>
+                        }
+                      </span>
+                      <span class="shrink-0 font-medium text-theme-accent">
+                        {{ itemLineTotal(item) | number: '1.0-0' }} บาท
+                      </span>
+                    </div>
+                  </app-swipe-reveal-row>
                   @for (move of packageBottleWithdrawMoves(item); track move.id) {
                     <p class="open-table-bill-subline pl-3 text-xs leading-snug text-text-secondary">
                       <span class="text-theme-accent">↳ เบิก</span>
@@ -914,55 +928,66 @@
               <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">ค่าห้อง</p>
               <div class="space-y-1 text-sm text-text-primary">
                 @for (row of sessionDetail()?.roomCharges ?? []; track row.roomChargeId) {
-                  <p class="flex flex-wrap items-baseline gap-x-1 gap-y-0.5 leading-snug">
-                    <span>
-                      - {{ row.roomCode }} x {{ row.quantity }} {{ row.unitLabel }}
-                    </span>
-                    @if (row.canStop) {
-                      <span class="whitespace-nowrap text-[0.8125rem] text-text-secondary">
-                        เริ่มใช้ {{ row.seatStartedLabel }}
-                      </span>
-                      <button
-                        type="button"
-                        class="open-table-bill-item-action shrink-0"
-                        [disabled]="actionBusy()"
-                        (click)="openStopRoomModal(row)"
-                      >
-                        สต็อป
-                      </button>
-                    } @else if (row.seatStoppedLabel) {
-                      <span class="whitespace-nowrap text-[0.8125rem] font-medium text-text-secondary">
-                        สต็อปแล้ว · {{ row.seatStoppedLabel }}
-                      </span>
-                    } @else if (row.seatStartedLabel) {
-                      <span class="whitespace-nowrap text-[0.8125rem] text-text-secondary">
-                        เริ่มใช้ {{ row.seatStartedLabel }}
-                      </span>
-                    }
-                    @if (ledgerCanMutate() && row.canEditRoomCharge) {
-                      <button
-                        type="button"
-                        class="open-table-bill-item-action shrink-0"
-                        [disabled]="actionBusy()"
-                        (click)="openEditRoomChargeModal(row)"
-                      >
-                        แก้ไข
-                      </button>
-                    }
+                  <app-swipe-reveal-row
+                    [disabled]="actionBusy()"
+                    [enableStart]="ledgerCanMutate() && row.canDeleteRoomCharge"
+                    [enableEnd]="row.canStop || (ledgerCanMutate() && row.canEditRoomCharge)"
+                  >
                     @if (ledgerCanMutate() && row.canDeleteRoomCharge) {
                       <button
+                        swipeStart
                         type="button"
-                        class="open-table-bill-item-action shrink-0"
+                        class="swipe-reveal-btn swipe-reveal-btn--danger"
                         [disabled]="actionBusy()"
                         (click)="openDeleteRoomChargeModal(row)"
                       >
                         ลบ
                       </button>
                     }
-                    <span class="ml-auto shrink-0 font-medium text-theme-accent">
-                      {{ row.lineAmount | number: '1.0-0' }} บาท
-                    </span>
-                  </p>
+                    @if (row.canStop) {
+                      <button
+                        swipeEnd
+                        type="button"
+                        class="swipe-reveal-btn swipe-reveal-btn--accent"
+                        [disabled]="actionBusy()"
+                        (click)="openStopRoomModal(row)"
+                      >
+                        สต็อป
+                      </button>
+                    }
+                    @if (ledgerCanMutate() && row.canEditRoomCharge) {
+                      <button
+                        swipeEnd
+                        type="button"
+                        class="swipe-reveal-btn swipe-reveal-btn--muted"
+                        [disabled]="actionBusy()"
+                        (click)="openEditRoomChargeModal(row)"
+                      >
+                        แก้ไข
+                      </button>
+                    }
+                    <div class="open-table-swipe-row flex items-baseline gap-x-2 px-1 py-1.5 leading-snug">
+                      <span class="min-w-0 flex-1">
+                        - {{ row.roomCode }} x {{ row.quantity }} {{ row.unitLabel }}
+                        @if (row.canStop) {
+                          <span class="whitespace-nowrap text-[0.8125rem] text-text-secondary">
+                            · เริ่มใช้ {{ row.seatStartedLabel }}
+                          </span>
+                        } @else if (row.seatStoppedLabel) {
+                          <span class="whitespace-nowrap text-[0.8125rem] font-medium text-text-secondary">
+                            · สต็อปแล้ว · {{ row.seatStoppedLabel }}
+                          </span>
+                        } @else if (row.seatStartedLabel) {
+                          <span class="whitespace-nowrap text-[0.8125rem] text-text-secondary">
+                            · เริ่มใช้ {{ row.seatStartedLabel }}
+                          </span>
+                        }
+                      </span>
+                      <span class="shrink-0 font-medium text-theme-accent">
+                        {{ row.lineAmount | number: '1.0-0' }} บาท
+                      </span>
+                    </div>
+                  </app-swipe-reveal-row>
                 }
               </div>
             </div>
@@ -972,61 +997,70 @@
             <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">รายการรันดื่ม</p>
             <div class="space-y-1 text-sm text-text-primary">
               @for (row of sessionDetail()?.staffDrinks ?? []; track row.staffDrinkId) {
-                <p class="flex flex-wrap items-baseline gap-x-1 gap-y-0.5 leading-snug">
-                  <span class="min-w-0">
-                    - {{ row.employeeName }}
-                    <span class="text-text-secondary">({{ row.roleDisplayNameTh }})</span>:
-                    {{ row.drinks }} ดื่ม
-                    @if ((row.packageFreeDrinksCount ?? 0) > 0) {
-                      <span class="text-text-secondary">(ฟรีโปร {{ row.packageFreeDrinksCount }} ดื่ม)</span>
-                    }
-                  </span>
-                  @if (row.canStopDrinks) {
-                    @if (row.seatStartedLabel) {
-                      <span class="whitespace-nowrap text-[0.8125rem] text-text-secondary">
-                        เริ่มนั่ง {{ row.seatStartedLabel }}
-                      </span>
-                    }
-                    <button
-                      type="button"
-                      class="open-table-bill-item-action shrink-0"
-                      [disabled]="actionBusy()"
-                      (click)="openStopDrinkModal(row)"
-                    >
-                      สต็อป
-                    </button>
-                  } @else if (row.seatStoppedLabel) {
-                    <span class="whitespace-nowrap text-[0.8125rem] font-medium text-text-secondary">
-                      สต็อปแล้ว · {{ row.seatStoppedLabel }}
-                    </span>
-                  }
-                  @if (ledgerCanMutate() && row.canEditStaffDrink) {
-                    <button
-                      type="button"
-                      class="open-table-bill-item-action shrink-0"
-                      [disabled]="actionBusy()"
-                      (click)="openEditStaffDrinkModal(row)"
-                    >
-                      แก้ไข
-                    </button>
-                  }
+                <app-swipe-reveal-row
+                  [disabled]="actionBusy()"
+                  [enableStart]="ledgerCanMutate() && row.canDeleteStaffDrink"
+                  [enableEnd]="row.canStopDrinks || (ledgerCanMutate() && row.canEditStaffDrink)"
+                >
                   @if (ledgerCanMutate() && row.canDeleteStaffDrink) {
                     <button
+                      swipeStart
                       type="button"
-                      class="open-table-bill-item-action shrink-0"
+                      class="swipe-reveal-btn swipe-reveal-btn--danger"
                       [disabled]="actionBusy()"
                       (click)="openDeleteStaffDrinkModal(row)"
                     >
                       ลบ
                     </button>
                   }
-                  @if (row.note) {
-                    <span class="text-text-secondary">{{ row.note }}</span>
+                  @if (row.canStopDrinks) {
+                    <button
+                      swipeEnd
+                      type="button"
+                      class="swipe-reveal-btn swipe-reveal-btn--accent"
+                      [disabled]="actionBusy()"
+                      (click)="openStopDrinkModal(row)"
+                    >
+                      สต็อป
+                    </button>
                   }
-                  <span class="ml-auto shrink-0 font-medium text-theme-accent">
-                    {{ row.drinkAmount | number: '1.0-0' }} บาท
-                  </span>
-                </p>
+                  @if (ledgerCanMutate() && row.canEditStaffDrink) {
+                    <button
+                      swipeEnd
+                      type="button"
+                      class="swipe-reveal-btn swipe-reveal-btn--muted"
+                      [disabled]="actionBusy()"
+                      (click)="openEditStaffDrinkModal(row)"
+                    >
+                      แก้ไข
+                    </button>
+                  }
+                  <div class="open-table-swipe-row flex items-baseline gap-x-2 px-1 py-1.5 leading-snug">
+                    <span class="min-w-0 flex-1">
+                      - {{ row.employeeName }}
+                      <span class="text-text-secondary">({{ row.roleDisplayNameTh }})</span>:
+                      {{ row.drinks }} ดื่ม
+                      @if ((row.packageFreeDrinksCount ?? 0) > 0) {
+                        <span class="text-text-secondary">(ฟรีโปร {{ row.packageFreeDrinksCount }} ดื่ม)</span>
+                      }
+                      @if (row.canStopDrinks && row.seatStartedLabel) {
+                        <span class="whitespace-nowrap text-[0.8125rem] text-text-secondary">
+                          · เริ่มนั่ง {{ row.seatStartedLabel }}
+                        </span>
+                      } @else if (row.seatStoppedLabel) {
+                        <span class="whitespace-nowrap text-[0.8125rem] font-medium text-text-secondary">
+                          · สต็อปแล้ว · {{ row.seatStoppedLabel }}
+                        </span>
+                      }
+                      @if (row.note) {
+                        <span class="text-text-secondary"> · {{ row.note }}</span>
+                      }
+                    </span>
+                    <span class="shrink-0 font-medium text-theme-accent">
+                      {{ row.drinkAmount | number: '1.0-0' }} บาท
+                    </span>
+                  </div>
+                </app-swipe-reveal-row>
               } @empty {
                 <p class="text-text-secondary">ยังไม่มีรายการรันดื่ม</p>
               }

@@ -1489,3 +1489,13 @@
 .open-table-ledger-actions > .app-btn-primary {
   font-weight: 700;
 }
+
+/* Swipe bill rows — match panel surface so no color seam while dragging */
+.open-table-session-panel__ledger .swipe-reveal,
+.open-table-session-panel__ledger .swipe-reveal__content {
+  background: var(--surface-strong, var(--card-bg));
+}
+
+.open-table-session-panel__ledger .swipe-reveal {
+  margin-inline: -0.15rem;
+}
