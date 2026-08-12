@@ -30,6 +30,16 @@
   display: flex;
   align-items: stretch;
   z-index: 0;
+  /* Closed: hide slabs so they cannot bleed past content / rounded corners.
+     Keep opacity (not display:none) so widths still measure for snap. */
+  opacity: 0;
+  pointer-events: none;
+}
+
+.swipe-reveal--open .swipe-reveal__actions,
+.swipe-reveal--dragging .swipe-reveal__actions {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .swipe-reveal__actions--start {
@@ -49,6 +59,7 @@
 .swipe-reveal__content {
   position: relative;
   z-index: 1;
+  min-height: 100%;
   background: var(--card-bg, var(--surface));
   transition: transform 0.18s ease-out;
   will-change: transform;
@@ -71,7 +82,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  align-self: stretch;
   min-width: 4.25rem;
+  min-height: 100%;
   padding: 0 0.75rem;
   border: none;
   margin: 0;

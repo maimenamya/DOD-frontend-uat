@@ -843,9 +843,6 @@
             <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">
               รายการในบิล
             </p>
-            <p class="mb-2 text-[0.6875rem] leading-snug text-text-secondary">
-              ปัดขวา = แก้ไข / สต็อป / คืนของ · ปัดซ้าย = ลบ
-            </p>
             @if ((sessionDetail()?.items?.length ?? 0) === 0) {
               <p class="open-table-ledger-empty">ยังไม่มีรายการ</p>
             } @else {
@@ -1224,14 +1221,34 @@
           </p>
         }
         <div class="app-form-group">
-          <label class="app-label" for="open-table-ประเภทที่นั่ง-ห้อง">ประเภทที่นั่ง</label>
-          <app-custom-dropdown
-            inputId="open-table-ประเภทที่นั่ง-ห้อง"
-            [options]="roomChargeSeatingTypeOptions()"
-            [ngModel]="roomChargeSeatingTypeId()"
-            (ngModelChange)="onRoomChargeSeatingTypeChange($event)"
-            placeholder="เลือกประเภทที่นั่ง"
-          />
+          @if (isPcBillWorkspace()) {
+            <span class="app-label">ประเภทที่นั่ง</span>
+            <div
+              class="app-segmented-control app-scroll-region max-w-full flex-nowrap overflow-x-auto"
+              role="group"
+              aria-label="ประเภทที่นั่ง"
+            >
+              @for (opt of roomChargeSeatingTypeOptions(); track opt.value) {
+                <button
+                  type="button"
+                  class="app-segmented-chip shrink-0"
+                  [class.app-segmented-chip-active]="roomChargeSeatingTypeId() === opt.value"
+                  (click)="onRoomChargeSeatingTypeChange(opt.value)"
+                >
+                  {{ opt.label }}
+                </button>
+              }
+            </div>
+          } @else {
+            <label class="app-label" for="open-table-ประเภทที่นั่ง-ห้อง">ประเภทที่นั่ง</label>
+            <app-custom-dropdown
+              inputId="open-table-ประเภทที่นั่ง-ห้อง"
+              [options]="roomChargeSeatingTypeOptions()"
+              [ngModel]="roomChargeSeatingTypeId()"
+              (ngModelChange)="onRoomChargeSeatingTypeChange($event)"
+              placeholder="เลือกประเภทที่นั่ง"
+            />
+          }
         </div>
         @if (roomChargeSeatingTypeId() != null) {
           <div class="app-form-group">
@@ -1245,23 +1262,14 @@
           </div>
         }
         <div class="app-form-group">
-          <span class="app-label">ค่าห้อง</span>
-          <div
-            class="app-segmented-control"
-            role="group"
-            aria-label="ประเภทค่าห้อง"
-          >
-            @for (opt of roomChargeRateTypeOptions; track opt.value) {
-              <button
-                type="button"
-                class="app-segmented-chip"
-                [class.app-segmented-chip-active]="roomChargeRateType() === opt.value"
-                (click)="onRoomChargeRateTypeChange(opt.value)"
-              >
-                {{ opt.label }}
-              </button>
-            }
-          </div>
+          <label class="app-label" for="open-table-ค่าห้อง-3">ค่าห้อง</label>
+          <app-custom-dropdown
+            inputId="open-table-ค่าห้อง-3"
+            [options]="roomChargeRateTypeOptions"
+            [ngModel]="roomChargeRateType()"
+            (ngModelChange)="onRoomChargeRateTypeChange($event)"
+            placeholder="เลือกประเภท"
+          />
         </div>
         @if (roomChargeShowsPriceInput()) {
           <div class="app-form-group">
@@ -1440,14 +1448,34 @@
 
         @if (orderLedgerCategory() === 'PROMOTION' || orderLedgerCategory() === 'MEMBER') {
           <div class="app-form-group">
-            <label class="app-label" for="open-table-โหมดโปรเมม">โหมดโปร / เมม</label>
-            <app-custom-dropdown
-              inputId="open-table-โหมดโปรเมม"
-              [options]="packageOpenModeOptions"
-              [ngModel]="packageOpenMode()"
-              (ngModelChange)="onPackageOpenModeChange($event)"
-              placeholder="เลือกโหมด"
-            />
+            @if (isPcBillWorkspace()) {
+              <span class="app-label">โหมดโปร / เมม</span>
+              <div
+                class="app-segmented-control"
+                role="group"
+                aria-label="โหมดโปร / เมม"
+              >
+                @for (opt of packageOpenModeOptions; track opt.value) {
+                  <button
+                    type="button"
+                    class="app-segmented-chip"
+                    [class.app-segmented-chip-active]="packageOpenMode() === opt.value"
+                    (click)="onPackageOpenModeChange(opt.value)"
+                  >
+                    {{ opt.label }}
+                  </button>
+                }
+              </div>
+            } @else {
+              <label class="app-label" for="open-table-โหมดโปรเมม">โหมดโปร / เมม</label>
+              <app-custom-dropdown
+                inputId="open-table-โหมดโปรเมม"
+                [options]="packageOpenModeOptions"
+                [ngModel]="packageOpenMode()"
+                (ngModelChange)="onPackageOpenModeChange($event)"
+                placeholder="เลือกโหมด"
+              />
+            }
           </div>
         }
 
@@ -1592,23 +1620,34 @@
 
       @if (addModalMode() === 'STAFF_LEDGER') {
         <div class="app-form-group">
-          <span class="app-label">ประเภทลงดื่ม</span>
-          <div
-            class="app-segmented-control"
-            role="group"
-            aria-label="ประเภทลงดื่ม"
-          >
-            @for (opt of staffLedgerEntryModeOptions; track opt.value) {
-              <button
-                type="button"
-                class="app-segmented-chip"
-                [class.app-segmented-chip-active]="staffLedgerEntryMode() === opt.value"
-                (click)="onStaffLedgerEntryModeChange(opt.value)"
-              >
-                {{ opt.label }}
-              </button>
-            }
-          </div>
+          @if (isPcBillWorkspace()) {
+            <span class="app-label">ประเภทลงดื่ม</span>
+            <div
+              class="app-segmented-control"
+              role="group"
+              aria-label="ประเภทลงดื่ม"
+            >
+              @for (opt of staffLedgerEntryModeOptions; track opt.value) {
+                <button
+                  type="button"
+                  class="app-segmented-chip"
+                  [class.app-segmented-chip-active]="staffLedgerEntryMode() === opt.value"
+                  (click)="onStaffLedgerEntryModeChange(opt.value)"
+                >
+                  {{ opt.label }}
+                </button>
+              }
+            </div>
+          } @else {
+            <label class="app-label" for="open-table-ประเภทลงดื่ม">ประเภทลงดื่ม</label>
+            <app-custom-dropdown
+              inputId="open-table-ประเภทลงดื่ม"
+              [options]="staffLedgerEntryModeOptions"
+              [ngModel]="staffLedgerEntryMode()"
+              (ngModelChange)="onStaffLedgerEntryModeChange($event)"
+              placeholder="เลือกประเภท"
+            />
+          }
         </div>
 
         <div class="app-form-group">
@@ -1816,13 +1855,33 @@
     </div>
     <div class="app-form-stack">
       <div class="app-form-group">
-        <label class="app-label" for="open-table-ประเภทที่นั่ง-22">ประเภทที่นั่ง</label>
-        <app-custom-dropdown inputId="open-table-ประเภทที่นั่ง-22"
-          [options]="transferSeatingTypeOptions()"
-          [ngModel]="transferSeatingTypeId()"
-          (ngModelChange)="onTransferSeatingTypeChange($event)"
-          placeholder="เลือกประเภท"
-        />
+        @if (isPcBillWorkspace()) {
+          <span class="app-label">ประเภทที่นั่ง</span>
+          <div
+            class="app-segmented-control app-scroll-region max-w-full flex-nowrap overflow-x-auto"
+            role="group"
+            aria-label="ประเภทที่นั่ง"
+          >
+            @for (opt of transferSeatingTypeOptions(); track opt.value) {
+              <button
+                type="button"
+                class="app-segmented-chip shrink-0"
+                [class.app-segmented-chip-active]="transferSeatingTypeId() === opt.value"
+                (click)="onTransferSeatingTypeChange(opt.value)"
+              >
+                {{ opt.label }}
+              </button>
+            }
+          </div>
+        } @else {
+          <label class="app-label" for="open-table-ประเภทที่นั่ง-22">ประเภทที่นั่ง</label>
+          <app-custom-dropdown inputId="open-table-ประเภทที่นั่ง-22"
+            [options]="transferSeatingTypeOptions()"
+            [ngModel]="transferSeatingTypeId()"
+            (ngModelChange)="onTransferSeatingTypeChange($event)"
+            placeholder="เลือกประเภท"
+          />
+        }
       </div>
       @if (transferSeatingTypeId() != null) {
         <div class="app-form-group">
