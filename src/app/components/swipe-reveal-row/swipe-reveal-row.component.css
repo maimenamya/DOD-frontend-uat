@@ -77,7 +77,7 @@
   cursor: default;
 }
 
-/* Projected action buttons — alarm-clock style slabs */
+/* Projected action buttons — alarm-clock style slabs (bg color + black icon) */
 :host ::ng-deep .swipe-reveal-btn {
   display: inline-flex;
   align-items: center;
@@ -91,7 +91,7 @@
   font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.1;
-  color: #fff;
+  color: #111;
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -101,6 +101,7 @@
   width: 1.25rem;
   height: 1.25rem;
   flex-shrink: 0;
+  color: #111;
 }
 
 :host ::ng-deep .swipe-reveal-btn:disabled {
@@ -109,18 +110,22 @@
 }
 
 :host ::ng-deep .swipe-reveal-btn--danger {
-  background: color-mix(in srgb, var(--danger, #c43c3c) 92%, #000);
+  /* Darker red; black icon via base color */
+  background: #8f1414;
+  color: #111;
 }
 
 :host ::ng-deep .swipe-reveal-btn--accent {
-  background: color-mix(in srgb, var(--primary) 88%, #000);
+  background: color-mix(in srgb, var(--primary) 75%, #cbd5e1);
+  color: #111;
 }
 
 :host ::ng-deep .swipe-reveal-btn--warning {
-  background: color-mix(in srgb, #eab308 88%, #000);
-  color: #1a1a1a;
+  background: #eab308;
+  color: #111;
 }
 
 :host ::ng-deep .swipe-reveal-btn--muted {
-  background: color-mix(in srgb, var(--text-secondary) 55%, #1a1a1a);
+  background: #6b7280;
+  color: #111;
 }
