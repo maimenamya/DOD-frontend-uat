@@ -327,6 +327,9 @@ export type UpdateSessionInfoPayload = SessionMutationBase & {
   creditSaleToShop?: boolean;
   packageCustomerCode?: string | null;
   packageCustomerName?: string | null;
+  /** Optional aliases for gateways that only forward snake_case. */
+  package_customer_code?: string | null;
+  package_customer_name?: string | null;
 };
 
 export type ReserveSeatPayload = {

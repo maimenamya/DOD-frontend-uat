@@ -2961,13 +2961,18 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
     const name = this.editPackageCustomerName().trim();
+    const packageCustomerCode = code;
+    const packageCustomerName = code ? name || null : null;
     this.runAction(
       this.openTableService.updateSessionInfo({
         shopId: this.shopId,
         sessionId,
         expectedRevision,
-        packageCustomerCode: code,
-        packageCustomerName: code ? name || null : null,
+        packageCustomerCode,
+        packageCustomerName,
+        // Snake_case aliases — some proxies / older handlers only read these keys.
+        package_customer_code: packageCustomerCode,
+        package_customer_name: packageCustomerName,
       }),
       'บันทึกรหัสลูกค้าแล้ว',
       (detail) => {
