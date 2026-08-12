@@ -1,8 +1,4 @@
-/* Drink master owns column layout; shared --list only does scroll/air/clip */
-:host .app-split-table--list.app-split-table--wide {
-  --app-list-table-min: 64rem;
-}
-
+/* Drink master owns column layout */
 :host .app-split-table-grid col.drink-col-name {
   width: 26%;
 }

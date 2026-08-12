@@ -2063,15 +2063,15 @@
    * share the remaining width equally — no per-column <col /> when adding fields.
    */
   .app-split-table-grid col.app-col-id {
-    width: 3.5rem;
+    width: 8%;
   }
 
   .app-split-table-grid col.app-col-actions {
-    width: 11.5rem;
+    width: 14%;
   }
 
   .app-split-table-grid col.app-col-narrow {
-    width: 8.5rem;
+    width: 7%;
   }
 
   .app-split-table-grid col.app-col-action-btn {
@@ -2080,109 +2080,28 @@
 
   /** Wide master tables: fill card on tablet/desktop (phones use rem min-width in mobile block). */
   @media (min-width: 640px) {
-    .app-split-table--wide:not(.app-split-table--list),
-    .app-split-table--wide:not(.app-split-table--list) .app-split-table-header,
-    .app-split-table--wide:not(.app-split-table--list) .app-split-table-body {
+    .app-split-table--wide,
+    .app-split-table--wide .app-split-table-header,
+    .app-split-table--wide .app-split-table-body {
       width: 100%;
       max-width: 100%;
       min-width: 0;
     }
 
-    .app-split-table:not(.app-split-table--mobile-stack):not(.app-split-table--list)
+    .app-split-table:not(.app-split-table--mobile-stack) .app-split-table-header .app-split-table-grid,
+    .app-split-table:not(.app-split-table--mobile-stack) .app-split-table-body .app-split-table-grid,
+    .app-split-table:has(.app-col-actions):not(.app-split-table--mobile-stack)
       .app-split-table-header
       .app-split-table-grid,
-    .app-split-table:not(.app-split-table--mobile-stack):not(.app-split-table--list)
+    .app-split-table:has(.app-col-actions):not(.app-split-table--mobile-stack)
       .app-split-table-body
       .app-split-table-grid,
-    .app-split-table:has(.app-col-actions):not(.app-split-table--mobile-stack):not(.app-split-table--list)
-      .app-split-table-header
-      .app-split-table-grid,
-    .app-split-table:has(.app-col-actions):not(.app-split-table--mobile-stack):not(.app-split-table--list)
-      .app-split-table-body
-      .app-split-table-grid,
-    .app-split-table--wide:not(.app-split-table--mobile-stack):not(.app-split-table--list)
-      .app-split-table-header
-      .app-split-table-grid,
-    .app-split-table--wide:not(.app-split-table--mobile-stack):not(.app-split-table--list)
-      .app-split-table-body
-      .app-split-table-grid {
+    .app-split-table--wide:not(.app-split-table--mobile-stack) .app-split-table-header .app-split-table-grid,
+    .app-split-table--wide:not(.app-split-table--mobile-stack) .app-split-table-body .app-split-table-grid {
       width: 100%;
       min-width: 0;
       max-width: 100%;
     }
-  }
-
-  /**
-   * List table shell — visual language from bill-history (scroll, air, nowrap actions).
-   * Column widths / table min-width: owned by each page (colgroup or page CSS).
-   * Set --app-list-table-min on the split root when a page needs a floor width.
-   * Dashboard ranking uses .dashboard-rank-split — leave alone.
-   */
-  .app-data-table-shell--list {
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
-    scrollbar-gutter: auto;
-    --app-scroll-track: var(--table-body-bg);
-  }
-
-  .app-card-flush .app-data-table-shell--list:has(.app-split-table--list) {
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-
-  /* Soft floor — table keeps this width (shell scrolls); never scale cols into the viewport */
-  .app-split-table--list {
-    --app-list-table-min: 42rem;
-    width: var(--app-list-table-min);
-    min-width: var(--app-list-table-min);
-    max-width: none;
-  }
-
-  .app-split-table--list.app-split-table--wide {
-    --app-list-table-min: 80rem;
-  }
-
-  .app-split-table--list .app-split-table-header,
-  .app-split-table--list .app-split-table-body {
-    width: 100%;
-    min-width: 0;
-    max-width: none;
-    overflow-x: hidden;
-  }
-
-  .app-split-table--list .app-split-table-body {
-    overflow-y: auto;
-  }
-
-  .app-split-table--list .app-split-table-header .app-split-table-grid,
-  .app-split-table--list .app-split-table-body .app-split-table-grid {
-    table-layout: fixed;
-    width: var(--app-list-table-min);
-    min-width: var(--app-list-table-min);
-    max-width: none;
-  }
-
-  .app-split-table--list .app-data-table th,
-  .app-split-table--list .app-data-table td {
-    overflow: visible;
-    text-overflow: clip;
-    vertical-align: middle;
-    white-space: nowrap;
-  }
-
-  .app-split-table--list .app-data-table th {
-    letter-spacing: 0.02em;
-  }
-
-  .app-split-table--list .app-data-table td:has(.app-table-actions) {
-    overflow: visible;
-  }
-
-  .app-split-table--list .app-table-actions {
-    flex-wrap: nowrap;
-    gap: 0.5rem;
   }
 
   /** @deprecated — use .app-split-table */
@@ -2355,7 +2274,7 @@
   }
 
   .app-table-actions {
-    @apply flex flex-nowrap justify-center gap-2.5;
+    @apply flex flex-wrap justify-center gap-2.5;
   }
 
   .app-table-empty {
@@ -2401,20 +2320,16 @@
 
     /** Phones: wider min-width (like bill-history) so cells are not cramped */
     @media (max-width: 639px) {
-      .app-split-table:not(.app-split-table--list) .app-split-table-header .app-split-table-grid,
-      .app-split-table:not(.app-split-table--list) .app-split-table-body .app-split-table-grid {
+      .app-split-table-header .app-split-table-grid,
+      .app-split-table-body .app-split-table-grid {
         width: 40rem;
         min-width: 40rem;
       }
 
-      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack):not(
-          .app-split-table--list
-        )
+      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack)
         .app-split-table-header
         .app-split-table-grid,
-      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack):not(
-          .app-split-table--list
-        )
+      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack)
         .app-split-table-body
         .app-split-table-grid {
         width: 44rem;
@@ -2423,83 +2338,33 @@
 
       .app-data-table-scroll-10.app-data-table-wrap--wide .app-data-table,
       .app-data-table-wrap.app-data-table-scroll-10--wide .app-data-table,
-      .app-split-table--wide:not(.app-split-table--list) .app-split-table-header .app-split-table-grid,
-      .app-split-table--wide:not(.app-split-table--list) .app-split-table-body .app-split-table-grid {
+      .app-split-table--wide .app-split-table-header .app-split-table-grid,
+      .app-split-table--wide .app-split-table-body .app-split-table-grid {
         width: 56rem;
         min-width: 56rem;
       }
     }
 
-    /** Tablet in mobile shell (640–999): stretch non-list tables to card width */
+    /** Tablet in mobile shell (640–999): stretch tables to card width */
     @media (min-width: 640px) {
-      .app-split-table:not(.app-split-table--mobile-stack):not(.app-split-table--list)
+      .app-split-table:not(.app-split-table--mobile-stack) .app-split-table-header .app-split-table-grid,
+      .app-split-table:not(.app-split-table--mobile-stack) .app-split-table-body .app-split-table-grid,
+      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack)
         .app-split-table-header
         .app-split-table-grid,
-      .app-split-table:not(.app-split-table--mobile-stack):not(.app-split-table--list)
+      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack)
         .app-split-table-body
         .app-split-table-grid,
-      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack):not(
-          .app-split-table--list
-        )
-        .app-split-table-header
-        .app-split-table-grid,
-      .app-split-table:has(.app-col-actions):not(.app-split-table--wide):not(.app-split-table--mobile-stack):not(
-          .app-split-table--list
-        )
-        .app-split-table-body
-        .app-split-table-grid,
-      .app-split-table--wide:not(.app-split-table--list) .app-split-table-header .app-split-table-grid,
-      .app-split-table--wide:not(.app-split-table--list) .app-split-table-body .app-split-table-grid {
+      .app-split-table--wide .app-split-table-header .app-split-table-grid,
+      .app-split-table--wide .app-split-table-body .app-split-table-grid {
         width: 100%;
         min-width: 0;
         max-width: 100%;
       }
 
-      .app-split-table:not(.app-split-table--list) .app-split-table-grid col.app-col-actions {
+      .app-split-table-grid col.app-col-actions {
         width: 20%;
       }
-    }
-
-    /** List tables: same shell scroll + air; min-width from page (--app-list-table-min) */
-    .app-card-flush:has(.app-data-table-shell--list) {
-      overflow: hidden;
-    }
-
-    .app-data-table-shell--list {
-      overflow-x: auto;
-      overflow-y: hidden;
-    }
-
-    .app-split-table--list {
-      width: var(--app-list-table-min);
-      min-width: var(--app-list-table-min);
-    }
-
-    .app-split-table--list.app-split-table--wide {
-      --app-list-table-min: 80rem;
-    }
-
-    .app-split-table--list .app-split-table-header {
-      display: block;
-      padding-inline-end: 0;
-    }
-
-    .app-split-table--list .app-split-table-body {
-      max-height: none;
-      overflow-x: hidden;
-      overflow-y: visible;
-    }
-
-    .app-split-table--list .app-split-table-header .app-split-table-grid,
-    .app-split-table--list .app-split-table-body .app-split-table-grid {
-      width: var(--app-list-table-min);
-      min-width: var(--app-list-table-min);
-      max-width: none;
-    }
-
-    .app-split-table--list .app-split-table-header th,
-    .app-split-table--list .app-split-table-body .app-data-table td {
-      @apply px-4 py-3.5 text-sm;
     }
 
     .app-split-table--mobile-stack .app-split-table-header .app-split-table-grid,
@@ -2638,15 +2503,15 @@
     }
 
     .app-split-table-grid col.app-col-id {
-      width: 3.5rem;
+      width: 8%;
     }
 
     .app-split-table-grid col.app-col-actions {
-      width: 11.5rem;
+      width: 14%;
     }
 
     .app-split-table-grid col.app-col-narrow {
-      width: 8.5rem;
+      width: 7%;
     }
 
     .app-split-table-grid col.app-col-action-btn {

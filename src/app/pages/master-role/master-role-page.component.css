@@ -1,8 +1,4 @@
-/* Role master — rem cols sized for Thai headers + tracking; table never shrinks into viewport */
-:host .app-split-table--list.app-split-table--wide {
-  --app-list-table-min: 96rem;
-}
-
+/* Role master — rem cols sized for Thai headers + tracking */
 :host .app-split-table-grid col.role-col-sys {
   width: 10rem;
 }
