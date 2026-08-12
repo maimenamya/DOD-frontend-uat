@@ -2074,6 +2074,10 @@
     width: 11.5rem;
   }
 
+  .app-split-table--list .app-split-table-grid col.app-col-narrow {
+    width: 8rem;
+  }
+
   .app-split-table-grid col.app-col-narrow {
     width: 7%;
   }
@@ -2172,8 +2176,7 @@
 
   .app-split-table--list .app-data-table th,
   .app-split-table--list .app-data-table td {
-    overflow: hidden;
-    text-overflow: ellipsis;
+    /* No ellipsis — bill-history avoids "…" by wide cols; masters must show full amounts/labels */
     vertical-align: middle;
     white-space: nowrap;
   }
@@ -2183,8 +2186,6 @@
   }
 
   .app-split-table--list .app-data-table td:has(.app-table-actions) {
-    overflow: visible;
-    text-overflow: unset;
     white-space: nowrap;
   }
 
@@ -2659,6 +2660,10 @@
 
     .app-split-table--list .app-split-table-grid col.app-col-actions {
       width: 11.5rem;
+    }
+
+    .app-split-table--list .app-split-table-grid col.app-col-narrow {
+      width: 8rem;
     }
 
     .app-split-table-grid col.app-col-narrow {
