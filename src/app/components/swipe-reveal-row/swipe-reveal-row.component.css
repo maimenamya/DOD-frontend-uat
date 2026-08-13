@@ -116,7 +116,8 @@
 }
 
 :host ::ng-deep .swipe-reveal-btn--accent {
-  background: color-mix(in srgb, var(--primary) 75%, #cbd5e1);
+  /* Blue slab — เบิก / คืนของ / สต็อป; black icon */
+  background: #3b82f6;
   color: #111;
 }
 

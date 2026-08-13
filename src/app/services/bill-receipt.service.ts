@@ -1186,19 +1186,19 @@ function stripTrailingParenGroup(value: string): string {
   return value.slice(0, start).trimEnd();
 }
 
-/** บิลเก่า: "รันดื่ม ชื่อ (ตำแหน่ง)" → "ดื่ม ตำแหน่งชื่อ" · "น้ำแข็ง [ฟรี]" → "น้ำแข็งฟรี" */
+/** บิลเก่า: "ดื่ม/รันดื่ม ชื่อ (ตำแหน่ง)" → "ตำแหน่งชื่อ" · "น้ำแข็ง [ฟรี]" → "น้ำแข็งฟรี" */
 function receiptLineDisplayName(name: string): string {
   let trimmed = name.trim().replace(/\s*\[ฟรี\]\s*$/, 'ฟรี');
-  if (trimmed.startsWith('ดื่ม ')) {
-    return formatDrinkReceiptDisplay(trimmed.slice('ดื่ม '.length), 'ดื่ม');
-  }
   if (trimmed.startsWith('รันดื่ม ')) {
-    return formatDrinkReceiptDisplay(trimmed.slice('รันดื่ม '.length), 'ดื่ม');
+    return formatDrinkReceiptDisplay(trimmed.slice('รันดื่ม '.length));
+  }
+  if (trimmed.startsWith('ดื่ม ')) {
+    return formatDrinkReceiptDisplay(trimmed.slice('ดื่ม '.length));
   }
   return trimmed;
 }
 
-function formatDrinkReceiptDisplay(rest: string, prefix: string): string {
+function formatDrinkReceiptDisplay(rest: string): string {
   const trimmed = rest.trim();
   if (trimmed.endsWith(')')) {
     const open = trimmed.lastIndexOf(' (');
@@ -1206,12 +1206,11 @@ function formatDrinkReceiptDisplay(rest: string, prefix: string): string {
       const role = trimmed.slice(open + 2, trimmed.length - 1).trim();
       const nick = trimmed.slice(0, open).trim();
       if (role && nick && !role.includes('(') && !role.includes(')')) {
-        return `${prefix} ${role}${nick}`;
+        return `${role}${nick}`;
       }
     }
   }
-  const stripped = stripTrailingParenGroup(trimmed).trim();
-  return stripped ? `${prefix} ${stripped}` : prefix;
+  return stripTrailingParenGroup(trimmed).trim() || trimmed;
 }
 
 function padReceiptCanvasBottom(source: HTMLCanvasElement, extraPx: number): HTMLCanvasElement {
