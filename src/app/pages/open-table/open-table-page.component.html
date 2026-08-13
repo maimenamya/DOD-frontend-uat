@@ -944,11 +944,18 @@
             </svg>
           </ng-template>
           <ng-template #swipeIconReturn>
-            <!-- Bold U-turn arrow left = คืนของ -->
+            <!-- A: U-turn arrow left = คืนของ -->
             <svg class="swipe-reveal-btn__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path
                 d="M8.7 4.3a1 1 0 0 0-1.4 0l-4 4a1 1 0 0 0 0 1.4l4 4a1 1 0 0 0 1.4-1.4L6.42 10H15a5 5 0 1 1 0 10h-3a1 1 0 1 0 0 2h3a7 7 0 1 0 0-14H6.42l2.28-2.3a1 1 0 0 0 0-1.4Z"
               />
+            </svg>
+          </ng-template>
+          <ng-template #swipeIconWithdraw>
+            <!-- Arrow out of tray = เบิก (ไม่ใช้ download ล้วน) -->
+            <svg class="swipe-reveal-btn__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M4 14.5A1.5 1.5 0 0 1 5.5 13h13a1.5 1.5 0 0 1 0 3h-13A1.5 1.5 0 0 1 4 14.5Z" />
+              <path d="M11 4a1 1 0 0 1 2 0v7.17l1.88-1.88a1 1 0 1 1 1.42 1.42l-3.59 3.58a1 1 0 0 1-1.42 0L7.7 10.71a1 1 0 0 1 1.42-1.42L11 11.17V4Z" />
             </svg>
           </ng-template>
           <div>
@@ -976,10 +983,12 @@
                           swipeStart
                           type="button"
                           class="swipe-reveal-btn swipe-reveal-btn--muted"
+                          aria-label="เบิก"
+                          title="เบิก"
                           [disabled]="actionBusy()"
                           (click)="openPackageBottleModal('WITHDRAW', item)"
                         >
-                          เบิก
+                          <ng-container *ngTemplateOutlet="swipeIconWithdraw" />
                         </button>
                       }
                       @if (item.canReturn) {
@@ -1011,16 +1020,13 @@
                       <div class="open-table-ledger-item">
                         <div class="open-table-ledger-item__body">
                           <span class="open-table-ledger-item__title">
-                            {{ item.label }}
+                            {{ item.label }}@if (item.isFreeMixer) {ฟรี}
                             @if (item.hostLabel) {
                               <span class="open-table-ledger-item__muted">({{ item.hostLabel }})</span>
                             }
                           </span>
                           <span class="open-table-ledger-item__meta">
                             × {{ item.quantity }} {{ item.unitLabel }}
-                            @if (item.isFreeMixer) {
-                              <span class="text-theme-accent">· ฟรีมิกซ์</span>
-                            }
                             @if (packageBottleLabel(item); as bottleLabel) {
                               <span class="font-mono text-theme-accent">· {{ bottleLabel }}</span>
                             }
@@ -1171,8 +1177,7 @@
                     <div class="open-table-ledger-item">
                       <div class="open-table-ledger-item__body">
                         <span class="open-table-ledger-item__title">
-                          {{ row.employeeName }}
-                          <span class="open-table-ledger-item__muted">({{ row.roleDisplayNameTh }})</span>
+                          {{ row.roleDisplayNameTh }}{{ row.employeeName }}
                         </span>
                         <span class="open-table-ledger-item__meta">
                           {{ row.drinks }} ดื่ม
@@ -1658,11 +1663,6 @@
             </div>
             @if (selectedPackageAllowsDeposit()) {
               @if (sessionHasPackageCustomerCode()) {
-                <p class="app-hint">
-                  ใช้รหัสฝากบิล
-                  <span class="font-mono">{{ sessionDetail()?.packageCustomerCode }}</span>
-                  · แก้ที่เมนู ⋮
-                </p>
               } @else {
                 <p class="app-field-hint">ตั้งรหัสลูกค้าที่เมนู ⋮ ก่อนเปิดเมมฝาก</p>
               }

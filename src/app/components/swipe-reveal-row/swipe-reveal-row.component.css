@@ -110,8 +110,8 @@
 }
 
 :host ::ng-deep .swipe-reveal-btn--danger {
-  /* Darker red; black icon via base color */
-  background: #8f1414;
+  /* Soft red; black icon via base color */
+  background: #e35d5d;
   color: #111;
 }
 
