@@ -34,10 +34,7 @@
           <label class="app-label" for="employee-team-ชื่อเล่น-2">ชื่อเล่น</label>
           <input id="employee-team-ชื่อเล่น-2" type="text" formControlName="nickname" class="app-input" />
         </div>
-        <div class="app-form-group">
-          <label class="app-label" for="employee-team-password-3">Password</label>
-          <input id="employee-team-password-3" type="password" formControlName="password" class="app-input" />
-        </div>
+        <p class="app-field-hint">รหัสผ่านเริ่มต้นใช้ค่าจากเมนูกฎร้าน</p>
         <div class="app-form-group">
           <label class="app-label" for="employee-team-email-optional-4">Email (optional)</label>
           <input id="employee-team-email-optional-4" type="email" formControlName="email" class="app-input" />
@@ -99,8 +96,16 @@
             </div>
           }
           <div class="app-form-group">
-            <label class="app-label" for="employee-team-new-password-optional-10">New password (optional)</label>
-            <input id="employee-team-new-password-optional-10" type="password" formControlName="password" class="app-input" />
+            <span class="app-label">Password</span>
+            <button
+              type="button"
+              class="app-btn-secondary"
+              [disabled]="submitting()"
+              (click)="confirmResetPassword(emp)"
+            >
+              รีเซ็ตเป็นรหัสเริ่มต้นร้าน
+            </button>
+            <p class="app-field-hint">ใช้รหัสจากกฎร้าน แล้วบังคับเปลี่ยนตอนเข้าสู่ระบบครั้งถัดไป</p>
           </div>
           <div class="app-form-group">
             <label class="app-label" for="employee-team-เหตุผลการแก้ไข-ลบ-11">เหตุผลการแก้ไข/ลบ</label>

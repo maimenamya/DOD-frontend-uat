@@ -20,6 +20,12 @@ import {
   resetFormValidationFlag,
 } from '../../utils/form-validation.util';
 import { isValidShopTimeHm, normalizeShopTimeHm } from '../../utils/shop-time.util';
+import {
+  MIN_PASSWORD_LENGTH,
+  generateShopInitialPassword,
+  passwordMeetsPolicy,
+  passwordPolicyErrorMessage,
+} from '../../utils/password-policy.util';
 
 type TierField =
   | 'seatDrinkTier15Drinks'
@@ -41,8 +47,10 @@ export class ShopRulesPageComponent implements OnInit {
   readonly loading = signal(true);
   readonly submitting = signal(false);
   readonly formValidated = signal(false);
+  readonly showInitialPassword = signal(false);
 
   readonly roundingOptions = DRINK_ACCRUAL_ROUNDING_OPTIONS;
+  readonly minPasswordLength = MIN_PASSWORD_LENGTH;
 
   readonly form = this.fb.group({
     seatDrinkTier15Drinks: [1, [Validators.required, Validators.min(0)]],
@@ -58,6 +66,10 @@ export class ShopRulesPageComponent implements OnInit {
     expectedCheckOutNextDay: [true],
     autoCloseCutoffTime: [''],
     forgotCheckOutDeductionBaht: [0, [Validators.required, Validators.min(0)]],
+    employeeInitialPassword: [
+      '',
+      [Validators.required, Validators.minLength(MIN_PASSWORD_LENGTH)],
+    ],
   });
 
   ngOnInit(): void {
@@ -143,6 +155,12 @@ export class ShopRulesPageComponent implements OnInit {
 
     if (highlightInvalidForm(this.form, this.formValidated, this.toast)) return;
 
+    const initialPassword = this.form.controls.employeeInitialPassword.value.trim();
+    if (!passwordMeetsPolicy(initialPassword)) {
+      this.toast.showError(passwordPolicyErrorMessage());
+      return;
+    }
+
     this.submitting.set(true);
     const raw = this.form.getRawValue();
     const value: import('../../models/shop-policy').ShopPolicyInput = {
@@ -159,6 +177,7 @@ export class ShopRulesPageComponent implements OnInit {
       forgotCheckOutDeductionBaht: raw.forgotCheckOutDeductionBaht,
       freelanceLateDrinkCutoffTime: raw.freelanceLateDrinkCutoffTime.trim() || null,
       freelanceLateDrinkExtraShopPortionBaht: raw.freelanceLateDrinkExtraShopPortionBaht,
+      employeeInitialPassword: initialPassword,
     };
     this.policyService.save(value).subscribe({
       next: (config) => {
@@ -178,7 +197,20 @@ export class ShopRulesPageComponent implements OnInit {
     });
   }
 
+  randomizeInitialPassword(): void {
+    if (!this.canManage()) return;
+    this.form.controls.employeeInitialPassword.setValue(generateShopInitialPassword());
+    this.form.controls.employeeInitialPassword.markAsDirty();
+    this.showInitialPassword.set(true);
+  }
+
+  toggleInitialPasswordVisible(): void {
+    this.showInitialPassword.update((v) => !v);
+  }
+
   private patchForm(config: ShopPolicyConfig): void {
+    const savedPassword = config.employeeInitialPassword?.trim() ?? '';
+    const initialPassword = savedPassword || generateShopInitialPassword();
     this.form.patchValue({
       seatDrinkTier15Drinks: config.seatDrinkTier15Drinks,
       seatDrinkTier30Drinks: config.seatDrinkTier30Drinks,
@@ -194,7 +226,12 @@ export class ShopRulesPageComponent implements OnInit {
       expectedCheckOutNextDay: config.expectedCheckOutNextDay ?? true,
       autoCloseCutoffTime: config.autoCloseCutoffTime ?? '',
       forgotCheckOutDeductionBaht: config.forgotCheckOutDeductionBaht ?? 0,
+      employeeInitialPassword: initialPassword,
     });
+    if (!savedPassword && this.canManage()) {
+      this.form.controls.employeeInitialPassword.markAsDirty();
+      this.showInitialPassword.set(true);
+    }
     if (!this.canManage()) {
       this.form.disable();
     } else {

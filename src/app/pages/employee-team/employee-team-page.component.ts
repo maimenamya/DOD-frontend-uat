@@ -86,7 +86,6 @@ export class EmployeeTeamPageComponent implements OnInit {
 
   readonly createForm = this.fb.group({
     employeeId: ['', [Validators.required, Validators.minLength(3)]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
     nickname: ['', [Validators.required, Validators.minLength(1)]],
     email: [''],
     roleId: [0, [Validators.required, Validators.min(1)]],
@@ -97,7 +96,6 @@ export class EmployeeTeamPageComponent implements OnInit {
     email: [''],
     status: ['Active', Validators.required],
     roleId: [0, [Validators.required, Validators.min(1)]],
-    password: [''],
     changeReason: ['', Validators.minLength(3)],
   });
 
@@ -157,7 +155,6 @@ export class EmployeeTeamPageComponent implements OnInit {
     const defaultRoleId = this.roleDropdownOptions()[0]?.value ?? 0;
     this.createForm.reset({
       employeeId: '',
-      password: '',
       nickname: '',
       email: '',
       roleId: Number(defaultRoleId),
@@ -179,7 +176,6 @@ export class EmployeeTeamPageComponent implements OnInit {
       email: employee.email ?? '',
       status: employee.status,
       roleId: employee.roleId,
-      password: '',
       changeReason: '',
     });
   }
@@ -203,7 +199,6 @@ export class EmployeeTeamPageComponent implements OnInit {
     this.employeeService
       .createEmployee({
         employeeId: raw.employeeId,
-        password: raw.password,
         nickname: raw.nickname,
         roleId: raw.roleId,
         shopId,
@@ -213,7 +208,9 @@ export class EmployeeTeamPageComponent implements OnInit {
       .subscribe({
         next: () => {
           this.submitting.set(false);
-          this.success.set('เพิ่มพนักงานสำเร็จ');
+          this.success.set(
+            'เพิ่มพนักงานสำเร็จ — ใช้รหัสผ่านเริ่มต้นจากกฎร้าน',
+          );
           this.closeCreateForm();
           this.loadEmployees();
         },
@@ -240,7 +237,6 @@ export class EmployeeTeamPageComponent implements OnInit {
         email: raw.email || null,
         status: raw.status,
         roleId: raw.roleId,
-        password: raw.password || undefined,
         changeReason: raw.changeReason.trim(),
       })
       .subscribe({
@@ -255,6 +251,30 @@ export class EmployeeTeamPageComponent implements OnInit {
           this.error.set(err.error?.error ?? 'ไม่สามารถแก้ไขพนักงานได้');
         },
       });
+  }
+
+  async confirmResetPassword(employee: MstEmployee): Promise<void> {
+    if (!this.canMutateRow(employee)) return;
+
+    const changeReason = await this.confirmDialog.confirmWithReason({
+      title: 'รีเซ็ตรหัสผ่าน',
+      message: `รีเซ็ตรหัสของ "${employee.nickname}" (${employee.employeeId}) เป็นรหัสเริ่มต้นจากกฎร้าน ใช่หรือไม่?`,
+      confirmLabel: 'รีเซ็ต',
+    });
+    if (!changeReason) return;
+
+    this.submitting.set(true);
+    this.error.set(null);
+    this.employeeService.resetPassword(employee.id, changeReason).subscribe({
+      next: () => {
+        this.submitting.set(false);
+        this.success.set('รีเซ็ตรหัสผ่านแล้ว — บอกรหัสเริ่มต้นจากกฎร้านให้พนักงาน');
+      },
+      error: (err: { error?: { error?: string } }) => {
+        this.submitting.set(false);
+        this.error.set(err.error?.error ?? 'ไม่สามารถรีเซ็ตรหัสผ่านได้');
+      },
+    });
   }
 
   async confirmDelete(employee: MstEmployee): Promise<void> {

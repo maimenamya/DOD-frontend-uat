@@ -16,12 +16,15 @@ export interface ShopPolicyConfig {
   expectedCheckOutNextDay: boolean;
   autoCloseCutoffTime: string | null;
   forgotCheckOutDeductionBaht: number;
+  /** Shared first-login / reset password for employees at this shop. */
+  employeeInitialPassword: string | null;
 }
 
 export type ShopPolicyInput = Omit<
   ShopPolicyConfig,
-  'shopId' | 'expectedCheckOutTime'
+  'shopId' | 'expectedCheckOutTime' | 'employeeInitialPassword'
 > & {
   /** Omit to leave shop legacy check-out column unchanged (staff times on roles). */
   expectedCheckOutTime?: string | null;
+  employeeInitialPassword: string;
 };

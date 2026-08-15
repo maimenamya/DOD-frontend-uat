@@ -39,6 +39,12 @@ export class EmployeeService {
     return this.http.put<MstEmployee>(`${this.employeesUrl}/${id}`, payload);
   }
 
+  resetPassword(id: number, changeReason: string): Observable<MstEmployee> {
+    return this.http.post<MstEmployee>(`${this.employeesUrl}/${id}/reset-password`, {
+      changeReason,
+    });
+  }
+
   deleteEmployee(id: number, changeReason: string): Observable<MstEmployee> {
     return this.http.delete<MstEmployee>(`${this.employeesUrl}/${id}`, {
       body: { changeReason },

@@ -25,7 +25,6 @@ import { EmployeeService } from '../../services/employee.service';
 import { RoleService } from '../../services/role.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
-import { MIN_PASSWORD_LENGTH } from '../../utils/password-policy.util';
 import {
   LOCAL_CODE_MAX_LENGTH,
   LOCAL_CODE_PATTERN,
@@ -75,7 +74,6 @@ export class EmployeeManagementPageComponent implements OnInit {
 
   readonly user = this.auth.getUser();
   readonly canManage = computed(() => this.auth.canWriteOnPage('manage_employees'));
-  protected readonly minPasswordLength = MIN_PASSWORD_LENGTH;
 
   readonly roles = signal<MstRole[]>([]);
   readonly allEmployees = signal<MstEmployee[]>([]);
@@ -142,7 +140,6 @@ export class EmployeeManagementPageComponent implements OnInit {
         Validators.pattern(LOCAL_CODE_PATTERN),
       ],
     ],
-    password: ['', [Validators.required, Validators.minLength(MIN_PASSWORD_LENGTH)]],
     nickname: ['', [Validators.required, Validators.minLength(1)]],
     email: [''],
     roleId: [0, [Validators.required, Validators.min(1)]],
@@ -154,7 +151,6 @@ export class EmployeeManagementPageComponent implements OnInit {
     email: [''],
     status: ['Active', Validators.required],
     roleId: [0, [Validators.required, Validators.min(1)]],
-    password: [''],
     workDuties: [[] as WorkDuty[]],
     changeReason: ['', Validators.minLength(3)],
   });
@@ -335,7 +331,6 @@ export class EmployeeManagementPageComponent implements OnInit {
     this.editingEmployee.set(null);
     this.createForm.reset({
       employeeId: '',
-      password: '',
       nickname: '',
       email: '',
       roleId: role.id,
@@ -358,7 +353,6 @@ export class EmployeeManagementPageComponent implements OnInit {
       email: employee.email ?? '',
       status: employee.status,
       roleId: employee.roleId,
-      password: '',
       workDuties: parseStaffWorkDuties(employee.workDuties ?? []),
       changeReason: '',
     });
@@ -386,7 +380,6 @@ export class EmployeeManagementPageComponent implements OnInit {
     this.employeeService
       .createEmployee({
         employeeId: raw.employeeId,
-        password: raw.password,
         nickname: raw.nickname,
         roleId: role.id,
         shopId,
@@ -400,7 +393,9 @@ export class EmployeeManagementPageComponent implements OnInit {
         next: () => {
           this.submitting.set(false);
           this.closeCreateForm();
-          this.toast.showSuccess('เพิ่มพนักงานสำเร็จ');
+          this.toast.showSuccess(
+            'เพิ่มพนักงานสำเร็จ — ใช้รหัสผ่านเริ่มต้นจากกฎร้าน แล้วให้เปลี่ยนตอนเข้าสู่ระบบครั้งแรก',
+          );
           this.loadEmployees();
         },
         error: (err: { error?: { error?: string } }) => {
@@ -425,7 +420,6 @@ export class EmployeeManagementPageComponent implements OnInit {
         email: raw.email || null,
         status: raw.status,
         roleId: raw.roleId,
-        password: raw.password || undefined,
         // Omit when not configuring — BE keeps existing duties (or forces PR/empty on role change).
         ...(this.canConfigureDutiesForRole(nextRole)
           ? { workDuties: parseStaffWorkDuties(raw.workDuties) }
@@ -444,6 +438,29 @@ export class EmployeeManagementPageComponent implements OnInit {
           this.toast.showError(err.error?.error ?? 'ไม่สามารถแก้ไขพนักงานได้');
         },
       });
+  }
+
+  async confirmResetPassword(employee: MstEmployee): Promise<void> {
+    if (!this.canMutateRow(employee)) return;
+
+    const changeReason = await this.confirmDialog.confirmWithReason({
+      title: 'รีเซ็ตรหัสผ่าน',
+      message: `รีเซ็ตรหัสของ "${employee.nickname}" (${employee.employeeId}) เป็นรหัสเริ่มต้นจากกฎร้าน แล้วบังคับเปลี่ยนตอนเข้าสู่ระบบครั้งถัดไป ใช่หรือไม่?`,
+      confirmLabel: 'รีเซ็ต',
+    });
+    if (!changeReason) return;
+
+    this.submitting.set(true);
+    this.employeeService.resetPassword(employee.id, changeReason).subscribe({
+      next: () => {
+        this.submitting.set(false);
+        this.toast.showSuccess('รีเซ็ตรหัสผ่านแล้ว — บอกรหัสเริ่มต้นจากกฎร้านให้พนักงาน');
+      },
+      error: (err: { error?: { error?: string } }) => {
+        this.submitting.set(false);
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถรีเซ็ตรหัสผ่านได้');
+      },
+    });
   }
 
   async confirmDelete(employee: MstEmployee): Promise<void> {

@@ -71,13 +71,9 @@
           <label class="app-label" for="employee-management-ชื่อเล่น-1">ชื่อเล่น</label>
           <input id="employee-management-ชื่อเล่น-1" type="text" formControlName="nickname" class="app-input" />
         </div>
-        <div class="app-form-group">
-          <label class="app-label" for="employee-management-รหัสผ่านเริ่มต้น-2">รหัสผ่านเริ่มต้น</label>
-          <input id="employee-management-รหัสผ่านเริ่มต้น-2" type="password" formControlName="password" class="app-input" />
-          <p class="mt-1.5 text-sm text-text-secondary">
-            อย่างน้อย {{ minPasswordLength }} ตัวอักษร — เจ้าของ/ผู้จัดการตั้งให้ ผู้ใช้ต้องเปลี่ยนเองเมื่อเข้าระบบครั้งแรก (รวมผู้จัดการ)
-          </p>
-        </div>
+        <p class="app-field-hint">
+          รหัสผ่านเริ่มต้นใช้ค่าจากเมนูกฎร้าน — พนักงานต้องเปลี่ยนเองเมื่อเข้าสู่ระบบครั้งแรก
+        </p>
         <div class="app-form-group">
           <label class="app-label" for="employee-management-อีเมล-ไม่บังคับ-3">อีเมล (ไม่บังคับ)</label>
           <input id="employee-management-อีเมล-ไม่บังคับ-3" type="email" formControlName="email" class="app-input" />
@@ -159,10 +155,17 @@
             />
           </div>
           <div class="app-form-group">
-            <label class="app-label" for="employee-management-รหัสผ่านใหม่-ไม่บังคับ-10">รหัสผ่านใหม่ (ไม่บังคับ)</label>
-            <input id="employee-management-รหัสผ่านใหม่-ไม่บังคับ-10" type="password" formControlName="password" class="app-input" />
-            <p class="mt-1.5 text-sm text-text-secondary">
-              ถ้าตั้งรหัสใหม่ ผู้ใช้ต้องเปลี่ยนอีกครั้งเมื่อเข้าระบบครั้งถัดไป
+            <span class="app-label">รหัสผ่าน</span>
+            <button
+              type="button"
+              class="app-btn-secondary"
+              [disabled]="submitting()"
+              (click)="confirmResetPassword(emp)"
+            >
+              รีเซ็ตเป็นรหัสเริ่มต้นร้าน
+            </button>
+            <p class="app-field-hint">
+              ใช้รหัสจากกฎร้าน แล้วบังคับให้เปลี่ยนตอนเข้าสู่ระบบครั้งถัดไป — ดู/แก้รหัสได้ที่เมนูกฎร้าน
             </p>
           </div>
           <div class="app-form-group">

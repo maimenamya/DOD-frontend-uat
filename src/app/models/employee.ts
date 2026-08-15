@@ -50,7 +50,6 @@ export type EmployeeTeam = 'sale' | 'pr' | 'managers';
 
 export interface CreateEmployeePayload {
   employeeId: string;
-  password: string;
   nickname: string;
   roleId: number;
   shopId: number;
@@ -64,7 +63,6 @@ export interface UpdateEmployeePayload {
   email?: string | null;
   status?: string;
   roleId?: number;
-  password?: string;
   workDuties?: WorkDuty[];
   changeReason?: string;
 }
