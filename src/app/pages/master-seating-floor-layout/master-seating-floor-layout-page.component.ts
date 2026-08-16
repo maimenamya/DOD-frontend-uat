@@ -56,6 +56,7 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   readonly selectedAreaKey = signal<string | null>(null);
   readonly dirty = signal(false);
   readonly isPanning = signal(false);
+  readonly paletteDraggingSeatingId = signal<number | null>(null);
 
   private drag: DragState = null;
   private nextTempAreaId = -1;
@@ -271,15 +272,46 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   }
 
   onUnplacedPointerDown(event: PointerEvent, seat: FloorLayoutUnplacedSeat): void {
-    event.preventDefault();
-    this.drag = { kind: 'place', seatingId: seat.seatingId };
-    const onMove = (ev: PointerEvent): void => {
-      void ev;
-    };
-    const onUp = (ev: PointerEvent): void => {
+    if (event.button !== 0) return;
+
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const pointerId = event.pointerId;
+    const isTouch = event.pointerType === 'touch';
+    const target = event.currentTarget as HTMLElement;
+    let activated = false;
+    let aborted = false;
+    let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const cleanup = (): void => {
+      if (longPressTimer != null) {
+        window.clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
-      const canvasEl = document.querySelector('.floor-editor__canvas') as HTMLElement | null;
+      window.removeEventListener('pointercancel', onCancel);
+      this.paletteDraggingSeatingId.set(null);
+      if (target.hasPointerCapture?.(pointerId)) {
+        target.releasePointerCapture(pointerId);
+      }
+    };
+
+    const activate = (): void => {
+      if (activated || aborted) return;
+      activated = true;
+      this.drag = { kind: 'place', seatingId: seat.seatingId };
+      this.paletteDraggingSeatingId.set(seat.seatingId);
+      try {
+        target.setPointerCapture(pointerId);
+      } catch {
+        /* pointer already released */
+      }
+    };
+
+    const finishPlace = (ev: PointerEvent): void => {
+      const canvasEl =
+        this.canvasWrap()?.nativeElement.querySelector('.floor-editor__canvas') ?? null;
       if (!canvasEl || !this.drag || this.drag.kind !== 'place') {
         this.drag = null;
         return;
@@ -299,8 +331,51 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
       this.placeSeat(this.drag.seatingId, x, y);
       this.drag = null;
     };
-    window.addEventListener('pointermove', onMove);
+
+    const onMove = (ev: PointerEvent): void => {
+      if (ev.pointerId !== pointerId || aborted || activated || !isTouch) return;
+      const dx = ev.clientX - startX;
+      const dy = ev.clientY - startY;
+      if (Math.abs(dx) > PALETTE_SCROLL_SLOP_PX && Math.abs(dx) >= Math.abs(dy)) {
+        aborted = true;
+        this.drag = null;
+        cleanup();
+        return;
+      }
+      if (Math.abs(dy) > PALETTE_SCROLL_SLOP_PX) {
+        ev.preventDefault();
+        activate();
+      }
+    };
+
+    const onUp = (ev: PointerEvent): void => {
+      if (ev.pointerId !== pointerId) return;
+      const shouldPlace = activated && !aborted;
+      cleanup();
+      if (shouldPlace) {
+        finishPlace(ev);
+        return;
+      }
+      this.drag = null;
+    };
+
+    const onCancel = (ev: PointerEvent): void => {
+      if (ev.pointerId !== pointerId) return;
+      aborted = true;
+      this.drag = null;
+      cleanup();
+    };
+
+    if (isTouch) {
+      longPressTimer = window.setTimeout(() => activate(), PALETTE_LONG_PRESS_MS);
+    } else {
+      event.preventDefault();
+      activate();
+    }
+
+    window.addEventListener('pointermove', onMove, { passive: false });
     window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onCancel);
   }
 
   onPlacedPointerDown(event: PointerEvent, seat: FloorLayoutPlacedSeat): void {
@@ -571,6 +646,9 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     };
   }
 }
+
+const PALETTE_SCROLL_SLOP_PX = 12;
+const PALETTE_LONG_PRESS_MS = 280;
 
 function sortUnplacedByCode(rows: FloorLayoutUnplacedSeat[]): FloorLayoutUnplacedSeat[] {
   return [...rows].sort((a, b) =>

@@ -5,7 +5,7 @@ export type PermissionGroup = (typeof PERMISSION_GROUPS)[number];
 export const PERMISSION_GROUP_LABEL_TH: Record<PermissionGroup, string> = {
   OWNER: 'เจ้าของร้าน — ทำได้ทุกอย่าง',
   MANAGER: 'ผู้จัดการ — ทุกอย่างยกเว้นแก้ไขเจ้าของร้าน',
-  CASHIER: 'แคชเชียร์ — สิทธิ์เมนูและการจัดการเหมือนผู้จัดการ (ยกเว้นแก้ไขเจ้าของร้าน)',
+  CASHIER: 'แคชเชียร์ — งานหน้า POS ไม่เห็นเมนูการจัดการ',
   EMPLOYEE:
     'พนักงานหน้างาน — Sale: ยอดตัวเอง + ดื่มเซลล์/PR ร้าน; PR: ยอดตัวเอง + ตาราง PR',
 };

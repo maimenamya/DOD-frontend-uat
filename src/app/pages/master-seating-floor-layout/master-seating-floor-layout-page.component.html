@@ -50,6 +50,8 @@
           </h2>
           @if (zoneUnplaced().length === 0) {
             <p class="app-hint mb-0">โซนนี้วางครบแล้ว · กด + เพื่อเพิ่มพื้นที่ว่าง</p>
+          } @else {
+            <p class="app-hint mb-0">ปัดซ้ายขวาเพื่อเลื่อนรายการ · กดค้างหรือลากลงมาวางบนผัง</p>
           }
         </div>
 
@@ -62,6 +64,9 @@
                     <button
                       type="button"
                       class="floor-editor__palette-item"
+                      [class.floor-editor__palette-item--active]="
+                        paletteDraggingSeatingId() === seat.seatingId
+                      "
                       (pointerdown)="onUnplacedPointerDown($event, seat)"
                     >
                       <span class="font-semibold">{{ seat.code }}</span>
@@ -91,7 +96,7 @@
         <p class="app-hint mb-2">
           กำลังจัดผังโซน
           <strong>{{ selectedZone()?.name ?? '—' }}</strong>
-          — ลากโต๊ะจากแถวบนมาวาง · คลิกโต๊ะหรือพื้นที่เพื่อแก้ไข · + พื้นที่ว่าง = เพิ่มป้ายในโซนนี้
+          — ปัดซ้ายขวาที่แถวบนเพื่อเลื่อนรายการ แล้วลากโต๊ะลงมาวาง · คลิกโต๊ะหรือพื้นที่เพื่อแก้ไข · + พื้นที่ว่าง = เพิ่มป้ายในโซนนี้
         </p>
 
         <div class="floor-editor__toolbar">

@@ -10,10 +10,6 @@
   width: 17%;
 }
 
-.permission-overview-hint {
-  margin: 0 0 1rem;
-}
-
 .permission-overview-section-row td {
   font-weight: 600;
   color: var(--text-secondary);

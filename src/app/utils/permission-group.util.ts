@@ -23,9 +23,13 @@ export function hasFeature(group: PermissionGroup, feature: AppFeature): boolean
     case 'OWNER':
       return true;
     case 'MANAGER':
-    case 'CASHIER':
-      // CASHIER matches MANAGER menus/ops (owner decision).
       return true;
+    case 'CASHIER':
+      return (
+        feature !== 'manage_employees' &&
+        feature !== 'manage_roles' &&
+        feature !== 'master_data'
+      );
     case 'EMPLOYEE':
       return feature === 'dashboard';
     default:
@@ -91,7 +95,7 @@ export function canAccessOpenTablePage(
 }
 
 export function canManageEmployees(group: PermissionGroup): boolean {
-  return group === 'OWNER' || group === 'MANAGER' || group === 'CASHIER';
+  return group === 'OWNER' || group === 'MANAGER';
 }
 
 export function canManageRoles(group: PermissionGroup): boolean {
@@ -106,11 +110,7 @@ export function canMutateEmployeeWithRoleGroup(
     return viewerGroup === 'OWNER';
   }
   if (targetRoleGroup === 'MANAGER') {
-    return (
-      viewerGroup === 'OWNER' ||
-      viewerGroup === 'MANAGER' ||
-      viewerGroup === 'CASHIER'
-    );
+    return viewerGroup === 'OWNER' || viewerGroup === 'MANAGER';
   }
   return canManageEmployees(viewerGroup);
 }
@@ -123,11 +123,7 @@ export function canMutateRoleRecord(
     return false;
   }
   if (targetRoleGroup === 'MANAGER') {
-    return (
-      viewerGroup === 'OWNER' ||
-      viewerGroup === 'MANAGER' ||
-      viewerGroup === 'CASHIER'
-    );
+    return viewerGroup === 'OWNER' || viewerGroup === 'MANAGER';
   }
   return canManageRoles(viewerGroup);
 }

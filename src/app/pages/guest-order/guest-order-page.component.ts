@@ -112,8 +112,12 @@ export class GuestOrderPageComponent implements OnInit {
       });
   }
 
-  setTab(tab: MenuTab): void {
+  setTab(tab: MenuTab, event?: Event): void {
     this.activeTab.set(tab);
+    const btn = event?.currentTarget;
+    if (btn instanceof HTMLElement) {
+      btn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+    }
   }
 
   onSearchInput(event: Event): void {

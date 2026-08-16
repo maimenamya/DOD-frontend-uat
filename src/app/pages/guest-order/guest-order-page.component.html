@@ -21,13 +21,15 @@
     }
 
     <div class="guest-order-body">
-    <div class="guest-order-tabs app-scroll-region" role="tablist" aria-label="หมวดเมนู">
+    <nav class="guest-order-tabs app-scroll-region" role="tablist" aria-label="หมวดเมนู">
       @if (menu()!.foods.length > 0) {
         <button
           type="button"
-          class="app-filter-chip"
-          [class.app-filter-chip-active]="activeTab() === 'FOOD'"
-          (click)="setTab('FOOD')"
+          role="tab"
+          class="guest-order-tab"
+          [class.guest-order-tab--active]="activeTab() === 'FOOD'"
+          [attr.aria-selected]="activeTab() === 'FOOD'"
+          (click)="setTab('FOOD', $event)"
         >
           อาหาร
         </button>
@@ -35,9 +37,11 @@
       @if (menu()!.beverages.length > 0) {
         <button
           type="button"
-          class="app-filter-chip"
-          [class.app-filter-chip-active]="activeTab() === 'DRINK'"
-          (click)="setTab('DRINK')"
+          role="tab"
+          class="guest-order-tab"
+          [class.guest-order-tab--active]="activeTab() === 'DRINK'"
+          [attr.aria-selected]="activeTab() === 'DRINK'"
+          (click)="setTab('DRINK', $event)"
         >
           เครื่องดื่ม
         </button>
@@ -45,9 +49,11 @@
       @if (menu()!.promotions.length > 0) {
         <button
           type="button"
-          class="app-filter-chip"
-          [class.app-filter-chip-active]="activeTab() === 'PROMOTION'"
-          (click)="setTab('PROMOTION')"
+          role="tab"
+          class="guest-order-tab"
+          [class.guest-order-tab--active]="activeTab() === 'PROMOTION'"
+          [attr.aria-selected]="activeTab() === 'PROMOTION'"
+          (click)="setTab('PROMOTION', $event)"
         >
           โปร
         </button>
@@ -55,14 +61,16 @@
       @if (menu()!.memberships.length > 0) {
         <button
           type="button"
-          class="app-filter-chip"
-          [class.app-filter-chip-active]="activeTab() === 'MEMBERSHIP'"
-          (click)="setTab('MEMBERSHIP')"
+          role="tab"
+          class="guest-order-tab"
+          [class.guest-order-tab--active]="activeTab() === 'MEMBERSHIP'"
+          [attr.aria-selected]="activeTab() === 'MEMBERSHIP'"
+          (click)="setTab('MEMBERSHIP', $event)"
         >
           เมม
         </button>
       }
-    </div>
+    </nav>
 
     <div class="guest-order-search">
       <label class="sr-only" for="guest-order-search">ค้นหาเมนู</label>

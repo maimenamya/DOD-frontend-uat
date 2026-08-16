@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
 
 import { PERMISSION_GROUP_SHORT_LABEL_TH } from '../../models/permission-group';
 import {
@@ -11,7 +10,6 @@ import {
 
 @Component({
   selector: 'app-permission-overview-page',
-  imports: [RouterLink],
   templateUrl: './permission-overview-page.component.html',
   styleUrl: './permission-overview-page.component.css',
 })

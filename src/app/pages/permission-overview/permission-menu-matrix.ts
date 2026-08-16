@@ -21,6 +21,13 @@ const OPS: Record<PermissionGroup, MenuAccess> = {
   EMPLOYEE: false,
 };
 
+const MGMT: Record<PermissionGroup, MenuAccess> = {
+  OWNER: true,
+  MANAGER: true,
+  CASHIER: false,
+  EMPLOYEE: false,
+};
+
 const ALL: Record<PermissionGroup, MenuAccess> = {
   OWNER: true,
   MANAGER: true,
@@ -62,18 +69,18 @@ export const PERMISSION_MENU_SECTIONS: PermissionMenuSection[] = [
   {
     title: 'การจัดการ',
     rows: [
-      { label: 'พนักงาน', access: OPS },
-      { label: 'ตำแหน่ง', access: OPS },
-      { label: 'สิทธิ์ (หน้านี้)', access: OPS },
-      { label: 'บันทึกเวลาเข้างาน', access: OPS },
-      { label: 'เครื่องดื่ม / ประเภท / ค็อกเทล', access: OPS },
-      { label: 'อาหาร / ประเภทอาหาร', access: OPS },
-      { label: 'โซนที่นั่ง / ประเภท / ผังโต๊ะ', access: OPS },
-      { label: 'โปรโมชั่น / เมมเบอร์', access: OPS },
-      { label: 'แพ็กเกจแท็ก PR', access: OPS },
-      { label: 'เบ็ดเตล็ด / ค่าเปิดโต๊ะ', access: OPS },
-      { label: 'สต็อกเครื่องดื่ม', access: OPS },
-      { label: 'กฎร้าน / เครื่องพิมพ์ใบเสร็จ', access: OPS },
+      { label: 'พนักงาน', access: MGMT },
+      { label: 'ตำแหน่ง', access: MGMT },
+      { label: 'สิทธิ์ (หน้านี้)', access: MGMT },
+      { label: 'บันทึกเวลาเข้างาน', access: MGMT },
+      { label: 'เครื่องดื่ม / ประเภท / ค็อกเทล', access: MGMT },
+      { label: 'อาหาร / ประเภทอาหาร', access: MGMT },
+      { label: 'โซนที่นั่ง / ประเภท / ผังโต๊ะ', access: MGMT },
+      { label: 'โปรโมชั่น / เมมเบอร์', access: MGMT },
+      { label: 'แพ็กเกจแท็ก PR', access: MGMT },
+      { label: 'เบ็ดเตล็ด / ค่าเปิดโต๊ะ', access: MGMT },
+      { label: 'สต็อกเครื่องดื่ม', access: MGMT },
+      { label: 'กฎร้าน / เครื่องพิมพ์ใบเสร็จ', access: MGMT },
     ],
   },
 ];
