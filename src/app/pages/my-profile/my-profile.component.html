@@ -42,37 +42,52 @@
 
   <section class="app-card app-profile-card">
     <form class="app-form-stack" [class.app-form-was-validated]="formValidated()" [formGroup]="form" (ngSubmit)="submit()">
+      @if (!forcePasswordChange()) {
+        <div class="app-form-group">
+          <label class="app-label" for="my-profile-ชื่อเล่น-1">ชื่อเล่น</label>
+          <input id="my-profile-ชื่อเล่น-1" type="text" formControlName="nickname" class="app-input" />
+        </div>
+        <div class="app-form-group">
+          <label class="app-label" for="my-profile-อีเมล-2">อีเมล</label>
+          <input id="my-profile-อีเมล-2" type="email" formControlName="email" class="app-input" />
+        </div>
+      }
       <div class="app-form-group">
-        <label class="app-label" for="my-profile-ชื่อเล่น-1">ชื่อเล่น</label>
-        <input id="my-profile-ชื่อเล่น-1" type="text" formControlName="nickname" class="app-input" />
+        <label class="app-label" for="my-profile-รหัสผ่านปัจจุบัน">รหัสผ่านปัจจุบัน</label>
+        <input
+          id="my-profile-รหัสผ่านปัจจุบัน"
+          type="password"
+          formControlName="currentPassword"
+          class="app-input"
+          [placeholder]="forcePasswordChange() ? 'รหัสที่ใช้อยู่ตอนนี้ (รหัสเริ่มต้นจากกฎร้าน)' : 'ใส่เมื่อจะเปลี่ยนรหัสผ่าน'"
+          autocomplete="current-password"
+        />
       </div>
       <div class="app-form-group">
-        <label class="app-label" for="my-profile-อีเมล-2">อีเมล</label>
-        <input id="my-profile-อีเมล-2" type="email" formControlName="email" class="app-input" />
-      </div>
-      <div class="app-form-group">
-        <label class="app-label" for="my-profile-if-forcepasswordchange-รหัสผ่านใหม่-else-3">
+        <label class="app-label" for="my-profile-รหัสผ่านใหม่">
           @if (forcePasswordChange()) {
             รหัสผ่านใหม่
           } @else {
             รหัสผ่านใหม่ (ไม่บังคับ)
           }
         </label>
-        <input id="my-profile-if-forcepasswordchange-รหัสผ่านใหม่-else-3"
+        <input id="my-profile-รหัสผ่านใหม่"
           type="password"
           formControlName="password"
           class="app-input"
           [placeholder]="forcePasswordChange() ? 'ตั้งรหัสผ่านใหม่' : 'เว้นว่างหากไม่ต้องการเปลี่ยน'"
+          autocomplete="new-password"
         />
       </div>
       @if (forcePasswordChange() || form.controls.password.value.trim()) {
         <div class="app-form-group">
-          <label class="app-label" for="my-profile-ยืนยันรหัสผ่าน-4">ยืนยันรหัสผ่าน</label>
-          <input id="my-profile-ยืนยันรหัสผ่าน-4"
+          <label class="app-label" for="my-profile-ยืนยันรหัสผ่าน">ยืนยันรหัสผ่านใหม่</label>
+          <input id="my-profile-ยืนยันรหัสผ่าน"
             type="password"
             formControlName="confirmPassword"
             class="app-input"
             placeholder="กรอกรหัสผ่านอีกครั้ง"
+            autocomplete="new-password"
           />
         </div>
       }

@@ -1,0 +1,37 @@
+:host .app-split-table--wide {
+  --app-split-table-min: 52rem;
+}
+
+:host .permission-overview-table col.permission-col-menu {
+  width: 32%;
+}
+
+:host .permission-overview-table col.permission-col-group {
+  width: 17%;
+}
+
+.permission-overview-hint {
+  margin: 0 0 1rem;
+}
+
+.permission-overview-section-row td {
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--table-row-hover-bg, var(--surface-strong));
+}
+
+.permission-mark--yes {
+  color: var(--stat-revenue, #059669);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.permission-mark--no {
+  color: var(--text-secondary);
+}
+
+.permission-mark--duty {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}

@@ -8,6 +8,7 @@ import type {
   AuthResponse,
   AuthSession,
   AuthUser,
+  ChangePasswordRequest,
   CompleteRoleSetupRequest,
   LoginRequest,
   UpdateProfileRequest,
@@ -89,7 +90,7 @@ export class AuthService {
     return this.sessionSignal()?.availableBranches ?? [];
   }
 
-  completeRoleSetup(payload: CompleteRoleSetupRequest): Observable<AuthResponse> {
+  completeRoleSetup(payload: CompleteRoleSetupRequest = {}): Observable<AuthResponse> {
     return this.http
       .post<AuthResponse>(this.api.resource('auth', 'complete-role-setup'), payload)
       .pipe(tap((response) => this.persistSessionIfReady(response)));
@@ -145,6 +146,9 @@ export class AuthService {
   }
 
   postLoginPathSegments(): string[] {
+    if (this.needsRoleSetup()) {
+      return ['/dashboard/complete-role-setup'];
+    }
     if (this.needsPasswordChange()) {
       return ['/dashboard/my-profile'];
     }
@@ -157,6 +161,12 @@ export class AuthService {
   updateProfile(payload: UpdateProfileRequest): Observable<AuthResponse> {
     return this.http
       .put<AuthResponse>(this.api.resource('auth', 'me'), payload)
+      .pipe(tap((response) => this.persistSessionIfReady(response)));
+  }
+
+  changePassword(payload: ChangePasswordRequest): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(this.api.resource('auth', 'change-password'), payload)
       .pipe(tap((response) => this.persistSessionIfReady(response)));
   }
 
@@ -462,7 +472,7 @@ export class AuthService {
           role: '',
           roleDisplayNameTh: 'กำลังตั้งค่าตำแหน่ง',
           roleCategory: 'STAFF',
-          permissionGroup: 'OWNER',
+          permissionGroup: 'EMPLOYEE',
           shop: employee.shop,
         })
       : this.normalizeUser({
@@ -514,7 +524,7 @@ export class AuthService {
         role: '',
         roleDisplayNameTh: user.roleDisplayNameTh?.trim() || 'กำลังตั้งค่าตำแหน่ง',
         roleCategory: 'STAFF',
-        permissionGroup: 'OWNER',
+        permissionGroup: 'EMPLOYEE',
         workDuties: [],
         shop:
           user.shop ??

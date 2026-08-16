@@ -8,6 +8,10 @@ export const mustChangePasswordChildGuard: CanActivateChildFn = (_route, state) 
   const auth = inject(AuthService);
   const router = inject(Router);
 
+  if (auth.needsRoleSetup()) {
+    return true;
+  }
+
   if (!auth.needsPasswordChange()) {
     return true;
   }

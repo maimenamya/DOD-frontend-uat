@@ -1,0 +1,30 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">ยืนยันตำแหน่ง</h1>
+      <p class="app-page-subtitle app-page-subtitle-accent">
+        บัญชียังไม่ได้ยืนยันตำแหน่งเจ้าของร้าน — กดยืนยันเพื่อเริ่มใช้งาน
+      </p>
+    </div>
+  </div>
+
+  <section class="app-card app-profile-card">
+    <p class="app-card-subtitle">
+      ขั้นตอนนี้ทำครั้งเดียวหลังเปิดร้าน ยืนยันแล้วจึงจะใช้เมนูการจัดการได้
+    </p>
+    <div class="app-form-actions app-form-actions-top">
+      <button
+        type="button"
+        class="app-btn-primary"
+        [disabled]="submitting()"
+        (click)="confirm()"
+      >
+        @if (submitting()) {
+          กำลังยืนยัน...
+        } @else {
+          ยืนยันตำแหน่งเจ้าของร้าน
+        }
+      </button>
+    </div>
+  </section>
+</div>

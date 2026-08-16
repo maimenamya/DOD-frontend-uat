@@ -9,7 +9,7 @@ export interface LoginRequest {
 }
 
 export interface CompleteRoleSetupRequest {
-  roleId: number;
+  roleId?: number;
 }
 
 export interface AuthBranchOption {
@@ -103,5 +103,9 @@ export interface AuthSession {
 export interface UpdateProfileRequest {
   email?: string | null;
   nickname?: string;
-  password?: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
 }

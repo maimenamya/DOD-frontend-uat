@@ -31,6 +31,10 @@
             [options]="permissionGroupDropdownOptions()"
             placeholder="เลือกกลุ่มสิทธิ์"
           />
+          <p class="app-field-hint">
+            กลุ่มนี้เห็นเมนูอะไร →
+            <a routerLink="/dashboard/permissions" class="app-field-hint-link" (click)="closeCreate()">หน้าสิทธิ์</a>
+          </p>
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-role-ประเภท-4">ประเภท</label>
@@ -186,6 +190,10 @@
             [options]="permissionGroupDropdownOptions()"
             placeholder="เลือกกลุ่มสิทธิ์"
           />
+          <p class="app-field-hint">
+            กลุ่มนี้เห็นเมนูอะไร →
+            <a routerLink="/dashboard/permissions" class="app-field-hint-link" (click)="closeEdit()">หน้าสิทธิ์</a>
+          </p>
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-role-ประเภท-16">ประเภท</label>

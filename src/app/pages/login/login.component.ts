@@ -145,6 +145,12 @@ export class LoginComponent implements OnInit {
   }
 
   private finishLogin(): void {
+    if (this.auth.needsRoleSetup()) {
+      this.loading.set(false);
+      void this.router.navigateByUrl('/dashboard/complete-role-setup');
+      return;
+    }
+
     this.auth.fetchAccessibleBranches().subscribe({
       next: () => {
         this.loading.set(false);
@@ -152,6 +158,7 @@ export class LoginComponent implements OnInit {
         if (
           returnUrl &&
           returnUrl.startsWith('/') &&
+          !this.auth.needsRoleSetup() &&
           !this.auth.needsPasswordChange() &&
           !this.auth.needsPrivacyConsent()
         ) {

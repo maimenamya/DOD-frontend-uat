@@ -18,6 +18,7 @@ import {
   passwordMeetsPolicy,
   passwordPolicyErrorMessage,
 } from '../../utils/password-policy.util';
+import { of, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-my-profile',
@@ -43,6 +44,7 @@ export class MyProfileComponent implements OnInit {
   readonly form = this.fb.group({
     nickname: ['', [Validators.required, Validators.minLength(1)]],
     email: [''],
+    currentPassword: [''],
     password: [''],
     confirmPassword: [''],
   });
@@ -53,6 +55,7 @@ export class MyProfileComponent implements OnInit {
       this.form.patchValue({
         nickname: user.nickname,
         email: user.email ?? '',
+        currentPassword: '',
         password: '',
         confirmPassword: '',
       });
@@ -75,6 +78,7 @@ export class MyProfileComponent implements OnInit {
     }
 
     if (this.forcePasswordChange()) {
+      this.form.controls.currentPassword.setValidators([Validators.required]);
       this.form.controls.password.setValidators([
         Validators.required,
         Validators.minLength(MIN_PASSWORD_LENGTH),
@@ -117,12 +121,26 @@ export class MyProfileComponent implements OnInit {
     if (highlightInvalidForm(this.form, this.formValidated, this.toast)) return;
 
     const raw = this.form.getRawValue();
+    const currentPassword = raw.currentPassword;
     const password = raw.password.trim();
     const confirmPassword = raw.confirmPassword.trim();
+    const changingPassword = this.forcePasswordChange() || password.length > 0;
 
-    if (this.forcePasswordChange()) {
+    if (changingPassword) {
+      if (!currentPassword) {
+        this.formValidated.set(true);
+        this.form.controls.currentPassword.markAsTouched();
+        this.toast.showError('กรุณากรอกรหัสผ่านปัจจุบัน');
+        return;
+      }
       if (!password) {
         this.toast.showError('กรุณาตั้งรหัสผ่านใหม่');
+        return;
+      }
+      if (!passwordMeetsPolicy(password)) {
+        this.formValidated.set(true);
+        this.form.controls.password.markAsTouched();
+        this.toast.showError(passwordPolicyErrorMessage());
         return;
       }
       if (password !== confirmPassword) {
@@ -130,57 +148,58 @@ export class MyProfileComponent implements OnInit {
         this.toast.showError('รหัสผ่านไม่ตรงกัน');
         return;
       }
-    } else if (password && !passwordMeetsPolicy(password)) {
-      this.formValidated.set(true);
-      this.form.controls.password.markAsTouched();
-      this.toast.showError(passwordPolicyErrorMessage());
-      return;
-    } else if (password && password !== confirmPassword) {
-      this.formValidated.set(true);
-      this.toast.showError('รหัสผ่านไม่ตรงกัน');
-      return;
     }
 
     this.submitting.set(true);
     const wasForcedPasswordChange = this.forcePasswordChange();
+    const profile$ = this.auth.updateProfile({
+      nickname: raw.nickname,
+      email: raw.email || null,
+    });
+    const request$ = changingPassword
+      ? this.auth.changePassword({ currentPassword, newPassword: password }).pipe(
+          switchMap((changed) =>
+            wasForcedPasswordChange ? of(changed) : profile$,
+          ),
+        )
+      : profile$;
 
-    this.auth
-      .updateProfile({
-        nickname: raw.nickname,
-        email: raw.email || null,
-        password: password || undefined,
-      })
-      .subscribe({
-        next: () => {
-          this.submitting.set(false);
-          this.toast.showSuccess(
-            wasForcedPasswordChange
-              ? 'ตั้งรหัสผ่านเรียบร้อย'
-              : 'บันทึกโปรไฟล์เรียบร้อย',
-          );
-          this.auth.fetchAccessibleBranches().subscribe({
-            next: () => {
-              const path = this.auth.postLoginPathSegments();
-              if (path.length === 1 && path[0].startsWith('/')) {
-                void this.router.navigateByUrl(path[0]);
-              } else {
-                void this.router.navigate(path);
-              }
-            },
-            error: () => {
-              const path = this.auth.postLoginPathSegments();
-              if (path.length === 1 && path[0].startsWith('/')) {
-                void this.router.navigateByUrl(path[0]);
-              } else {
-                void this.router.navigate(path);
-              }
-            },
-          });
-        },
-        error: (err: { error?: { error?: string } }) => {
-          this.submitting.set(false);
-          this.toast.showError(err.error?.error ?? 'ไม่สามารถอัปเดตโปรไฟล์ได้');
-        },
-      });
+    request$.subscribe({
+      next: () => {
+        this.submitting.set(false);
+        this.toast.showSuccess(
+          wasForcedPasswordChange
+            ? 'ตั้งรหัสผ่านเรียบร้อย'
+            : 'บันทึกโปรไฟล์เรียบร้อย',
+        );
+        this.auth.fetchAccessibleBranches().subscribe({
+          next: () => {
+            const path = this.auth.postLoginPathSegments();
+            if (path.length === 1 && path[0].startsWith('/')) {
+              void this.router.navigateByUrl(path[0]);
+            } else {
+              void this.router.navigate(path);
+            }
+          },
+          error: () => {
+            const path = this.auth.postLoginPathSegments();
+            if (path.length === 1 && path[0].startsWith('/')) {
+              void this.router.navigateByUrl(path[0]);
+            } else {
+              void this.router.navigate(path);
+            }
+          },
+        });
+      },
+      error: (err: { error?: { error?: string } }) => {
+        this.submitting.set(false);
+        this.toast.showError(
+          err.error?.error ??
+            (changingPassword
+              ? 'ไม่สามารถเปลี่ยนรหัสผ่านได้'
+              : 'ไม่สามารถอัปเดตโปรไฟล์ได้'),
+        );
+      },
+    });
   }
 }

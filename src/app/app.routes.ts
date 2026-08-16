@@ -4,6 +4,7 @@ import { authGuard, guestGuard } from './guards/auth.guard';
 import { dashboardHomeGuard } from './guards/dashboard-home.guard';
 import { stationWorkGuard, stationWorkTabGuard } from './guards/station-work.guard';
 import { mustChangePasswordChildGuard } from './guards/must-change-password.guard';
+import { pendingRoleSetupChildGuard } from './guards/pending-role-setup.guard';
 import { privacyConsentChildGuard } from './guards/privacy-consent.guard';
 import { permissionGuard } from './guards/permission.guard';
 import { openTableGuard } from './guards/open-table.guard';
@@ -24,10 +25,12 @@ import { MasterPrTagPageComponent } from './pages/master-pr-tag/master-pr-tag-pa
 import { PrTagOperationsPageComponent } from './pages/pr-tag-operations/pr-tag-operations-page.component';
 import { MasterPromotionPageComponent } from './pages/master-promotion/master-promotion-page.component';
 import { MasterRolePageComponent } from './pages/master-role/master-role-page.component';
+import { PermissionOverviewPageComponent } from './pages/permission-overview/permission-overview-page.component';
 import { MasterSeatingListPageComponent } from './pages/master-seating-list/master-seating-list-page.component';
 import { MasterSeatingTypePageComponent } from './pages/master-seating-type/master-seating-type-page.component';
 import { MasterSeatingFloorLayoutPageComponent } from './pages/master-seating-floor-layout/master-seating-floor-layout-page.component';
 import { AcceptPrivacyPageComponent } from './pages/accept-privacy/accept-privacy-page.component';
+import { CompleteRoleSetupPageComponent } from './pages/complete-role-setup/complete-role-setup-page.component';
 import { MyProfileComponent } from './pages/my-profile/my-profile.component';
 import { OpenTablePageComponent } from './pages/open-table/open-table-page.component';
 import { ReportsPageComponent } from './pages/reports/reports-page.component';
@@ -85,7 +88,12 @@ export const routes: Routes = [
     path: 'dashboard',
     component: MainShellComponent,
     canActivate: [authGuard],
-    canActivateChild: [authGuard, mustChangePasswordChildGuard, privacyConsentChildGuard],
+    canActivateChild: [
+      authGuard,
+      pendingRoleSetupChildGuard,
+      mustChangePasswordChildGuard,
+      privacyConsentChildGuard,
+    ],
     children: [
       { path: '', component: DashboardPageComponent, canActivate: [dashboardHomeGuard] },
       {
@@ -148,6 +156,11 @@ export const routes: Routes = [
       {
         path: 'master-roles',
         component: MasterRolePageComponent,
+        canActivate: [permissionGuard('manage_roles')],
+      },
+      {
+        path: 'permissions',
+        component: PermissionOverviewPageComponent,
         canActivate: [permissionGuard('manage_roles')],
       },
       {
@@ -266,6 +279,7 @@ export const routes: Routes = [
         canActivate: [permissionGuard('master_data')],
       },
       { path: 'my-profile', component: MyProfileComponent },
+      { path: 'complete-role-setup', component: CompleteRoleSetupPageComponent },
       { path: 'accept-privacy', component: AcceptPrivacyPageComponent },
       {
         path: 'guide',

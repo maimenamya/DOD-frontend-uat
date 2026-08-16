@@ -8,7 +8,7 @@ export const privacyConsentChildGuard: CanActivateChildFn = (_route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  if (auth.needsPasswordChange()) {
+  if (auth.needsRoleSetup() || auth.needsPasswordChange()) {
     return true;
   }
 

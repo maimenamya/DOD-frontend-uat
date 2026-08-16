@@ -31,6 +31,12 @@ export const MANAGEMENT_NAV_GROUPS: SidebarNavGroup[] = [
     ],
   },
   {
+    id: 'permissions',
+    label: 'สิทธิ์',
+    icon: 'shield-check',
+    children: [{ path: '/dashboard/permissions', label: 'เมนูตามกลุ่มสิทธิ์' }],
+  },
+  {
     id: 'drinks',
     label: 'เครื่องดื่ม',
     icon: 'drinks',

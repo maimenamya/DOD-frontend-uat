@@ -1,0 +1,85 @@
+<div class="app-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">สิทธิ์</h1>
+      <p class="app-page-subtitle">
+        กลุ่มสิทธิ์ที่เลือกในหน้าตำแหน่ง เห็นเมนูตามตารางนี้ — เปิดร้านแล้วใช้ค่านี้เลย ไม่ต้องตั้งเพิ่ม
+      </p>
+    </div>
+  </div>
+
+  <p class="app-field-hint permission-overview-hint">
+    เจ้าของร้านใช้ POS ทั้งร้าน แทนบิลของฉัน · แคชเชียร์เห็นเมนูเหมือนผู้จัดการ แต่แก้บัญชีเจ้าของไม่ได้ ·
+    พนักงานเห็นบิลของฉันหรือออเดอร์ตามหน้าที่ที่ตั้งในหน้าพนักงาน · ครัว/บาร์/เซอร์วิสอย่างเดียวไม่เห็นภาพรวม ·
+    ตั้งกลุ่มสิทธิ์ที่
+    <a routerLink="/dashboard/master-roles" class="app-field-hint-link">หน้าตำแหน่ง</a>
+  </p>
+
+  <section class="app-card app-card-flush permission-overview-card">
+    <div class="app-data-table-shell app-scroll-region">
+      <div class="app-split-table app-split-table--wide">
+        <div class="app-split-table-header">
+          <table class="app-data-table app-split-table-grid permission-overview-table">
+            <colgroup>
+              <col class="permission-col-menu" />
+              @for (group of groups; track group) {
+                <col class="permission-col-group" />
+              }
+            </colgroup>
+            <thead>
+              <tr>
+                <th>เมนู</th>
+                @for (group of groups; track group) {
+                  <th class="app-cell-right">{{ groupLabel[group] }}</th>
+                }
+              </tr>
+            </thead>
+          </table>
+        </div>
+        <div class="app-split-table-body app-scroll-region">
+          <table class="app-data-table app-split-table-grid permission-overview-table">
+            <colgroup>
+              <col class="permission-col-menu" />
+              @for (group of groups; track group) {
+                <col class="permission-col-group" />
+              }
+            </colgroup>
+            <thead class="sr-only">
+              <tr>
+                <th>เมนู</th>
+                @for (group of groups; track group) {
+                  <th>{{ groupLabel[group] }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (section of sections; track section.title) {
+                <tr class="permission-overview-section-row">
+                  <td [attr.colspan]="groups.length + 1">{{ section.title }}</td>
+                </tr>
+                @for (row of section.rows; track row.label) {
+                  <tr>
+                    <td class="app-cell-primary">{{ row.label }}</td>
+                    @for (group of groups; track group) {
+                      <td class="app-cell-right">
+                        @if (isVisible(row.access[group])) {
+                          <span class="permission-mark permission-mark--yes" aria-label="เห็น">✓</span>
+                        } @else if (isDuty(row.access[group])) {
+                          <span class="permission-mark permission-mark--duty">{{
+                            accessLabel(row.access[group])
+                          }}</span>
+                        } @else {
+                          <span class="permission-mark permission-mark--no" aria-label="ไม่เห็น">—</span>
+                        }
+                      </td>
+                    }
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
