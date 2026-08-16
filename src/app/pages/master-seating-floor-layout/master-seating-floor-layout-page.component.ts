@@ -281,7 +281,7 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     const target = event.currentTarget as HTMLElement;
     let activated = false;
     let aborted = false;
-    let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+    let longPressTimer: number | null = null;
 
     const cleanup = (): void => {
       if (longPressTimer != null) {
