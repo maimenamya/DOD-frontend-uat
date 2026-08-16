@@ -20,6 +20,7 @@ const FIELD_ANCHOR_SELECTOR = [
   '.app-shop-date-field',
   '.app-form-field',
   '.login-input-group',
+  '.guest-order-search',
   'app-shop-datetime-input',
   'app-shop-date-input',
 ].join(', ');
@@ -94,8 +95,8 @@ function resolveAppFieldScrollAnchor(target: HTMLElement): HTMLElement {
   }
 
   const labelled = target.closest('label');
-  if (labelled?.parentElement instanceof HTMLElement) {
-    return labelled.parentElement;
+  if (labelled instanceof HTMLElement) {
+    return labelled;
   }
 
   return target;

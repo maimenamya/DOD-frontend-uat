@@ -1,4 +1,4 @@
-import { Injectable, inject, effect, signal } from '@angular/core';
+import { Injectable, NgZone, inject, effect, signal } from '@angular/core';
 import { io, type Socket } from 'socket.io-client';
 import { Subject } from 'rxjs';
 
@@ -36,6 +36,7 @@ export type SessionUpdatedEvent = {
 @Injectable({ providedIn: 'root' })
 export class ShopRealtimeService {
   private readonly auth = inject(AuthService);
+  private readonly ngZone = inject(NgZone);
 
   private socket: Socket | null = null;
   private connectedToken: string | null = null;
@@ -85,26 +86,28 @@ export class ShopRealtimeService {
       reconnection: true,
       reconnectionDelay: 1_000,
       reconnectionDelayMax: 10_000,
+      timeout: 8_000,
+      withCredentials: true,
     };
 
     this.socket = origin ? io(origin, opts) : io(opts);
     this.connectedToken = token;
 
     this.socket.on('connect', () => {
-      this.setConnected(true);
+      this.ngZone.run(() => this.setConnected(true));
     });
     this.socket.on('disconnect', () => {
-      this.setConnected(false);
+      this.ngZone.run(() => this.setConnected(false));
     });
     this.socket.on('connect_error', (err) => {
-      this.setConnected(false);
+      this.ngZone.run(() => this.setConnected(false));
       console.warn('[realtime] connect_error', err.message);
     });
     this.socket.on(SHOP_REALTIME_EVENTS.floorPlanUpdated, (payload: FloorPlanUpdatedEvent) => {
-      this.floorPlanUpdatedSubject.next(payload);
+      this.ngZone.run(() => this.floorPlanUpdatedSubject.next(normalizeFloorPlanEvent(payload)));
     });
     this.socket.on(SHOP_REALTIME_EVENTS.sessionUpdated, (payload: SessionUpdatedEvent) => {
-      this.sessionUpdatedSubject.next(payload);
+      this.ngZone.run(() => this.sessionUpdatedSubject.next(normalizeSessionEvent(payload)));
     });
   }
 
@@ -129,4 +132,28 @@ export function socketOriginFromApiUrl(apiUrl: string): string | undefined {
     return trimmed.replace(/\/api$/i, '') || undefined;
   }
   return undefined;
+}
+
+function optionalPositiveInt(value: unknown): number | undefined {
+  const n = Number(value);
+  return Number.isInteger(n) && n > 0 ? n : undefined;
+}
+
+function normalizeFloorPlanEvent(payload: FloorPlanUpdatedEvent): FloorPlanUpdatedEvent {
+  return {
+    ...payload,
+    shopId: Number(payload?.shopId),
+    seatingId: optionalPositiveInt(payload?.seatingId),
+    sessionId: optionalPositiveInt(payload?.sessionId),
+  };
+}
+
+function normalizeSessionEvent(payload: SessionUpdatedEvent): SessionUpdatedEvent {
+  return {
+    ...payload,
+    shopId: Number(payload?.shopId),
+    sessionId: Number(payload?.sessionId),
+    revision: optionalPositiveInt(payload?.revision),
+    sessionClosed: payload?.sessionClosed === true,
+  };
 }

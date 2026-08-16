@@ -20,6 +20,7 @@
       <p class="guest-order-error" role="alert">{{ error() }}</p>
     }
 
+    <div class="guest-order-body">
     <div class="guest-order-tabs app-scroll-region" role="tablist" aria-label="หมวดเมนู">
       @if (menu()!.foods.length > 0) {
         <button
@@ -63,16 +64,22 @@
       }
     </div>
 
-    <label class="guest-order-search">
-      <span class="sr-only">ค้นหา</span>
+    <div class="guest-order-search">
+      <label class="sr-only" for="guest-order-search">ค้นหาเมนู</label>
       <input
-        type="search"
+        id="guest-order-search"
+        type="text"
+        inputmode="search"
+        enterkeyhint="search"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
         class="app-input"
         placeholder="ค้นหาเมนู"
-        [ngModel]="search()"
-        (ngModelChange)="search.set($event)"
+        (input)="onSearchInput($event)"
       />
-    </label>
+    </div>
 
     <ul class="guest-order-list app-scroll-region">
       @for (item of visibleItems(); track itemTypeForTab() + ':' + item.id) {
@@ -112,15 +119,18 @@
         <li class="guest-order-empty">ไม่มีรายการในหมวดนี้</li>
       }
     </ul>
+    </div>
 
-    <button
-      type="button"
-      class="guest-order-cart-fab app-btn-primary"
-      [disabled]="cartCount() === 0"
-      (click)="openCart()"
-    >
-      ตะกร้า {{ cartCount() }} · ฿{{ cartTotal() | number: '1.0-0' }}
-    </button>
+    <div class="guest-order-cart-dock">
+      <button
+        type="button"
+        class="guest-order-cart-fab app-btn-primary"
+        [disabled]="cartCount() === 0"
+        (click)="openCart()"
+      >
+        ตะกร้า {{ cartCount() }} · ฿{{ cartTotal() | number: '1.0-0' }}
+      </button>
+    </div>
   }
 </div>
 

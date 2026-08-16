@@ -8,7 +8,6 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { combineLatest, distinctUntilChanged, map } from 'rxjs';
 
@@ -25,7 +24,7 @@ type MenuTab = 'FOOD' | 'DRINK' | 'PROMOTION' | 'MEMBERSHIP';
 
 @Component({
   selector: 'app-guest-order-page',
-  imports: [DecimalPipe, FormsModule],
+  imports: [DecimalPipe],
   templateUrl: './guest-order-page.component.html',
   styleUrl: './guest-order-page.component.css',
 })
@@ -115,6 +114,11 @@ export class GuestOrderPageComponent implements OnInit {
 
   setTab(tab: MenuTab): void {
     this.activeTab.set(tab);
+  }
+
+  onSearchInput(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.search.set(value);
   }
 
   addToCart(item: GuestMenuItem, type: GuestOrderItemType): void {

@@ -481,91 +481,6 @@
               @if (seatBillTabs().length > 1 && seat.sessionId && seatLedgerOpen() && !seatAwaitingClear()) {
                 <span class="open-table-bill-tab-badge">บิล {{ activeSeatBillTabLabel() }}</span>
               }
-              @if (seatHasHeaderActions(seat)) {
-                <div class="open-table-session-overflow">
-                  <button
-                    type="button"
-                    class="open-table-session-overflow__trigger"
-                    aria-label="เมนูการดำเนินการ"
-                    title="เมนู"
-                    [attr.aria-expanded]="sessionHeaderMenuOpen()"
-                    aria-haspopup="menu"
-                    (click)="toggleSessionHeaderMenu($event)"
-                  >
-                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path d="M10 3.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" />
-                    </svg>
-                  </button>
-                  @if (sessionHeaderMenuOpen() && sessionHeaderMenuPos(); as menuPos) {
-                    <div
-                      class="open-table-session-overflow__menu app-scroll-region"
-                      role="menu"
-                      appPortalToBody
-                      [style.top.px]="menuPos.top"
-                      [style.left.px]="menuPos.left"
-                      (click)="$event.stopPropagation()"
-                    >
-                      @if (seatCanEditSessionInfo(seat)) {
-                        <button
-                          type="button"
-                          class="open-table-session-overflow__item"
-                          role="menuitem"
-                          (click)="closeSessionHeaderMenu(); openEditGuestCountFromPanel()"
-                        >
-                          แก้จำนวนลูกค้า
-                        </button>
-                        <button
-                          type="button"
-                          class="open-table-session-overflow__item"
-                          role="menuitem"
-                          [class.open-table-session-overflow__item--accent]="
-                            sessionDetail()?.creditSaleToShop ?? seat.creditSaleToShop
-                          "
-                          (click)="closeSessionHeaderMenu(); openEditCreditSaleFromPanel()"
-                        >
-                          แก้ยอดเข้าร้าน
-                          @if (sessionDetail()?.creditSaleToShop ?? seat.creditSaleToShop) {
-                            <span class="open-table-session-overflow__hint">เปิดอยู่</span>
-                          }
-                        </button>
-                        <button
-                          type="button"
-                          class="open-table-session-overflow__item"
-                          role="menuitem"
-                          (click)="closeSessionHeaderMenu(); openEditPackageCustomerFromPanel()"
-                        >
-                          แก้รหัสลูกค้าฝาก
-                          @if (sessionHasPackageCustomerCode()) {
-                            <span class="open-table-session-overflow__hint">{{ sessionDetail()?.packageCustomerCode }}</span>
-                          }
-                        </button>
-                      }
-                      @if (seatHasGuestQrAction(seat)) {
-                        <button
-                          type="button"
-                          class="open-table-session-overflow__item"
-                          role="menuitem"
-                          [disabled]="actionBusy() || guestQrPrintBusy()"
-                          (click)="closeSessionHeaderMenu(); printGuestOrderQr()"
-                        >
-                          พิมพ์ QR สั่งอาหาร
-                        </button>
-                      }
-                      @if (seatHasTransferAction(seat)) {
-                        <button
-                          type="button"
-                          class="open-table-session-overflow__item"
-                          role="menuitem"
-                          [disabled]="actionBusy()"
-                          (click)="closeSessionHeaderMenu(); handleSeatTransfer()"
-                        >
-                          ย้ายโต๊ะ
-                        </button>
-                      }
-                    </div>
-                  }
-                </div>
-              }
               <span [ngClass]="statusDotClass(seat.status)" aria-hidden="true"></span>
               <span class="sr-only">{{ statusText(seat.status) }}</span>
             </h3>
@@ -592,19 +507,106 @@
               </p>
             }
           </div>
-          <button
-            type="button"
-            class="app-btn-ghost shrink-0 rounded-input p-2 text-text-secondary hover:border-primary/40 hover:text-text-primary"
-            [attr.aria-label]="isPcBillWorkspace() ? 'ปิดบิล กลับไปผังโต๊ะ' : 'ปิดแผงบิล'"
-            [title]="isPcBillWorkspace() ? 'กลับไปผังโต๊ะ' : 'ปิด'"
-            (click)="closeDrawer()"
-          >
-            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path
-                d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
-              />
-            </svg>
-          </button>
+          <div class="open-table-session-header-actions">
+            @if (seatHasHeaderActions(seat)) {
+              <div class="open-table-session-overflow">
+                <button
+                  type="button"
+                  class="open-table-session-overflow__trigger"
+                  aria-label="เมนูการดำเนินการ"
+                  title="เมนู"
+                  [attr.aria-expanded]="sessionHeaderMenuOpen()"
+                  aria-haspopup="menu"
+                  (click)="toggleSessionHeaderMenu($event)"
+                >
+                  <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M10 3.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" />
+                  </svg>
+                </button>
+                @if (sessionHeaderMenuOpen() && sessionHeaderMenuPos(); as menuPos) {
+                  <div
+                    class="open-table-session-overflow__menu app-scroll-region"
+                    role="menu"
+                    appPortalToBody
+                    [style.top.px]="menuPos.top"
+                    [style.left.px]="menuPos.left"
+                    (click)="$event.stopPropagation()"
+                  >
+                    @if (seatCanEditSessionInfo(seat)) {
+                      <button
+                        type="button"
+                        class="open-table-session-overflow__item"
+                        role="menuitem"
+                        (click)="closeSessionHeaderMenu(); openEditGuestCountFromPanel()"
+                      >
+                        แก้จำนวนลูกค้า
+                      </button>
+                      <button
+                        type="button"
+                        class="open-table-session-overflow__item"
+                        role="menuitem"
+                        [class.open-table-session-overflow__item--accent]="
+                          sessionDetail()?.creditSaleToShop ?? seat.creditSaleToShop
+                        "
+                        (click)="closeSessionHeaderMenu(); openEditCreditSaleFromPanel()"
+                      >
+                        แก้ยอดเข้าร้าน
+                        @if (sessionDetail()?.creditSaleToShop ?? seat.creditSaleToShop) {
+                          <span class="open-table-session-overflow__hint">เปิดอยู่</span>
+                        }
+                      </button>
+                      <button
+                        type="button"
+                        class="open-table-session-overflow__item"
+                        role="menuitem"
+                        (click)="closeSessionHeaderMenu(); openEditPackageCustomerFromPanel()"
+                      >
+                        แก้รหัสลูกค้าฝาก
+                        @if (sessionHasPackageCustomerCode()) {
+                          <span class="open-table-session-overflow__hint">{{ sessionDetail()?.packageCustomerCode }}</span>
+                        }
+                      </button>
+                    }
+                    @if (seatHasGuestQrAction(seat)) {
+                      <button
+                        type="button"
+                        class="open-table-session-overflow__item"
+                        role="menuitem"
+                        [disabled]="actionBusy() || guestQrPrintBusy()"
+                        (click)="closeSessionHeaderMenu(); printGuestOrderQr()"
+                      >
+                        พิมพ์ QR สั่งอาหาร
+                      </button>
+                    }
+                    @if (seatHasTransferAction(seat)) {
+                      <button
+                        type="button"
+                        class="open-table-session-overflow__item"
+                        role="menuitem"
+                        [disabled]="actionBusy()"
+                        (click)="closeSessionHeaderMenu(); handleSeatTransfer()"
+                      >
+                        ย้ายโต๊ะ
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            }
+            <button
+              type="button"
+              class="open-table-session-close"
+              [attr.aria-label]="isPcBillWorkspace() ? 'ปิดบิล กลับไปผังโต๊ะ' : 'ปิดแผงบิล'"
+              [title]="isPcBillWorkspace() ? 'กลับไปผังโต๊ะ' : 'ปิด'"
+              (click)="closeDrawer()"
+            >
+              <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path
+                  d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
         </div>
 

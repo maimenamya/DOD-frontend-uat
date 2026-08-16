@@ -401,14 +401,17 @@ export class OpenTablePageComponent implements OnInit {
 
   constructor() {
     effect((onCleanup) => {
-      const sessionId = this.selectedSeat()?.sessionId;
-      if (sessionId == null || !this.drawerOpen() || this.anyModalOpen()) {
+      if (!this.drawerOpen() || this.anyModalOpen()) {
         return;
       }
-      // Slow fallback if socket misses an event (primary sync is ShopRealtimeService).
+      const sessionId = this.selectedSeat()?.sessionId;
+      if (sessionId == null) {
+        return;
+      }
+      // Bill left open (guest QR / other cashier): refresh often even if socket is quiet.
       const timer = setInterval(
-        () => this.loadSessionDetail(sessionId, { showLoading: false }),
-        300_000,
+        () => this.reloadSelectedSessionIfIdle(),
+        2_000,
       );
       onCleanup(() => clearInterval(timer));
     });
@@ -1393,7 +1396,7 @@ export class OpenTablePageComponent implements OnInit {
    */
   private startFloorPlanSync(): void {
     const LIVE_FALLBACK_MS = 300_000;
-    const OFFLINE_FALLBACK_MS = 20_000;
+    const OFFLINE_FALLBACK_MS = 4_000;
     const FLOOR_DEBOUNCE_MS = 250;
 
     let pollTimer: ReturnType<typeof setInterval> | null = null;
@@ -1449,7 +1452,7 @@ export class OpenTablePageComponent implements OnInit {
         if (floorPlanDebounce != null) clearTimeout(floorPlanDebounce);
         floorPlanDebounce = setTimeout(() => {
           floorPlanDebounce = null;
-          this.refreshFloorPlan(this.selectedSeatKey(), { silent: true });
+          silentRefresh();
         }, FLOOR_DEBOUNCE_MS);
       });
 
@@ -1464,23 +1467,38 @@ export class OpenTablePageComponent implements OnInit {
     });
   }
 
+  private viewingSessionId(): number | null {
+    return (
+      this.sessionDetail()?.sessionId ??
+      this.focusedSeatSessionId() ??
+      this.selectedSeat()?.sessionId ??
+      null
+    );
+  }
+
+  private isViewingSession(sessionId: number): boolean {
+    if (this.sessionDetail()?.sessionId === sessionId) return true;
+    if (this.focusedSeatSessionId() === sessionId) return true;
+    if (this.selectedSeat()?.sessionId === sessionId) return true;
+    return this.seatBillTabs().some((tab) => tab.sessionId === sessionId);
+  }
+
   private onRemoteSessionUpdated(ev: {
     sessionId: number;
     sessionClosed?: boolean;
   }): void {
-    const selectedId = this.selectedSeat()?.sessionId;
-    if (ev.sessionClosed && selectedId === ev.sessionId) {
+    if (ev.sessionClosed && this.isViewingSession(ev.sessionId)) {
       this.closeDrawer();
       this.refreshFloorPlan(null, { silent: true });
       return;
     }
-    if (selectedId === ev.sessionId) {
+    if (this.isViewingSession(ev.sessionId)) {
       this.reloadSelectedSessionIfIdle();
     }
   }
 
   private reloadSelectedSessionIfIdle(): void {
-    const sessionId = this.selectedSeat()?.sessionId;
+    const sessionId = this.viewingSessionId();
     if (sessionId == null || !this.drawerOpen() || this.anyModalOpen()) return;
     this.loadSessionDetail(sessionId, { showLoading: false });
   }
@@ -1845,7 +1863,7 @@ export class OpenTablePageComponent implements OnInit {
       )
       .subscribe((detail) => {
         if (requestSeq !== this.sessionDetailRequestSeq) return;
-        if (this.selectedSeat()?.sessionId !== sessionId) return;
+        if (!this.isViewingSession(sessionId)) return;
         const normalized = detail ? this.withSessionBillTotals(detail) : null;
         this.sessionDetail.set(normalized);
         if (normalized) {
@@ -2863,7 +2881,7 @@ export class OpenTablePageComponent implements OnInit {
     if (!rect) return;
     const menuWidth = 200;
     const left = Math.min(
-      Math.max(8, rect.left),
+      Math.max(8, rect.right - menuWidth),
       Math.max(8, window.innerWidth - menuWidth - 8),
     );
     this.sessionHeaderMenuPos.set({ top: rect.bottom + 6, left });
