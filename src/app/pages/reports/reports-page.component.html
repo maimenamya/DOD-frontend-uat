@@ -66,6 +66,9 @@
 
   @if (!previewLoading() && preview(); as p) {
     <p class="reports-range-label">{{ p.fromDate }} – {{ p.toDate }} · อัปเดต {{ p.generatedAtLabel }}</p>
+    @if (p.rowCapHint) {
+      <div class="app-alert-error">{{ p.rowCapHint }}</div>
+    }
 
     <div class="reports-cards">
       <!-- 1 ยอดบิล -->

@@ -137,6 +137,7 @@ export interface ReportPreview {
     totalUsed: number;
     rows: ReportStockRow[];
   } | null;
+  rowCapHint?: string | null;
 }
 
 export interface ReportPreviewParams {
