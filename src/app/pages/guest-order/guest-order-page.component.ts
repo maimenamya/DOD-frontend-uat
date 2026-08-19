@@ -4,6 +4,7 @@ import {
   DestroyRef,
   OnInit,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
@@ -20,7 +21,7 @@ import type {
 } from '../../models/guest-order';
 import { GuestOrderService } from '../../services/guest-order.service';
 
-type MenuTab = 'FOOD' | 'DRINK' | 'PROMOTION' | 'MEMBERSHIP';
+type MenuTab = 'FOOD' | 'DRINK' | 'FREE_MIXER' | 'PROMOTION' | 'MEMBERSHIP';
 
 @Component({
   selector: 'app-guest-order-page',
@@ -63,6 +64,32 @@ export class GuestOrderPageComponent implements OnInit {
     this.cart().reduce((sum, row) => sum + row.unitPrice * row.quantity, 0),
   );
 
+  readonly hasFreeMixerEntitlement = computed(() => {
+    const payload = this.menu();
+    if (!payload) return false;
+    if (payload.session.hasFreeMixerPackage) return true;
+    return this.cart().some((row) => this.cartLineGrantsFreeMixer(payload, row));
+  });
+
+  readonly mixerItems = computed(() => {
+    const payload = this.menu();
+    if (!payload) return [] as GuestMenuItem[];
+    return payload.beverages.filter((row) => row.isMixer === true);
+  });
+
+  readonly showFreeMixerTab = computed(
+    () => this.hasFreeMixerEntitlement() && this.mixerItems().length > 0,
+  );
+
+  readonly showPaidDrinkTab = computed(() => {
+    const payload = this.menu();
+    if (!payload) return false;
+    if (this.hasFreeMixerEntitlement()) {
+      return payload.beverages.some((row) => row.isMixer !== true);
+    }
+    return payload.beverages.length > 0;
+  });
+
   readonly visibleItems = computed(() => {
     const payload = this.menu();
     if (!payload) return [] as GuestMenuItem[];
@@ -72,13 +99,25 @@ export class GuestOrderPageComponent implements OnInit {
       tab === 'FOOD'
         ? payload.foods
         : tab === 'DRINK'
-          ? payload.beverages
-          : tab === 'PROMOTION'
-            ? payload.promotions
-            : payload.memberships;
+          ? this.hasFreeMixerEntitlement()
+            ? payload.beverages.filter((row) => row.isMixer !== true)
+            : payload.beverages
+          : tab === 'FREE_MIXER'
+            ? this.mixerItems()
+            : tab === 'PROMOTION'
+              ? payload.promotions
+              : payload.memberships;
     if (!q) return source;
     return source.filter((row) => row.name.toLowerCase().includes(q));
   });
+
+  constructor() {
+    effect(() => {
+      if (this.activeTab() === 'FREE_MIXER' && !this.showFreeMixerTab()) {
+        this.activeTab.set(this.showPaidDrinkTab() ? 'DRINK' : 'FOOD');
+      }
+    });
+  }
 
   ngOnInit(): void {
     const legacyShop = this.route.snapshot.paramMap.get('shopPublicId')?.trim() ?? '';
@@ -135,8 +174,11 @@ export class GuestOrderPageComponent implements OnInit {
           row.key === key ? { ...row, quantity: Math.min(99, row.quantity + 1) } : row,
         ),
       );
+      this.syncMixerCartPrices();
       return;
     }
+    const isMixer = type === 'DRINK' && item.isMixer === true;
+    const isFreeMixer = isMixer && this.hasFreeMixerEntitlement();
     this.cart.update((rows) => [
       ...rows,
       {
@@ -144,11 +186,15 @@ export class GuestOrderPageComponent implements OnInit {
         itemId: item.id,
         type,
         name: item.name,
-        unitPrice: item.price,
+        catalogPrice: item.price,
+        unitPrice: isFreeMixer ? 0 : item.price,
         unitLabelTh: item.unitLabelTh,
         quantity: 1,
+        isMixer,
+        isFreeMixer,
       },
     ]);
+    this.syncMixerCartPrices();
   }
 
   changeQty(key: string, delta: number): void {
@@ -161,6 +207,7 @@ export class GuestOrderPageComponent implements OnInit {
         )
         .filter((row) => row.quantity > 0),
     );
+    this.syncMixerCartPrices();
   }
 
   openCart(): void {
@@ -204,6 +251,7 @@ export class GuestOrderPageComponent implements OnInit {
           this.cart.set([]);
           this.cartOpen.set(false);
           this.successMessage.set(`ส่งออเดอร์แล้ว · ${result.tableLabel}`);
+          this.refreshMenuAfterOrder();
         },
         error: (err: { error?: { error?: string } }) => {
           this.submitting.set(false);
@@ -213,7 +261,59 @@ export class GuestOrderPageComponent implements OnInit {
   }
 
   itemTypeForTab(): GuestOrderItemType {
-    return this.activeTab();
+    return this.activeTab() === 'FREE_MIXER' ? 'DRINK' : this.activeTab();
+  }
+
+  displayPrice(item: GuestMenuItem): number {
+    return this.isDisplayedFreeMixer(item) ? 0 : item.price;
+  }
+
+  isDisplayedFreeMixer(item: GuestMenuItem): boolean {
+    return this.activeTab() === 'FREE_MIXER' && item.isMixer === true;
+  }
+
+  private cartLineGrantsFreeMixer(
+    payload: GuestOrderMenuPayload,
+    row: GuestOrderCartLine,
+  ): boolean {
+    if (row.type === 'PROMOTION') {
+      return payload.promotions.some((item) => item.id === row.itemId && item.isFreeMixer === true);
+    }
+    if (row.type === 'MEMBERSHIP') {
+      return payload.memberships.some((item) => item.id === row.itemId && item.isFreeMixer === true);
+    }
+    return false;
+  }
+
+  private syncMixerCartPrices(): void {
+    const payload = this.menu();
+    if (!payload) return;
+    const entitled =
+      payload.session.hasFreeMixerPackage ||
+      this.cart().some((row) => this.cartLineGrantsFreeMixer(payload, row));
+    this.cart.update((rows) =>
+      rows.map((row) => {
+        if (row.type !== 'DRINK' || !row.isMixer) return row;
+        const unitPrice = entitled ? 0 : row.catalogPrice;
+        const isFreeMixer = entitled;
+        if (row.unitPrice === unitPrice && row.isFreeMixer === isFreeMixer) return row;
+        return { ...row, unitPrice, isFreeMixer };
+      }),
+    );
+  }
+
+  private refreshMenuAfterOrder(): void {
+    if (!this.token) return;
+    this.guestOrder
+      .getMenu(this.token, this.shopPublicId() || undefined)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (payload) => {
+          const urlPublicId = this.shopPublicId();
+          if (urlPublicId && payload.shop.publicId !== urlPublicId) return;
+          this.menu.set(payload);
+        },
+      });
   }
 
   private loadMenu(): void {

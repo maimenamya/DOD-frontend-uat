@@ -34,7 +34,7 @@
           อาหาร
         </button>
       }
-      @if (menu()!.beverages.length > 0) {
+      @if (showPaidDrinkTab()) {
         <button
           type="button"
           role="tab"
@@ -44,6 +44,18 @@
           (click)="setTab('DRINK', $event)"
         >
           เครื่องดื่ม
+        </button>
+      }
+      @if (showFreeMixerTab()) {
+        <button
+          type="button"
+          role="tab"
+          class="guest-order-tab"
+          [class.guest-order-tab--active]="activeTab() === 'FREE_MIXER'"
+          [attr.aria-selected]="activeTab() === 'FREE_MIXER'"
+          (click)="setTab('FREE_MIXER', $event)"
+        >
+          มิกเซอร์ 0 บาท
         </button>
       }
       @if (menu()!.promotions.length > 0) {
@@ -90,7 +102,7 @@
     </div>
 
     <ul class="guest-order-list app-scroll-region">
-      @for (item of visibleItems(); track itemTypeForTab() + ':' + item.id) {
+      @for (item of visibleItems(); track itemTypeForTab() + ':' + activeTab() + ':' + item.id) {
         <li class="guest-order-item">
           @if (item.imageUrl) {
             <img
@@ -109,7 +121,14 @@
               @if (item.categoryName) {
                 <span>{{ item.categoryName }} · </span>
               }
-              ฿{{ item.price | number: '1.0-0' }}
+              @if (isDisplayedFreeMixer(item)) {
+                <span class="guest-order-item__free">ฟรีมิกซ์</span>
+              } @else {
+                <span>฿{{ displayPrice(item) | number: '1.0-0' }}</span>
+              }
+              @if (item.isFreeMixer && (itemTypeForTab() === 'PROMOTION' || itemTypeForTab() === 'MEMBERSHIP')) {
+                <span class="guest-order-item__free"> · มีฟรีมิกซ์</span>
+              }
               @if (item.unitLabelTh) {
                 <span> / {{ item.unitLabelTh }}</span>
               }
@@ -154,7 +173,12 @@
         @for (row of cart(); track row.key) {
           <div class="guest-order-cart-row">
             <div class="guest-order-cart-row__main">
-              <p class="guest-order-cart-row__name">{{ row.name }}</p>
+              <p class="guest-order-cart-row__name">
+                {{ row.name }}
+                @if (row.isFreeMixer) {
+                  <span class="guest-order-item__free">ฟรี</span>
+                }
+              </p>
               <p class="guest-order-cart-row__price">
                 ฿{{ row.unitPrice * row.quantity | number: '1.0-0' }}
               </p>

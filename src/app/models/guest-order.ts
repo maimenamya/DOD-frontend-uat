@@ -7,6 +7,8 @@ export type GuestMenuItem = {
   categoryId: number | null;
   categoryName: string | null;
   allowDeposit?: boolean;
+  isMixer?: boolean;
+  isFreeMixer?: boolean;
 };
 
 export type GuestOrderMenuPayload = {
@@ -16,6 +18,7 @@ export type GuestOrderMenuPayload = {
     tableLabel: string;
     billIndex: number;
     revision: number;
+    hasFreeMixerPackage: boolean;
   };
   foods: GuestMenuItem[];
   beverages: GuestMenuItem[];
@@ -30,9 +33,12 @@ export type GuestOrderCartLine = {
   itemId: number;
   type: GuestOrderItemType;
   name: string;
+  catalogPrice: number;
   unitPrice: number;
   unitLabelTh: string;
   quantity: number;
+  isMixer: boolean;
+  isFreeMixer: boolean;
 };
 
 export type GuestOrderSubmitItem = {

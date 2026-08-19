@@ -159,6 +159,11 @@
   color: var(--text-secondary, #94a3b8);
 }
 
+.guest-order-item__free {
+  color: var(--primary-light, #93c5fd);
+  font-weight: 700;
+}
+
 .guest-order-item__add {
   flex-shrink: 0;
   min-width: 4.5rem;
