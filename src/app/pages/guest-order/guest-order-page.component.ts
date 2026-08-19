@@ -261,7 +261,9 @@ export class GuestOrderPageComponent implements OnInit {
   }
 
   itemTypeForTab(): GuestOrderItemType {
-    return this.activeTab() === 'FREE_MIXER' ? 'DRINK' : this.activeTab();
+    const tab = this.activeTab();
+    if (tab === 'FREE_MIXER') return 'DRINK';
+    return tab;
   }
 
   displayPrice(item: GuestMenuItem): number {
