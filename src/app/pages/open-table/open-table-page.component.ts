@@ -122,6 +122,11 @@ type PcAddNavItem = { key: PcAddNavKey; label: string; shortLabel: string };
 
 const OWNER_ROLE = 'OWNER';
 
+function isBillSessionConflict(err: HttpErrorResponse | null): boolean {
+  const body = err?.error as { code?: string; name?: string } | undefined;
+  return body?.code === 'BILL_002' || body?.name === 'SESSION_CONFLICT';
+}
+
 type SeatingTypeZone = { id: number; name: string; rateType: SeatingRateType };
 
 type SeatTile = {
@@ -274,6 +279,9 @@ export class OpenTablePageComponent implements OnInit {
   readonly stopDrinkPreview = signal<StopStaffDrinkPreview | null>(null);
   readonly stopDrinkPreviewLoading = signal(false);
   private stopDrinkPreviewTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Bumps on confirm/close so in-flight preview cannot overwrite a success toast. */
+  private stopDrinkPreviewEpoch = 0;
+  private stopDrinkPreviewPaused = false;
   readonly stopRoomTarget = signal<SessionRoomCharge | null>(null);
   readonly deleteRoomChargeTarget = signal<SessionRoomCharge | null>(null);
   readonly editRoomChargeTarget = signal<SessionRoomCharge | null>(null);
@@ -3321,7 +3329,7 @@ export class OpenTablePageComponent implements OnInit {
             (httpErr?.error as { error?: string } | undefined)?.error ??
             'เกิดข้อผิดพลาด';
           this.toast.showError(msg);
-          if (httpErr?.status === 409) {
+          if (isBillSessionConflict(httpErr)) {
             this.onMutationConflict();
           }
           return of(null);
@@ -3707,6 +3715,7 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   openStopDrinkModal(row: SessionStaffDrink): void {
+    this.stopDrinkPreviewPaused = false;
     this.stopDrinkTarget.set(row);
     this.stopSeatTime.set(currentDatetimeLocalValue());
     this.stopSeatTimeValidated.set(false);
@@ -3717,11 +3726,8 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   closeStopDrinkModal(): void {
+    this.invalidateStopDrinkPreview();
     closeOpenShopFlatpickrCalendars();
-    if (this.stopDrinkPreviewTimer != null) {
-      clearTimeout(this.stopDrinkPreviewTimer);
-      this.stopDrinkPreviewTimer = null;
-    }
     this.stopDrinkPreview.set(null);
     this.showStopDrinkModal.set(false);
     this.stopDrinkTarget.set(null);
@@ -3736,7 +3742,17 @@ export class OpenTablePageComponent implements OnInit {
     this.scheduleStopDrinkPreview();
   }
 
+  private invalidateStopDrinkPreview(): void {
+    this.stopDrinkPreviewPaused = true;
+    this.stopDrinkPreviewEpoch += 1;
+    if (this.stopDrinkPreviewTimer != null) {
+      clearTimeout(this.stopDrinkPreviewTimer);
+      this.stopDrinkPreviewTimer = null;
+    }
+  }
+
   private scheduleStopDrinkPreview(): void {
+    if (!this.showStopDrinkModal() || this.actionBusy() || this.stopDrinkPreviewPaused) return;
     if (this.stopDrinkPreviewTimer != null) {
       clearTimeout(this.stopDrinkPreviewTimer);
     }
@@ -3747,6 +3763,7 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   private loadStopDrinkPreview(): void {
+    if (!this.showStopDrinkModal() || this.actionBusy() || this.stopDrinkPreviewPaused) return;
     const sessionId = this.selectedSeat()?.sessionId;
     const row = this.stopDrinkTarget();
     const seatStoppedAt = this.stopSeatTime().trim();
@@ -3754,6 +3771,7 @@ export class OpenTablePageComponent implements OnInit {
       this.stopDrinkPreview.set(null);
       return;
     }
+    const epoch = this.stopDrinkPreviewEpoch;
     this.stopDrinkPreviewLoading.set(true);
     this.openTableService
       .previewStopStaffDrink({
@@ -3763,16 +3781,25 @@ export class OpenTablePageComponent implements OnInit {
         seatStoppedAt,
       })
       .pipe(
-        catchError((err: { error?: { error?: string } }) => {
+        catchError((err: unknown) => {
+          if (epoch !== this.stopDrinkPreviewEpoch || !this.showStopDrinkModal()) {
+            return of(null);
+          }
           this.stopDrinkPreview.set(null);
-          const msg = err.error?.error;
-          if (msg) this.toast.showError(msg);
+          const httpErr = err instanceof HttpErrorResponse ? err : null;
+          const msg = (httpErr?.error as { error?: string } | undefined)?.error;
+          if (msg && msg !== 'สต็อปดื่มแล้ว') this.toast.showError(msg);
           return of(null);
         }),
-        finalize(() => this.stopDrinkPreviewLoading.set(false)),
+        finalize(() => {
+          if (epoch === this.stopDrinkPreviewEpoch) {
+            this.stopDrinkPreviewLoading.set(false);
+          }
+        }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((preview) => {
+        if (epoch !== this.stopDrinkPreviewEpoch) return;
         if (preview && this.showStopDrinkModal()) {
           this.stopDrinkPreview.set(preview);
         }
@@ -3780,10 +3807,6 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   confirmStopDrink(): void {
-    if (this.stopDrinkPreviewTimer != null) {
-      clearTimeout(this.stopDrinkPreviewTimer);
-      this.stopDrinkPreviewTimer = null;
-    }
     const sessionId = this.selectedSeat()?.sessionId;
     const expectedRevision = this.requireExpectedRevision();
     const row = this.stopDrinkTarget();
@@ -3798,6 +3821,7 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
     this.stopSeatTimeValidated.set(false);
+    this.invalidateStopDrinkPreview();
     this.submitBillPanelMutation(
       this.openTableService.stopStaffDrink({
         shopId: this.shopId,
@@ -4631,7 +4655,7 @@ export class OpenTablePageComponent implements OnInit {
             (httpErr?.error as { error?: string } | undefined)?.error ??
             'เกิดข้อผิดพลาด';
           this.toast.showError(msg);
-          if (httpErr?.status === 409) {
+          if (isBillSessionConflict(httpErr)) {
             this.onMutationConflict();
           }
           return of(null);
