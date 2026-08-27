@@ -2,6 +2,8 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { MasterListSkeletonComponent } from '../../components/master-list-skeleton/master-list-skeleton.component';
 import { DecimalPipe } from '@angular/common';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
+import { highlightInvalidForm, resetFormValidationFlag } from '../../utils/form-validation.util';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
 import { AttendanceMonthPickerComponent } from '../../components/attendance-month-picker/attendance-month-picker.component';
@@ -33,6 +35,7 @@ type RosterCategoryTab = 'STAFF' | 'ENTERTAINER';
     DecimalPipe,
     ReactiveFormsModule,
     AppModalComponent,
+    FieldErrorComponent,
     AttendanceMonthPickerComponent,
     AttendanceMonthShiftsPanelComponent,
     MasterListToolbarComponent,
@@ -58,6 +61,7 @@ export class AttendanceRosterPageComponent implements OnInit {
   readonly monthPayload = signal<AttendanceEmployeeMonthPayload | null>(null);
   readonly waivingRoundDate = signal<string | null>(null);
   readonly deductionShift = signal<AttendanceShiftRow | null>(null);
+  readonly deductionValidated = signal(false);
 
   readonly deductionForm = this.fb.group({
     deductionBaht: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
@@ -141,10 +145,12 @@ export class AttendanceRosterPageComponent implements OnInit {
     this.deductionForm.reset({
       deductionBaht: String(defaultAmount),
     });
+    resetFormValidationFlag(this.deductionValidated);
   }
 
   closeDeductionModal(): void {
     this.deductionShift.set(null);
+    resetFormValidationFlag(this.deductionValidated);
   }
 
   sanitizeDeductionInput(event: Event): void {
@@ -158,11 +164,9 @@ export class AttendanceRosterPageComponent implements OnInit {
     const shift = this.deductionShift();
     if (!employee || !shift || !this.canWaiveDeduction()) return;
 
+    if (highlightInvalidForm(this.deductionForm, this.deductionValidated)) return;
+
     const raw = this.deductionForm.controls.deductionBaht.value.trim();
-    if (!/^\d+$/.test(raw)) {
-      this.toast.showError('กรุณาระบุยอดหักเป็นจำนวนเต็ม');
-      return;
-    }
 
     const deductionBaht = Number.parseInt(raw, 10);
     this.waivingRoundDate.set(shift.roundDateIso);

@@ -14,6 +14,8 @@ export interface MstEmployee {
   username?: string;
   email: string | null;
   nickname: string;
+  /** Photo URL when this employee opted in to show it (PDPA). */
+  imageUrl?: string | null;
   roleId: number;
   role?: {
     id: number;

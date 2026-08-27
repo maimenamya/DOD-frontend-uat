@@ -24,10 +24,13 @@ import {
   createMasterListView,
   masterListRowNumber,
 } from '../../utils/master-list.util';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 @Component({
   selector: 'app-master-pr-tag-page',
-  imports: [MasterListSkeletonComponent, DecimalPipe, ReactiveFormsModule, AppModalComponent, MasterListToolbarComponent, ListPaginatorComponent],
+  imports: [
+    FieldErrorComponent,
+    MasterListSkeletonComponent, DecimalPipe, ReactiveFormsModule, AppModalComponent, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './master-pr-tag-page.component.html',
 })
 export class MasterPrTagPageComponent implements OnInit {
@@ -150,7 +153,7 @@ export class MasterPrTagPageComponent implements OnInit {
 
   submitCreate(): void {
     if (this.submitting()) return;
-    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated)) return;
     this.submitting.set(true);
     this.prTagService.createTag(this.payloadFromForm(this.createForm)).subscribe({
       next: () => {
@@ -169,7 +172,7 @@ export class MasterPrTagPageComponent implements OnInit {
   submitEdit(): void {
     const item = this.editingItem();
     if (!item || this.submitting()) return;
-    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated)) return;
     this.submitting.set(true);
     this.prTagService.updateTag(item.id, this.payloadFromForm(this.editForm, true)).subscribe({
       next: () => {

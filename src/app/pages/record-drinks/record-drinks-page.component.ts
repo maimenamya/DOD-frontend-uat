@@ -35,6 +35,7 @@ import {
   sortEmployeesByCode,
 } from '../../utils/employee-option.util';
 import { shopCalendarTodayInput } from '../open-table/open-table-ledger.util';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 type DrinkRowForm = FormGroup<{
   roleId: FormControl<number | ''>;
@@ -71,7 +72,9 @@ function rolesFromEmployees(employees: MstEmployee[]): MstRole[] {
 
 @Component({
   selector: 'app-record-drinks-page',
-  imports: [DecimalPipe, ReactiveFormsModule, CustomDropdownComponent, ShopDateInputComponent],
+  imports: [
+    FieldErrorComponent,
+    DecimalPipe, ReactiveFormsModule, CustomDropdownComponent, ShopDateInputComponent],
   templateUrl: './record-drinks-page.component.html',
 })
 export class RecordDrinksPageComponent implements OnInit {
@@ -242,15 +245,17 @@ export class RecordDrinksPageComponent implements OnInit {
       }
     }
 
-    const incompleteRow = this.rows.controls.find((row) => this.isRowPartial(row));
-    if (incompleteRow) {
-      this.markIncompleteRowErrors(incompleteRow);
-      this.toast.showError('กรุณากรอกตำแหน่ง พนักงาน และจำนวนดื่มให้ครบทุกแถวที่เพิ่ม');
+    const incompleteRows = this.rows.controls.filter((row) => this.isRowPartial(row));
+    if (incompleteRows.length > 0) {
+      for (const row of incompleteRows) {
+        this.markIncompleteRowErrors(row);
+      }
+      this.formValidated.set(true);
       this.reapplyEmployeeDisabledState();
       return;
     }
 
-    if (highlightInvalidForm(this.form, this.formValidated, this.toast)) {
+    if (highlightInvalidForm(this.form, this.formValidated)) {
       this.reapplyEmployeeDisabledState();
       return;
     }

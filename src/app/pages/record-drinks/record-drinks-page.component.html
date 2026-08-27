@@ -12,7 +12,7 @@
       </div>
     </div>
   } @else {
-    <form class="record-drinks-form" [formGroup]="form" (ngSubmit)="submit()">
+    <form class="record-drinks-form" [class.app-form-was-validated]="formValidated()" [formGroup]="form" (ngSubmit)="submit()">
       <section class="app-card app-card-section record-drinks-bill">
         <div class="app-card-body">
           <div class="record-drinks-bill-bar">
@@ -24,9 +24,12 @@
                 [options]="saleDropdownOptions()"
                 placeholder="เลือก SALE"
               />
-              @if (form.controls.saleEmployeeId.touched && form.controls.saleEmployeeId.invalid) {
-                <p class="record-drinks-field-error">กรุณาเลือกเซลล์</p>
-              }
+              <app-field-error
+                [control]="form.controls.saleEmployeeId"
+                [validated]="formValidated()"
+                label="เซลล์"
+                [select]="true"
+              />
             </div>
 
             <div class="record-drinks-bill-field">
@@ -39,9 +42,7 @@
                 placeholder="เช่น BILL-1002 หรือ T-12"
                 autocomplete="off"
               />
-              @if (form.controls.billReference.touched && form.controls.billReference.invalid) {
-                <p class="record-drinks-field-error">กรุณาระบุเลขบิลหรือหมายเลขโต๊ะ</p>
-              }
+              <app-field-error [control]="form.controls.billReference" [validated]="formValidated()" label="เลขบิล / โต๊ะ" />
             </div>
 
             <div class="record-drinks-bill-field">
@@ -55,17 +56,13 @@
                 pattern="[0-9]*"
                 (input)="sanitizeBillAmount($event)"
               />
-              @if (form.controls.billAmount.touched && form.controls.billAmount.invalid) {
-                <p class="record-drinks-field-error">กรุณาระบุยอดบิล</p>
-              }
+              <app-field-error [control]="form.controls.billAmount" [validated]="formValidated()" label="ยอดบิล" />
             </div>
 
             <div class="record-drinks-bill-field">
               <label class="record-drinks-label" for="businessDate">วันที่ทำรายการ</label>
               <app-shop-date-input inputId="businessDate" formControlName="businessDate" />
-              @if (form.controls.businessDate.touched && form.controls.businessDate.invalid) {
-                <p class="record-drinks-field-error">กรุณาเลือกวันที่</p>
-              }
+              <app-field-error [control]="form.controls.businessDate" [validated]="formValidated()" label="วันที่ทำรายการ" [select]="true" />
             </div>
           </div>
         </div>
@@ -106,9 +103,12 @@
                         [options]="roleDropdownOptions()"
                         placeholder="เลือกตำแหน่ง"
                       />
-                      @if (row.controls.roleId.touched && row.controls.roleId.invalid) {
-                        <p class="record-drinks-field-error">กรุณาเลือกประเภทตำแหน่ง</p>
-                      }
+                      <app-field-error
+                        [control]="row.controls.roleId"
+                        [validated]="formValidated()"
+                        label="ตำแหน่ง"
+                        [select]="true"
+                      />
                     </div>
 
                     <div class="record-drinks-row-field record-drinks-row-employee">
@@ -119,9 +119,12 @@
                         [options]="employeeOptionsForRow(row)"
                         [placeholder]="hasRoleSelected(row) ? 'เลือกพนักงาน' : 'เลือกตำแหน่งก่อน'"
                       />
-                      @if (row.controls.employeeId.touched && row.controls.employeeId.invalid) {
-                        <p class="record-drinks-field-error">กรุณาเลือกพนักงาน</p>
-                      }
+                      <app-field-error
+                        [control]="row.controls.employeeId"
+                        [validated]="formValidated()"
+                        label="พนักงาน"
+                        [select]="true"
+                      />
                     </div>
 
                     @if (rowHasActivePrTag(row)) {
@@ -157,9 +160,7 @@
                         placeholder="0"
                         (input)="sanitizeRowQuantity(i, $event)"
                       />
-                      @if (row.controls.quantity.touched && row.controls.quantity.invalid) {
-                        <p class="record-drinks-field-error">จำนวนดื่มต้องอย่างน้อย 1</p>
-                      }
+                      <app-field-error [control]="row.controls.quantity" [validated]="formValidated()" label="จำนวนดื่ม" />
                     </div>
 
                     <div class="record-drinks-row-total">

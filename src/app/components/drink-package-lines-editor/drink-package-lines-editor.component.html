@@ -36,6 +36,7 @@
               [options]="drinkOptionsForRow(row)"
               placeholder="เลือกเครื่องดื่ม"
             />
+            <app-field-error [control]="row.controls.drinkId" label="เครื่องดื่ม" [select]="true" [validated]="validated()" />
           </div>
           <div class="drink-package-line-field drink-package-line-field--qty">
             <label class="app-label-sm" [attr.for]="'pkg-line-qty-' + i">จำนวน</label>
@@ -48,6 +49,7 @@
               class="app-input"
               (input)="sanitizeQuantity(row, $event)"
             />
+            <app-field-error [control]="row.controls.quantity" [validated]="validated()" label="จำนวน" />
           </div>
         </div>
       </div>

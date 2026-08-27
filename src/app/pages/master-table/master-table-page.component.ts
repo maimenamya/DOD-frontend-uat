@@ -16,10 +16,13 @@ import { AuthService } from '../../services/auth.service';
 import { ShopMasterService } from '../../services/shop-master.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 @Component({
   selector: 'app-master-table-page',
-  imports: [MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent],
+  imports: [
+    FieldErrorComponent,
+    MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent],
   templateUrl: './master-table-page.component.html',
 })
 export class MasterTablePageComponent implements OnInit {
@@ -90,7 +93,7 @@ export class MasterTablePageComponent implements OnInit {
 
   submitCreate(): void {
     if (this.submitting()) return;
-    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated)) return;
     this.submitting.set(true);
     const { tableCode } = this.createForm.getRawValue();
     this.shopMaster.createTable({ tableCode }).subscribe({
@@ -110,7 +113,7 @@ export class MasterTablePageComponent implements OnInit {
   submitEdit(): void {
     const item = this.editingItem();
     if (!item || this.submitting()) return;
-    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated)) return;
     this.submitting.set(true);
     const { tableCode } = this.editForm.getRawValue();
     this.shopMaster.updateTable(item.id, { tableCode }).subscribe({

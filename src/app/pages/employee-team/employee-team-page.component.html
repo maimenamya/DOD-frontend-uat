@@ -29,15 +29,18 @@
         <div class="app-form-group">
           <label class="app-label" for="employee-team-employee-id-1">Employee ID</label>
           <input id="employee-team-employee-id-1" type="text" formControlName="employeeId" class="app-input" />
+          <app-field-error [control]="createForm.controls.employeeId" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="employee-team-ชื่อเล่น-2">ชื่อเล่น</label>
           <input id="employee-team-ชื่อเล่น-2" type="text" formControlName="nickname" class="app-input" />
+          <app-field-error [control]="createForm.controls.nickname" [validated]="createFormValidated()" />
         </div>
         <p class="app-field-hint">รหัสผ่านเริ่มต้นใช้ค่าจากเมนูกฎร้าน</p>
         <div class="app-form-group">
           <label class="app-label" for="employee-team-email-optional-4">Email (optional)</label>
           <input id="employee-team-email-optional-4" type="email" formControlName="email" class="app-input" />
+          <app-field-error [control]="createForm.controls.email" [validated]="createFormValidated()" />
         </div>
         @if (config.team === 'managers') {
           <div class="app-form-group">
@@ -72,10 +75,12 @@
           <div class="app-form-group">
             <label class="app-label" for="employee-team-ชื่อเล่น-6">ชื่อเล่น</label>
             <input id="employee-team-ชื่อเล่น-6" type="text" formControlName="nickname" class="app-input" />
+            <app-field-error [control]="editForm.controls.nickname" [validated]="editFormValidated()" />
           </div>
           <div class="app-form-group">
             <label class="app-label" for="employee-team-email-7">Email</label>
             <input id="employee-team-email-7" type="email" formControlName="email" class="app-input" />
+            <app-field-error [control]="editForm.controls.email" [validated]="editFormValidated()" />
           </div>
           <div class="app-form-group">
             <label class="app-label" for="employee-team-status-8">Status</label>
@@ -115,6 +120,7 @@
               class="app-input app-scroll-region"
               placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
             ></textarea>
+            <app-field-error [control]="editForm.controls.changeReason" [validated]="editFormValidated()" />
           </div>
           <div class="app-form-actions app-form-actions-top">
             <button type="button" class="app-btn-secondary" (click)="closeEdit()">Cancel</button>

@@ -52,6 +52,7 @@
             maxlength="500"
             placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
           ></textarea>
+          <app-field-error [control]="forceCutForm.controls.endNote" [validated]="forceCutFormValidated()" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeForceCutModal()">ยกเลิก</button>

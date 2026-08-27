@@ -164,6 +164,20 @@ export class AuthService {
       .pipe(tap((response) => this.persistSessionIfReady(response)));
   }
 
+  uploadProfileImage(file: Blob, fileName: string): Observable<AuthResponse> {
+    const body = new FormData();
+    body.append('image', file, fileName);
+    return this.http
+      .post<AuthResponse>(this.api.resource('auth', 'me', 'image'), body)
+      .pipe(tap((response) => this.persistSessionIfReady(response)));
+  }
+
+  deleteProfileImage(): Observable<AuthResponse> {
+    return this.http
+      .delete<AuthResponse>(this.api.resource('auth', 'me', 'image'))
+      .pipe(tap((response) => this.persistSessionIfReady(response)));
+  }
+
   changePassword(payload: ChangePasswordRequest): Observable<AuthResponse> {
     return this.http
       .post<AuthResponse>(this.api.resource('auth', 'change-password'), payload)
@@ -395,7 +409,11 @@ export class AuthService {
   }
 
   private persistSession(response: AuthResponse): void {
+    const previousBranches = this.sessionSignal()?.availableBranches;
     const session = this.toSession(response);
+    if (previousBranches?.length && !session.availableBranches) {
+      session.availableBranches = previousBranches;
+    }
     const publicId = session.user.shop?.publicId?.trim();
     if (publicId) {
       writeStoredShopPublicId(publicId);
@@ -464,6 +482,8 @@ export class AuthService {
           username: employee.username,
           email: employee.email,
           nickname: employee.nickname,
+          imageUrl: employee.imageUrl ?? null,
+          imageIsPublic: employee.imageIsPublic === true,
           organizationId: employee.organizationId,
           shopId: employee.shopId,
           pendingRoleSetup: true,
@@ -481,6 +501,8 @@ export class AuthService {
           username: employee.username,
           email: employee.email,
           nickname: employee.nickname,
+          imageUrl: employee.imageUrl ?? null,
+          imageIsPublic: employee.imageIsPublic === true,
           organizationId: employee.organizationId,
           shopId: employee.shopId,
           pendingRoleSetup: false,
@@ -516,6 +538,8 @@ export class AuthService {
         username,
         email: user.email ?? null,
         nickname,
+        imageUrl: user.imageUrl ?? null,
+        imageIsPublic: user.imageIsPublic === true,
         organizationId,
         shopId: user.shopId,
         pendingRoleSetup: true,
@@ -561,6 +585,8 @@ export class AuthService {
       username,
       email: user.email ?? null,
       nickname,
+      imageUrl: user.imageUrl ?? null,
+      imageIsPublic: user.imageIsPublic === true,
       organizationId,
       shopId: user.shopId,
       pendingRoleSetup: false,

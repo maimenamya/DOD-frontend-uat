@@ -15,6 +15,7 @@ import {
 import { forkJoin } from 'rxjs';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { AppThumbImageComponent } from '../../components/app-thumb-image/app-thumb-image.component';
 import { DrinkPackageLinesEditorComponent } from '../../components/drink-package-lines-editor/drink-package-lines-editor.component';
 import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
 import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
@@ -41,14 +42,18 @@ import {
   masterListRowNumber,
 } from '../../utils/master-list.util';
 import { prepareMenuThumbnail } from '../../utils/menu-thumbnail.util';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 @Component({
   selector: 'app-master-promotion-page',
-  imports: [MasterListSkeletonComponent, 
+  imports: [
+    FieldErrorComponent,
+    MasterListSkeletonComponent, 
     DecimalPipe,
     FormsModule,
     ReactiveFormsModule,
     AppModalComponent,
+    AppThumbImageComponent,
     DrinkPackageLinesEditorComponent,
     MasterListToolbarComponent,
     ListPaginatorComponent,
@@ -255,7 +260,7 @@ export class MasterPromotionPageComponent implements OnInit {
 
   submitCreate(): void {
     if (this.submitting()) return;
-    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated)) return;
     this.submitting.set(true);
     const raw = this.createForm.getRawValue();
     const payload = {
@@ -283,7 +288,7 @@ export class MasterPromotionPageComponent implements OnInit {
   submitEdit(): void {
     const item = this.editingItem();
     if (!item || this.submitting()) return;
-    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated)) return;
     this.submitting.set(true);
     const raw = this.editForm.getRawValue();
     const payload = {

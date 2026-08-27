@@ -2882,6 +2882,27 @@
     width: 100%;
   }
 
+  .shop-rules-password-row {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .shop-rules-initial-password.app-input,
+  .shop-rules-section .shop-rules-initial-password.app-input[type='text'],
+  .shop-rules-section .shop-rules-initial-password.app-input[type='password'] {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: none;
+    width: auto;
+  }
+
+  .shop-rules-password-btn {
+    flex: 0 0 auto;
+    min-width: 5.5rem;
+  }
+
   .shop-rules-rounding {
     max-width: 12rem;
     width: 100%;
@@ -3186,6 +3207,11 @@
 
   .app-form-was-validated app-custom-dropdown.ng-invalid .app-dropdown-trigger,
   .app-form-was-validated app-searchable-combobox.ng-invalid .app-dropdown-trigger {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 24%, transparent);
+  }
+
+  .app-form-was-validated .app-number-stepper:has(.ng-invalid) .app-number-stepper-input {
     border-color: var(--danger);
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 24%, transparent);
   }
@@ -4179,9 +4205,14 @@
   .dashboard-date-custom {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
-    align-items: center;
+    align-items: start;
     gap: 0.35rem 0.5rem;
     width: 100%;
+    min-width: 0;
+  }
+
+  .dashboard-date-custom .app-form-group {
+    margin: 0;
     min-width: 0;
   }
 
@@ -5062,8 +5093,8 @@
 }
 
 .app-flatpickr-calendar .flatpickr-time .numInputWrapper {
-  height: 3rem !important;
-  min-width: 3.25rem;
+  height: 3.5rem !important;
+  min-width: 4.75rem;
   flex: 0 0 auto;
   background: var(--surface-strong);
   border: 1px solid var(--border);
@@ -5087,13 +5118,13 @@
 
 .app-flatpickr-calendar .flatpickr-time input {
   height: 100% !important;
-  line-height: 2.75rem !important;
+  line-height: 3.25rem !important;
   font-size: 1.0625rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--text-primary);
   background: transparent;
-  padding: 0 0.35rem;
+  padding: 0 2.1rem 0 0.5rem;
   box-sizing: border-box;
 }
 
@@ -5110,27 +5141,37 @@
   color: var(--text-accent);
 }
 
-.app-flatpickr-calendar .flatpickr-time .numInputWrapper span {
+.app-flatpickr-calendar .flatpickr-time .numInputWrapper span.arrowUp,
+.app-flatpickr-calendar .flatpickr-time .numInputWrapper span.arrowDown {
+  width: 1.85rem;
+  padding: 0;
   opacity: 1;
   border: none;
-  line-height: 1.1rem;
+  border-left: 1px solid var(--border);
+  line-height: 1;
 }
 
-.app-flatpickr-calendar .flatpickr-time .arrowUp,
-.app-flatpickr-calendar .flatpickr-time .arrowDown {
-  opacity: 1;
+.app-flatpickr-calendar .flatpickr-time .numInputWrapper span.arrowUp:after,
+.app-flatpickr-calendar .flatpickr-time .numInputWrapper span.arrowDown:after {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-left-width: 0.42rem;
+  border-right-width: 0.42rem;
 }
 
-.app-flatpickr-calendar .flatpickr-time .arrowUp:after {
+.app-flatpickr-calendar .flatpickr-time .numInputWrapper span.arrowUp:after {
+  border-bottom-width: 0.5rem;
   border-bottom-color: var(--text-accent);
 }
 
-.app-flatpickr-calendar .flatpickr-time .arrowDown:after {
+.app-flatpickr-calendar .flatpickr-time .numInputWrapper span.arrowDown:after {
+  border-top-width: 0.5rem;
   border-top-color: var(--text-accent);
 }
 
-.app-flatpickr-calendar .flatpickr-time .arrowUp:hover,
-.app-flatpickr-calendar .flatpickr-time .arrowDown:hover {
+.app-flatpickr-calendar .flatpickr-time .numInputWrapper span.arrowUp:hover,
+.app-flatpickr-calendar .flatpickr-time .numInputWrapper span.arrowDown:hover {
   background: var(--surface-hover);
 }
 

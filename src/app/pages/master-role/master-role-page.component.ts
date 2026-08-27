@@ -34,6 +34,7 @@ import {
   masterListRowNumber,
 } from '../../utils/master-list.util';
 import { isValidShopTimeHm, normalizeShopTimeHm } from '../../utils/shop-time.util';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 const CATEGORY_DROPDOWN_OPTIONS: DropdownOption[] = [
   { value: 'STAFF', label: 'พนักงาน' },
@@ -42,7 +43,9 @@ const CATEGORY_DROPDOWN_OPTIONS: DropdownOption[] = [
 
 @Component({
   selector: 'app-master-role-page',
-  imports: [MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent, DecimalPipe, CustomDropdownComponent, MasterListToolbarComponent, ListPaginatorComponent, RouterLink],
+  imports: [
+    FieldErrorComponent,
+    MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent, DecimalPipe, CustomDropdownComponent, MasterListToolbarComponent, ListPaginatorComponent, RouterLink],
   templateUrl: './master-role-page.component.html',
   styleUrl: './master-role-page.component.css',
 })
@@ -197,8 +200,8 @@ export class MasterRolePageComponent implements OnInit {
 
   submitCreate(): void {
     if (this.submitting()) return;
-    if (!this.validateWorkHours(this.createForm)) return;
-    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
+    this.applyWorkHourFieldErrors(this.createForm);
+    if (highlightInvalidForm(this.createForm, this.createFormValidated)) return;
     this.submitting.set(true);
     const payload = this.buildPayload(this.createForm);
     this.roleService.createRole(payload).subscribe({
@@ -218,8 +221,8 @@ export class MasterRolePageComponent implements OnInit {
   submitEdit(): void {
     const role = this.editingRole();
     if (!role || this.submitting()) return;
-    if (!this.validateWorkHours(this.editForm)) return;
-    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
+    this.applyWorkHourFieldErrors(this.editForm);
+    if (highlightInvalidForm(this.editForm, this.editFormValidated)) return;
     this.submitting.set(true);
     const payload = {
       ...this.buildPayload(this.editForm),
@@ -287,22 +290,27 @@ export class MasterRolePageComponent implements OnInit {
     });
   }
 
-  private validateWorkHours(
+  private applyWorkHourFieldErrors(
     form: ReturnType<MasterRolePageComponent['buildRoleForm']>,
-  ): boolean {
+  ): void {
     const raw = form.getRawValue();
     if (raw.category !== 'STAFF') {
-      return true;
+      return;
     }
     this.normalizeTime(form === this.createForm ? 'create' : 'edit', 'expectedCheckInTime');
     this.normalizeTime(form === this.createForm ? 'create' : 'edit', 'expectedCheckOutTime');
     const checkIn = form.controls.expectedCheckInTime.value.trim();
     const checkOut = form.controls.expectedCheckOutTime.value.trim();
-    if (!checkIn || !isValidShopTimeHm(checkIn) || !isValidShopTimeHm(checkOut) || !checkOut) {
-      this.toast.showError('กรุณาระบุเวลาเข้า–ออกงานเป็นรูปแบบ 24 ชม. เช่น 20:00');
-      return false;
+    if (!checkIn) {
+      form.controls.expectedCheckInTime.setErrors({ required: true });
+    } else if (!isValidShopTimeHm(checkIn)) {
+      form.controls.expectedCheckInTime.setErrors({ timeFormat: true });
     }
-    return true;
+    if (!checkOut) {
+      form.controls.expectedCheckOutTime.setErrors({ required: true });
+    } else if (!isValidShopTimeHm(checkOut)) {
+      form.controls.expectedCheckOutTime.setErrors({ timeFormat: true });
+    }
   }
 
   private wireRoleForm(

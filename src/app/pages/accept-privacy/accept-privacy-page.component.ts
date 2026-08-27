@@ -38,6 +38,7 @@ export class AcceptPrivacyPageComponent implements OnInit, AfterViewInit {
   readonly submitting = signal(false);
   /** Unlocks checkbox after user scrolls policy text to the bottom (or content fits without scroll). */
   readonly scrolledToEnd = signal(false);
+  readonly consentValidated = signal(false);
 
   ngOnInit(): void {
     if (!this.auth.needsPrivacyConsent()) {
@@ -58,7 +59,7 @@ export class AcceptPrivacyPageComponent implements OnInit, AfterViewInit {
       return;
     }
     if (!this.agreed()) {
-      this.toast.showError('กรุณาติ๊กยอมรับนโยบายก่อนดำเนินการต่อ');
+      this.consentValidated.set(true);
       return;
     }
 

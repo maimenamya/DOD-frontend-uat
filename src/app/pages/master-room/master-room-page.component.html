@@ -18,6 +18,7 @@
         <div class="app-form-group">
           <label class="app-label" for="master-room-รหัสห้อง-1">รหัสห้อง</label>
           <input id="master-room-รหัสห้อง-1" type="text" formControlName="roomCode" class="app-input" />
+          <app-field-error [control]="createForm.controls.roomCode" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-room-ราคา-2">ราคา</label>
@@ -29,6 +30,7 @@
             class="app-input"
             (input)="sanitizeIntegerInput('create', 'price', $event)"
           />
+          <app-field-error [control]="createForm.controls.price" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-room-ประเภทราคา-3">ประเภทราคา</label>
@@ -58,6 +60,7 @@
         <div class="app-form-group">
           <label class="app-label" for="master-room-รหัสห้อง-4">รหัสห้อง</label>
           <input id="master-room-รหัสห้อง-4" type="text" formControlName="roomCode" class="app-input" />
+          <app-field-error [control]="editForm.controls.roomCode" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-room-ราคา-5">ราคา</label>
@@ -69,6 +72,7 @@
             class="app-input"
             (input)="sanitizeIntegerInput('edit', 'price', $event)"
           />
+          <app-field-error [control]="editForm.controls.price" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-room-ประเภทราคา-6">ประเภทราคา</label>

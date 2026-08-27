@@ -21,10 +21,13 @@ import { PrTagService } from '../../services/pr-tag.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
 import { roleOptionLabel } from '../../utils/role-display.util';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 @Component({
   selector: 'app-pr-tag-operations-page',
-  imports: [MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent, CustomDropdownComponent],
+  imports: [
+    FieldErrorComponent,
+    MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent, CustomDropdownComponent],
   templateUrl: './pr-tag-operations-page.component.html',
   styleUrl: './pr-tag-operations-page.component.css',
 })
@@ -175,7 +178,7 @@ export class PrTagOperationsPageComponent implements OnInit {
     const row = this.changeTagTarget();
     const enrollmentId = row?.enrollment?.id;
     if (!enrollmentId) return;
-    if (highlightInvalidForm(this.changeTagForm, this.changeTagFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.changeTagForm, this.changeTagFormValidated)) return;
     const prTagId = Number.parseInt(this.changeTagForm.getRawValue().prTagId, 10);
     if (!Number.isFinite(prTagId)) return;
     if (this.acting()) return;
@@ -195,7 +198,7 @@ export class PrTagOperationsPageComponent implements OnInit {
   }
 
   submitAssign(): void {
-    if (highlightInvalidForm(this.assignForm, this.assignFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.assignForm, this.assignFormValidated)) return;
     const raw = this.assignForm.getRawValue();
     const employeeId = raw.employeeId.trim();
     const prTagId = Number.parseInt(raw.prTagId, 10);
@@ -288,7 +291,7 @@ export class PrTagOperationsPageComponent implements OnInit {
     const row = this.forceCutTarget();
     const id = row?.enrollment?.id;
     if (!id || this.acting()) return;
-    if (highlightInvalidForm(this.forceCutForm, this.forceCutFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.forceCutForm, this.forceCutFormValidated)) return;
 
     const endNote = this.forceCutForm.getRawValue().endNote.trim();
     this.acting.set(true);

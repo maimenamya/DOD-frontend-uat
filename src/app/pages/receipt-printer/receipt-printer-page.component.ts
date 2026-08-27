@@ -19,10 +19,13 @@ import {
   highlightInvalidForm,
   resetFormValidationFlag,
 } from '../../utils/form-validation.util';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 @Component({
   selector: 'app-receipt-printer-page',
-  imports: [ReactiveFormsModule, CustomDropdownComponent],
+  imports: [
+    FieldErrorComponent,
+    ReactiveFormsModule, CustomDropdownComponent],
   templateUrl: './receipt-printer-page.component.html',
 })
 export class ReceiptPrinterPageComponent implements OnInit {
@@ -80,7 +83,7 @@ export class ReceiptPrinterPageComponent implements OnInit {
   submit(): void {
     if (!this.canManage()) return;
     resetFormValidationFlag(this.formValidated);
-    if (highlightInvalidForm(this.form, this.formValidated, this.toast)) return;
+    if (highlightInvalidForm(this.form, this.formValidated)) return;
 
     const shopId = this.auth.getShopId();
     if (shopId == null) {

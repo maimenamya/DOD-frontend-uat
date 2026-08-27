@@ -20,12 +20,13 @@ import type {
   GuestOrderMenuPayload,
 } from '../../models/guest-order';
 import { GuestOrderService } from '../../services/guest-order.service';
+import { AppThumbImageComponent } from '../../components/app-thumb-image/app-thumb-image.component';
 
 type MenuTab = 'FOOD' | 'DRINK' | 'FREE_MIXER' | 'PROMOTION' | 'MEMBERSHIP';
 
 @Component({
   selector: 'app-guest-order-page',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, AppThumbImageComponent],
   templateUrl: './guest-order-page.component.html',
   styleUrl: './guest-order-page.component.css',
 })

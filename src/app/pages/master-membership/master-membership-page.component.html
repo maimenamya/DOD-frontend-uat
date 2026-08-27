@@ -18,11 +18,13 @@
         <div class="app-form-group">
           <label class="app-label" for="master-membership-ชื่อเมมเบอร์-1">ชื่อเมมเบอร์</label>
           <input id="master-membership-ชื่อเมมเบอร์-1" type="text" formControlName="name" class="app-input" />
+          <app-field-error [control]="createForm.controls.name" [validated]="createFormValidated()" />
         </div>
         <app-drink-package-lines-editor
           [beverages]="beverages()"
           [categories]="beverageCategories()"
           [lines]="createItems"
+          [validated]="createFormValidated()"
         >
           <button type="button" addLineButton class="app-btn-secondary-sm" (click)="addCreateLine()">
             + เพิ่มรายการ
@@ -38,6 +40,7 @@
             class="app-input"
             (input)="sanitizeIntegerInput('create', 'packagePrice', $event)"
           />
+          <app-field-error [control]="createForm.controls.packagePrice" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-group">
           <span class="app-label">ฟรีมิกซ์เซอร์</span>
@@ -69,6 +72,7 @@
             class="app-input"
             (input)="sanitizeIntegerInput('create', 'freeDrinks', $event)"
           />
+          <app-field-error [control]="createForm.controls.freeDrinks" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
@@ -90,11 +94,13 @@
         <div class="app-form-group">
           <label class="app-label" for="master-membership-ชื่อเมมเบอร์-6">ชื่อเมมเบอร์</label>
           <input id="master-membership-ชื่อเมมเบอร์-6" type="text" formControlName="name" class="app-input" />
+          <app-field-error [control]="editForm.controls.name" [validated]="editFormValidated()" />
         </div>
         <app-drink-package-lines-editor
           [beverages]="beverages()"
           [categories]="beverageCategories()"
           [lines]="editItems"
+          [validated]="editFormValidated()"
         >
           <button type="button" addLineButton class="app-btn-secondary-sm" (click)="addEditLine()">
             + เพิ่มรายการ
@@ -110,6 +116,7 @@
             class="app-input"
             (input)="sanitizeIntegerInput('edit', 'packagePrice', $event)"
           />
+          <app-field-error [control]="editForm.controls.packagePrice" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-group">
           <span class="app-label">ฟรีมิกซ์เซอร์</span>
@@ -141,23 +148,15 @@
             class="app-input"
             (input)="sanitizeIntegerInput('edit', 'freeDrinks', $event)"
           />
+          <app-field-error [control]="editForm.controls.freeDrinks" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-group">
           <span class="app-label">รูปเมนู</span>
           <div class="mt-1 flex flex-wrap items-center gap-3">
-            @if (item.imageUrl) {
-              <img
-                [src]="item.imageUrl"
-                alt=""
-                class="h-16 w-16 rounded-md bg-surface object-contain ring-1 ring-theme-border"
-              />
-            } @else {
-              <div
-                class="flex h-16 w-16 items-center justify-center rounded-md bg-surface text-xs text-text-secondary ring-1 ring-theme-border"
-              >
-                ไม่มีรูป
-              </div>
-            }
+            <app-thumb-image
+              [src]="item.imageUrl"
+              class="h-16 w-16 rounded-md bg-surface ring-1 ring-theme-border"
+            />
             <div class="flex flex-wrap items-center gap-2">
               <label class="app-btn-secondary-sm cursor-pointer">
                 {{ uploadingImage() ? 'กำลังอัปโหลด...' : 'เลือกรูป' }}
@@ -190,6 +189,7 @@
             class="app-input app-scroll-region"
             placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
           ></textarea>
+          <app-field-error [control]="editForm.controls.changeReason" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
@@ -280,13 +280,10 @@
                     <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
                     <td class="app-cell-primary">
                       <span class="inline-flex items-center gap-2">
-                        @if (item.imageUrl) {
-                          <img
-                            [src]="item.imageUrl"
-                            alt=""
-                            class="h-8 w-8 shrink-0 rounded bg-surface object-contain"
-                          />
-                        }
+                        <app-thumb-image
+                          [src]="item.imageUrl"
+                          class="h-8 w-8 shrink-0 rounded bg-surface"
+                        />
                         <span>{{ item.name }}</span>
                       </span>
                     </td>

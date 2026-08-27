@@ -38,23 +38,34 @@
       </div>
       @if (datePreset() === 'custom') {
         <div class="dashboard-date-custom">
-          <app-shop-date-input
-            extraInputClass="dashboard-date-input"
-            [requireConfirm]="false"
-            [ngModel]="customFrom()"
-            (ngModelChange)="customFrom.set($event)"
-          />
+          <div class="app-form-group">
+            <app-shop-date-input
+              extraInputClass="dashboard-date-input"
+              [requireConfirm]="false"
+              [class.app-field-invalid]="customFromMissing()"
+              [ngModel]="customFrom()"
+              (ngModelChange)="customFrom.set($event)"
+            />
+            <app-field-error [validated]="customFromMissing()" message="กรุณาเลือกวันเริ่ม" />
+          </div>
           <span class="dashboard-date-separator">–</span>
-          <app-shop-date-input
-            extraInputClass="dashboard-date-input"
-            [requireConfirm]="false"
-            [ngModel]="customTo()"
-            (ngModelChange)="customTo.set($event)"
-          />
+          <div class="app-form-group">
+            <app-shop-date-input
+              extraInputClass="dashboard-date-input"
+              [requireConfirm]="false"
+              [class.app-field-invalid]="customToMissing()"
+              [ngModel]="customTo()"
+              (ngModelChange)="customTo.set($event)"
+            />
+            <app-field-error [validated]="customToMissing()" message="กรุณาเลือกวันสิ้นสุด" />
+          </div>
           <button type="button" class="dashboard-date-apply" (click)="applyCustomRange()">
             ใช้ช่วงนี้
           </button>
         </div>
+        @if (customRangeOrderInvalid()) {
+          <p class="app-field-error">วันเริ่มต้องไม่หลังวันสิ้นสุด</p>
+        }
       }
     </div>
   </header>

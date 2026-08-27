@@ -8,6 +8,7 @@ import {
   type DropdownOption,
 } from '../../components/custom-dropdown/custom-dropdown.component';
 import { ShopDateInputComponent } from '../../components/shop-date-input/shop-date-input.component';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 import type {
   DashboardBillStatus,
   DashboardPreset,
@@ -32,7 +33,7 @@ function shopCalendarMonthStartInput(): string {
 
 @Component({
   selector: 'app-dashboard-page',
-  imports: [DecimalPipe, FormsModule, CustomDropdownComponent, ShopDateInputComponent],
+  imports: [DecimalPipe, FormsModule, CustomDropdownComponent, ShopDateInputComponent, FieldErrorComponent],
   templateUrl: './dashboard-page.component.html',
 })
 export class DashboardPageComponent implements OnInit {
@@ -76,6 +77,23 @@ export class DashboardPageComponent implements OnInit {
   readonly datePreset = signal<DashboardPreset>('today');
   readonly customFrom = signal('');
   readonly customTo = signal('');
+  readonly customRangeValidated = signal(false);
+  readonly customFromMissing = computed(
+    () => this.customRangeValidated() && !isValidShopDateInput(this.customFrom().trim()),
+  );
+  readonly customToMissing = computed(
+    () => this.customRangeValidated() && !isValidShopDateInput(this.customTo().trim()),
+  );
+  readonly customRangeOrderInvalid = computed(() => {
+    const from = this.customFrom().trim();
+    const to = this.customTo().trim();
+    return (
+      this.customRangeValidated() &&
+      isValidShopDateInput(from) &&
+      isValidShopDateInput(to) &&
+      from > to
+    );
+  });
   readonly staffSearch = signal('');
   readonly entertainerSearch = signal('');
   readonly selectedSaleEmployeeId = signal(DASHBOARD_SHOP_BILL_BUCKET_ID);
@@ -141,7 +159,8 @@ export class DashboardPageComponent implements OnInit {
   }
 
   applyCustomRange(): void {
-    if (!this.customFrom() || !this.customTo()) {
+    this.customRangeValidated.set(true);
+    if (this.customFromMissing() || this.customToMissing() || this.customRangeOrderInvalid()) {
       return;
     }
     this.datePreset.set('custom');

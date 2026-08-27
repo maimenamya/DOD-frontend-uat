@@ -23,6 +23,7 @@
         <div class="app-form-group">
           <label class="app-label" for="stock-ชื่อสินค้า-1">ชื่อสินค้า</label>
           <input id="stock-ชื่อสินค้า-1" type="text" formControlName="name" class="app-input" placeholder="เช่น โซดา, น้ำ, เอส" />
+          <app-field-error [control]="createForm.controls.name" [validated]="createFormValidated()" />
           @if (selectedCreateStockItem(); as stock) {
             <p class="app-hint">
               มีชื่อนี้แล้ว — จะบวกจำนวนที่ใส่เข้ายอดเดิม (ปัจจุบัน {{ stock.quantityOnHand }}
@@ -33,6 +34,7 @@
         <div class="app-form-group">
           <label class="app-label" for="stock-หน่วยนับ-2">หน่วยนับ</label>
           <input id="stock-หน่วยนับ-2" type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" />
+          <app-field-error [control]="createForm.controls.unitLabelTh" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="stock-จำนวนที่เพิ่ม-3">จำนวนที่เพิ่ม</label>
@@ -43,6 +45,7 @@
             class="app-input"
             (input)="sanitizeIntegerInput('create', $event)"
           />
+          <app-field-error [control]="createForm.controls.quantityOnHand" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="stock-create-reason">เหตุผลการเพิ่มสต็อก</label>
@@ -88,6 +91,7 @@
             class="app-input"
             (input)="sanitizeIntegerInput('edit', $event)"
           />
+          <app-field-error [control]="editForm.controls.quantityOnHand" [validated]="editFormValidated()" />
           <p class="app-hint">ตั้งยอดตามการนับจริง — ไม่ใช่การบวกเพิ่ม</p>
         </div>
         <div class="app-form-group">

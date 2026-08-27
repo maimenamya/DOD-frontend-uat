@@ -34,10 +34,13 @@ import {
   createMasterListView,
   masterListRowNumber,
 } from '../../utils/master-list.util';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 @Component({
   selector: 'app-master-beverage-category-page',
-  imports: [MasterListSkeletonComponent, 
+  imports: [
+    FieldErrorComponent,
+    MasterListSkeletonComponent, 
     ReactiveFormsModule,
     AppModalComponent,
     MasterListToolbarComponent,
@@ -131,7 +134,7 @@ export class MasterBeverageCategoryPageComponent implements OnInit {
 
   submitCreate(): void {
     if (this.submitting()) return;
-    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated)) return;
     this.submitting.set(true);
     const { name, kind } = this.createForm.getRawValue();
     this.shopMaster.createBeverageCategory({ name: name.trim(), kind }).subscribe({
@@ -151,7 +154,7 @@ export class MasterBeverageCategoryPageComponent implements OnInit {
   submitEdit(): void {
     const item = this.editingItem();
     if (!item || this.submitting()) return;
-    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated)) return;
     this.submitting.set(true);
     const { name, kind } = this.editForm.getRawValue();
     this.shopMaster

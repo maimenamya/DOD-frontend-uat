@@ -11,10 +11,13 @@ import {
   syncDrinkPackageLineDrinkId,
   type DrinkPackageLineForm,
 } from '../../utils/drink-package-form.util';
+import { FieldErrorComponent } from '../field-error/field-error.component';
 
 @Component({
   selector: 'app-drink-package-lines-editor',
-  imports: [FormsModule, ReactiveFormsModule, CustomDropdownComponent],
+  imports: [
+    FieldErrorComponent,
+    FormsModule, ReactiveFormsModule, CustomDropdownComponent],
   templateUrl: './drink-package-lines-editor.component.html',
   styleUrl: './drink-package-lines-editor.component.css',
 })
@@ -22,6 +25,7 @@ export class DrinkPackageLinesEditorComponent {
   readonly beverages = input.required<MstBeverage[]>();
   readonly categories = input.required<MstBeverageCategory[]>();
   readonly lines = input.required<FormArray<DrinkPackageLineForm>>();
+  readonly validated = input(false);
 
   categoryOptions(): DropdownOption[] {
     return this.categories().map((c) => ({ value: c.id, label: c.name }));

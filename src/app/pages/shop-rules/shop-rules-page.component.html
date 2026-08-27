@@ -60,6 +60,7 @@
                 +
               </button>
             </div>
+            <app-field-error [control]="form.controls.seatDrinkTier15Drinks" [validated]="formValidated()" />
             <p class="app-field-hint">ดื่ม</p>
           </div>
 
@@ -94,6 +95,7 @@
                 +
               </button>
             </div>
+            <app-field-error [control]="form.controls.seatDrinkTier30Drinks" [validated]="formValidated()" />
             <p class="app-field-hint">ดื่ม</p>
           </div>
 
@@ -128,6 +130,7 @@
                 +
               </button>
             </div>
+            <app-field-error [control]="form.controls.seatDrinkTier45Drinks" [validated]="formValidated()" />
             <p class="app-field-hint">ดื่ม</p>
           </div>
         </div>
@@ -139,6 +142,7 @@
             [options]="roundingOptions"
             placeholder="เลือกการปัด"
           />
+          <app-field-error [control]="form.controls.seatDrinkRounding" [validated]="formValidated()" label="การปัดผล" [select]="true" />
         </div>
         </section>
 
@@ -164,6 +168,7 @@
                 (blur)="normalizeTime('expectedCheckInTime')"
                 [readonly]="!canManage()"
               />
+              <app-field-error [control]="form.controls.expectedCheckInTime" [validated]="formValidated()" />
               <p class="app-field-hint">เวลาเริ่มช่วงยอดคืนนี้บนแดชบอร์ด — ไม่ใช่เวลาเข้างานพนักงาน</p>
             </div>
           </div>
@@ -191,6 +196,7 @@
               (blur)="normalizeTime('autoCloseCutoffTime')"
               [readonly]="!canManage()"
             />
+            <app-field-error [control]="form.controls.autoCloseCutoffTime" [validated]="formValidated()" />
             <p class="app-field-hint">
               หลังเวลานี้ของวันถัดจากกะ ระบบปิดกะและหักลืมแสกนออก — ว่างไว้ = ปิดฟีเจอร์
             </p>
@@ -218,6 +224,7 @@
                 (blur)="normalizeTime('expectedOnFloorTime')"
                 [readonly]="!canManage()"
               />
+              <app-field-error [control]="form.controls.expectedOnFloorTime" [validated]="formValidated()" />
             </div>
           </div>
         </section>
@@ -243,6 +250,7 @@
                 (blur)="normalizeTime('freelanceLateDrinkCutoffTime')"
                 [readonly]="!canManage()"
               />
+              <app-field-error [control]="form.controls.freelanceLateDrinkCutoffTime" [validated]="formValidated()" />
             </div>
             <div class="app-form-group">
               <label class="app-label" for="shop-rules-freelance-extra">หักเพิ่มต่อดื่ม</label>
@@ -275,6 +283,10 @@
                   +
                 </button>
               </div>
+              <app-field-error
+                [control]="form.controls.freelanceLateDrinkExtraShopPortionBaht"
+                [validated]="formValidated()"
+              />
               <p class="app-field-hint">บาท / ดื่ม (บวกทับหักร้านตามตำแหน่ง)</p>
             </div>
           </div>
@@ -314,6 +326,7 @@
                 +
               </button>
             </div>
+            <app-field-error [control]="form.controls.lateFinePerMinuteBaht" [validated]="formValidated()" />
             <p class="app-field-hint">บาท / นาที</p>
           </div>
 
@@ -348,6 +361,7 @@
                 +
               </button>
             </div>
+            <app-field-error [control]="form.controls.absenceDeductionBaht" [validated]="formValidated()" />
             <p class="app-field-hint">บาท / วัน</p>
           </div>
 
@@ -382,6 +396,7 @@
                 +
               </button>
             </div>
+            <app-field-error [control]="form.controls.forgotCheckOutDeductionBaht" [validated]="formValidated()" />
             <p class="app-field-hint">บาท / ครั้ง (เมื่อระบบปิดกะอัตโนมัติ)</p>
           </div>
         </div>
@@ -395,11 +410,11 @@
           </p>
           <div class="app-form-group">
             <label class="app-label" for="shop-rules-employee-initial-password">รหัสผ่านเริ่มต้น</label>
-            <div class="flex flex-wrap items-center gap-2">
+            <div class="shop-rules-password-row">
               <input
                 id="shop-rules-employee-initial-password"
                 [type]="showInitialPassword() ? 'text' : 'password'"
-                class="app-input font-mono tracking-widest"
+                class="app-input shop-rules-initial-password font-mono tracking-widest"
                 formControlName="employeeInitialPassword"
                 autocomplete="new-password"
                 [readonly]="!canManage()"
@@ -407,7 +422,7 @@
               @if (canManage()) {
                 <button
                   type="button"
-                  class="app-btn-secondary"
+                  class="app-btn-secondary shop-rules-password-btn"
                   [disabled]="submitting()"
                   (click)="toggleInitialPasswordVisible()"
                 >
@@ -415,7 +430,7 @@
                 </button>
                 <button
                   type="button"
-                  class="app-btn-secondary"
+                  class="app-btn-secondary shop-rules-password-btn"
                   [disabled]="submitting()"
                   (click)="randomizeInitialPassword()"
                 >
@@ -423,6 +438,11 @@
                 </button>
               }
             </div>
+            <app-field-error
+              [control]="form.controls.employeeInitialPassword"
+              [validated]="formValidated()"
+              label="รหัสผ่านเริ่มต้น"
+            />
             <p class="app-field-hint">อย่างน้อย {{ minPasswordLength }} ตัวอักษร</p>
           </div>
         </section>

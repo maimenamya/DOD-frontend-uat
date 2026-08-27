@@ -18,11 +18,13 @@
         <div class="app-form-group">
           <label class="app-label" for="master-role-ชื่อตำแหน่ง-ภาษาอังกฤษ-1">ชื่อตำแหน่ง (ภาษาอังกฤษ)</label>
           <input id="master-role-ชื่อตำแหน่ง-ภาษาอังกฤษ-1" type="text" formControlName="name" class="app-input" placeholder="เช่น PR, SALE, MODEL" />
+          <app-field-error [control]="createForm.controls.name" [validated]="createFormValidated()" />
           <p class="app-field-hint">ระบบจะแปลงเป็นตัวพิมพ์ใหญ่อัตโนมัติ · ชื่อต้องไม่ซ้ำในร้านเดียวกัน</p>
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-role-ชื่อแสดง-ภาษาไทย-2">ชื่อแสดง (ภาษาไทย)</label>
           <input id="master-role-ชื่อแสดง-ภาษาไทย-2" type="text" formControlName="displayNameTh" class="app-input" placeholder="เช่น โมเดล, โฮสต์" />
+          <app-field-error [control]="createForm.controls.displayNameTh" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-role-กลุ่มสิทธิ์-3">กลุ่มสิทธิ์</label>
@@ -30,6 +32,12 @@
             formControlName="permissionGroup"
             [options]="permissionGroupDropdownOptions()"
             placeholder="เลือกกลุ่มสิทธิ์"
+          />
+          <app-field-error
+            [control]="createForm.controls.permissionGroup"
+            [validated]="createFormValidated()"
+            label="กลุ่มสิทธิ์"
+            [select]="true"
           />
           <p class="app-field-hint">
             กลุ่มนี้เห็นเมนูอะไร →
@@ -43,6 +51,12 @@
             [options]="categoryDropdownOptions"
             placeholder="เลือกประเภท"
           />
+          <app-field-error
+            [control]="createForm.controls.category"
+            [validated]="createFormValidated()"
+            label="ประเภท"
+            [select]="true"
+          />
         </div>
         @if (createIsStaff()) {
           <div class="app-form-group">
@@ -55,6 +69,7 @@
               class="app-input"
               (input)="sanitizeIntegerInput('create', 'attendanceLeaveQuotaPerMonth', $event)"
             />
+            <app-field-error [control]="createForm.controls.attendanceLeaveQuotaPerMonth" [validated]="createFormValidated()" />
             <p class="app-field-hint">จำนวนวันลาที่ไม่หักเงินต่อเดือน — เกินโควต้าต้องกดหักเงินที่หน้าบันทึกเวลา</p>
           </div>
           <div class="app-form-group">
@@ -69,6 +84,7 @@
               autocomplete="off"
               (blur)="normalizeTime('create', 'expectedCheckInTime')"
             />
+            <app-field-error [control]="createForm.controls.expectedCheckInTime" [validated]="createFormValidated()" label="เวลาเข้างาน" />
             <p class="app-field-hint">ใช้เทียบกับเวลาแสกนเข้าเพื่อคิดมาสายของตำแหน่งนี้</p>
           </div>
           <div class="app-form-group">
@@ -83,6 +99,7 @@
               autocomplete="off"
               (blur)="normalizeTime('create', 'expectedCheckOutTime')"
             />
+            <app-field-error [control]="createForm.controls.expectedCheckOutTime" [validated]="createFormValidated()" label="เวลาออกงาน" />
           </div>
           <div class="app-form-group">
             <span class="app-label">ออกงานวันถัดไป</span>
@@ -113,6 +130,7 @@
             class="app-input"
             (input)="sanitizeIntegerInput('create', 'defaultPricePerDrink', $event)"
           />
+          <app-field-error [control]="createForm.controls.defaultPricePerDrink" [validated]="createFormValidated()" />
           <p class="app-field-hint">ใช้คิดยอดรันดื่มของตำแหน่งนี้ (เซลล์ / บริการ / เด็กนั่งดริ้ง)</p>
         </div>
         <div class="app-form-group">
@@ -125,6 +143,7 @@
             class="app-input"
             (input)="sanitizeIntegerInput('create', 'drinkShopPortionBaht', $event)"
           />
+          <app-field-error [control]="createForm.controls.drinkShopPortionBaht" [validated]="createFormValidated()" />
           <p class="app-field-hint">บาทต่อดื่มที่หักเข้าร้าน — ยอดจ่ายพนักงาน = ราคาต่อดื่ม − ค่านี้</p>
         </div>
         @if (createIsEntertainer()) {
@@ -138,6 +157,7 @@
               class="app-input"
               (input)="sanitizeIntegerInput('create', 'startDrinks', $event)"
             />
+            <app-field-error [control]="createForm.controls.startDrinks" [validated]="createFormValidated()" />
             <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ</p>
           </div>
           <div class="app-form-group">
@@ -150,6 +170,7 @@
               class="app-input"
               (input)="sanitizeIntegerInput('create', 'nextHourDrinks', $event)"
             />
+            <app-field-error [control]="createForm.controls.nextHourDrinks" [validated]="createFormValidated()" />
             <p class="app-field-hint">
               ทุกชั่วโมงเต็มที่นั่งครบ 60 นาที · เศษนาที (เช่น 15 นาทีหลังชม.) ใช้
               <a routerLink="/dashboard/shop-rules" class="app-field-hint-link" (click)="closeCreate()"
@@ -178,10 +199,12 @@
         <div class="app-form-group">
           <label class="app-label" for="master-role-ชื่อตำแหน่ง-ภาษาอังกฤษ-13">ชื่อตำแหน่ง (ภาษาอังกฤษ)</label>
           <input id="master-role-ชื่อตำแหน่ง-ภาษาอังกฤษ-13" type="text" formControlName="name" class="app-input" />
+          <app-field-error [control]="editForm.controls.name" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-role-ชื่อแสดง-ภาษาไทย-14">ชื่อแสดง (ภาษาไทย)</label>
           <input id="master-role-ชื่อแสดง-ภาษาไทย-14" type="text" formControlName="displayNameTh" class="app-input" />
+          <app-field-error [control]="editForm.controls.displayNameTh" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-role-กลุ่มสิทธิ์-15">กลุ่มสิทธิ์</label>
@@ -189,6 +212,12 @@
             formControlName="permissionGroup"
             [options]="permissionGroupDropdownOptions()"
             placeholder="เลือกกลุ่มสิทธิ์"
+          />
+          <app-field-error
+            [control]="editForm.controls.permissionGroup"
+            [validated]="editFormValidated()"
+            label="กลุ่มสิทธิ์"
+            [select]="true"
           />
           <p class="app-field-hint">
             กลุ่มนี้เห็นเมนูอะไร →
@@ -202,6 +231,12 @@
             [options]="categoryDropdownOptions"
             placeholder="เลือกประเภท"
           />
+          <app-field-error
+            [control]="editForm.controls.category"
+            [validated]="editFormValidated()"
+            label="ประเภท"
+            [select]="true"
+          />
         </div>
         @if (editIsStaff()) {
           <div class="app-form-group">
@@ -214,6 +249,7 @@
               class="app-input"
               (input)="sanitizeIntegerInput('edit', 'attendanceLeaveQuotaPerMonth', $event)"
             />
+            <app-field-error [control]="editForm.controls.attendanceLeaveQuotaPerMonth" [validated]="editFormValidated()" />
             <p class="app-field-hint">จำนวนวันลาที่ไม่หักเงินต่อเดือน — เกินโควต้าต้องกดหักเงินที่หน้าบันทึกเวลา</p>
           </div>
           <div class="app-form-group">
@@ -228,6 +264,7 @@
               autocomplete="off"
               (blur)="normalizeTime('edit', 'expectedCheckInTime')"
             />
+            <app-field-error [control]="editForm.controls.expectedCheckInTime" [validated]="editFormValidated()" label="เวลาเข้างาน" />
             <p class="app-field-hint">ใช้เทียบกับเวลาแสกนเข้าเพื่อคิดมาสายของตำแหน่งนี้</p>
           </div>
           <div class="app-form-group">
@@ -242,6 +279,7 @@
               autocomplete="off"
               (blur)="normalizeTime('edit', 'expectedCheckOutTime')"
             />
+            <app-field-error [control]="editForm.controls.expectedCheckOutTime" [validated]="editFormValidated()" label="เวลาออกงาน" />
           </div>
           <div class="app-form-group">
             <span class="app-label">ออกงานวันถัดไป</span>
@@ -272,6 +310,7 @@
             class="app-input"
             (input)="sanitizeIntegerInput('edit', 'defaultPricePerDrink', $event)"
           />
+          <app-field-error [control]="editForm.controls.defaultPricePerDrink" [validated]="editFormValidated()" />
           <p class="app-field-hint">ใช้คิดยอดรันดื่มของตำแหน่งนี้ (เซลล์ / บริการ / เด็กนั่งดริ้ง)</p>
         </div>
         <div class="app-form-group">
@@ -284,6 +323,7 @@
             class="app-input"
             (input)="sanitizeIntegerInput('edit', 'drinkShopPortionBaht', $event)"
           />
+          <app-field-error [control]="editForm.controls.drinkShopPortionBaht" [validated]="editFormValidated()" />
           <p class="app-field-hint">บาทต่อดื่มที่หักเข้าร้าน — ยอดจ่ายพนักงาน = ราคาต่อดื่ม − ค่านี้</p>
         </div>
         @if (editIsEntertainer()) {
@@ -297,6 +337,7 @@
               class="app-input"
               (input)="sanitizeIntegerInput('edit', 'startDrinks', $event)"
             />
+            <app-field-error [control]="editForm.controls.startDrinks" [validated]="editFormValidated()" />
             <p class="app-field-hint">คิดทันทีเมื่อเริ่มนั่ง — เปิด/ปิดได้ตอนลงโต๊ะ</p>
           </div>
           <div class="app-form-group">
@@ -309,6 +350,7 @@
               class="app-input"
               (input)="sanitizeIntegerInput('edit', 'nextHourDrinks', $event)"
             />
+            <app-field-error [control]="editForm.controls.nextHourDrinks" [validated]="editFormValidated()" />
             <p class="app-field-hint">
               ทุกชั่วโมงเต็มที่นั่งครบ 60 นาที · เศษนาที (เช่น 15 นาทีหลังชม.) ใช้
               <a routerLink="/dashboard/shop-rules" class="app-field-hint-link" (click)="closeEdit()"
@@ -325,6 +367,7 @@
             class="app-input app-scroll-region"
             placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
           ></textarea>
+          <app-field-error [control]="editForm.controls.changeReason" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>

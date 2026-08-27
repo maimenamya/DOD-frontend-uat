@@ -23,10 +23,13 @@ import {
   createMasterListView,
   masterListRowNumber,
 } from '../../utils/master-list.util';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 @Component({
   selector: 'app-master-food-category-page',
-  imports: [MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent, MasterListToolbarComponent, ListPaginatorComponent],
+  imports: [
+    FieldErrorComponent,
+    MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './master-food-category-page.component.html',
 })
 export class MasterFoodCategoryPageComponent implements OnInit {
@@ -100,7 +103,7 @@ export class MasterFoodCategoryPageComponent implements OnInit {
 
   submitCreate(): void {
     if (this.submitting()) return;
-    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated)) return;
     this.submitting.set(true);
     const { name } = this.createForm.getRawValue();
     this.shopMaster.createFoodCategory({ name }).subscribe({
@@ -120,7 +123,7 @@ export class MasterFoodCategoryPageComponent implements OnInit {
   submitEdit(): void {
     const item = this.editingItem();
     if (!item || this.submitting()) return;
-    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated)) return;
     this.submitting.set(true);
     const { name } = this.editForm.getRawValue();
     this.shopMaster.updateFoodCategory(item.id, { name }).subscribe({

@@ -26,10 +26,13 @@ import {
   createMasterListView,
   masterListRowNumber,
 } from '../../utils/master-list.util';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 @Component({
   selector: 'app-stock-page',
-  imports: [MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent, DecimalPipe, MasterListToolbarComponent, ListPaginatorComponent],
+  imports: [
+    FieldErrorComponent,
+    MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent, DecimalPipe, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './stock-page.component.html',
   styleUrl: './stock-page.component.css',
 })
@@ -125,7 +128,7 @@ export class StockPageComponent implements OnInit {
 
   submitCreate(): void {
     if (!this.canManage()) return;
-    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated)) return;
 
     const name = this.createForm.controls.name.value.trim();
     const unitLabelTh = this.createForm.controls.unitLabelTh.value.trim();
@@ -158,7 +161,7 @@ export class StockPageComponent implements OnInit {
   submitEdit(): void {
     const item = this.editingItem();
     if (!item || !this.canManage()) return;
-    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated)) return;
 
     const quantityOnHand = Number(this.editForm.controls.quantityOnHand.value);
     const adjustNote = this.editForm.controls.adjustNote.value.trim();

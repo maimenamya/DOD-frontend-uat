@@ -44,12 +44,62 @@
     <form class="app-form-stack" [class.app-form-was-validated]="formValidated()" [formGroup]="form" (ngSubmit)="submit()">
       @if (!forcePasswordChange()) {
         <div class="app-form-group">
+          <span class="app-label">รูปโปรไฟล์ (ไม่บังคับ)</span>
+          <div class="mt-1 flex flex-wrap items-center gap-3">
+            <app-thumb-image
+              [src]="profileImageUrl()"
+              class="h-16 w-16 rounded-full bg-surface ring-1 ring-theme-border"
+              fit="cover"
+            />
+            <div class="flex flex-wrap items-center gap-2">
+              <label class="app-btn-secondary-sm cursor-pointer">
+                {{ uploadingImage() ? 'กำลังอัปโหลด...' : 'เลือกรูป' }}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  class="sr-only"
+                  [disabled]="uploadingImage()"
+                  (change)="onPickProfileImage($event)"
+                />
+              </label>
+              @if (profileImageUrl()) {
+                <button
+                  type="button"
+                  class="app-btn-danger-sm"
+                  [disabled]="uploadingImage()"
+                  (click)="removeProfileImage()"
+                >
+                  ลบรูป
+                </button>
+              }
+            </div>
+          </div>
+          <label class="app-profile-partner-share">
+            <input
+              type="checkbox"
+              [ngModel]="imageIsPublic()"
+              (ngModelChange)="onImagePublicToggle($event)"
+              [ngModelOptions]="{ standalone: true }"
+              [disabled]="!profileImageUrl() || imagePublicBusy() || uploadingImage()"
+              name="imageIsPublic"
+            />
+            <span>ให้พนักงานคนอื่นในร้านเห็นรูปนี้ (ไม่บังคับ)</span>
+          </label>
+          <p class="app-profile-hint">
+            ค่าเริ่มต้นเป็นส่วนตัว — เฉพาะคุณเห็นในหน้านี้ หากเปิด
+            ระบบจะใช้รูปเพื่อระบุตัวตนในร้านเท่านั้น ไม่แชร์ให้พาร์ทเนอร์หรือบุคคลภายนอก
+            ปิดหรือลบรูปได้ตลอด
+          </p>
+        </div>
+        <div class="app-form-group">
           <label class="app-label" for="my-profile-ชื่อเล่น-1">ชื่อเล่น</label>
           <input id="my-profile-ชื่อเล่น-1" type="text" formControlName="nickname" class="app-input" />
+          <app-field-error [control]="form.controls.nickname" [validated]="formValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="my-profile-อีเมล-2">อีเมล</label>
-          <input id="my-profile-อีเมล-2" type="email" formControlName="email" class="app-input" />
+          <input id="my-profile-อีเมล-2" type="email" formControlName="email" class="app-input" placeholder="(ไม่จำเป็นต้องระบุ)" />
+          <app-field-error [control]="form.controls.email" [validated]="formValidated()" />
         </div>
       }
       <div class="app-form-group">
@@ -62,6 +112,7 @@
           [placeholder]="forcePasswordChange() ? 'รหัสที่ใช้อยู่ตอนนี้ (รหัสเริ่มต้นจากกฎร้าน)' : 'ใส่เมื่อจะเปลี่ยนรหัสผ่าน'"
           autocomplete="current-password"
         />
+        <app-field-error [control]="form.controls.currentPassword" [validated]="formValidated()" />
       </div>
       <div class="app-form-group">
         <label class="app-label" for="my-profile-รหัสผ่านใหม่">
@@ -78,6 +129,7 @@
           [placeholder]="forcePasswordChange() ? 'ตั้งรหัสผ่านใหม่' : 'เว้นว่างหากไม่ต้องการเปลี่ยน'"
           autocomplete="new-password"
         />
+        <app-field-error [control]="form.controls.password" [validated]="formValidated()" />
       </div>
       @if (forcePasswordChange() || form.controls.password.value.trim()) {
         <div class="app-form-group">
@@ -89,6 +141,7 @@
             placeholder="กรอกรหัสผ่านอีกครั้ง"
             autocomplete="new-password"
           />
+          <app-field-error [control]="form.controls.confirmPassword" [validated]="formValidated()" />
         </div>
       }
       <div class="app-form-actions app-form-actions-top">

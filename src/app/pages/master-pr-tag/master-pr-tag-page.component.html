@@ -18,6 +18,7 @@
         <div class="app-form-group">
           <label class="app-label" for="master-pr-tag-ชื่อแท็ก-1">ชื่อแท็ก</label>
           <input id="master-pr-tag-ชื่อแท็ก-1" type="text" formControlName="name" class="app-input" placeholder="เช่น แท็ก10วัน" />
+          <app-field-error [control]="createForm.controls.name" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-row">
           <div class="app-form-group">
@@ -29,6 +30,7 @@
               class="app-input"
               (input)="sanitizeIntegerInput('create', 'requiredWorkingDays', $event)"
             />
+            <app-field-error [control]="createForm.controls.requiredWorkingDays" [validated]="createFormValidated()" />
           </div>
           <div class="app-form-group">
             <label class="app-label" for="master-pr-tag-วันหยุดสูงสุด-3">วันหยุดสูงสุด</label>
@@ -39,6 +41,7 @@
               class="app-input"
               (input)="sanitizeIntegerInput('create', 'allowedOffDays', $event)"
             />
+            <app-field-error [control]="createForm.controls.allowedOffDays" [validated]="createFormValidated()" />
           </div>
         </div>
         <div class="app-form-group">
@@ -50,6 +53,7 @@
             class="app-input"
             (input)="sanitizeIntegerInput('create', 'targetDrinks', $event)"
           />
+          <app-field-error [control]="createForm.controls.targetDrinks" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-row">
           <div class="app-form-group">
@@ -61,6 +65,7 @@
               class="app-input"
               (input)="sanitizeIntegerInput('create', 'guaranteeAmount', $event)"
             />
+            <app-field-error [control]="createForm.controls.guaranteeAmount" [validated]="createFormValidated()" />
           </div>
           <div class="app-form-group">
             <label class="app-label" for="master-pr-tag-เงินจ่ายเมื่อตกแท็ก-บาท-6">เงินจ่ายเมื่อตกแท็ก (บาท)</label>
@@ -71,6 +76,7 @@
               class="app-input"
               (input)="sanitizeIntegerInput('create', 'dropoutPayoutAmount', $event)"
             />
+            <app-field-error [control]="createForm.controls.dropoutPayoutAmount" [validated]="createFormValidated()" />
           </div>
         </div>
         <div class="app-form-group">
@@ -103,6 +109,7 @@
         <div class="app-form-group">
           <label class="app-label" for="master-pr-tag-ชื่อแท็ก-8">ชื่อแท็ก</label>
           <input id="master-pr-tag-ชื่อแท็ก-8" type="text" formControlName="name" class="app-input" />
+          <app-field-error [control]="editForm.controls.name" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-row">
           <div class="app-form-group">
@@ -114,6 +121,7 @@
               class="app-input"
               (input)="sanitizeIntegerInput('edit', 'requiredWorkingDays', $event)"
             />
+            <app-field-error [control]="editForm.controls.requiredWorkingDays" [validated]="editFormValidated()" />
           </div>
           <div class="app-form-group">
             <label class="app-label" for="master-pr-tag-วันหยุดสูงสุด-10">วันหยุดสูงสุด</label>
@@ -124,6 +132,7 @@
               class="app-input"
               (input)="sanitizeIntegerInput('edit', 'allowedOffDays', $event)"
             />
+            <app-field-error [control]="editForm.controls.allowedOffDays" [validated]="editFormValidated()" />
           </div>
         </div>
         <div class="app-form-group">
@@ -135,6 +144,7 @@
             class="app-input"
             (input)="sanitizeIntegerInput('edit', 'targetDrinks', $event)"
           />
+          <app-field-error [control]="editForm.controls.targetDrinks" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-row">
           <div class="app-form-group">
@@ -146,6 +156,7 @@
               class="app-input"
               (input)="sanitizeIntegerInput('edit', 'guaranteeAmount', $event)"
             />
+            <app-field-error [control]="editForm.controls.guaranteeAmount" [validated]="editFormValidated()" />
           </div>
           <div class="app-form-group">
             <label class="app-label" for="master-pr-tag-เงินจ่ายเมื่อตกแท็ก-บาท-13">เงินจ่ายเมื่อตกแท็ก (บาท)</label>
@@ -156,6 +167,7 @@
               class="app-input"
               (input)="sanitizeIntegerInput('edit', 'dropoutPayoutAmount', $event)"
             />
+            <app-field-error [control]="editForm.controls.dropoutPayoutAmount" [validated]="editFormValidated()" />
           </div>
         </div>
         <div class="app-form-group">
@@ -176,6 +188,7 @@
             class="app-input app-scroll-region"
             placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
           ></textarea>
+          <app-field-error [control]="editForm.controls.changeReason" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>

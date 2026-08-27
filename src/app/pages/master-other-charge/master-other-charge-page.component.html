@@ -18,6 +18,7 @@
         <div class="app-form-group">
           <label class="app-label" for="master-other-charge-ชื่อรายการ-1">ชื่อรายการ</label>
           <input id="master-other-charge-ชื่อรายการ-1" type="text" formControlName="name" class="app-input" [placeholder]="namePlaceholder()" />
+          <app-field-error [control]="createForm.controls.name" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-other-charge-ราคา-บาท-2">ราคา (บาท)</label>
@@ -28,10 +29,12 @@
             class="app-input"
             (input)="sanitizeIntegerInput('create', $event)"
           />
+          <app-field-error [control]="createForm.controls.price" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-other-charge-หน่วยนับ-3">หน่วยนับ</label>
           <input id="master-other-charge-หน่วยนับ-3" type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" [placeholder]="unitPlaceholder()" />
+          <app-field-error [control]="createForm.controls.unitLabelTh" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-group">
           <span class="app-label">สถานะ</span>
@@ -63,6 +66,7 @@
         <div class="app-form-group">
           <label class="app-label" for="master-other-charge-ชื่อรายการ-5">ชื่อรายการ</label>
           <input id="master-other-charge-ชื่อรายการ-5" type="text" formControlName="name" class="app-input" />
+          <app-field-error [control]="editForm.controls.name" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-other-charge-ราคา-บาท-6">ราคา (บาท)</label>
@@ -73,10 +77,12 @@
             class="app-input"
             (input)="sanitizeIntegerInput('edit', $event)"
           />
+          <app-field-error [control]="editForm.controls.price" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-other-charge-หน่วยนับ-7">หน่วยนับ</label>
           <input id="master-other-charge-หน่วยนับ-7" type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" [placeholder]="unitPlaceholder()" />
+          <app-field-error [control]="editForm.controls.unitLabelTh" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-group">
           <span class="app-label">สถานะ</span>
@@ -91,19 +97,10 @@
         <div class="app-form-group">
           <span class="app-label">รูปเมนู</span>
           <div class="mt-1 flex flex-wrap items-center gap-3">
-            @if (item.imageUrl) {
-              <img
-                [src]="item.imageUrl"
-                alt=""
-                class="h-16 w-16 rounded-md bg-surface object-contain ring-1 ring-theme-border"
-              />
-            } @else {
-              <div
-                class="flex h-16 w-16 items-center justify-center rounded-md bg-surface text-xs text-text-secondary ring-1 ring-theme-border"
-              >
-                ไม่มีรูป
-              </div>
-            }
+            <app-thumb-image
+              [src]="item.imageUrl"
+              class="h-16 w-16 rounded-md bg-surface ring-1 ring-theme-border"
+            />
             <div class="flex flex-wrap items-center gap-2">
               <label class="app-btn-secondary-sm cursor-pointer">
                 {{ uploadingImage() ? 'กำลังอัปโหลด...' : 'เลือกรูป' }}
@@ -136,6 +133,7 @@
             class="app-input app-scroll-region"
             placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
           ></textarea>
+          <app-field-error [control]="editForm.controls.changeReason" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
@@ -218,13 +216,10 @@
                     <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
                     <td class="app-cell-primary">
                       <span class="inline-flex items-center gap-2">
-                        @if (row.imageUrl) {
-                          <img
-                            [src]="row.imageUrl"
-                            alt=""
-                            class="h-8 w-8 shrink-0 rounded bg-surface object-contain"
-                          />
-                        }
+                        <app-thumb-image
+                          [src]="row.imageUrl"
+                          class="h-8 w-8 shrink-0 rounded bg-surface"
+                        />
                         <span>{{ row.name }}</span>
                       </span>
                     </td>

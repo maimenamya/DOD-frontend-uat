@@ -18,6 +18,7 @@
         <div class="app-form-group">
           <label class="app-label" for="master-table-รหัสโต๊ะ-1">รหัสโต๊ะ</label>
           <input id="master-table-รหัสโต๊ะ-1" type="text" formControlName="tableCode" class="app-input" />
+          <app-field-error [control]="createForm.controls.tableCode" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
@@ -39,6 +40,7 @@
         <div class="app-form-group">
           <label class="app-label" for="master-table-รหัสโต๊ะ-2">รหัสโต๊ะ</label>
           <input id="master-table-รหัสโต๊ะ-2" type="text" formControlName="tableCode" class="app-input" />
+          <app-field-error [control]="editForm.controls.tableCode" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>

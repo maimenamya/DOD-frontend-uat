@@ -23,6 +23,7 @@
             class="app-input"
             placeholder="เช่น เบียร์, เหล้า, ไวน์, มิกซ์เซอร์"
           />
+          <app-field-error [control]="createForm.controls.name" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-beverage-category-ประเภท-2">ประเภท</label>
@@ -53,6 +54,7 @@
         <div class="app-form-group">
           <label class="app-label" for="master-beverage-category-ชื่อประเภท-3">ชื่อประเภท</label>
           <input id="master-beverage-category-ชื่อประเภท-3" type="text" formControlName="name" class="app-input" />
+          <app-field-error [control]="editForm.controls.name" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-beverage-category-ประเภท-4">ประเภท</label>

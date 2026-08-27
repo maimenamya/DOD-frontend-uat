@@ -110,9 +110,14 @@
                   class="app-input"
                   type="text"
                   maxlength="40"
+                  [class.app-field-invalid]="areaNameValidated() && !area.name.trim()"
                   [ngModel]="area.name"
                   (ngModelChange)="onAreaNameChange($event)"
                   placeholder="เช่น ห้องน้ำ / เวที / ทางเข้า"
+                />
+                <app-field-error
+                  [validated]="areaNameValidated() && !area.name.trim()"
+                  message="กรุณาใส่ชื่อพื้นที่"
                 />
               </div>
               <div class="app-form-group">

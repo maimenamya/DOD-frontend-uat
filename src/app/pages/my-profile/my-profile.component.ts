@@ -11,6 +11,7 @@ import {
 import { FormsModule } from '@angular/forms';
 
 import { AuthService } from '../../services/auth.service';
+import { AppThumbImageComponent } from '../../components/app-thumb-image/app-thumb-image.component';
 import { OrganizationService } from '../../services/organization.service';
 import { ToastService } from '../../services/toast.service';
 import {
@@ -19,10 +20,14 @@ import {
   passwordPolicyErrorMessage,
 } from '../../utils/password-policy.util';
 import { of, switchMap } from 'rxjs';
+import { prepareMenuThumbnail } from '../../utils/menu-thumbnail.util';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 @Component({
   selector: 'app-my-profile',
-  imports: [ReactiveFormsModule, FormsModule],
+  imports: [
+    FieldErrorComponent,
+    ReactiveFormsModule, FormsModule, AppThumbImageComponent],
   templateUrl: './my-profile.component.html',
 })
 export class MyProfileComponent implements OnInit {
@@ -40,6 +45,14 @@ export class MyProfileComponent implements OnInit {
   readonly partnerShareEnabled = signal(false);
   readonly partnerShareUpdatedLabel = signal<string | null>(null);
   readonly partnerShareBusy = signal(false);
+  readonly uploadingImage = signal(false);
+  readonly imagePublicBusy = signal(false);
+  readonly profileImageUrl = computed(
+    () => this.auth.session()?.user?.imageUrl ?? null,
+  );
+  readonly imageIsPublic = computed(
+    () => this.auth.session()?.user?.imageIsPublic === true,
+  );
 
   readonly form = this.fb.group({
     nickname: ['', [Validators.required, Validators.minLength(1)]],
@@ -117,8 +130,70 @@ export class MyProfileComponent implements OnInit {
     });
   }
 
+  async onPickProfileImage(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file || this.uploadingImage() || this.forcePasswordChange()) return;
+    this.uploadingImage.set(true);
+    try {
+      const thumb = await prepareMenuThumbnail(file);
+      this.auth.uploadProfileImage(thumb.blob, thumb.fileName).subscribe({
+        next: () => {
+          this.uploadingImage.set(false);
+          this.toast.showSuccess('อัปโหลดรูปเรียบร้อย');
+        },
+        error: (err: { error?: { error?: string } }) => {
+          this.uploadingImage.set(false);
+          this.toast.showError(err.error?.error ?? 'ไม่สามารถอัปโหลดรูปได้');
+        },
+      });
+    } catch (error) {
+      this.uploadingImage.set(false);
+      this.toast.showError(error instanceof Error ? error.message : 'ไม่สามารถย่อรูปได้');
+    }
+  }
+
+  removeProfileImage(): void {
+    if (!this.profileImageUrl() || this.uploadingImage() || this.forcePasswordChange()) {
+      return;
+    }
+    this.uploadingImage.set(true);
+    this.auth.deleteProfileImage().subscribe({
+      next: () => {
+        this.uploadingImage.set(false);
+        this.toast.showSuccess('ลบรูปเรียบร้อย');
+      },
+      error: (err: { error?: { error?: string } }) => {
+        this.uploadingImage.set(false);
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถลบรูปได้');
+      },
+    });
+  }
+
+  onImagePublicToggle(enabled: boolean): void {
+    if (!this.profileImageUrl() || this.imagePublicBusy() || this.forcePasswordChange()) {
+      return;
+    }
+    this.imagePublicBusy.set(true);
+    this.auth.updateProfile({ imageIsPublic: enabled }).subscribe({
+      next: () => {
+        this.imagePublicBusy.set(false);
+        this.toast.showSuccess(
+          enabled
+            ? 'อนุญาตให้พนักงานในร้านเห็นรูปแล้ว'
+            : 'ปิดการแสดงรูปต่อผู้อื่นแล้ว',
+        );
+      },
+      error: (err: { error?: { error?: string } }) => {
+        this.imagePublicBusy.set(false);
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถบันทึกการตั้งค่ารูปได้');
+      },
+    });
+  }
+
   submit(): void {
-    if (highlightInvalidForm(this.form, this.formValidated, this.toast)) return;
+    if (highlightInvalidForm(this.form, this.formValidated)) return;
 
     const raw = this.form.getRawValue();
     const currentPassword = raw.currentPassword;
@@ -128,24 +203,29 @@ export class MyProfileComponent implements OnInit {
 
     if (changingPassword) {
       if (!currentPassword) {
-        this.formValidated.set(true);
+        this.form.controls.currentPassword.setErrors({ required: true });
         this.form.controls.currentPassword.markAsTouched();
-        this.toast.showError('กรุณากรอกรหัสผ่านปัจจุบัน');
+        this.formValidated.set(true);
         return;
       }
       if (!password) {
-        this.toast.showError('กรุณาตั้งรหัสผ่านใหม่');
+        this.form.controls.password.setErrors({ required: true });
+        this.form.controls.password.markAsTouched();
+        this.formValidated.set(true);
         return;
       }
       if (!passwordMeetsPolicy(password)) {
-        this.formValidated.set(true);
+        this.form.controls.password.setErrors({
+          passwordPolicy: { message: passwordPolicyErrorMessage() },
+        });
         this.form.controls.password.markAsTouched();
-        this.toast.showError(passwordPolicyErrorMessage());
+        this.formValidated.set(true);
         return;
       }
       if (password !== confirmPassword) {
+        this.form.controls.confirmPassword.setErrors({ mismatch: true });
+        this.form.controls.confirmPassword.markAsTouched();
         this.formValidated.set(true);
-        this.toast.showError('รหัสผ่านไม่ตรงกัน');
         return;
       }
     }

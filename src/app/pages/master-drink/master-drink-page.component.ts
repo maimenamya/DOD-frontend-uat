@@ -15,6 +15,7 @@ import {
 import { forkJoin } from 'rxjs';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { AppThumbImageComponent } from '../../components/app-thumb-image/app-thumb-image.component';
 import {
   CustomDropdownComponent,
   type DropdownOption,
@@ -37,15 +38,18 @@ import {
   masterListRowNumber,
 } from '../../utils/master-list.util';
 import { prepareMenuThumbnail } from '../../utils/menu-thumbnail.util';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 @Component({
   selector: 'app-master-drink-page',
   imports: [
+    FieldErrorComponent,
     MasterListSkeletonComponent,
     DecimalPipe,
     FormsModule,
     ReactiveFormsModule,
     AppModalComponent,
+    AppThumbImageComponent,
     CustomDropdownComponent,
     RouterLink,
     MasterListToolbarComponent,
@@ -275,7 +279,7 @@ export class MasterDrinkPageComponent implements OnInit {
   submitCreate(): void {
     const categoryId = this.selectedCategoryId();
     if (categoryId == null || this.submitting()) return;
-    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated)) return;
     this.submitting.set(true);
     const { name, price, unitLabelTh, canReturn, stockItemId } = this.createForm.getRawValue();
     this.beverageService
@@ -304,7 +308,7 @@ export class MasterDrinkPageComponent implements OnInit {
   submitEdit(): void {
     const item = this.editingBeverage();
     if (!item || this.submitting()) return;
-    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated)) return;
     this.submitting.set(true);
     const { name, price, unitLabelTh, canReturn, stockItemId, changeReason } = this.editForm.getRawValue();
     this.beverageService

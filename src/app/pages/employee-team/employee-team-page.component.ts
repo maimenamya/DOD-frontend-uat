@@ -24,6 +24,7 @@ import { roleBadgeClass, roleDisplayNameTh, roleOptionLabel } from '../../utils/
 import { EmployeeService } from '../../services/employee.service';
 import { RoleService } from '../../services/role.service';
 import { ToastService } from '../../services/toast.service';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 export interface TeamPageConfig {
   team: EmployeeTeam;
@@ -33,7 +34,9 @@ export interface TeamPageConfig {
 
 @Component({
   selector: 'app-employee-team-page',
-  imports: [ReactiveFormsModule, CustomDropdownComponent, AppModalComponent],
+  imports: [
+    FieldErrorComponent,
+    ReactiveFormsModule, CustomDropdownComponent, AppModalComponent],
   templateUrl: './employee-team-page.component.html',
 })
 export class EmployeeTeamPageComponent implements OnInit {
@@ -186,7 +189,7 @@ export class EmployeeTeamPageComponent implements OnInit {
 
   submitCreate(): void {
     if (!this.canManage()) return;
-    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated)) return;
 
     const shopId = this.auth.getShopId();
     if (shopId == null) return;
@@ -224,7 +227,7 @@ export class EmployeeTeamPageComponent implements OnInit {
   submitEdit(): void {
     const employee = this.editingEmployee();
     if (!employee || !this.canMutateRow(employee)) return;
-    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated)) return;
 
     const raw = this.editForm.getRawValue();
     this.submitting.set(true);

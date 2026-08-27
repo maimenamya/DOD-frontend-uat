@@ -201,6 +201,7 @@
           formControlName="quantity"
           [class.app-input-invalid]="depositFormValidated() && depositForm.controls.quantity.invalid"
         />
+        <app-field-error [control]="depositForm.controls.quantity" [validated]="depositFormValidated()" />
         <p class="app-hint">นับเป็นขวดเต็มเสมอ — เช่น เหลือครึ่งขวดให้ใส่ 1</p>
       </div>
 
@@ -213,6 +214,7 @@
           formControlName="remainderNote"
           placeholder="เช่น เหลือครึ่งขวด, เหลือ 3 ส่วน"
         />
+        <app-field-error [control]="depositForm.controls.remainderNote" [validated]="depositFormValidated()" />
         <p class="app-hint">บอกสภาพจริงที่เหลือ — ใช้แสดงผลเท่านั้น ไม่กระทบจำนวนขวด</p>
       </div>
 
@@ -258,6 +260,11 @@
             [ngModelOptions]="{ standalone: true }"
             (ngModelChange)="onCreatePackageChange($event)"
             [placeholder]="sourceTab() === 'MEMBERSHIP' ? 'เลือกเมมเบอร์' : 'เลือกโปรโมชั่น'"
+            [class.app-field-invalid]="createFormValidated() && !createForm.controls.sourceId.value"
+          />
+          <app-field-error
+            [validated]="createFormValidated() && !createForm.controls.sourceId.value"
+            [message]="sourceTab() === 'MEMBERSHIP' ? 'กรุณาเลือกเมมเบอร์' : 'กรุณาเลือกโปรโมชั่น'"
           />
           @if (selectedCreatePackageBottlesTotal(); as total) {
             <p class="app-hint">แพ็กเกจนี้มีทั้งหมด {{ total }} ขวด</p>
@@ -277,6 +284,7 @@
           placeholder="เช่น 000, a-1, a000"
           [class.app-input-invalid]="createFormValidated() && createForm.controls.customerCode.invalid"
         />
+        <app-field-error [control]="createForm.controls.customerCode" [validated]="createFormValidated()" />
       </div>
 
       <div class="app-form-group">
@@ -286,8 +294,9 @@
           type="text"
           class="app-input"
           formControlName="customerName"
-          placeholder="ชื่อที่จำง่าย"
+          placeholder="(ไม่จำเป็นต้องระบุ)"
         />
+        <app-field-error [control]="createForm.controls.customerName" [validated]="createFormValidated()" />
       </div>
 
       <div class="app-form-group">
@@ -302,6 +311,7 @@
           [attr.max]="selectedCreatePackageBottlesTotal()"
           [class.app-input-invalid]="createFormValidated() && createForm.controls.bottlesRemaining.invalid"
         />
+        <app-field-error [control]="createForm.controls.bottlesRemaining" [validated]="createFormValidated()" />
       </div>
 
       <div class="app-form-group">
@@ -313,6 +323,7 @@
           formControlName="remainderNote"
           placeholder="เช่น เหลือครึ่งขวด, เหลือ 3 ส่วน"
         />
+        <app-field-error [control]="createForm.controls.remainderNote" [validated]="createFormValidated()" />
       </div>
 
       <div class="app-modal-footer">
@@ -366,6 +377,7 @@
           placeholder="เช่น เปิดผิดรหัส, ลบที่บิลแล้ว"
           [class.app-input-invalid]="deleteFormValidated() && deleteForm.controls.note.invalid"
         ></textarea>
+        <app-field-error [control]="deleteForm.controls.note" [validated]="deleteFormValidated()" />
       </div>
 
       <div class="app-modal-footer">

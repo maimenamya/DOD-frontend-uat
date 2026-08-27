@@ -50,10 +50,13 @@ import {
   workDutyLabels,
   type WorkDuty,
 } from '../../models/work-duty';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 @Component({
   selector: 'app-employee-management-page',
-  imports: [MasterListSkeletonComponent, 
+  imports: [
+    FieldErrorComponent,
+    MasterListSkeletonComponent, 
     ReactiveFormsModule,
     CustomDropdownComponent,
     AppModalComponent,
@@ -364,7 +367,7 @@ export class EmployeeManagementPageComponent implements OnInit {
 
   submitCreate(): void {
     if (!this.canManage()) return;
-    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated)) return;
 
     const shopId = this.auth.getShopId();
     const tabRole = this.selectedRole();
@@ -408,7 +411,7 @@ export class EmployeeManagementPageComponent implements OnInit {
   submitEdit(): void {
     const employee = this.editingEmployee();
     if (!employee || !this.canMutateRow(employee)) return;
-    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated)) return;
 
     const raw = this.editForm.getRawValue();
     const nextRole = this.roles().find((r) => r.id === raw.roleId);

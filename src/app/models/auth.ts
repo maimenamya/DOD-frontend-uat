@@ -30,6 +30,10 @@ export interface AuthUser {
   username: string;
   email: string | null;
   nickname: string;
+  /** Own photo URL — always returned to the owner. */
+  imageUrl?: string | null;
+  /** Whether other staff may see this photo. Default false (PDPA opt-in). */
+  imageIsPublic?: boolean;
   organizationId: number;
   shopId: number;
   pendingRoleSetup: boolean;
@@ -68,6 +72,8 @@ export interface AuthResponse {
     username: string;
     email: string | null;
     nickname: string;
+    imageUrl?: string | null;
+    imageIsPublic?: boolean;
     organizationId: number;
     shopId: number;
     pendingRoleSetup: boolean;
@@ -103,6 +109,7 @@ export interface AuthSession {
 export interface UpdateProfileRequest {
   email?: string | null;
   nickname?: string;
+  imageIsPublic?: boolean;
 }
 
 export interface ChangePasswordRequest {

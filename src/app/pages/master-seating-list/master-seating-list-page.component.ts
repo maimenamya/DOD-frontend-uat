@@ -14,6 +14,7 @@ import {
 } from '@angular/forms';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { AppThumbImageComponent } from '../../components/app-thumb-image/app-thumb-image.component';
 import {
   CustomDropdownComponent,
   type DropdownOption,
@@ -31,14 +32,18 @@ import {
   createMasterListView,
   masterListRowNumber,
 } from '../../utils/master-list.util';
+import { prepareMenuThumbnail } from '../../utils/menu-thumbnail.util';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 @Component({
   selector: 'app-master-seating-list-page',
   imports: [
+    FieldErrorComponent,
     MasterListSkeletonComponent,
     FormsModule,
     ReactiveFormsModule,
     AppModalComponent,
+    AppThumbImageComponent,
     CustomDropdownComponent,
     RouterLink,
     MasterListToolbarComponent,
@@ -67,6 +72,7 @@ export class MasterSeatingListPageComponent implements OnInit {
   );
   readonly loading = signal(true);
   readonly submitting = signal(false);
+  readonly uploadingImage = signal(false);
   readonly createFormValidated = signal(false);
   readonly editFormValidated = signal(false);
   readonly editingItem = signal<MstSeating | null>(null);
@@ -188,12 +194,60 @@ export class MasterSeatingListPageComponent implements OnInit {
     this.editingItem.set(null);
   }
 
+  async onPickSeatingImage(event: Event): Promise<void> {
+    const item = this.editingItem();
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!item || !file || this.uploadingImage()) return;
+    this.uploadingImage.set(true);
+    try {
+      const thumb = await prepareMenuThumbnail(file);
+      this.shopMaster.uploadSeatingImage(item.id, thumb.blob, thumb.fileName).subscribe({
+        next: (updated) => {
+          this.uploadingImage.set(false);
+          this.editingItem.set(updated);
+          this.seatings.update((rows) =>
+            rows.map((row) => (row.id === updated.id ? updated : row)),
+          );
+          this.toast.showSuccess('อัปโหลดรูปเรียบร้อย');
+        },
+        error: (err: { error?: { error?: string } }) => {
+          this.uploadingImage.set(false);
+          this.toast.showError(err.error?.error ?? 'ไม่สามารถอัปโหลดรูปได้');
+        },
+      });
+    } catch (error) {
+      this.uploadingImage.set(false);
+      this.toast.showError(error instanceof Error ? error.message : 'ไม่สามารถย่อรูปได้');
+    }
+  }
+
+  removeSeatingImage(): void {
+    const item = this.editingItem();
+    if (!item?.imageUrl || this.uploadingImage()) return;
+    this.uploadingImage.set(true);
+    this.shopMaster.deleteSeatingImage(item.id).subscribe({
+      next: (updated) => {
+        this.uploadingImage.set(false);
+        this.editingItem.set(updated);
+        this.seatings.update((rows) =>
+          rows.map((row) => (row.id === updated.id ? updated : row)),
+        );
+        this.toast.showSuccess('ลบรูปเรียบร้อย');
+      },
+      error: (err: { error?: { error?: string } }) => {
+        this.uploadingImage.set(false);
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถลบรูปได้');
+      },
+    });
+  }
+
   submitCreate(): void {
     if (this.submitting()) return;
-    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated)) return;
     const seatingTypeId = this.selectedSeatingTypeId();
     if (seatingTypeId == null) {
-      this.toast.showError('กรุณาเลือกประเภทที่นั่ง');
       return;
     }
     const { code, chargesRoomFee } = this.createForm.getRawValue();
@@ -215,7 +269,7 @@ export class MasterSeatingListPageComponent implements OnInit {
   submitEdit(): void {
     const item = this.editingItem();
     if (!item || this.submitting()) return;
-    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated)) return;
     const { code, chargesRoomFee } = this.editForm.getRawValue();
     this.submitting.set(true);
     this.shopMaster

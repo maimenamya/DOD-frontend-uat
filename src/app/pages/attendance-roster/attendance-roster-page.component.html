@@ -152,7 +152,7 @@
       <h2 class="app-modal-title">กำหนดยอดหัก — {{ shift.roundDateLabel }}</h2>
       <button type="button" class="app-btn-ghost" (click)="closeDeductionModal()">✕</button>
     </div>
-    <form class="app-form-stack" [formGroup]="deductionForm" (ngSubmit)="submitDeduction()">
+    <form class="app-form-stack" [class.app-form-was-validated]="deductionValidated()" [formGroup]="deductionForm" (ngSubmit)="submitDeduction()">
       <p class="text-sm text-text-secondary">
         ยอดที่ระบบคำนวณ {{ shift.rawDeductionBaht | number: '1.0-0' }} บาท — แก้ยอดได้ หรือใส่ 0 หากอนุโลม
       </p>
@@ -165,6 +165,11 @@
           formControlName="deductionBaht"
           class="app-input"
           (input)="sanitizeDeductionInput($event)"
+        />
+        <app-field-error
+          [control]="deductionForm.controls.deductionBaht"
+          [validated]="deductionValidated()"
+          label="ยอดหัก"
         />
       </div>
       <div class="app-form-actions">

@@ -4,6 +4,7 @@ export interface MstCocktail {
   drinkValue: number;
   unitLabelTh: string;
   shopId: number;
+  imageUrl?: string | null;
   createdAt: string;
 }
 

@@ -51,6 +51,12 @@
               [options]="createRoleDropdownOptions()"
               placeholder="เลือกตำแหน่ง"
             />
+            <app-field-error
+              [control]="createForm.controls.roleId"
+              [validated]="createFormValidated()"
+              label="ตำแหน่ง"
+              [select]="true"
+            />
           } @else if (selectedRole()) {
             <p class="text-sm text-text-primary">{{ roleTabLabel(selectedRole()!) }}</p>
           }
@@ -65,18 +71,21 @@
             maxlength="10"
             placeholder="เช่น 1001, A1"
           />
+          <app-field-error [control]="createForm.controls.employeeId" [validated]="createFormValidated()" />
           <p class="app-hint">{{ localCodeHint }}</p>
         </div>
         <div class="app-form-group">
           <label class="app-label" for="employee-management-ชื่อเล่น-1">ชื่อเล่น</label>
           <input id="employee-management-ชื่อเล่น-1" type="text" formControlName="nickname" class="app-input" />
+          <app-field-error [control]="createForm.controls.nickname" [validated]="createFormValidated()" />
         </div>
         <p class="app-field-hint">
           รหัสผ่านเริ่มต้นใช้ค่าจากเมนูกฎร้าน — พนักงานต้องเปลี่ยนเองเมื่อเข้าสู่ระบบครั้งแรก
         </p>
         <div class="app-form-group">
           <label class="app-label" for="employee-management-อีเมล-ไม่บังคับ-3">อีเมล (ไม่บังคับ)</label>
-          <input id="employee-management-อีเมล-ไม่บังคับ-3" type="email" formControlName="email" class="app-input" />
+          <input id="employee-management-อีเมล-ไม่บังคับ-3" type="email" formControlName="email" class="app-input" placeholder="(ไม่จำเป็นต้องระบุ)" />
+          <app-field-error [control]="createForm.controls.email" [validated]="createFormValidated()" />
         </div>
         @if (showWorkDutiesForCreate()) {
           <div class="app-form-group">
@@ -121,6 +130,12 @@
               [options]="editRoleDropdownOptions()"
               placeholder="เลือกตำแหน่ง"
             />
+            <app-field-error
+              [control]="editForm.controls.roleId"
+              [validated]="editFormValidated()"
+              label="ตำแหน่ง"
+              [select]="true"
+            />
           </div>
           @if (showWorkDutiesForEdit()) {
             <div class="app-form-group">
@@ -141,10 +156,12 @@
           <div class="app-form-group">
             <label class="app-label" for="employee-management-ชื่อเล่น-7">ชื่อเล่น</label>
             <input id="employee-management-ชื่อเล่น-7" type="text" formControlName="nickname" class="app-input" />
+            <app-field-error [control]="editForm.controls.nickname" [validated]="editFormValidated()" />
           </div>
           <div class="app-form-group">
             <label class="app-label" for="employee-management-อีเมล-8">อีเมล</label>
-            <input id="employee-management-อีเมล-8" type="email" formControlName="email" class="app-input" />
+            <input id="employee-management-อีเมล-8" type="email" formControlName="email" class="app-input" placeholder="(ไม่จำเป็นต้องระบุ)" />
+            <app-field-error [control]="editForm.controls.email" [validated]="editFormValidated()" />
           </div>
           <div class="app-form-group">
             <label class="app-label" for="employee-management-สถานะ-9">สถานะ</label>
@@ -176,6 +193,7 @@
               class="app-input app-scroll-region"
               placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
             ></textarea>
+            <app-field-error [control]="editForm.controls.changeReason" [validated]="editFormValidated()" />
           </div>
           <div class="app-form-actions app-form-actions-top">
             <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>

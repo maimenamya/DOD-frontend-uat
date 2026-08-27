@@ -3,6 +3,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { ShopDateInputComponent } from '../../components/shop-date-input/shop-date-input.component';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 import type { DashboardPreset } from '../../models/dashboard';
 import type { FreelanceDrinkPayoutRow, TagDrinkPayoutRow } from '../../models/drink-payout';
 import { AuthService } from '../../services/auth.service';
@@ -25,7 +26,7 @@ function shopCalendarMonthStartInput(): string {
 
 @Component({
   selector: 'app-drink-payout-page',
-  imports: [DecimalPipe, FormsModule, ShopDateInputComponent],
+  imports: [DecimalPipe, FormsModule, ShopDateInputComponent, FieldErrorComponent],
   templateUrl: './drink-payout-page.component.html',
 })
 export class DrinkPayoutPageComponent implements OnInit {
@@ -38,6 +39,23 @@ export class DrinkPayoutPageComponent implements OnInit {
   readonly datePreset = signal<DashboardPreset>('today');
   readonly customFrom = signal('');
   readonly customTo = signal('');
+  readonly customRangeValidated = signal(false);
+  readonly customFromMissing = computed(
+    () => this.customRangeValidated() && !isValidShopDateInput(this.customFrom().trim()),
+  );
+  readonly customToMissing = computed(
+    () => this.customRangeValidated() && !isValidShopDateInput(this.customTo().trim()),
+  );
+  readonly customRangeOrderInvalid = computed(() => {
+    const from = this.customFrom().trim();
+    const to = this.customTo().trim();
+    return (
+      this.customRangeValidated() &&
+      isValidShopDateInput(from) &&
+      isValidShopDateInput(to) &&
+      from > to
+    );
+  });
   readonly rangeLabelFrom = signal('');
   readonly rangeLabelTo = signal('');
 
@@ -70,14 +88,8 @@ export class DrinkPayoutPageComponent implements OnInit {
   }
 
   applyCustomRange(): void {
-    const from = this.customFrom().trim();
-    const to = this.customTo().trim();
-    if (!isValidShopDateInput(from) || !isValidShopDateInput(to)) {
-      this.toast.showError('กรุณาเลือกช่วงวันที่');
-      return;
-    }
-    if (from > to) {
-      this.toast.showError('วันเริ่มต้องไม่หลังวันสิ้นสุด');
+    this.customRangeValidated.set(true);
+    if (this.customFromMissing() || this.customToMissing() || this.customRangeOrderInvalid()) {
       return;
     }
     this.loadDashboard();

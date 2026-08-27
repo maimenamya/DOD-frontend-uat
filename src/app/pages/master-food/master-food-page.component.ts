@@ -14,6 +14,7 @@ import {
 import { forkJoin } from 'rxjs';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { AppThumbImageComponent } from '../../components/app-thumb-image/app-thumb-image.component';
 import {
   CustomDropdownComponent,
   type DropdownOption,
@@ -33,14 +34,17 @@ import {
   masterListRowNumber,
 } from '../../utils/master-list.util';
 import { prepareMenuThumbnail } from '../../utils/menu-thumbnail.util';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 @Component({
   selector: 'app-master-food-page',
   imports: [
+    FieldErrorComponent,
     DecimalPipe,
     FormsModule,
     ReactiveFormsModule,
     AppModalComponent,
+    AppThumbImageComponent,
     CustomDropdownComponent,
     RouterLink,
     MasterListToolbarComponent,
@@ -232,10 +236,9 @@ export class MasterFoodPageComponent implements OnInit {
 
   submitCreate(): void {
     if (this.submitting()) return;
-    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated)) return;
     const category = this.selectedCategory();
     if (!category) {
-      this.toast.showError('กรุณาเลือกประเภทอาหารก่อน');
       return;
     }
     this.submitting.set(true);
@@ -259,7 +262,7 @@ export class MasterFoodPageComponent implements OnInit {
   submitEdit(): void {
     const item = this.editingItem();
     if (!item || this.submitting()) return;
-    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated)) return;
     this.submitting.set(true);
     const { name, price, changeReason } = this.editForm.getRawValue();
     this.shopMaster

@@ -18,6 +18,7 @@
         <div class="app-form-group">
           <label class="app-label" for="master-cocktail-ชื่อค็อกเทล-1">ชื่อค็อกเทล</label>
           <input id="master-cocktail-ชื่อค็อกเทล-1" type="text" formControlName="name" class="app-input" />
+          <app-field-error [control]="createForm.controls.name" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-cocktail-จำนวนดื่ม-2">จำนวนดื่ม</label>
@@ -28,10 +29,12 @@
             class="app-input"
             (input)="sanitizeIntegerInput('create', $event)"
           />
+          <app-field-error [control]="createForm.controls.drinkValue" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-cocktail-หน่วยนับ-3">หน่วยนับ</label>
           <input id="master-cocktail-หน่วยนับ-3" type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" />
+          <app-field-error [control]="createForm.controls.unitLabelTh" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
@@ -53,6 +56,7 @@
         <div class="app-form-group">
           <label class="app-label" for="master-cocktail-ชื่อค็อกเทล-4">ชื่อค็อกเทล</label>
           <input id="master-cocktail-ชื่อค็อกเทล-4" type="text" formControlName="name" class="app-input" />
+          <app-field-error [control]="editForm.controls.name" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-cocktail-จำนวนดื่ม-5">จำนวนดื่ม</label>
@@ -63,10 +67,43 @@
             class="app-input"
             (input)="sanitizeIntegerInput('edit', $event)"
           />
+          <app-field-error [control]="editForm.controls.drinkValue" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-cocktail-หน่วยนับ-6">หน่วยนับ</label>
           <input id="master-cocktail-หน่วยนับ-6" type="text" formControlName="unitLabelTh" class="app-input" maxlength="32" />
+          <app-field-error [control]="editForm.controls.unitLabelTh" [validated]="editFormValidated()" />
+        </div>
+        <div class="app-form-group">
+          <span class="app-label">รูปค็อกเทล (ไม่บังคับ)</span>
+          <div class="mt-1 flex flex-wrap items-center gap-3">
+            <app-thumb-image
+              [src]="item.imageUrl"
+              class="h-16 w-16 rounded-md bg-surface ring-1 ring-theme-border"
+            />
+            <div class="flex flex-wrap items-center gap-2">
+              <label class="app-btn-secondary-sm cursor-pointer">
+                {{ uploadingImage() ? 'กำลังอัปโหลด...' : 'เลือกรูป' }}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  class="sr-only"
+                  [disabled]="uploadingImage()"
+                  (change)="onPickCocktailImage($event)"
+                />
+              </label>
+              @if (item.imageUrl) {
+                <button
+                  type="button"
+                  class="app-btn-danger-sm"
+                  [disabled]="uploadingImage()"
+                  (click)="removeCocktailImage()"
+                >
+                  ลบรูป
+                </button>
+              }
+            </div>
+          </div>
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-cocktail-เหตุผลการแก้ไข-ลบ-7">เหตุผลการแก้ไข/ลบ</label>
@@ -76,6 +113,7 @@
             class="app-input app-scroll-region"
             placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
           ></textarea>
+          <app-field-error [control]="editForm.controls.changeReason" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
@@ -152,7 +190,15 @@
                 @for (item of listView().items; track item.id; let i = $index) {
                   <tr>
                     <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
-                    <td class="app-cell-primary">{{ item.name }}</td>
+                    <td class="app-cell-primary">
+                      <span class="inline-flex items-center gap-2">
+                        <app-thumb-image
+                          [src]="item.imageUrl"
+                          class="h-8 w-8 shrink-0 rounded bg-surface"
+                        />
+                        <span>{{ item.name }}</span>
+                      </span>
+                    </td>
                     <td class="app-cell-center text-text-secondary">
                       {{ item.unitLabelTh }}
                     </td>

@@ -104,17 +104,11 @@
     <ul class="guest-order-list app-scroll-region">
       @for (item of visibleItems(); track itemTypeForTab() + ':' + activeTab() + ':' + item.id) {
         <li class="guest-order-item">
-          @if (item.imageUrl) {
-            <img
-              class="guest-order-item__thumb"
-              [src]="item.imageUrl"
-              [alt]="item.name"
-              loading="lazy"
-              decoding="async"
-            />
-          } @else {
-            <div class="guest-order-item__thumb guest-order-item__thumb--empty" aria-hidden="true"></div>
-          }
+          <app-thumb-image
+            [src]="item.imageUrl"
+            [alt]="item.name"
+            class="guest-order-item__thumb"
+          />
           <div class="guest-order-item__info">
             <p class="guest-order-item__name">{{ item.name }}</p>
             <p class="guest-order-item__meta">

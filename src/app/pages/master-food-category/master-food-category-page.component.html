@@ -18,6 +18,7 @@
         <div class="app-form-group">
           <label class="app-label" for="master-food-category-ชื่อประเภท-1">ชื่อประเภท</label>
           <input id="master-food-category-ชื่อประเภท-1" type="text" formControlName="name" class="app-input" />
+          <app-field-error [control]="createForm.controls.name" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
@@ -39,6 +40,7 @@
         <div class="app-form-group">
           <label class="app-label" for="master-food-category-ชื่อประเภท-2">ชื่อประเภท</label>
           <input id="master-food-category-ชื่อประเภท-2" type="text" formControlName="name" class="app-input" />
+          <app-field-error [control]="editForm.controls.name" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>

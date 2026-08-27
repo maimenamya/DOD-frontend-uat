@@ -21,6 +21,7 @@ import { AuthService } from '../../services/auth.service';
 import { ShopMasterService } from '../../services/shop-master.service';
 import { ConfirmDialogService } from '../../services/confirm-dialog.service';
 import { ToastService } from '../../services/toast.service';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 const PRICING_TYPE_OPTIONS: DropdownOption[] = [
   { value: 'HOURLY', label: 'ต่อชั่วโมง' },
@@ -29,7 +30,9 @@ const PRICING_TYPE_OPTIONS: DropdownOption[] = [
 
 @Component({
   selector: 'app-master-room-page',
-  imports: [MasterListSkeletonComponent, DecimalPipe, ReactiveFormsModule, AppModalComponent, CustomDropdownComponent],
+  imports: [
+    FieldErrorComponent,
+    MasterListSkeletonComponent, DecimalPipe, ReactiveFormsModule, AppModalComponent, CustomDropdownComponent],
   templateUrl: './master-room-page.component.html',
 })
 export class MasterRoomPageComponent implements OnInit {
@@ -114,7 +117,7 @@ export class MasterRoomPageComponent implements OnInit {
 
   submitCreate(): void {
     if (this.submitting()) return;
-    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated)) return;
     this.submitting.set(true);
     const { roomCode, price, pricingType } = this.createForm.getRawValue();
     this.shopMaster
@@ -136,7 +139,7 @@ export class MasterRoomPageComponent implements OnInit {
   submitEdit(): void {
     const item = this.editingItem();
     if (!item || this.submitting()) return;
-    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated)) return;
     this.submitting.set(true);
     const { roomCode, price, pricingType } = this.editForm.getRawValue();
     this.shopMaster

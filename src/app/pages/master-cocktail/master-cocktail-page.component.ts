@@ -11,6 +11,7 @@ import {
 } from '@angular/forms';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { AppThumbImageComponent } from '../../components/app-thumb-image/app-thumb-image.component';
 import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
 import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
 import type { MstCocktail } from '../../models/master-data';
@@ -23,10 +24,14 @@ import {
   createMasterListView,
   masterListRowNumber,
 } from '../../utils/master-list.util';
+import { prepareMenuThumbnail } from '../../utils/menu-thumbnail.util';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 @Component({
   selector: 'app-master-cocktail-page',
-  imports: [MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent, MasterListToolbarComponent, ListPaginatorComponent],
+  imports: [
+    FieldErrorComponent,
+    MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent, AppThumbImageComponent, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './master-cocktail-page.component.html',
 })
 export class MasterCocktailPageComponent implements OnInit {
@@ -43,6 +48,7 @@ export class MasterCocktailPageComponent implements OnInit {
   readonly masterListRowNumber = masterListRowNumber;
   readonly loading = signal(true);
   readonly submitting = signal(false);
+  readonly uploadingImage = signal(false);
   readonly createFormValidated = signal(false);
   readonly editFormValidated = signal(false);
   readonly editingItem = signal<MstCocktail | null>(null);
@@ -108,9 +114,58 @@ export class MasterCocktailPageComponent implements OnInit {
     this.editingItem.set(null);
   }
 
+  async onPickCocktailImage(event: Event): Promise<void> {
+    const item = this.editingItem();
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!item || !file || this.uploadingImage()) return;
+    this.uploadingImage.set(true);
+    try {
+      const thumb = await prepareMenuThumbnail(file);
+      this.shopMaster.uploadCocktailImage(item.id, thumb.blob, thumb.fileName).subscribe({
+        next: (updated) => {
+          this.uploadingImage.set(false);
+          this.editingItem.set(updated);
+          this.cocktails.update((rows) =>
+            rows.map((row) => (row.id === updated.id ? updated : row)),
+          );
+          this.toast.showSuccess('อัปโหลดรูปเรียบร้อย');
+        },
+        error: (err: { error?: { error?: string } }) => {
+          this.uploadingImage.set(false);
+          this.toast.showError(err.error?.error ?? 'ไม่สามารถอัปโหลดรูปได้');
+        },
+      });
+    } catch (error) {
+      this.uploadingImage.set(false);
+      this.toast.showError(error instanceof Error ? error.message : 'ไม่สามารถย่อรูปได้');
+    }
+  }
+
+  removeCocktailImage(): void {
+    const item = this.editingItem();
+    if (!item?.imageUrl || this.uploadingImage()) return;
+    this.uploadingImage.set(true);
+    this.shopMaster.deleteCocktailImage(item.id).subscribe({
+      next: (updated) => {
+        this.uploadingImage.set(false);
+        this.editingItem.set(updated);
+        this.cocktails.update((rows) =>
+          rows.map((row) => (row.id === updated.id ? updated : row)),
+        );
+        this.toast.showSuccess('ลบรูปเรียบร้อย');
+      },
+      error: (err: { error?: { error?: string } }) => {
+        this.uploadingImage.set(false);
+        this.toast.showError(err.error?.error ?? 'ไม่สามารถลบรูปได้');
+      },
+    });
+  }
+
   submitCreate(): void {
     if (this.submitting()) return;
-    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated)) return;
     this.submitting.set(true);
     const { name, drinkValue, unitLabelTh } = this.createForm.getRawValue();
     this.shopMaster
@@ -136,7 +191,7 @@ export class MasterCocktailPageComponent implements OnInit {
   submitEdit(): void {
     const item = this.editingItem();
     if (!item || this.submitting()) return;
-    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated)) return;
     this.submitting.set(true);
     const { name, drinkValue, unitLabelTh, changeReason } = this.editForm.getRawValue();
     this.shopMaster

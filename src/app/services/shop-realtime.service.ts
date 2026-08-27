@@ -73,7 +73,7 @@ export class ShopRealtimeService {
   }
 
   private connect(token: string): void {
-    if (this.socket?.connected && this.connectedToken === token) return;
+    if (this.socket && this.connectedToken === token) return;
 
     this.disconnect();
 
@@ -100,6 +100,7 @@ export class ShopRealtimeService {
       this.ngZone.run(() => this.setConnected(false));
     });
     this.socket.on('connect_error', (err) => {
+      if (this.socket?.connected) return;
       this.ngZone.run(() => this.setConnected(false));
       console.warn('[realtime] connect_error', err.message);
     });

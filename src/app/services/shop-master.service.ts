@@ -53,6 +53,16 @@ export class ShopMasterService {
     });
   }
 
+  uploadCocktailImage(id: number, file: Blob, fileName: string): Observable<MstCocktail> {
+    const body = new FormData();
+    body.append('image', file, fileName);
+    return this.http.post<MstCocktail>(this.api.resource(`cocktails/${id}/image`), body);
+  }
+
+  deleteCocktailImage(id: number): Observable<MstCocktail> {
+    return this.http.delete<MstCocktail>(this.api.resource(`cocktails/${id}/image`));
+  }
+
   getBeverageCategories(): Observable<MstBeverageCategory[]> {
     return this.http.get<MstBeverageCategory[]>(this.api.resource('beverage-categories'));
   }
@@ -159,6 +169,16 @@ export class ShopMasterService {
 
   deleteSeating(id: number): Observable<void> {
     return this.http.delete<void>(this.api.resource(`seatings/${id}`));
+  }
+
+  uploadSeatingImage(id: number, file: Blob, fileName: string): Observable<MstSeating> {
+    const body = new FormData();
+    body.append('image', file, fileName);
+    return this.http.post<MstSeating>(this.api.resource(`seatings/${id}/image`), body);
+  }
+
+  deleteSeatingImage(id: number): Observable<MstSeating> {
+    return this.http.delete<MstSeating>(this.api.resource(`seatings/${id}/image`));
   }
 
   getPromotions(): Observable<MstPromotion[]> {

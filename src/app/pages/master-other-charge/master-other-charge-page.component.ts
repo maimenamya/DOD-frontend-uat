@@ -13,6 +13,7 @@ import {
 } from '@angular/forms';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { AppThumbImageComponent } from '../../components/app-thumb-image/app-thumb-image.component';
 import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
 import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
 import type { MstOtherCharge, OtherChargeGroup } from '../../models/other-charge';
@@ -27,10 +28,13 @@ import {
   masterListRowNumber,
 } from '../../utils/master-list.util';
 import { prepareMenuThumbnail } from '../../utils/menu-thumbnail.util';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 @Component({
   selector: 'app-master-other-charge-page',
-  imports: [MasterListSkeletonComponent, DecimalPipe, ReactiveFormsModule, AppModalComponent, MasterListToolbarComponent, ListPaginatorComponent],
+  imports: [
+    FieldErrorComponent,
+    MasterListSkeletonComponent, DecimalPipe, ReactiveFormsModule, AppModalComponent, AppThumbImageComponent, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './master-other-charge-page.component.html',
 })
 export class MasterOtherChargePageComponent implements OnInit {
@@ -201,7 +205,7 @@ export class MasterOtherChargePageComponent implements OnInit {
 
   submitCreate(): void {
     if (this.submitting()) return;
-    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated)) return;
     this.submitting.set(true);
     this.otherChargeService.create(this.payloadFromForm(this.createForm)).subscribe({
       next: () => {
@@ -220,7 +224,7 @@ export class MasterOtherChargePageComponent implements OnInit {
   submitEdit(): void {
     const item = this.editingItem();
     if (!item || this.submitting()) return;
-    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated)) return;
     this.submitting.set(true);
     this.otherChargeService.update(item.id, this.payloadFromForm(this.editForm, true)).subscribe({
       next: () => {

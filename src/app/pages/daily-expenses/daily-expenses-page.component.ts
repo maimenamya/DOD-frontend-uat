@@ -23,6 +23,7 @@ import {
   masterListRowNumber,
 } from '../../utils/master-list.util';
 import { shopCalendarTodayInput } from '../open-table/open-table-ledger.util';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 function shopCalendarMonthStartInput(): string {
   const today = shopCalendarTodayInput();
@@ -31,7 +32,9 @@ function shopCalendarMonthStartInput(): string {
 
 @Component({
   selector: 'app-daily-expenses-page',
-  imports: [MasterListSkeletonComponent, 
+  imports: [
+    FieldErrorComponent,
+    MasterListSkeletonComponent, 
     DecimalPipe,
     FormsModule,
     ReactiveFormsModule,
@@ -181,7 +184,7 @@ export class DailyExpensesPageComponent implements OnInit {
 
   submitCreate(): void {
     if (this.submitting()) return;
-    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated)) return;
     this.submitting.set(true);
     this.dailyExpenseService.create(this.payloadFromForm(this.createForm)).subscribe({
       next: () => {
@@ -200,7 +203,7 @@ export class DailyExpensesPageComponent implements OnInit {
   submitEdit(): void {
     const item = this.editingItem();
     if (!item || this.submitting()) return;
-    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated)) return;
     this.submitting.set(true);
     this.dailyExpenseService.update(item.id, this.editPayloadFromForm()).subscribe({
       next: () => {

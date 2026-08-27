@@ -40,6 +40,9 @@
         </span>
         <span class="accept-privacy-check-label">{{ checkboxLabel }}</span>
       </label>
+      @if (consentValidated() && !agreed()) {
+        <p class="app-field-error">กรุณาติ๊กยอมรับนโยบายก่อนดำเนินการต่อ</p>
+      }
 
       <label
         class="accept-privacy-consent accept-privacy-consent--optional"
@@ -62,7 +65,7 @@
       <button
         type="submit"
         class="app-btn app-btn-primary"
-        [disabled]="submitting() || !agreed() || !scrolledToEnd()"
+        [disabled]="submitting() || !scrolledToEnd()"
       >
         @if (submitting()) {
           กำลังบันทึก…

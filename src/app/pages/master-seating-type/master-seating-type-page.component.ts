@@ -23,10 +23,13 @@ import {
   createMasterListView,
   masterListRowNumber,
 } from '../../utils/master-list.util';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 @Component({
   selector: 'app-master-seating-type-page',
-  imports: [MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent, MasterListToolbarComponent, ListPaginatorComponent],
+  imports: [
+    FieldErrorComponent,
+    MasterListSkeletonComponent, ReactiveFormsModule, AppModalComponent, MasterListToolbarComponent, ListPaginatorComponent],
   templateUrl: './master-seating-type-page.component.html',
 })
 export class MasterSeatingTypePageComponent implements OnInit {
@@ -126,7 +129,7 @@ export class MasterSeatingTypePageComponent implements OnInit {
 
   submitCreate(): void {
     if (this.submitting()) return;
-    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated)) return;
     this.submitting.set(true);
     this.shopMaster.createSeatingType(this.payloadFromForm(this.createForm)).subscribe({
       next: () => {
@@ -145,7 +148,7 @@ export class MasterSeatingTypePageComponent implements OnInit {
   submitEdit(): void {
     const item = this.editingItem();
     if (!item || this.submitting()) return;
-    if (highlightInvalidForm(this.editForm, this.editFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.editForm, this.editFormValidated)) return;
     this.submitting.set(true);
     this.shopMaster.updateSeatingType(item.id, this.payloadFromForm(this.editForm, true)).subscribe({
       next: () => {

@@ -33,6 +33,7 @@ import {
   normalizeLocalCodeForSubmit,
   trimLocalCodeInput,
 } from '../../utils/local-code.util';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 type DepositSourceTab = PackageDepositSourceType;
 
@@ -42,7 +43,9 @@ function packageBottleTotal(items: Array<{ quantity: number }>): number {
 
 @Component({
   selector: 'app-package-deposit-page',
-  imports: [MasterListSkeletonComponent, 
+  imports: [
+    FieldErrorComponent,
+    MasterListSkeletonComponent, 
     NgTemplateOutlet,
     FormsModule,
     ReactiveFormsModule,
@@ -245,33 +248,37 @@ export class PackageDepositPageComponent implements OnInit {
 
   submitCreate(): void {
     if (!this.createForm.controls.sourceId.value) {
-      this.toast.showError('กรุณาเลือกแพ็กเกจ');
-      resetFormValidationFlag(this.createFormValidated);
       this.createFormValidated.set(true);
       return;
     }
-    if (highlightInvalidForm(this.createForm, this.createFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.createForm, this.createFormValidated)) return;
 
     const pkg = this.selectedCreatePackage();
     const bottlesTotal = this.selectedCreatePackageBottlesTotal();
     if (!pkg || bottlesTotal == null) {
-      this.toast.showError('กรุณาเลือกแพ็กเกจ');
+      this.createFormValidated.set(true);
       return;
     }
 
     const bottlesRemaining = Number(this.createForm.controls.bottlesRemaining.value);
     if (!Number.isFinite(bottlesRemaining) || bottlesRemaining < 1) {
-      this.toast.showError('กรุณาระบุจำนวนขวดคงเหลืออย่างน้อย 1 ขวด');
+      this.createForm.controls.bottlesRemaining.setErrors({ min: true });
+      this.createForm.controls.bottlesRemaining.markAsTouched();
+      this.createFormValidated.set(true);
       return;
     }
     if (bottlesRemaining > bottlesTotal) {
-      this.toast.showError(`จำนวนคงเหลือต้องไม่เกิน ${bottlesTotal} ขวด (ขวดทั้งหมดของแพ็กเกจ)`);
+      this.createForm.controls.bottlesRemaining.setErrors({ max: true });
+      this.createForm.controls.bottlesRemaining.markAsTouched();
+      this.createFormValidated.set(true);
       return;
     }
 
     const customerCode = normalizeLocalCodeForSubmit(this.createForm.controls.customerCode.value);
     if (!customerCode) {
-      this.toast.showError('กรุณาระบุรหัสลูกค้า 1–10 ตัวอักษร (ตัวอักษร/ตัวเลข)');
+      this.createForm.controls.customerCode.setErrors({ required: true });
+      this.createForm.controls.customerCode.markAsTouched();
+      this.createFormValidated.set(true);
       return;
     }
     const customerName = this.createForm.controls.customerName.value.trim();
@@ -349,7 +356,7 @@ export class PackageDepositPageComponent implements OnInit {
     const target = this.deleteTarget();
     if (!target) return;
 
-    if (highlightInvalidForm(this.deleteForm, this.deleteFormValidated, this.toast)) return;
+    if (highlightInvalidForm(this.deleteForm, this.deleteFormValidated)) return;
 
     const note = this.deleteForm.controls.note.value.trim();
     this.submitting.set(true);

@@ -26,6 +26,7 @@ import {
   passwordMeetsPolicy,
   passwordPolicyErrorMessage,
 } from '../../utils/password-policy.util';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 
 type TierField =
   | 'seatDrinkTier15Drinks'
@@ -34,7 +35,9 @@ type TierField =
 
 @Component({
   selector: 'app-shop-rules-page',
-  imports: [ReactiveFormsModule, CustomDropdownComponent, RouterLink],
+  imports: [
+    FieldErrorComponent,
+    ReactiveFormsModule, CustomDropdownComponent, RouterLink],
   templateUrl: './shop-rules-page.component.html',
 })
 export class ShopRulesPageComponent implements OnInit {
@@ -137,27 +140,39 @@ export class ShopRulesPageComponent implements OnInit {
     const autoClose = this.form.controls.autoCloseCutoffTime.value.trim();
     const freelanceLateCutoff = this.form.controls.freelanceLateDrinkCutoffTime.value.trim();
     if (checkIn && !isValidShopTimeHm(checkIn)) {
-      this.toast.showError('เวลาเริ่มนับยอดคืนนี้ต้องเป็นรูปแบบ 24 ชม. เช่น 20:00');
+      this.form.controls.expectedCheckInTime.setErrors({ timeFormat: true });
+      this.form.controls.expectedCheckInTime.markAsTouched();
+      this.formValidated.set(true);
       return;
     }
     if (onFloor && !isValidShopTimeHm(onFloor)) {
-      this.toast.showError('เวลา on floor ต้องเป็นรูปแบบ 24 ชม. เช่น 21:00');
+      this.form.controls.expectedOnFloorTime.setErrors({ timeFormat: true });
+      this.form.controls.expectedOnFloorTime.markAsTouched();
+      this.formValidated.set(true);
       return;
     }
     if (autoClose && !isValidShopTimeHm(autoClose)) {
-      this.toast.showError('เวลาตัดกะอัตโนมัติต้องเป็นรูปแบบ 24 ชม. เช่น 12:00');
+      this.form.controls.autoCloseCutoffTime.setErrors({ timeFormat: true });
+      this.form.controls.autoCloseCutoffTime.markAsTouched();
+      this.formValidated.set(true);
       return;
     }
     if (freelanceLateCutoff && !isValidShopTimeHm(freelanceLateCutoff)) {
-      this.toast.showError('เวลาเริ่มนับสาย freelance ต้องเป็นรูปแบบ 24 ชม. เช่น 21:00');
+      this.form.controls.freelanceLateDrinkCutoffTime.setErrors({ timeFormat: true });
+      this.form.controls.freelanceLateDrinkCutoffTime.markAsTouched();
+      this.formValidated.set(true);
       return;
     }
 
-    if (highlightInvalidForm(this.form, this.formValidated, this.toast)) return;
+    if (highlightInvalidForm(this.form, this.formValidated)) return;
 
     const initialPassword = this.form.controls.employeeInitialPassword.value.trim();
     if (!passwordMeetsPolicy(initialPassword)) {
-      this.toast.showError(passwordPolicyErrorMessage());
+      this.form.controls.employeeInitialPassword.setErrors({
+        passwordPolicy: { message: passwordPolicyErrorMessage() },
+      });
+      this.form.controls.employeeInitialPassword.markAsTouched();
+      this.formValidated.set(true);
       return;
     }
 

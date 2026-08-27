@@ -13,7 +13,7 @@
       </div>
     </div>
   } @else {
-    <form class="app-form-stack" [formGroup]="form" (ngSubmit)="submit()">
+    <form class="app-form-stack" [class.app-form-was-validated]="formValidated()" [formGroup]="form" (ngSubmit)="submit()">
       <section class="app-card app-card-section">
         <div class="app-card-body app-form-stack">
           <h2 class="text-base font-semibold text-text-primary">วิธีพิมพ์หลังเช็คบิล</h2>
@@ -51,6 +51,7 @@
                 placeholder="เช่น 192.168.1.100"
                 autocomplete="off"
               />
+              <app-field-error [control]="form.controls.printerHost" [validated]="formValidated()" />
               <p class="app-field-hint">
                 ใช้เมื่อเครื่องปริ้นเชื่อม Wi‑Fi และ API รันในเครือข่ายเดียวกัน — บน Railway มักใช้แอปตัวกลางแทน
               </p>
@@ -65,6 +66,7 @@
                 inputmode="numeric"
                 autocomplete="off"
               />
+              <app-field-error [control]="form.controls.printerPort" [validated]="formValidated()" />
             </div>
           }
 
@@ -75,9 +77,10 @@
               type="text"
               class="app-input"
               formControlName="headerText"
-              placeholder="เช่น D-rink"
+              placeholder="(ไม่จำเป็นต้องระบุ)"
               autocomplete="off"
             />
+            <app-field-error [control]="form.controls.headerText" [validated]="formValidated()" />
           </div>
 
           <div class="app-form-group">
@@ -87,9 +90,10 @@
               type="text"
               class="app-input"
               formControlName="footerText"
-              placeholder="เช่น D-rink"
+              placeholder="(ไม่จำเป็นต้องระบุ)"
               autocomplete="off"
             />
+            <app-field-error [control]="form.controls.footerText" [validated]="formValidated()" />
           </div>
         </div>
       </section>

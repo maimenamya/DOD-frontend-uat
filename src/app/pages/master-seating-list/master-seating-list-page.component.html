@@ -63,6 +63,7 @@
         <div class="app-form-group">
           <label class="app-label" for="master-seating-list-รหัสที่นั่ง-2">รหัสที่นั่ง</label>
           <input id="master-seating-list-รหัสที่นั่ง-2" type="text" formControlName="code" class="app-input" placeholder="เช่น A1, V3" />
+          <app-field-error [control]="createForm.controls.code" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-group">
           <span class="app-label">การคิดค่าใช้จ่าย</span>
@@ -105,6 +106,7 @@
         <div class="app-form-group">
           <label class="app-label" for="master-seating-list-รหัสที่นั่ง-5">รหัสที่นั่ง</label>
           <input id="master-seating-list-รหัสที่นั่ง-5" type="text" formControlName="code" class="app-input" />
+          <app-field-error [control]="editForm.controls.code" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-group">
           <span class="app-label">การคิดค่าใช้จ่าย</span>
@@ -119,6 +121,37 @@
               }}
             </span>
           </label>
+        </div>
+        <div class="app-form-group">
+          <span class="app-label">รูปที่นั่ง (ไม่บังคับ)</span>
+          <div class="mt-1 flex flex-wrap items-center gap-3">
+            <app-thumb-image
+              [src]="item.imageUrl"
+              class="h-16 w-16 rounded-md bg-surface ring-1 ring-theme-border"
+            />
+            <div class="flex flex-wrap items-center gap-2">
+              <label class="app-btn-secondary-sm cursor-pointer">
+                {{ uploadingImage() ? 'กำลังอัปโหลด...' : 'เลือกรูป' }}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  class="sr-only"
+                  [disabled]="uploadingImage()"
+                  (change)="onPickSeatingImage($event)"
+                />
+              </label>
+              @if (item.imageUrl) {
+                <button
+                  type="button"
+                  class="app-btn-danger-sm"
+                  [disabled]="uploadingImage()"
+                  (click)="removeSeatingImage()"
+                >
+                  ลบรูป
+                </button>
+              }
+            </div>
+          </div>
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>

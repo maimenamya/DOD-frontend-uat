@@ -391,6 +391,7 @@
             <div class="open-table-pc-add-panel">
               <div class="open-table-pc-add-panel__header">
                 <h4 class="open-table-pc-add-panel__title">{{ pcAddNavActiveLabel() }}</h4>
+                <ng-container *ngTemplateOutlet="orderPickerModeToggle"></ng-container>
               </div>
               @if (currentPcAddNavKey(); as navKey) {
                 <div
@@ -407,7 +408,7 @@
                       [disabled]="actionBusy()"
                       (click)="submitAddItems()"
                     >
-                      {{ actionBusy() ? 'กำลังเพิ่ม...' : 'เพิ่ม' }}
+                      {{ addItemsButtonLabel() }}
                     </button>
                   </div>
                 }
@@ -665,6 +666,10 @@
                     (ngModelChange)="onCheckInSalesChange($event)"
                     placeholder="เลือกเซลล์"
                   />
+                  <app-field-error
+                    [validated]="checkInValidated() && checkInSalesMissing()"
+                    message="กรุณาเลือกเซลล์"
+                  />
                 </div>
                 <div class="space-y-1">
                   <label class="text-sm text-text-secondary" for="check-in-guest-count">จำนวนลูกค้า</label>
@@ -678,6 +683,10 @@
                     (input)="onCheckInGuestCountInput($any($event.target).value)"
                     (keydown)="onCheckInGuestCountKeydown($event)"
                     placeholder="เช่น 3"
+                  />
+                  <app-field-error
+                    [validated]="checkInValidated() && checkInGuestCountMissing()"
+                    message="กรุณาระบุจำนวนลูกค้า"
                   />
                 </div>
               </div>
@@ -714,7 +723,7 @@
                     class="app-input"
                     [ngModel]="checkInPackageCustomerName()"
                     (ngModelChange)="checkInPackageCustomerName.set($event)"
-                    placeholder=""
+                    [placeholder]="optionalFieldPlaceholder"
                   />
                 </div>
               </div>
@@ -775,6 +784,10 @@
                   (ngModelChange)="onCheckInSalesChange($event)"
                   placeholder="เลือกเซลล์"
                 />
+                <app-field-error
+                  [validated]="checkInValidated() && checkInSalesMissing()"
+                  message="กรุณาเลือกเซลล์"
+                />
               </div>
               <div class="space-y-1">
                 <label class="text-sm text-text-secondary" for="reserved-check-in-guest-count">จำนวนลูกค้า</label>
@@ -788,6 +801,10 @@
                   (input)="onCheckInGuestCountInput($any($event.target).value)"
                   (keydown)="onCheckInGuestCountKeydown($event)"
                   placeholder="เช่น 3"
+                />
+                <app-field-error
+                  [validated]="checkInValidated() && checkInGuestCountMissing()"
+                  message="กรุณาระบุจำนวนลูกค้า"
                 />
               </div>
             </div>
@@ -824,7 +841,7 @@
                   class="app-input"
                   [ngModel]="checkInPackageCustomerName()"
                   (ngModelChange)="checkInPackageCustomerName.set($event)"
-                  placeholder=""
+                  [placeholder]="optionalFieldPlaceholder"
                 />
               </div>
             </div>
@@ -1384,7 +1401,7 @@
             />
           }
         </div>
-        @if (roomChargeSeatingTypeId() != null) {
+        @if (roomChargeSeatingTypeId() != null && !useRoomChargeGrid()) {
           <div class="app-form-group">
             <label class="app-label" for="open-table-ที่นั่ง-ห้อง-2">ที่นั่ง / ห้อง</label>
             <app-custom-dropdown inputId="open-table-ที่นั่ง-ห้อง-2"
@@ -1392,9 +1409,15 @@
               [ngModel]="roomChargeSeatingId()"
               (ngModelChange)="onRoomChargeSeatingChange($event)"
               placeholder="เลือกที่นั่ง"
+              [class.app-field-invalid]="addItemValidated() && roomChargeSeatingId() == null"
+            />
+            <app-field-error
+              [validated]="addItemValidated() && roomChargeSeatingId() == null"
+              message="กรุณาเลือกที่นั่ง"
             />
           </div>
         }
+        @if (!useRoomChargeGrid()) {
         <div class="app-form-group">
           <label class="app-label" for="open-table-ค่าห้อง-3">ค่าห้อง</label>
           <app-custom-dropdown
@@ -1412,10 +1435,15 @@
               type="text"
               inputmode="numeric"
               class="app-input"
+              [class.app-field-invalid]="addItemValidated() && !roomChargeUnitPriceText().trim()"
               [ngModel]="roomChargeUnitPriceText()"
               (ngModelChange)="roomChargeUnitPriceText.set($event)"
               (input)="onRoomChargeUnitPriceInput($event)"
               placeholder="ใส่ราคา"
+            />
+            <app-field-error
+              [validated]="addItemValidated() && !roomChargeUnitPriceText().trim()"
+              message="กรุณาใส่ราคา"
             />
           </div>
         }
@@ -1424,10 +1452,18 @@
           <app-shop-datetime-input
             #roomSeatDatetimeInput
             inputId="room-seat-start"
+            [class.app-field-invalid]="addItemValidated() && roomSeatStartedAtMissing()"
             [ngModel]="roomSeatStartedAt()"
             (ngModelChange)="roomSeatStartedAt.set($event)"
           />
+          <app-field-error
+            [validated]="addItemValidated() && roomSeatStartedAtMissing()"
+            message="กรุณาระบุเวลาเริ่มใช้"
+          />
         </div>
+        } @else {
+          <ng-container *ngTemplateOutlet="roomChargeGrid"></ng-container>
+        }
       }
 
       @if (addModalMode() === 'ORDER_LEDGER') {
@@ -1473,6 +1509,7 @@
               />
             }
           </div>
+          @if (!useOrderMenuGrid()) {
           <div class="app-form-group">
             <span class="app-label">เลือกรายการอาหาร</span>
             @for (catId of [selectedFoodCategoryId()]; track catId) {
@@ -1481,9 +1518,17 @@
                 [ngModel]="selectedFoodId()"
                 (ngModelChange)="onFoodItemChange($event)"
                 placeholder="เลือกรายการอาหาร"
+                [class.app-field-invalid]="addItemValidated() && selectedFoodId() == null"
               />
             }
+            <app-field-error
+              [validated]="addItemValidated() && selectedFoodId() == null"
+              message="กรุณาเลือกรายการอาหาร"
+            />
           </div>
+          } @else {
+            <ng-container *ngTemplateOutlet="orderMenuGrid"></ng-container>
+          }
         }
 
         @if (orderLedgerCategory() === 'BEVERAGE') {
@@ -1516,6 +1561,7 @@
               />
             }
           </div>
+          @if (!useOrderMenuGrid()) {
           <div class="app-form-group">
             <span class="app-label">เลือกเครื่องดื่ม</span>
             @for (catId of [selectedBeverageCategoryId()]; track catId) {
@@ -1524,8 +1570,13 @@
                 [ngModel]="selectedBeverageId()"
                 (ngModelChange)="onBeverageChange($event)"
                 placeholder="เลือกเครื่องดื่ม"
+                [class.app-field-invalid]="addItemValidated() && selectedBeverageId() == null"
               />
             }
+            <app-field-error
+              [validated]="addItemValidated() && selectedBeverageId() == null"
+              message="กรุณาเลือกเครื่องดื่ม"
+            />
           </div>
           @if (selectedBeverageIsMixer() && selectedBeverageId() != null) {
             <div class="app-form-group">
@@ -1544,9 +1595,13 @@
               </label>
             </div>
           }
+          } @else {
+            <ng-container *ngTemplateOutlet="orderMenuGrid"></ng-container>
+          }
         }
 
         @if (orderLedgerCategory() === 'COCKTAIL') {
+          @if (!useCocktailGrid()) {
           <div class="app-form-group">
             <label class="app-label" for="open-table-เลือกค็อกเทล-7">เลือกค็อกเทล</label>
             <app-custom-dropdown inputId="open-table-เลือกค็อกเทล-7"
@@ -1554,6 +1609,11 @@
               [ngModel]="selectedCocktailId()"
               (ngModelChange)="onCocktailChange($event)"
               placeholder="เลือกค็อกเทล"
+              [class.app-field-invalid]="addItemValidated() && selectedCocktailId() == null"
+            />
+            <app-field-error
+              [validated]="addItemValidated() && selectedCocktailId() == null"
+              message="กรุณาเลือกค็อกเทล"
             />
           </div>
           <div class="app-form-group">
@@ -1571,11 +1631,19 @@
               <app-custom-dropdown
                 [options]="cocktailHostEmployeeOptions()"
                 [ngModel]="orderCocktailStaffEmployeeId()"
-                (ngModelChange)="onOrderCocktailEmployeeChange($event)"
-                placeholder="เลือกพนักงาน"
-              />
+              (ngModelChange)="onOrderCocktailEmployeeChange($event)"
+              placeholder="เลือกพนักงาน"
+              [class.app-field-invalid]="addItemValidated() && orderCocktailStaffEmployeeId() == null"
+            />
             }
+            <app-field-error
+              [validated]="addItemValidated() && orderCocktailStaffEmployeeId() == null"
+              message="กรุณาเลือกพนักงานพ่วงดื่มสำหรับค็อกเทล"
+            />
           </div>
+          } @else {
+            <ng-container *ngTemplateOutlet="cocktailGrid"></ng-container>
+          }
         }
 
         @if (orderLedgerCategory() === 'PROMOTION' || orderLedgerCategory() === 'MEMBER') {
@@ -1619,10 +1687,15 @@
                 [ngModel]="selectedPackageDepositId()"
                 (ngModelChange)="onPackageDepositChange($event)"
                 placeholder="ชื่อลูกค้า — ชื่อโปร"
+                [class.app-field-invalid]="addItemValidated() && selectedPackageDepositId() == null"
+              />
+              <app-field-error
+                [validated]="addItemValidated() && selectedPackageDepositId() == null"
+                message="กรุณาเลือกรายการฝาก"
               />
               <p class="app-hint">เบิกขวดทำที่หน้ารายการหลังบันทึก</p>
             </div>
-          } @else {
+          } @else if (!useOrderMenuGrid()) {
             <div class="app-form-group">
               <label class="app-label" for="open-table-เลือกโปร-9">เลือกโปร</label>
               <app-custom-dropdown inputId="open-table-เลือกโปร-9"
@@ -1630,14 +1703,29 @@
                 [ngModel]="selectedPromotionId()"
                 (ngModelChange)="onPromotionChange($event)"
                 placeholder="เลือกโปร"
+                [class.app-field-invalid]="addItemValidated() && selectedPromotionId() == null"
+              />
+              <app-field-error
+                [validated]="addItemValidated() && selectedPromotionId() == null"
+                message="กรุณาเลือกโปร"
               />
             </div>
-            @if (selectedPackageAllowsDeposit()) {
-              @if (sessionHasPackageCustomerCode()) {
+            @if (selectedPackageAllowsDeposit() && !sessionHasPackageCustomerCode()) {
+              @if (addItemValidated()) {
+                <p class="app-field-error">กรุณาตั้งรหัสลูกค้าที่บิลก่อน (เมนู ⋮)</p>
               } @else {
                 <p class="app-field-hint">ตั้งรหัสลูกค้าที่เมนู ⋮ ก่อนเปิดโปรฝาก</p>
               }
             }
+          } @else {
+            @if (!sessionHasPackageCustomerCode()) {
+              @if (addItemValidated()) {
+                <p class="app-field-error">กรุณาตั้งรหัสลูกค้าที่บิลก่อน (เมนู ⋮)</p>
+              } @else {
+                <p class="app-field-hint">โปรที่ฝากได้ ต้องตั้งรหัสลูกค้าที่เมนู ⋮ ก่อน</p>
+              }
+            }
+            <ng-container *ngTemplateOutlet="orderMenuGrid"></ng-container>
           }
         }
 
@@ -1650,10 +1738,15 @@
                 [ngModel]="selectedPackageDepositId()"
                 (ngModelChange)="onPackageDepositChange($event)"
                 placeholder="ชื่อลูกค้า — ชื่อเมม"
+                [class.app-field-invalid]="addItemValidated() && selectedPackageDepositId() == null"
+              />
+              <app-field-error
+                [validated]="addItemValidated() && selectedPackageDepositId() == null"
+                message="กรุณาเลือกรายการฝาก"
               />
               <p class="app-hint">เบิกขวดทำที่หน้ารายการหลังบันทึก</p>
             </div>
-          } @else {
+          } @else if (!useOrderMenuGrid()) {
             <div class="app-form-group">
               <label class="app-label" for="open-table-เลือกเมมเบอร์-13">เลือกเมมเบอร์</label>
               <app-custom-dropdown inputId="open-table-เลือกเมมเบอร์-13"
@@ -1661,18 +1754,34 @@
                 [ngModel]="selectedMembershipId()"
                 (ngModelChange)="onMembershipChange($event)"
                 placeholder="เลือกเมมเบอร์"
+                [class.app-field-invalid]="addItemValidated() && selectedMembershipId() == null"
+              />
+              <app-field-error
+                [validated]="addItemValidated() && selectedMembershipId() == null"
+                message="กรุณาเลือกเมมเบอร์"
               />
             </div>
-            @if (selectedPackageAllowsDeposit()) {
-              @if (sessionHasPackageCustomerCode()) {
+            @if (selectedPackageAllowsDeposit() && !sessionHasPackageCustomerCode()) {
+              @if (addItemValidated()) {
+                <p class="app-field-error">กรุณาตั้งรหัสลูกค้าที่บิลก่อน (เมนู ⋮)</p>
               } @else {
                 <p class="app-field-hint">ตั้งรหัสลูกค้าที่เมนู ⋮ ก่อนเปิดเมมฝาก</p>
               }
             }
+          } @else {
+            @if (!sessionHasPackageCustomerCode()) {
+              @if (addItemValidated()) {
+                <p class="app-field-error">กรุณาตั้งรหัสลูกค้าที่บิลก่อน (เมนู ⋮)</p>
+              } @else {
+                <p class="app-field-hint">เมมที่ฝากได้ ต้องตั้งรหัสลูกค้าที่เมนู ⋮ ก่อน</p>
+              }
+            }
+            <ng-container *ngTemplateOutlet="orderMenuGrid"></ng-container>
           }
         }
 
         @if (orderLedgerCategory() === 'OTHER') {
+          @if (!useOrderMenuGrid()) {
           <div class="app-form-group">
             <label class="app-label" for="open-table-เลือกรายการเบ็ดเตล็ด-16">เลือกรายการเบ็ดเตล็ด</label>
             <app-custom-dropdown inputId="open-table-เลือกรายการเบ็ดเตล็ด-16"
@@ -1680,11 +1789,20 @@
               [ngModel]="selectedOtherChargeId()"
               (ngModelChange)="onOtherChargeChange($event)"
               placeholder="เลือกรายการ (สแน็ค ผ้าเย็น ฯลฯ)"
+              [class.app-field-invalid]="addItemValidated() && selectedOtherChargeId() == null"
+            />
+            <app-field-error
+              [validated]="addItemValidated() && selectedOtherChargeId() == null"
+              message="กรุณาเลือกรายการเบ็ดเตล็ด"
             />
           </div>
+          } @else {
+            <ng-container *ngTemplateOutlet="orderMenuGrid"></ng-container>
+          }
         }
 
         @if (orderLedgerCategory() === 'TABLE_OPENING') {
+          @if (!useOrderMenuGrid()) {
           <div class="app-form-group">
             <label class="app-label" for="open-table-เลือกค่าเปิดโต๊ะ-17">เลือกค่าเปิดโต๊ะ</label>
             <app-custom-dropdown inputId="open-table-เลือกค่าเปิดโต๊ะ-17"
@@ -1692,11 +1810,19 @@
               [ngModel]="selectedOtherChargeId()"
               (ngModelChange)="onOtherChargeChange($event)"
               placeholder="เลือกรายการค่าเปิดโต๊ะ"
+              [class.app-field-invalid]="addItemValidated() && selectedOtherChargeId() == null"
+            />
+            <app-field-error
+              [validated]="addItemValidated() && selectedOtherChargeId() == null"
+              message="กรุณาเลือกค่าเปิดโต๊ะ"
             />
           </div>
+          } @else {
+            <ng-container *ngTemplateOutlet="orderMenuGrid"></ng-container>
+          }
         }
 
-        @if (showOrderQtyField()) {
+        @if (showOrderQtyField() && !useOrderMenuGrid() && !useCocktailGrid()) {
           <div class="app-form-group">
             <label class="app-label" for="open-table-จำนวน-18">จำนวน</label>
             <input id="open-table-จำนวน-18"
@@ -1717,14 +1843,14 @@
         <div class="app-form-group">
           @if (isPcBillWorkspace()) {
             <div
-              class="app-segmented-control"
+              class="app-segmented-control app-scroll-region max-w-full flex-nowrap overflow-x-auto"
               role="group"
               aria-label="ประเภทลงดื่ม"
             >
               @for (opt of staffLedgerEntryModeOptions; track opt.value) {
                 <button
                   type="button"
-                  class="app-segmented-chip"
+                  class="app-segmented-chip shrink-0"
                   [class.app-segmented-chip-active]="staffLedgerEntryMode() === opt.value"
                   (click)="onStaffLedgerEntryModeChange(opt.value)"
                 >
@@ -1744,6 +1870,7 @@
           }
         </div>
 
+        @if (!useStaffLedgerGrid()) {
         <div class="app-form-group">
           <label class="app-label" for="open-table-เลือกตำแหน่งพนักงาน-19">เลือกตำแหน่งพนักงาน</label>
           <app-custom-dropdown inputId="open-table-เลือกตำแหน่งพนักงาน-19"
@@ -1751,6 +1878,11 @@
             [ngModel]="staffLedgerRoleId()"
             (ngModelChange)="onStaffLedgerRoleChange($event)"
             placeholder="เลือกตำแหน่ง"
+            [class.app-field-invalid]="addItemValidated() && staffLedgerRoleId() == null"
+          />
+          <app-field-error
+            [validated]="addItemValidated() && staffLedgerRoleId() == null"
+            message="กรุณาเลือกตำแหน่งพนักงาน"
           />
         </div>
 
@@ -1762,8 +1894,13 @@
               [ngModel]="staffLedgerEmployeeId()"
               (ngModelChange)="onStaffLedgerEmployeeChange($event)"
               placeholder="เลือกพนักงาน"
+              [class.app-field-invalid]="addItemValidated() && staffLedgerEmployeeId() == null"
             />
           }
+          <app-field-error
+            [validated]="addItemValidated() && staffLedgerEmployeeId() == null"
+            message="กรุณาเลือกพนักงาน"
+          />
         </div>
 
         @if (!isStaffLedgerOffDutyPurchase()) {
@@ -1862,8 +1999,13 @@
             <app-shop-datetime-input
               #staffSeatDatetimeInput
               inputId="staff-seat-started-at"
+              [class.app-field-invalid]="addItemValidated() && staffSeatStartedAtMissing()"
               [ngModel]="staffSeatStartedAt()"
               (ngModelChange)="staffSeatStartedAt.set($event)"
+            />
+            <app-field-error
+              [validated]="addItemValidated() && staffSeatStartedAtMissing()"
+              message="กรุณาระบุเวลาเริ่มนั่งโต๊ะ"
             />
             <p class="app-field-hint">
               รันดื่มตามเวลานั่งจากกฎร้าน (เศษนาทีหลังชม.เต็ม) · สตาร์ทดื่มแยกตามสวิตช์ด้านบน
@@ -1883,6 +2025,11 @@
               (ngModelChange)="onStaffLedgerQtyTextChange($event)"
               (keydown)="blockNonNumericKey($event)"
               placeholder="1"
+              [class.app-field-invalid]="addItemValidated() && !staffLedgerQtyText().trim()"
+            />
+            <app-field-error
+              [validated]="addItemValidated() && !staffLedgerQtyText().trim()"
+              message="กรุณาระบุจำนวนดื่ม"
             />
             @if (isStaffLedgerOffDutyPurchase()) {
               <p class="app-field-hint">ซื้อดื่มหยุด — ระบุจำนวนดื่มที่ลงบิล</p>
@@ -1891,6 +2038,9 @@
             }
           </div>
         }
+        } @else {
+          <ng-container *ngTemplateOutlet="staffLedgerGrid"></ng-container>
+        }
       }
     </div>
 
@@ -1898,10 +2048,388 @@
       <div class="app-form-actions app-form-actions-top">
         <button type="button" class="app-btn-secondary" (click)="closeAddModal()">ยกเลิก</button>
         <button type="button" class="app-btn-primary" [disabled]="actionBusy()" (click)="submitAddItems()">
-          {{ actionBusy() ? 'กำลังเพิ่ม...' : 'เพิ่ม' }}
+          {{ addItemsButtonLabel() }}
         </button>
       </div>
     }
+</ng-template>
+
+<ng-template #orderPickerModeToggle>
+  @if (showOrderPickerToggle()) {
+    <div
+      class="dashboard-date-presets open-table-view-mode open-table-order-picker-toggle"
+      role="group"
+      aria-label="รูปแบบเลือกรายการ"
+    >
+      <button
+        type="button"
+        class="dashboard-date-btn open-table-view-btn"
+        [class.dashboard-date-btn-active]="orderPickerMode() === 'classic'"
+        [attr.aria-pressed]="orderPickerMode() === 'classic'"
+        title="แบบรายการ"
+        (click)="setOrderPickerMode('classic')"
+      >
+        <svg class="open-table-view-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <rect x="4" y="5" width="16" height="2.4" rx="1.2" />
+          <rect x="4" y="10.8" width="16" height="2.4" rx="1.2" />
+          <rect x="4" y="16.6" width="16" height="2.4" rx="1.2" />
+        </svg>
+        <span class="sr-only">แบบรายการ</span>
+      </button>
+      <button
+        type="button"
+        class="dashboard-date-btn open-table-view-btn"
+        [class.dashboard-date-btn-active]="orderPickerMode() === 'grid'"
+        [attr.aria-pressed]="orderPickerMode() === 'grid'"
+        title="แบบกริด"
+        (click)="setOrderPickerMode('grid')"
+      >
+        <svg class="open-table-view-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <rect x="3.5" y="3.5" width="4.75" height="4.75" rx="1.15" />
+          <rect x="9.625" y="3.5" width="4.75" height="4.75" rx="1.15" />
+          <rect x="15.75" y="3.5" width="4.75" height="4.75" rx="1.15" />
+          <rect x="3.5" y="9.625" width="4.75" height="4.75" rx="1.15" />
+          <rect x="9.625" y="9.625" width="4.75" height="4.75" rx="1.15" />
+          <rect x="15.75" y="9.625" width="4.75" height="4.75" rx="1.15" />
+          <rect x="3.5" y="15.75" width="4.75" height="4.75" rx="1.15" />
+          <rect x="9.625" y="15.75" width="4.75" height="4.75" rx="1.15" />
+          <rect x="15.75" y="15.75" width="4.75" height="4.75" rx="1.15" />
+        </svg>
+        <span class="sr-only">แบบกริด</span>
+      </button>
+    </div>
+  }
+</ng-template>
+
+<ng-template #orderMenuGrid>
+  <div class="open-table-order-grid app-scroll-region" role="list">
+    @if (addItemValidated() && orderCartCount() < 1) {
+      <p class="app-field-error">กรุณาเลือกรายการในกริด</p>
+    }
+    @for (card of orderGridCards(); track card.type + ':' + card.id) {
+      <article
+        class="open-table-order-card"
+        [class.open-table-order-card--picked]="orderCartQtyFor(card) > 0"
+        role="listitem"
+      >
+        <div class="open-table-order-card__body">
+          <app-thumb-image
+            [src]="card.imageUrl"
+            [alt]="card.name"
+            class="open-table-order-card__img"
+            [fillFallback]="true"
+          />
+          <span class="open-table-order-card__name">{{ card.name }}</span>
+          <span class="open-table-order-card__price">
+            @if (card.isMixer && isGridMixerFree(card.id)) {
+              0 บาท
+            } @else {
+              {{ card.priceLabel }}
+            }
+          </span>
+        </div>
+        @if (card.isMixer) {
+          <button
+            type="button"
+            class="open-table-order-card__mixer"
+            [class.open-table-order-card__mixer--on]="isGridMixerFree(card.id)"
+            [attr.aria-pressed]="isGridMixerFree(card.id)"
+            aria-label="ฟรีมิกซ์"
+            (click)="toggleGridMixerFree(card.id)"
+          >
+            ฟรีมิกซ์
+          </button>
+        }
+        <div class="open-table-order-card__qty">
+          <button
+            type="button"
+            class="open-table-order-card__step"
+            [disabled]="orderCartQtyFor(card) < 1"
+            (click)="bumpOrderGridCard(card, -1)"
+            [attr.aria-label]="'ลด ' + card.name"
+          >
+            −
+          </button>
+          <span class="open-table-order-card__count">{{ orderCartQtyFor(card) }}</span>
+          <button
+            type="button"
+            class="open-table-order-card__step"
+            (click)="bumpOrderGridCard(card, 1)"
+            [attr.aria-label]="'เพิ่ม ' + card.name"
+          >
+            +
+          </button>
+        </div>
+      </article>
+    } @empty {
+      <p class="open-table-order-grid__empty">ไม่มีรายการในหมวดนี้</p>
+    }
+  </div>
+</ng-template>
+
+<ng-template #staffLedgerGrid>
+  <div class="open-table-staff-grid-wrap app-scroll-region">
+    @if (addItemValidated() && staffGridCartCount() < 1) {
+      <p class="app-field-error">กรุณาเลือกรายการในกริด</p>
+    }
+    @for (group of staffGridGroups(); track group.roleId) {
+      <h5 class="open-table-staff-grid-divider">{{ group.label }}</h5>
+      <div class="open-table-order-grid open-table-order-grid--choice" role="list">
+        @for (emp of group.employees; track emp.id) {
+          <article
+            class="open-table-order-card"
+            [class.open-table-order-card--picked]="staffGridState(emp).qty > 0"
+            role="listitem"
+          >
+            <div class="open-table-order-card__body">
+              <app-thumb-image
+                [src]="emp.imageUrl"
+                [alt]="employeeDropdownLabel(emp)"
+                class="open-table-order-card__img"
+                [fillFallback]="true"
+                fit="cover"
+              />
+              <span class="open-table-order-card__name">{{ employeeDropdownLabel(emp) }}</span>
+            </div>
+            <div class="open-table-order-card__badges">
+              @if (staffGridShowFree()) {
+                <button
+                  type="button"
+                  class="open-table-order-card__mixer"
+                  [class.open-table-order-card__mixer--on]="staffGridState(emp).useFree"
+                  [attr.aria-pressed]="staffGridState(emp).useFree"
+                  (click)="toggleStaffGridFree(emp)"
+                >
+                  ฟรีดื่ม
+                </button>
+              }
+              @if (staffGridShowTag(emp)) {
+                <button
+                  type="button"
+                  class="open-table-order-card__mixer"
+                  [class.open-table-order-card__mixer--on]="staffGridState(emp).asTag"
+                  [attr.aria-pressed]="staffGridState(emp).asTag"
+                  (click)="toggleStaffGridTag(emp)"
+                >
+                  แท็ก
+                </button>
+              }
+              @if (staffGridShowReopen(emp)) {
+                <button
+                  type="button"
+                  class="open-table-order-card__mixer"
+                  [class.open-table-order-card__mixer--on]="staffGridState(emp).reopenNew"
+                  [attr.aria-pressed]="staffGridState(emp).reopenNew"
+                  (click)="toggleStaffGridReopen(emp)"
+                >
+                  สตาร์ทใหม่
+                </button>
+              }
+            </div>
+            @if (staffGridShowSeatTime(emp)) {
+              <div class="open-table-order-card__when">
+                <app-shop-datetime-input
+                  [inputId]="'staff-grid-start-' + emp.id"
+                  [class.app-field-invalid]="
+                    addItemValidated() && staffGridState(emp).qty > 0 && staffGridSeatTimeMissing(emp)
+                  "
+                  [ngModel]="staffGridState(emp).startedAt"
+                  (ngModelChange)="onStaffGridStartedAt(emp, $event)"
+                />
+                @if (addItemValidated() && staffGridState(emp).qty > 0 && staffGridSeatTimeMissing(emp)) {
+                  <p class="app-field-error">กรุณาระบุเวลาเริ่มนั่ง</p>
+                }
+              </div>
+            }
+            <div class="open-table-order-card__qty">
+              <button
+                type="button"
+                class="open-table-order-card__step"
+                [disabled]="staffGridState(emp).qty < 1"
+                (click)="bumpStaffGrid(emp, -1)"
+                [attr.aria-label]="'ลด ' + employeeDropdownLabel(emp)"
+              >
+                −
+              </button>
+              <span class="open-table-order-card__count">{{ staffGridState(emp).qty }}</span>
+              <button
+                type="button"
+                class="open-table-order-card__step"
+                (click)="bumpStaffGrid(emp, 1)"
+                [attr.aria-label]="'เพิ่ม ' + employeeDropdownLabel(emp)"
+              >
+                +
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    } @empty {
+      <p class="open-table-order-grid__empty">ไม่มีพนักงานที่ลงดื่มได้</p>
+    }
+  </div>
+</ng-template>
+
+<ng-template #roomChargeGrid>
+  <div class="open-table-order-grid open-table-order-grid--choice app-scroll-region" role="list">
+    @if (addItemValidated() && roomGridCartCount() < 1) {
+      <p class="app-field-error">กรุณาเลือกรายการในกริด</p>
+    }
+    @for (seat of roomGridSeats(); track seat.seatId) {
+      <article
+        class="open-table-order-card"
+        [class.open-table-order-card--picked]="roomGridState(seat.seatId).qty > 0"
+        role="listitem"
+      >
+        <div class="open-table-order-card__body">
+          <app-thumb-image
+            [src]="seat.imageUrl"
+            [alt]="seat.code"
+            class="open-table-order-card__img"
+            [fillFallback]="true"
+          />
+          <span class="open-table-order-card__name">{{ seat.code }}</span>
+        </div>
+        <div class="open-table-order-card__badges">
+          <button
+            type="button"
+            class="open-table-order-card__mixer"
+            [class.open-table-order-card__mixer--on]="roomGridState(seat.seatId).rateType === 'HOURLY'"
+            [attr.aria-pressed]="roomGridState(seat.seatId).rateType === 'HOURLY'"
+            (click)="toggleRoomGridRate(seat.seatId, 'HOURLY')"
+          >
+            ชั่วโมง
+          </button>
+          <button
+            type="button"
+            class="open-table-order-card__mixer"
+            [class.open-table-order-card__mixer--on]="roomGridState(seat.seatId).rateType === 'FLAT_RATE'"
+            [attr.aria-pressed]="roomGridState(seat.seatId).rateType === 'FLAT_RATE'"
+            (click)="toggleRoomGridRate(seat.seatId, 'FLAT_RATE')"
+          >
+            เหมา
+          </button>
+        </div>
+        @if (roomGridShowsPrice(seat.seatId)) {
+          <input
+            type="text"
+            inputmode="numeric"
+            class="app-input open-table-order-card__price-input"
+            [class.app-field-invalid]="
+              addItemValidated() && roomGridState(seat.seatId).qty > 0 && !roomGridState(seat.seatId).priceText.trim()
+            "
+            [ngModel]="roomGridState(seat.seatId).priceText"
+            (ngModelChange)="onRoomGridPrice(seat.seatId, $event)"
+            placeholder="ราคา (บาท)"
+            [attr.aria-label]="'ราคา ' + seat.code"
+          />
+        }
+        <div class="open-table-order-card__when">
+          <app-shop-datetime-input
+            [inputId]="'room-grid-start-' + seat.seatId"
+            [class.app-field-invalid]="
+              addItemValidated() && roomGridState(seat.seatId).qty > 0 && roomGridSeatTimeMissing(seat.seatId)
+            "
+            [ngModel]="roomGridState(seat.seatId).startedAt"
+            (ngModelChange)="onRoomGridStartedAt(seat.seatId, $event)"
+          />
+        </div>
+        <div class="open-table-order-card__qty">
+          <button
+            type="button"
+            class="open-table-order-card__step"
+            [disabled]="roomGridState(seat.seatId).qty < 1"
+            (click)="bumpRoomGrid(seat.seatId, -1)"
+            [attr.aria-label]="'ลดค่าห้อง ' + seat.code"
+          >
+            −
+          </button>
+          <span class="open-table-order-card__count">{{ roomGridState(seat.seatId).qty }}</span>
+          <button
+            type="button"
+            class="open-table-order-card__step"
+            (click)="bumpRoomGrid(seat.seatId, 1)"
+            [attr.aria-label]="'เพิ่มค่าห้อง ' + seat.code"
+          >
+            +
+          </button>
+        </div>
+      </article>
+    } @empty {
+      <p class="open-table-order-grid__empty">ไม่มีห้องในประเภทนี้</p>
+    }
+  </div>
+</ng-template>
+
+<ng-template #cocktailGrid>
+  <div class="open-table-order-grid open-table-order-grid--choice app-scroll-region" role="list">
+    @if (addItemValidated() && cocktailGridAddCount() < 1) {
+      <p class="app-field-error">กรุณาเลือกรายการในกริด</p>
+    }
+    @for (row of cocktailGridCards(); track row.id) {
+      <article
+        class="open-table-order-card"
+        [class.open-table-order-card--picked]="cocktailGridState(row.id).qty > 0"
+        role="listitem"
+      >
+        <div class="open-table-order-card__body">
+          <app-thumb-image
+            [src]="row.imageUrl"
+            [alt]="row.name"
+            class="open-table-order-card__img"
+            [fillFallback]="true"
+          />
+          <span class="open-table-order-card__name">{{ row.name }}</span>
+        </div>
+        <div class="open-table-order-card__pick">
+          <app-custom-dropdown
+            [inputId]="'cocktail-grid-role-' + row.id"
+            [options]="cocktailHostRoleOptions()"
+            [ngModel]="cocktailGridState(row.id).roleId"
+            (ngModelChange)="onCocktailGridRoleChange(row.id, $event)"
+            placeholder="ตำแหน่ง"
+          />
+        </div>
+        <div class="open-table-order-card__pick">
+          @for (roleId of [cocktailGridState(row.id).roleId]; track roleId) {
+            <app-custom-dropdown
+              [inputId]="'cocktail-grid-emp-' + row.id"
+              [options]="cocktailGridEmployeeOptions(roleId)"
+              [ngModel]="cocktailGridState(row.id).employeeId"
+              (ngModelChange)="onCocktailGridEmployeeChange(row.id, $event)"
+              placeholder="รหัส-ชื่อ"
+              [class.app-field-invalid]="addItemValidated() && cocktailGridHostMissing(row.id)"
+            />
+          }
+          @if (addItemValidated() && cocktailGridHostMissing(row.id)) {
+            <p class="app-field-error">กรุณาเลือกพนักงาน</p>
+          }
+        </div>
+        <div class="open-table-order-card__qty">
+          <button
+            type="button"
+            class="open-table-order-card__step"
+            [disabled]="cocktailGridState(row.id).qty < 1"
+            (click)="bumpCocktailGrid(row.id, -1)"
+            [attr.aria-label]="'ลด ' + row.name"
+          >
+            −
+          </button>
+          <span class="open-table-order-card__count">{{ cocktailGridState(row.id).qty }}</span>
+          <button
+            type="button"
+            class="open-table-order-card__step"
+            (click)="bumpCocktailGrid(row.id, 1)"
+            [attr.aria-label]="'เพิ่ม ' + row.name"
+          >
+            +
+          </button>
+        </div>
+      </article>
+    } @empty {
+      <p class="open-table-order-grid__empty">ยังไม่มีค็อกเทล</p>
+    }
+  </div>
 </ng-template>
 
 @if (showNewBillSaleModal()) {
@@ -1919,6 +2447,10 @@
           [ngModel]="newBillSaleId()"
           (ngModelChange)="onNewBillSaleChange($event)"
           placeholder="เลือกเซลล์"
+        />
+        <app-field-error
+          [validated]="newBillSaleValidated() && newBillSaleId() == null"
+          message="กรุณาเลือกเซลล์"
         />
       </div>
       <label class="app-toggle">
@@ -1984,6 +2516,11 @@
             [ngModel]="transferDestinationKey()"
             (ngModelChange)="onTransferDestinationChange($event)"
             placeholder="เลือกที่นั่ง"
+            [class.app-field-invalid]="transferValidated() && !transferDestinationKey()"
+          />
+          <app-field-error
+            [validated]="transferValidated() && !transferDestinationKey()"
+            message="กรุณาเลือกที่นั่งปลายทาง"
           />
           <p class="app-field-hint">ย้ายที่นั่งจะหยุดค่าห้องที่กำลังรันอยู่ — เพิ่มค่าห้องใหม่จากแท็บ «ค่าห้อง»</p>
         </div>
@@ -2033,6 +2570,10 @@
         [class.app-field-invalid]="stopSeatTimeValidated() && stopSeatTimeMissing()"
         [ngModel]="stopSeatTime()"
         (ngModelChange)="onStopSeatTimeChange($event)"
+      />
+      <app-field-error
+        [validated]="stopSeatTimeValidated() && stopSeatTimeMissing()"
+        message="กรุณาระบุเวลาสต็อป"
       />
     </div>
 
@@ -2106,6 +2647,10 @@
         [ngModel]="stopSeatTime()"
         (ngModelChange)="stopSeatTime.set($event)"
       />
+      <app-field-error
+        [validated]="stopSeatTimeValidated() && stopSeatTimeMissing()"
+        message="กรุณาระบุเวลาสต็อป"
+      />
     </div>
     <div class="app-form-actions app-form-actions-top">
       <button type="button" class="app-btn-secondary" (click)="closeStopRoomModal()">ยกเลิก</button>
@@ -2119,24 +2664,28 @@
 @if (showVoidItemModal()) {
   <app-modal layout="center" [pinCenterOnMobile]="true" (dismiss)="closeVoidItemModal()">
     <div class="app-modal-header">
-      <h2 class="app-modal-title">ลบรายการ — {{ voidItemTarget()?.label }}</h2>
+      <h2 class="app-modal-title">
+        ลบรายการ — {{ voidItemTarget()?.label }}
+        ({{ voidItemTarget()?.quantity }})
+      </h2>
       <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeVoidItemModal()">✕</button>
     </div>
-    <p class="app-field-hint mb-3">
-      สั่งไว้ {{ voidItemTarget()?.quantity }} {{ voidItemTarget()?.unitLabel }}
-      — ลบแล้วเพิ่มโปรหรือรายการใหม่ได้จาก «เพิ่มรายการ»
-    </p>
     <div class="app-form-group">
-      <label class="app-label" for="void-item-qty">จำนวนที่ลบ ({{ voidItemTarget()?.unitLabel }})</label>
+      <label class="app-label" for="void-item-qty">จำนวนที่ลบ</label>
       <input
         id="void-item-qty"
         type="text"
         inputmode="numeric"
         autocomplete="off"
         class="app-input"
+        [class.app-field-invalid]="qtyModalValidated() && !voidItemQtyText().trim()"
         [ngModel]="voidItemQtyText()"
         (ngModelChange)="onVoidItemQtyChange($event)"
         (keydown)="blockNonNumericKey($event)"
+      />
+      <app-field-error
+        [validated]="qtyModalValidated() && !voidItemQtyText().trim()"
+        message="กรุณาระบุจำนวนที่ลบ"
       />
     </div>
     <div class="app-form-actions app-form-actions-top">
@@ -2202,9 +2751,14 @@
         inputmode="numeric"
         autocomplete="off"
         class="app-input"
+        [class.app-field-invalid]="qtyModalValidated() && !editStaffDrinkQtyText().trim()"
         [ngModel]="editStaffDrinkQtyText()"
         (ngModelChange)="onEditStaffDrinkQtyChange($event)"
         (keydown)="blockNonNumericKey($event)"
+      />
+      <app-field-error
+        [validated]="qtyModalValidated() && !editStaffDrinkQtyText().trim()"
+        message="กรุณาระบุจำนวนดื่ม"
       />
       <p class="app-field-hint mt-1">ใส่ 0 เพื่อลบรายการ</p>
     </div>
@@ -2286,9 +2840,18 @@
           inputmode="numeric"
           autocomplete="off"
           class="app-input"
+          [class.app-field-invalid]="
+            qtyModalValidated() && editRoomChargeShowsPriceInput() && !editRoomChargeUnitPriceText().trim()
+          "
           [ngModel]="editRoomChargeUnitPriceText()"
           (ngModelChange)="onEditRoomChargeUnitPriceChange($event)"
           (keydown)="blockNonNumericKey($event)"
+        />
+        <app-field-error
+          [validated]="
+            qtyModalValidated() && editRoomChargeShowsPriceInput() && !editRoomChargeUnitPriceText().trim()
+          "
+          message="กรุณาใส่ราคา"
         />
       </div>
     }
@@ -2315,45 +2878,26 @@
       </button>
     </div>
     <div class="app-form-group">
-      <label class="app-label" for="open-table-เมม-โปร-25">เมม / โปร</label>
-      <app-custom-dropdown inputId="open-table-เมม-โปร-25"
-        [options]="packageBottleModalOptions()"
-        [ngModel]="packageBottleBillItemKey()"
-        (ngModelChange)="onPackageBottleBillItemChange($event)"
-        placeholder="เลือกเมมหรือโปร"
-      />
-      @if (packageBottleModalMaxQty() != null) {
-        <p class="app-field-hint">
-          @if (packageBottleAction() === 'WITHDRAW') {
-            เบิกได้สูงสุด {{ packageBottleModalMaxQty() }} ขวด
-          } @else {
-            ฝากเพิ่มได้สูงสุด {{ packageBottleModalMaxQty() }} ขวด
-          }
-        </p>
-      }
-    </div>
-    <div class="app-form-group">
-      <label class="app-label" for="package-bottle-display-name">ชื่อเหล้า</label>
-      <input
-        id="package-bottle-display-name"
-        type="text"
-        class="app-input"
-        [ngModel]="packageBottleDisplayNameText()"
-        (ngModelChange)="onPackageBottleDisplayNameChange($event)"
-        placeholder="เช่น รีเจนซี่"
-      />
-    </div>
-    <div class="app-form-group">
-      <label class="app-label" for="package-bottle-qty">จำนวนขวด</label>
+      <label class="app-label" for="package-bottle-qty">
+        จำนวน
+        @if (packageBottleModalBalanceLabel(); as balance) {
+          ({{ balance }})
+        }
+      </label>
       <input
         id="package-bottle-qty"
         type="text"
         inputmode="numeric"
         autocomplete="off"
         class="app-input"
+        [class.app-field-invalid]="qtyModalValidated() && !packageBottleQtyText().trim()"
         [ngModel]="packageBottleQtyText()"
         (ngModelChange)="onPackageBottleQtyChange($event)"
         (keydown)="blockNonNumericKey($event)"
+      />
+      <app-field-error
+        [validated]="qtyModalValidated() && !packageBottleQtyText().trim()"
+        message="กรุณาระบุจำนวน"
       />
     </div>
     <div class="app-form-actions app-form-actions-top">
@@ -2375,26 +2919,28 @@
     <div class="app-modal-header">
       <h2 class="app-modal-title">
         คืน{{ returnBeverageTarget()?.unitLabel }} — {{ returnBeverageTarget()?.label }}
+        ({{ returnBeverageTarget()?.quantity }})
       </h2>
       <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeReturnBeverageModal()">
         ✕
       </button>
     </div>
-    <p class="app-field-hint mb-3">
-      สั่งไว้ {{ returnBeverageTarget()?.quantity }} {{ returnBeverageTarget()?.unitLabel }}
-      — ระบุจำนวนที่ลูกค้าคืน
-    </p>
     <div class="app-form-group">
-      <label class="app-label" for="return-beverage-qty">จำนวนคืน ({{ returnBeverageTarget()?.unitLabel }})</label>
+      <label class="app-label" for="return-beverage-qty">จำนวนคืน</label>
       <input
         id="return-beverage-qty"
         type="text"
         inputmode="numeric"
         autocomplete="off"
         class="app-input"
+        [class.app-field-invalid]="qtyModalValidated() && !returnBeverageQtyText().trim()"
         [ngModel]="returnBeverageQtyText()"
         (ngModelChange)="onReturnBeverageQtyChange($event)"
         (keydown)="blockNonNumericKey($event)"
+      />
+      <app-field-error
+        [validated]="qtyModalValidated() && !returnBeverageQtyText().trim()"
+        message="กรุณาระบุจำนวนคืน"
       />
     </div>
     <div class="app-form-actions app-form-actions-top">
@@ -2425,10 +2971,15 @@
           type="text"
           inputmode="numeric"
           class="app-input"
+          [class.app-field-invalid]="qtyModalValidated() && !editGuestCountText().trim()"
           [value]="editGuestCountText()"
           (input)="onEditGuestCountInput($any($event.target).value)"
           (keydown)="onEditGuestCountKeydown($event)"
           placeholder="เช่น 3"
+        />
+        <app-field-error
+          [validated]="qtyModalValidated() && !editGuestCountText().trim()"
+          message="กรุณาระบุจำนวนลูกค้า"
         />
       </div>
       <div class="app-form-actions">
@@ -2487,6 +3038,11 @@
           [ngModel]="editPackageCustomerCode()"
           (ngModelChange)="onEditPackageCustomerCodeChange($event)"
           placeholder="เช่น 042"
+          [class.app-field-invalid]="sessionInfoValidated() && editPackageCustomerCodeInvalid()"
+        />
+        <app-field-error
+          [validated]="sessionInfoValidated() && editPackageCustomerCodeInvalid()"
+          message="รหัสลูกค้าไม่ถูกต้อง"
         />
       </div>
       <div class="app-form-group">
@@ -2497,7 +3053,7 @@
           class="app-input"
           [ngModel]="editPackageCustomerName()"
           (ngModelChange)="editPackageCustomerName.set($event)"
-          placeholder=""
+          [placeholder]="optionalFieldPlaceholder"
         />
       </div>
       <div class="app-form-actions">
@@ -2527,8 +3083,13 @@
         <app-shop-datetime-input
           #checkoutDatetimeInput
           inputId="checkout-at"
+          [class.app-field-invalid]="checkoutValidated() && checkoutAtMissing()"
           [ngModel]="checkoutAt()"
           (ngModelChange)="onCheckoutAtChange($event)"
+        />
+        <app-field-error
+          [validated]="checkoutValidated() && checkoutAtMissing()"
+          message="กรุณาระบุเวลาเช็กบิล"
         />
       </div>
 

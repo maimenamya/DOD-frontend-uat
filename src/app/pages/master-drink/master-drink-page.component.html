@@ -32,6 +32,7 @@
         <div class="app-form-group">
           <label class="app-label" for="master-drink-ชื่อเครื่องดื่ม-2">ชื่อเครื่องดื่ม</label>
           <input id="master-drink-ชื่อเครื่องดื่ม-2" type="text" formControlName="name" class="app-input" />
+          <app-field-error [control]="createForm.controls.name" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-drink-ราคา-3">ราคา</label>
@@ -43,6 +44,7 @@
             class="app-input"
             (input)="sanitizeIntegerInput('create', 'price', $event)"
           />
+          <app-field-error [control]="createForm.controls.price" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="create-unit-label">หน่วยนับ</label>
@@ -55,6 +57,7 @@
             placeholder="เช่น ขวด, กระป๋อง, แก้ว"
             autocomplete="off"
           />
+          <app-field-error [control]="createForm.controls.unitLabelTh" [validated]="createFormValidated()" />
         </div>
         <div class="app-form-group">
           <span class="app-label">คืนได้</span>
@@ -98,6 +101,7 @@
         <div class="app-form-group">
           <label class="app-label" for="master-drink-ชื่อเครื่องดื่ม-7">ชื่อเครื่องดื่ม</label>
           <input id="master-drink-ชื่อเครื่องดื่ม-7" type="text" formControlName="name" class="app-input" />
+          <app-field-error [control]="editForm.controls.name" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-drink-ราคา-8">ราคา</label>
@@ -109,6 +113,7 @@
             class="app-input"
             (input)="sanitizeIntegerInput('edit', 'price', $event)"
           />
+          <app-field-error [control]="editForm.controls.price" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-group">
           <label class="app-label" for="edit-unit-label">หน่วยนับ</label>
@@ -121,6 +126,7 @@
             placeholder="เช่น ขวด, กระป๋อง, แก้ว"
             autocomplete="off"
           />
+          <app-field-error [control]="editForm.controls.unitLabelTh" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-group">
           <span class="app-label">คืนได้</span>
@@ -146,19 +152,10 @@
         <div class="app-form-group">
           <span class="app-label">รูปเมนู</span>
           <div class="mt-1 flex flex-wrap items-center gap-3">
-            @if (item.imageUrl) {
-              <img
-                [src]="item.imageUrl"
-                alt=""
-                class="h-16 w-16 rounded-md bg-surface object-contain ring-1 ring-theme-border"
-              />
-            } @else {
-              <div
-                class="flex h-16 w-16 items-center justify-center rounded-md bg-surface text-xs text-text-secondary ring-1 ring-theme-border"
-              >
-                ไม่มีรูป
-              </div>
-            }
+            <app-thumb-image
+              [src]="item.imageUrl"
+              class="h-16 w-16 rounded-md bg-surface ring-1 ring-theme-border"
+            />
             <div class="flex flex-wrap items-center gap-2">
               <label class="app-btn-secondary-sm cursor-pointer">
                 {{ uploadingImage() ? 'กำลังอัปโหลด...' : 'เลือกรูป' }}
@@ -191,6 +188,7 @@
             class="app-input app-scroll-region"
             placeholder="ระบุเหตุผลอย่างน้อย 3 ตัวอักษร"
           ></textarea>
+          <app-field-error [control]="editForm.controls.changeReason" [validated]="editFormValidated()" />
         </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeEdit()">ยกเลิก</button>
@@ -308,13 +306,10 @@
                       <td class="app-cell-mono">{{ masterListRowNumber(listView(), i) }}</td>
                       <td class="app-cell-primary">
                         <span class="drink-name-cell">
-                          @if (item.imageUrl) {
-                            <img
-                              [src]="item.imageUrl"
-                              alt=""
-                              class="h-8 w-8 shrink-0 rounded bg-surface object-contain"
-                            />
-                          }
+                          <app-thumb-image
+                            [src]="item.imageUrl"
+                            class="h-8 w-8 shrink-0 rounded bg-surface"
+                          />
                           <span class="drink-name-cell__label">{{ item.name }}</span>
                         </span>
                       </td>

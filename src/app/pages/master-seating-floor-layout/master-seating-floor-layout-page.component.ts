@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 
 import { CustomDropdownComponent } from '../../components/custom-dropdown/custom-dropdown.component';
 import type { DropdownOption } from '../../components/custom-dropdown/custom-dropdown.component';
+import { FieldErrorComponent } from '../../components/field-error/field-error.component';
 import {
   DEFAULT_FLOOR_AREA_HEIGHT,
   DEFAULT_FLOOR_AREA_WIDTH,
@@ -34,7 +35,7 @@ type DragState =
 
 @Component({
   selector: 'app-master-seating-floor-layout-page',
-  imports: [FormsModule, CustomDropdownComponent],
+  imports: [FormsModule, CustomDropdownComponent, FieldErrorComponent],
   templateUrl: './master-seating-floor-layout-page.component.html',
   styleUrl: './master-seating-floor-layout-page.component.css',
 })
@@ -54,6 +55,7 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
   readonly selectedZoneId = signal<number | null>(null);
   readonly selectedSeatingId = signal<number | null>(null);
   readonly selectedAreaKey = signal<string | null>(null);
+  readonly areaNameValidated = signal(false);
   readonly dirty = signal(false);
   readonly isPanning = signal(false);
   readonly paletteDraggingSeatingId = signal<number | null>(null);
@@ -216,7 +218,7 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     if (key == null) return;
     const name = value.trim().slice(0, 40);
     this.areas.update((rows) =>
-      rows.map((row) => (row.key === key ? { ...row, name: name || row.name } : row)),
+      rows.map((row) => (row.key === key ? { ...row, name } : row)),
     );
     this.dirty.set(true);
   }
@@ -494,10 +496,12 @@ export class MasterSeatingFloorLayoutPageComponent implements OnInit {
     if (this.saving()) return;
     for (const area of this.areas()) {
       if (!area.name.trim()) {
-        this.toast.showError('กรุณาใส่ชื่อพื้นที่ให้ครบ');
+        this.selectedAreaKey.set(area.key);
+        this.areaNameValidated.set(true);
         return;
       }
     }
+    this.areaNameValidated.set(false);
     const items: FloorLayoutWriteItem[] = this.placed().map((row) => ({
       seatingId: row.seatingId,
       posX: row.posX,

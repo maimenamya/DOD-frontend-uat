@@ -27,6 +27,7 @@ export interface MstSeating {
   status: 'AVAILABLE' | 'OCCUPIED' | 'AWAITING_CLEAR';
   seatingTypeId: number;
   chargesRoomFee: boolean;
+  imageUrl?: string | null;
   createdAt: string;
   seatingType?: MstSeatingTypeSummary;
 }
