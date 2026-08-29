@@ -1,9 +1,9 @@
-<div class="app-page">
+<div class="app-page" [class.app-page--open-table-fill]="isPcBillWorkspace() && !isPcBillWorkspaceCompact()">
+  @if (!isPcBillWorkspace()) {
   <header class="app-page-header open-table-page-header">
     <div>
       <h1 class="app-page-title">{{ openTableSelfBillOnly() ? 'บิลของฉัน' : 'POS' }}</h1>
     </div>
-    @if (!isPcBillWorkspace()) {
       <div
         class="dashboard-date-presets open-table-view-mode"
         role="group"
@@ -77,8 +77,8 @@
           <span class="sr-only">แบบผังร้าน</span>
         </button>
       </div>
-    }
   </header>
+  }
 
   <div
     class="open-table-workspace flex w-full flex-col gap-4 transition-all duration-300 ease-in-out"
@@ -2672,21 +2672,34 @@
     </div>
     <div class="app-form-group">
       <label class="app-label" for="void-item-qty">จำนวนที่ลบ</label>
-      <input
-        id="void-item-qty"
-        type="text"
-        inputmode="numeric"
-        autocomplete="off"
-        class="app-input"
-        [class.app-field-invalid]="qtyModalValidated() && !voidItemQtyText().trim()"
-        [ngModel]="voidItemQtyText()"
-        (ngModelChange)="onVoidItemQtyChange($event)"
-        (keydown)="blockNonNumericKey($event)"
-      />
-      <app-field-error
-        [validated]="qtyModalValidated() && !voidItemQtyText().trim()"
-        message="กรุณาระบุจำนวนที่ลบ"
-      />
+      <div class="app-number-stepper">
+        <button
+          type="button"
+          class="app-number-stepper-btn"
+          [disabled]="actionBusy() || !canStepVoidItemQty(-1)"
+          (click)="stepVoidItemQty(-1)"
+          aria-label="ลดจำนวนที่ลบ"
+        >
+          −
+        </button>
+        <input
+          id="void-item-qty"
+          type="text"
+          readonly
+          tabindex="-1"
+          class="app-input app-input-number app-number-stepper-input"
+          [value]="voidItemQtyText()"
+        />
+        <button
+          type="button"
+          class="app-number-stepper-btn"
+          [disabled]="actionBusy() || !canStepVoidItemQty(1)"
+          (click)="stepVoidItemQty(1)"
+          aria-label="เพิ่มจำนวนที่ลบ"
+        >
+          +
+        </button>
+      </div>
     </div>
     <div class="app-form-actions app-form-actions-top">
       <button type="button" class="app-btn-secondary" (click)="closeVoidItemModal()">ยกเลิก</button>
@@ -2736,36 +2749,45 @@
     <div class="app-modal-header">
       <h2 class="app-modal-title">
         แก้ไขรายการรันดื่ม — {{ editStaffDrinkTarget()?.employeeName }}
+        ({{ editStaffDrinkTarget()?.drinks }})
       </h2>
       <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeEditStaffDrinkModal()">✕</button>
     </div>
-    <p class="app-field-hint mb-3">
-      ปัจจุบัน {{ editStaffDrinkTarget()?.drinks }} ดื่ม
-      ({{ editStaffDrinkTarget()?.roleDisplayNameTh }})
-    </p>
     <div class="app-form-group">
-      <label class="app-label" for="edit-staff-drink-qty">จำนวนดื่มใหม่</label>
-      <input
-        id="edit-staff-drink-qty"
-        type="text"
-        inputmode="numeric"
-        autocomplete="off"
-        class="app-input"
-        [class.app-field-invalid]="qtyModalValidated() && !editStaffDrinkQtyText().trim()"
-        [ngModel]="editStaffDrinkQtyText()"
-        (ngModelChange)="onEditStaffDrinkQtyChange($event)"
-        (keydown)="blockNonNumericKey($event)"
-      />
-      <app-field-error
-        [validated]="qtyModalValidated() && !editStaffDrinkQtyText().trim()"
-        message="กรุณาระบุจำนวนดื่ม"
-      />
-      <p class="app-field-hint mt-1">ใส่ 0 เพื่อลบรายการ</p>
+      <label class="app-label" for="edit-staff-drink-qty">จำนวนดื่ม</label>
+      <div class="app-number-stepper">
+        <button
+          type="button"
+          class="app-number-stepper-btn"
+          [disabled]="actionBusy() || !canStepEditStaffDrinkQty(-1)"
+          (click)="stepEditStaffDrinkQty(-1)"
+          aria-label="ลดจำนวนดื่ม"
+        >
+          −
+        </button>
+        <input
+          id="edit-staff-drink-qty"
+          type="text"
+          readonly
+          tabindex="-1"
+          class="app-input app-input-number app-number-stepper-input"
+          [value]="editStaffDrinkQtyText()"
+        />
+        <button
+          type="button"
+          class="app-number-stepper-btn"
+          [disabled]="actionBusy() || !canStepEditStaffDrinkQty(1)"
+          (click)="stepEditStaffDrinkQty(1)"
+          aria-label="เพิ่มจำนวนดื่ม"
+        >
+          +
+        </button>
+      </div>
     </div>
     <div class="app-form-actions app-form-actions-top">
       <button type="button" class="app-btn-secondary" (click)="closeEditStaffDrinkModal()">ยกเลิก</button>
       <button type="button" class="app-btn-primary" [disabled]="actionBusy()" (click)="confirmEditStaffDrink()">
-        {{ actionBusy() ? 'กำลังบันทึก...' : 'บันทึก' }}
+        {{ actionBusy() ? 'กำลังบันทึก...' : 'ยืนยันแก้ไข' }}
       </button>
     </div>
   </app-modal>
@@ -2927,21 +2949,34 @@
     </div>
     <div class="app-form-group">
       <label class="app-label" for="return-beverage-qty">จำนวนคืน</label>
-      <input
-        id="return-beverage-qty"
-        type="text"
-        inputmode="numeric"
-        autocomplete="off"
-        class="app-input"
-        [class.app-field-invalid]="qtyModalValidated() && !returnBeverageQtyText().trim()"
-        [ngModel]="returnBeverageQtyText()"
-        (ngModelChange)="onReturnBeverageQtyChange($event)"
-        (keydown)="blockNonNumericKey($event)"
-      />
-      <app-field-error
-        [validated]="qtyModalValidated() && !returnBeverageQtyText().trim()"
-        message="กรุณาระบุจำนวนคืน"
-      />
+      <div class="app-number-stepper">
+        <button
+          type="button"
+          class="app-number-stepper-btn"
+          [disabled]="actionBusy() || !canStepReturnBeverageQty(-1)"
+          (click)="stepReturnBeverageQty(-1)"
+          aria-label="ลดจำนวนคืน"
+        >
+          −
+        </button>
+        <input
+          id="return-beverage-qty"
+          type="text"
+          readonly
+          tabindex="-1"
+          class="app-input app-input-number app-number-stepper-input"
+          [value]="returnBeverageQtyText()"
+        />
+        <button
+          type="button"
+          class="app-number-stepper-btn"
+          [disabled]="actionBusy() || !canStepReturnBeverageQty(1)"
+          (click)="stepReturnBeverageQty(1)"
+          aria-label="เพิ่มจำนวนคืน"
+        >
+          +
+        </button>
+      </div>
     </div>
     <div class="app-form-actions app-form-actions-top">
       <button type="button" class="app-btn-secondary" (click)="closeReturnBeverageModal()">ยกเลิก</button>

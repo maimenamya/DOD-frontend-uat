@@ -44,48 +44,44 @@
   @if (loading()) {
     <app-master-list-skeleton [tabs]="3" [columns]="4" ariaLabel="กำลังโหลดฝากขวด" />
   } @else {
-    <section class="app-card app-card-flush package-deposit-section">
-      @if (visibleItems().length === 0) {
-        <p class="app-empty-state">{{ emptyText() }}</p>
-      } @else {
-        <p class="package-deposit-grid-hint">แตะรายการเพื่อดูรายละเอียดและจัดการ</p>
+    @if (visibleItems().length === 0) {
+      <p class="app-empty-state">{{ emptyText() }}</p>
+    } @else {
+      <ul class="package-deposit-grid">
+        @for (row of visibleItems(); track row.id) {
+          <li class="package-deposit-grid__item">
+            <button
+              type="button"
+              class="package-deposit-tile"
+              [class.package-deposit-tile--selected]="expandedId() === row.id"
+              [attr.aria-expanded]="expandedId() === row.id"
+              [attr.aria-label]="tileAriaLabel(row)"
+              (click)="toggleExpanded(row)"
+            >
+              <span class="package-deposit-tile__code">{{ customerCodeDisplay(row) }}</span>
+              <span class="package-deposit-tile__name">{{ customerNameDisplay(row) }}</span>
+              <span class="package-deposit-tile__package">{{ row.packageName }}</span>
+              <span class="package-deposit-tile__foot">
+                <span class="package-deposit-tile__bottles">{{ row.bottlesLabel }}</span>
+                @if (row.status === 'OPEN') {
+                  <span class="package-deposit-tile__status package-deposit-tile__status--open">เปิด</span>
+                }
+              </span>
+            </button>
+          </li>
+        }
+      </ul>
 
-        <ul class="package-deposit-grid">
-          @for (row of visibleItems(); track row.id) {
-            <li class="package-deposit-grid__item">
-              <button
-                type="button"
-                class="package-deposit-tile"
-                [class.package-deposit-tile--selected]="expandedId() === row.id"
-                [attr.aria-expanded]="expandedId() === row.id"
-                [attr.aria-label]="tileAriaLabel(row)"
-                (click)="toggleExpanded(row)"
-              >
-                <span class="package-deposit-tile__code">{{ customerCodeDisplay(row) }}</span>
-                <span class="package-deposit-tile__name">{{ customerNameDisplay(row) }}</span>
-                <span class="package-deposit-tile__package">{{ row.packageName }}</span>
-                <span class="package-deposit-tile__foot">
-                  <span class="package-deposit-tile__bottles">{{ row.bottlesLabel }}</span>
-                  @if (row.status === 'OPEN') {
-                    <span class="package-deposit-tile__status package-deposit-tile__status--open">เปิด</span>
-                  }
-                </span>
-              </button>
-            </li>
-          }
-        </ul>
-
-        @if (expandedRow(); as row) {
-          @if (!mobileViewport()) {
-            <article class="package-deposit-detail" aria-live="polite">
-              <ng-container
-                *ngTemplateOutlet="depositDetailTpl; context: { row: row, sheet: false }"
-              />
-            </article>
-          }
+      @if (expandedRow(); as row) {
+        @if (!mobileViewport()) {
+          <article class="package-deposit-detail" aria-live="polite">
+            <ng-container
+              *ngTemplateOutlet="depositDetailTpl; context: { row: row, sheet: false }"
+            />
+          </article>
         }
       }
-    </section>
+    }
   }
 </div>
 

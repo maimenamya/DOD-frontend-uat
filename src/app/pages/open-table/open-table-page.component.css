@@ -26,6 +26,49 @@
   width: 100%;
 }
 
+/* After a table is selected on PC: hide POS title and fill the main pane */
+:host.open-table-page--pc-fill {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-width: none;
+  margin: -2rem -2rem -1rem;
+  width: calc(100% + 4rem);
+  height: calc(100% + 3rem);
+}
+
+:host.open-table-page--pc-fill .app-page--open-table-fill {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+:host.open-table-page--pc-fill .app-page--open-table-fill > * + * {
+  margin-top: 0;
+}
+
+:host.open-table-page--pc-fill .open-table-workspace--pc-bill,
+:host.open-table-page--pc-fill .open-table-bill-workspace {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+:host.open-table-page--pc-fill .open-table-session-panel--pc {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 /* POS title is short — keep view toggle on the same row even on phone */
 .open-table-page-header {
   flex-direction: row;

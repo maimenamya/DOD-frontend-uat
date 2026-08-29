@@ -188,6 +188,9 @@ const ORDER_PICKER_MODE_KEY = 'dod.openTable.orderPickerMode';
 
 @Component({
   selector: 'app-open-table-page',
+  host: {
+    '[class.open-table-page--pc-fill]': 'isPcBillWorkspace() && !isPcBillWorkspaceCompact()',
+  },
   imports: [
     CommonModule,
     DecimalPipe,
@@ -4645,8 +4648,13 @@ export class OpenTablePageComponent implements OnInit {
     }
   }
 
-  onReturnBeverageQtyChange(value: string): void {
-    this.returnBeverageQtyText.set(sanitizeDigitsOnly(value));
+  stepReturnBeverageQty(delta: number): void {
+    const max = Math.max(1, this.returnBeverageTarget()?.quantity ?? 1);
+    this.returnBeverageQtyText.set(this.stepBoundedQty(this.returnBeverageQtyText(), delta, 1, max));
+  }
+
+  canStepReturnBeverageQty(delta: number): boolean {
+    return this.canStepBoundedQty(this.returnBeverageQtyText(), delta, 1, this.returnBeverageTarget()?.quantity ?? 1);
   }
 
   packageBottleLabel(item: SessionOrderItem): string | null {
@@ -4826,8 +4834,13 @@ export class OpenTablePageComponent implements OnInit {
     }
   }
 
-  onVoidItemQtyChange(value: string): void {
-    this.voidItemQtyText.set(sanitizeDigitsOnly(value));
+  stepVoidItemQty(delta: number): void {
+    const max = Math.max(1, this.voidItemTarget()?.quantity ?? 1);
+    this.voidItemQtyText.set(this.stepBoundedQty(this.voidItemQtyText(), delta, 1, max));
+  }
+
+  canStepVoidItemQty(delta: number): boolean {
+    return this.canStepBoundedQty(this.voidItemQtyText(), delta, 1, this.voidItemTarget()?.quantity ?? 1);
   }
 
   confirmVoidItem(): void {
@@ -4921,7 +4934,7 @@ export class OpenTablePageComponent implements OnInit {
   openEditStaffDrinkModal(row: SessionStaffDrink): void {
     this.editStaffDrinkTarget.set(row);
     const stored = row.storedDrinksCount ?? row.drinks;
-    this.editStaffDrinkQtyText.set(String(Math.max(0, stored)));
+    this.editStaffDrinkQtyText.set(String(Math.max(1, stored)));
     this.qtyModalValidated.set(false);
     this.showEditStaffDrinkModal.set(true);
     this.showMobileSheet.set(false);
@@ -4937,8 +4950,34 @@ export class OpenTablePageComponent implements OnInit {
     }
   }
 
-  onEditStaffDrinkQtyChange(value: string): void {
-    this.editStaffDrinkQtyText.set(sanitizeDigitsOnly(value));
+  stepEditStaffDrinkQty(delta: number): void {
+    this.editStaffDrinkQtyText.set(
+      this.stepBoundedQty(this.editStaffDrinkQtyText(), delta, 1, this.editStaffDrinkQtyMax()),
+    );
+  }
+
+  canStepEditStaffDrinkQty(delta: number): boolean {
+    return this.canStepBoundedQty(this.editStaffDrinkQtyText(), delta, 1, this.editStaffDrinkQtyMax());
+  }
+
+  private editStaffDrinkQtyMax(): number {
+    const current = this.editStaffDrinkTarget()?.storedDrinksCount ?? this.editStaffDrinkTarget()?.drinks ?? 1;
+    return Math.max(99, current);
+  }
+
+  private stepBoundedQty(text: string, delta: number, min: number, max: number): string {
+    const floor = Math.max(1, min);
+    const ceil = Math.max(floor, max);
+    const current = parsePositiveIntFromText(text) ?? floor;
+    return String(Math.min(ceil, Math.max(floor, current + delta)));
+  }
+
+  private canStepBoundedQty(text: string, delta: number, min: number, max: number): boolean {
+    const floor = Math.max(1, min);
+    const ceil = Math.max(floor, max);
+    const current = parsePositiveIntFromText(text) ?? floor;
+    const next = current + delta;
+    return next >= floor && next <= ceil;
   }
 
   confirmEditStaffDrink(): void {

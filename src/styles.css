@@ -754,6 +754,10 @@
     box-sizing: border-box;
   }
 
+  .app-main-content:has(> app-open-table-page.open-table-page--pc-fill) {
+    overflow: hidden;
+  }
+
   /* ── Top header (profile + shop) ── */
   .app-top-header {
     @apply sticky top-0 z-20 flex shrink-0 items-center justify-between gap-4 border-b border-theme-border px-4 backdrop-blur-glass sm:px-6 desktop:px-8;
