@@ -27,17 +27,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
-  const headers: Record<string, string> = {};
-  if (req.method === 'GET') {
-    headers['Cache-Control'] = 'no-cache';
-    headers['Pragma'] = 'no-cache';
-  }
   const token = readToken();
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  if (Object.keys(headers).length === 0) {
+  if (!token) {
     return next(req);
   }
-  return next(req.clone({ setHeaders: headers }));
+  return next(
+    req.clone({
+      setHeaders: { Authorization: `Bearer ${token}` },
+    }),
+  );
 };
