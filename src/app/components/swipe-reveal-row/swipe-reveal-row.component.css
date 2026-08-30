@@ -116,13 +116,14 @@
 }
 
 :host ::ng-deep .swipe-reveal-btn--accent {
-  /* Blue slab — เบิก / คืนของ / สต็อป; black icon */
-  background: #3b82f6;
+  /* Logo blue — เบิก / คืนของ / สต็อป */
+  background: var(--brand-neon-to);
   color: #111;
 }
 
 :host ::ng-deep .swipe-reveal-btn--warning {
-  background: #eab308;
+  /* Logo gold-orange — แก้ไข */
+  background: var(--brand-neon-mid);
   color: #111;
 }
 
