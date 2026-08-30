@@ -374,6 +374,8 @@ export class OpenTablePageComponent implements OnInit {
   private readonly packageDepositsRaw = signal<PackageDepositRecord[]>([]);
   /** False until open-table catalog forkJoin settles (avoid false empty “+” flash). */
   private readonly masterCatalogReady = signal(false);
+  /** False until staff list API settles (same false-empty guard as catalog). */
+  private readonly staffEmployeesReady = signal(false);
   readonly staffEmployees = signal<MstEmployee[]>([]);
   /** All positions from master MstRole table (excludes OWNER in dropdowns). */
   private readonly masterRolesFromApi = signal<MstRole[]>([]);
@@ -1250,6 +1252,7 @@ export class OpenTablePageComponent implements OnInit {
   isPcAddMasterEmpty(key: PcAddNavKey): boolean {
     // Staff list is role-filtered in the form; empty for that role ≠ no master employees.
     if (key === 'STAFF_LEDGER') {
+      if (!this.staffEmployeesReady()) return false;
       return this.staffEmployees().length === 0;
     }
     if (key === 'ROOM_CHARGE') {
@@ -1279,31 +1282,59 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   pcAddMasterEmptyHint(key: PcAddNavKey): string {
+    const canOpen = this.canOpenPcAddMasterConfig(key);
     switch (key) {
       case 'STAFF_LEDGER':
-        return 'ยังไม่มีพนักงาน — กดเพื่อไปตั้งค่าพนักงาน';
+        return canOpen
+          ? 'ยังไม่มีพนักงาน — กดเพื่อไปตั้งค่าพนักงาน'
+          : 'ยังไม่มีพนักงานที่ใช้งานได้ — ให้เจ้าของหรือผู้จัดการตั้งค่าในเมนูพนักงาน';
       case 'ROOM_CHARGE':
-        return 'ยังไม่มีโซนคิดค่าบริการ — กดเพื่อไปตั้งค่าโซนที่นั่ง';
+        return canOpen
+          ? 'ยังไม่มีโซนคิดค่าบริการ — กดเพื่อไปตั้งค่าโซนที่นั่ง'
+          : 'ยังไม่มีโซนคิดค่าบริการ — ให้เจ้าของหรือผู้จัดการตั้งค่าโซนที่นั่ง';
       case 'FOOD':
-        return 'ยังไม่มีเมนูอาหาร — กดเพื่อไปเพิ่มในมาสเตอร์';
+        return canOpen
+          ? 'ยังไม่มีเมนูอาหาร — กดเพื่อไปเพิ่มในมาสเตอร์'
+          : 'ยังไม่มีเมนูอาหาร — ให้เจ้าของหรือผู้จัดการเพิ่มในมาสเตอร์';
       case 'BEVERAGE':
-        return 'ยังไม่มีเครื่องดื่ม — กดเพื่อไปเพิ่มในมาสเตอร์';
+        return canOpen
+          ? 'ยังไม่มีเครื่องดื่ม — กดเพื่อไปเพิ่มในมาสเตอร์'
+          : 'ยังไม่มีเครื่องดื่ม — ให้เจ้าของหรือผู้จัดการเพิ่มในมาสเตอร์';
       case 'COCKTAIL':
-        return 'ยังไม่มีค็อกเทล — กดเพื่อไปเพิ่มในมาสเตอร์';
+        return canOpen
+          ? 'ยังไม่มีค็อกเทล — กดเพื่อไปเพิ่มในมาสเตอร์'
+          : 'ยังไม่มีค็อกเทล — ให้เจ้าของหรือผู้จัดการเพิ่มในมาสเตอร์';
       case 'PROMOTION':
-        return 'ยังไม่มีโปร — กดเพื่อไปเพิ่มในมาสเตอร์';
+        return canOpen
+          ? 'ยังไม่มีโปร — กดเพื่อไปเพิ่มในมาสเตอร์'
+          : 'ยังไม่มีโปร — ให้เจ้าของหรือผู้จัดการเพิ่มในมาสเตอร์';
       case 'MEMBER':
-        return 'ยังไม่มีเมมเบอร์ — กดเพื่อไปเพิ่มในมาสเตอร์';
+        return canOpen
+          ? 'ยังไม่มีเมมเบอร์ — กดเพื่อไปเพิ่มในมาสเตอร์'
+          : 'ยังไม่มีเมมเบอร์ — ให้เจ้าของหรือผู้จัดการเพิ่มในมาสเตอร์';
       case 'OTHER':
-        return 'ยังไม่มีรายการเบ็ดเตล็ด — กดเพื่อไปเพิ่มในมาสเตอร์';
+        return canOpen
+          ? 'ยังไม่มีรายการเบ็ดเตล็ด — กดเพื่อไปเพิ่มในมาสเตอร์'
+          : 'ยังไม่มีรายการเบ็ดเตล็ด — ให้เจ้าของหรือผู้จัดการเพิ่มในมาสเตอร์';
       case 'TABLE_OPENING':
-        return 'ยังไม่มีค่าเปิดโต๊ะ — กดเพื่อไปเพิ่มในมาสเตอร์';
+        return canOpen
+          ? 'ยังไม่มีค่าเปิดโต๊ะ — กดเพื่อไปเพิ่มในมาสเตอร์'
+          : 'ยังไม่มีค่าเปิดโต๊ะ — ให้เจ้าของหรือผู้จัดการเพิ่มในมาสเตอร์';
       default:
-        return 'ยังไม่มีรายการ — กดเพื่อไปตั้งค่า';
+        return canOpen ? 'ยังไม่มีรายการ — กดเพื่อไปตั้งค่า' : 'ยังไม่มีรายการ';
     }
   }
 
+  /** Empty “+” must not navigate to a page the cashier cannot open (guard → dashboard). */
+  canOpenPcAddMasterConfig(key: PcAddNavKey): boolean {
+    if (key === 'STAFF_LEDGER') {
+      return this.auth.hasFeature('manage_employees');
+    }
+    return this.auth.hasFeature('master_data');
+  }
+
   openPcAddMasterConfig(key: PcAddNavKey): void {
+    if (!this.canOpenPcAddMasterConfig(key)) return;
     const pathByKey: Record<PcAddNavKey, string> = {
       STAFF_LEDGER: '/dashboard/employees',
       ROOM_CHARGE: '/dashboard/master-seating-types',
@@ -1988,6 +2019,7 @@ export class OpenTablePageComponent implements OnInit {
     const active = employees.filter((e) => e.status === 'Active' && e.role?.name !== OWNER_ROLE);
     this.saleEmployees.set(active.filter((e) => e.role?.name === 'SALE'));
     this.staffEmployees.set(active);
+    this.staffEmployeesReady.set(true);
     this.syncStaffLedgerRoles();
   }
 
@@ -3526,7 +3558,18 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   seatHasTransferAction(seat: SeatTile | null | undefined): boolean {
-    return this.isPcBillWorkspace() && this.ledgerCanMutate() && !!seat?.sessionId;
+    return this.ledgerCanMutate() && !!seat?.sessionId;
+  }
+
+  /** Mobile bill header — add items sits left of the ⋮ menu (PC uses the left panel). */
+  showMobileBillAddButton(seat: SeatTile | null | undefined): boolean {
+    return (
+      !this.isPcBillWorkspace() &&
+      this.ledgerCanMutate() &&
+      !!seat?.sessionId &&
+      this.seatLedgerOpen() &&
+      !this.seatAwaitingClear()
+    );
   }
 
   seatHasHeaderActions(seat: SeatTile | null | undefined): boolean {

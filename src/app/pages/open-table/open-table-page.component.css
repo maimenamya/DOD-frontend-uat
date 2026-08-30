@@ -603,21 +603,17 @@
 }
 
 .open-table-session-panel__body:not(.open-table-session-panel__body--pc) .open-table-session-panel__summary {
-  padding: 0 1rem 1rem;
-}
-
-/* Mobile / drawer: keep footer inset — do not cancel side padding with negative margins */
-.open-table-session-panel__body:not(.open-table-session-panel__body--pc) .open-table-order-actions {
-  margin-left: 0;
-  margin-right: 0;
-  padding-left: 0;
-  padding-right: 0;
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: 0;
+  width: 100%;
 }
 
 .open-table-session-panel__body:not(.open-table-session-panel__body--pc) .open-table-bill-summary {
-  margin-left: 0;
-  margin-right: 0;
-  border-radius: var(--radius-input, 0.5rem);
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 0;
 }
 
 .open-table-main-column {
@@ -1461,31 +1457,6 @@
   color: var(--primary-light);
 }
 
-/* Quick actions — full-bleed section with a top divider (mockup .order-actions) */
-.open-table-order-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-  /* extra breathing room so the list above doesn't crowd the divider line */
-  margin: 1.5rem -1rem 0;
-  padding: 1.1rem 1rem 0.9rem;
-  border-top: 1px solid var(--border);
-}
-
-.open-table-order-actions .app-btn-secondary {
-  display: inline-flex;
-  width: 100%;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  font-weight: 600;
-}
-
-/* When the action row is present, the foot sits flush right below it */
-.open-table-order-actions + .open-table-bill-summary {
-  margin-top: 0;
-}
-
 /* Checkout lives inside the foot panel (mockup order-foot) */
 .open-table-order-foot .open-table-checkout-btn {
   display: inline-flex;
@@ -1796,9 +1767,43 @@
 /* Session header overflow (⋮) + close */
 .open-table-session-header-actions {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   flex-shrink: 0;
   gap: 0.125rem;
+}
+
+.open-table-session-add-items {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-height: 2.75rem;
+  margin-right: 0.15rem;
+  padding: 0 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input, 0.5rem);
+  background: var(--btn-secondary-bg, var(--surface));
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+  font-weight: 650;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.open-table-session-add-items:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+.open-table-session-add-items:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.open-table-session-add-items:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .open-table-session-overflow {

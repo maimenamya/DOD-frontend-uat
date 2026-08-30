@@ -3942,9 +3942,49 @@
     overflow: visible;
   }
 
+  /* Pin bill footer like PC: list scrolls, totals + เช็กบิล stay at the sheet bottom */
+  .open-table-mobile-sheet:has(.open-table-session-panel__summary) {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: min(
+      var(--app-bottom-sheet-max-height),
+      calc(var(--app-visual-viewport-height, 100dvh) * var(--app-bottom-sheet-max-ratio))
+    );
+  }
+
+  .open-table-mobile-sheet:has(.open-table-session-panel__summary) .open-table-session-panel,
+  .open-table-mobile-sheet:has(.open-table-session-panel__summary) .open-table-session-panel__body,
+  .open-table-mobile-sheet:has(.open-table-session-panel__summary) .open-table-session-panel__bill {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .open-table-mobile-sheet:has(.open-table-session-panel__summary) .open-table-session-panel__main {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .open-table-mobile-sheet:has(.open-table-session-panel__summary) .open-table-session-panel__header,
+  .open-table-mobile-sheet:has(.open-table-session-panel__summary) .open-table-bill-tab-rail {
+    flex-shrink: 0;
+  }
+
   @media (max-width: 999px) and (orientation: landscape) {
     .open-table-mobile-sheet {
       max-height: min(
+        var(--app-bottom-sheet-landscape-max-height),
+        calc(var(--app-visual-viewport-height, 100dvh) * var(--app-bottom-sheet-landscape-max-ratio))
+      );
+    }
+
+    .open-table-mobile-sheet:has(.open-table-session-panel__summary) {
+      height: min(
         var(--app-bottom-sheet-landscape-max-height),
         calc(var(--app-visual-viewport-height, 100dvh) * var(--app-bottom-sheet-landscape-max-ratio))
       );
@@ -3954,6 +3994,13 @@
   html.app-keyboard-open .open-table-mobile-sheet {
     bottom: var(--app-keyboard-overlap, 0px);
     max-height: min(
+      calc(var(--app-visual-viewport-height, var(--app-bottom-sheet-max-height)) - 0.75rem),
+      calc(var(--app-visual-viewport-height, 100dvh) * var(--app-bottom-sheet-max-ratio))
+    );
+  }
+
+  html.app-keyboard-open .open-table-mobile-sheet:has(.open-table-session-panel__summary) {
+    height: min(
       calc(var(--app-visual-viewport-height, var(--app-bottom-sheet-max-height)) - 0.75rem),
       calc(var(--app-visual-viewport-height, 100dvh) * var(--app-bottom-sheet-max-ratio))
     );
