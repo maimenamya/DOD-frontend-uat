@@ -2550,7 +2550,7 @@
       </button>
     </div>
     @if (stopDrinkTarget()?.seatStartedLabel) {
-      <label class="app-label" for="stop-seat-time">เวลาเริ่มนั่ง</label>
+      <p class="app-label">เวลาเริ่มนั่ง</p>
       <div class="mb-3 rounded-input border border-theme-border bg-surface px-3 py-2">
         <p class="mt-0.5 text-sm font-semibold text-text-primary">
           {{ stopDrinkTarget()!.seatStartedLabel }}
@@ -2626,7 +2626,7 @@
       <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeStopRoomModal()">✕</button>
     </div>
     @if (stopRoomTarget()?.seatStartedLabel) {
-      <label class="app-label" for="stop-room-time">เวลาเริ่มใช้ห้อง</label>
+      <p class="app-label">เวลาเริ่มใช้ห้อง</p>
       <div class="mb-3 rounded-input border border-theme-border bg-surface px-3 py-2">
         <p class="mt-0.5 text-sm font-semibold text-text-primary">
           {{ stopRoomTarget()!.seatStartedLabel }}

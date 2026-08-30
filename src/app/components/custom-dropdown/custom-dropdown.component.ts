@@ -329,6 +329,11 @@ export class CustomDropdownComponent implements ControlValueAccessor {
     }
   }
 
+  /** Label[for] focuses the proxy input — move into the visible trigger. */
+  onLabelProxyFocus(): void {
+    queueMicrotask(() => this.getTrigger()?.focus());
+  }
+
   private getTrigger(): HTMLButtonElement | null {
     return this.elementRef.nativeElement.querySelector('.app-dropdown-trigger');
   }

@@ -105,6 +105,7 @@ export class ShopDatetimeInputComponent
       plugins: shopFlatpickrConfirmDatePlugins(),
       onReady: (_dates, _str, instance) => {
         instance.calendarContainer.classList.add('app-flatpickr-calendar');
+        this.bindLabelIdToVisibleInput(instance);
         this.clickTarget = instance.altInput ?? instance.input;
         this.clickTarget.classList.add('cursor-pointer');
         this.clickTarget.addEventListener('click', this.onClickTarget);
@@ -197,6 +198,17 @@ export class ShopDatetimeInputComponent
       this.emitModelValue(this.pendingValue);
     }
     return this.pendingValue;
+  }
+
+  /**
+   * Flatpickr sets the original field to type=hidden (not labelable).
+   * Chrome then reports label[for] as missing — keep the id on the visible alt input.
+   */
+  private bindLabelIdToVisibleInput(instance: flatpickr.Instance): void {
+    const id = this.inputId();
+    if (!id || !instance.altInput) return;
+    instance.altInput.id = id;
+    instance.input.removeAttribute('id');
   }
 
   private bindPickerInteractions(instance: flatpickr.Instance): void {

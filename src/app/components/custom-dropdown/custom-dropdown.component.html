@@ -1,7 +1,18 @@
+@if (inputId) {
+  <input
+    type="text"
+    class="sr-only"
+    [id]="inputId"
+    readonly
+    tabindex="-1"
+    autocomplete="off"
+    [attr.aria-label]="placeholder"
+    (focus)="onLabelProxyFocus()"
+  />
+}
 <button
   type="button"
   class="app-dropdown-trigger"
-  [attr.id]="inputId || null"
   [attr.aria-expanded]="isOpen()"
   aria-haspopup="listbox"
   [disabled]="disabled()"
