@@ -526,14 +526,19 @@
 }
 
 .open-table-bill-tab-rail__btn--add {
+  width: 2.35rem;
   min-width: 2.35rem;
-  padding-left: 0.55rem;
-  padding-right: 0.55rem;
+  min-height: 2.35rem;
+  padding: 0;
   color: var(--text-secondary);
   border-style: dashed;
   border-color: color-mix(in srgb, var(--border) 80%, var(--text-secondary));
-  font-size: 1.125rem;
-  line-height: 1;
+}
+
+.open-table-bill-tab-rail__btn--add svg {
+  display: block;
+  width: 1.125rem;
+  height: 1.125rem;
 }
 
 .open-table-bill-tab-rail__btn--add:hover:not(:disabled) {
@@ -1810,6 +1815,45 @@
   position: relative;
   display: inline-flex;
   align-items: center;
+}
+
+/* Mobile only: add-item / new-bill modal ✕ matches bill-sheet close */
+.open-table-mobile-modal-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.open-table-mobile-modal-close svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+@media (max-width: 999px) {
+  .open-table-mobile-modal-close {
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-input, 0.5rem);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .open-table-mobile-modal-close svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .open-table-mobile-modal-close:hover,
+  .open-table-mobile-modal-close:focus-visible {
+    border-color: color-mix(in srgb, var(--primary) 35%, transparent);
+    color: var(--text-primary);
+  }
 }
 
 .open-table-session-overflow__trigger,

@@ -469,7 +469,11 @@
                 [disabled]="actionBusy()"
                 (click)="addSeatBillTab()"
               >
-                +
+                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path
+                    d="M10 4a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 0110 4z"
+                  />
+                </svg>
               </button>
             }
           </nav>
@@ -1273,7 +1277,18 @@
   <app-modal layout="center" (dismiss)="closeAddModal()">
     <div class="app-modal-header">
       <h2 class="app-modal-title">เพิ่มรายการ</h2>
-      <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeAddModal()">✕</button>
+      <button
+        type="button"
+        class="open-table-mobile-modal-close"
+        aria-label="ปิด"
+        (click)="closeAddModal()"
+      >
+        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path
+            d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
+          />
+        </svg>
+      </button>
     </div>
     <ng-container *ngTemplateOutlet="addItemFormBody"></ng-container>
   </app-modal>
@@ -2432,7 +2447,18 @@
   <app-modal layout="center" (dismiss)="closeNewBillSaleModal()">
     <div class="app-modal-header">
       <h2 class="app-modal-title">เปิดบิลใหม่</h2>
-      <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeNewBillSaleModal()">✕</button>
+      <button
+        type="button"
+        class="open-table-mobile-modal-close"
+        aria-label="ปิด"
+        (click)="closeNewBillSaleModal()"
+      >
+        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path
+            d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
+          />
+        </svg>
+      </button>
     </div>
     <div class="app-form-stack">
       <div class="app-form-group">
