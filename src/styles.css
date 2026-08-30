@@ -4179,6 +4179,34 @@
     @apply text-lg font-semibold text-text-primary;
   }
 
+  /* Same tap target as the bill-panel close (⋮ / ✕), not a tiny ghost glyph */
+  .app-modal-header > .app-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: var(--radius-input, 0.5rem);
+    font-size: 1.35rem;
+    line-height: 1;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-modal-header > .app-btn-ghost:hover {
+    border-color: color-mix(in srgb, var(--primary) 35%, transparent);
+  }
+
+  @media (min-width: 1000px) {
+    .app-modal-header > .app-btn-ghost {
+      width: 2.25rem;
+      height: 2.25rem;
+      font-size: 1.2rem;
+    }
+  }
+
   /* Every modal footer: full-bleed action bar with a top divider (matches header) */
   .app-modal .app-form-actions {
     margin: 0.75rem -1.5rem -1.5rem;

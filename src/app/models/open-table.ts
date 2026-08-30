@@ -441,5 +441,6 @@ export type TxnActiveSessionRecord = {
   seatingId: number | null;
   saleEmployeeId: string;
   revision: number;
+  billIndex?: number | null;
   createdAt: string;
 };

@@ -1469,10 +1469,28 @@ export class OpenTablePageComponent implements OnInit {
         creditSaleToShop: this.newBillCreditSaleToShop(),
       })
       .subscribe({
-        next: (session: { id: number; revision?: number }) => {
+        next: (session: { id: number; revision?: number; billIndex?: number | null }) => {
           this.closeNewBillSaleModal();
           this.actionBusy.set(false);
           const sessionId = session.id;
+          const saleName =
+            this.saleEmployees().find((e) => e.id === salesId)?.nickname ??
+            seat.saleName ??
+            null;
+          if (!this.seatBillTabs().some((t) => t.sessionId === sessionId)) {
+            this.seatBillTabs.update((tabs) => [
+              ...tabs,
+              {
+                id: String(sessionId),
+                sessionId,
+                label: String(session.billIndex ?? tabs.length + 1),
+                saleName,
+                revision: session.revision ?? 1,
+                canCancel: true,
+                status: 'OPEN',
+              },
+            ]);
+          }
           this.seats.update((tiles) =>
             tiles.map((s) =>
               s.key === seat.key
@@ -1480,16 +1498,14 @@ export class OpenTablePageComponent implements OnInit {
                     ...s,
                     sessionId,
                     sessionRevision: session.revision ?? 1,
-                    saleName:
-                      this.saleEmployees().find((e) => e.id === salesId)?.nickname ??
-                      s.saleName,
+                    saleName: saleName ?? s.saleName,
                   }
                 : s,
             ),
           );
           this.activeSeatBillTabId.set(String(sessionId));
           this.loadSessionDetail(sessionId, { showLoading: true });
-          this.refreshFloorPlan();
+          this.refreshFloorPlan(seat.key, { silent: true, skipSessionReload: true });
           this.toast.showSuccess('เปิดบิลใหม่แล้ว');
         },
         error: (err: HttpErrorResponse) => {
@@ -1603,8 +1619,9 @@ export class OpenTablePageComponent implements OnInit {
     const tabId = this.activeSeatBillTabId();
     if (tabId == null) return null;
     const tab = this.seatBillTabs().find((t) => t.id === tabId);
-    if (!tab) return null;
-    return tab.sessionId;
+    if (tab) return tab.sessionId;
+    const parsed = Number(tabId);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
   }
 
   private tilesWithPreservedBillFocus(tiles: SeatTile[], seatKey: string): SeatTile[] {
@@ -1657,11 +1674,16 @@ export class OpenTablePageComponent implements OnInit {
     let hadLiveConnection = this.shopRealtime.isConnected();
     let floorPlanDebounce: ReturnType<typeof setTimeout> | null = null;
 
-    const refreshFloorSilent = (): void => {
+    const refreshFloorSilent = (ev?: { reason?: string; seatingId?: number }): void => {
       if (this.anyModalOpen()) return;
+      const seatChanged =
+        ev?.reason === 'add-bill' || ev?.reason === 'cancel-bill';
+      const viewingSeat =
+        ev?.seatingId == null || ev.seatingId === this.selectedSeat()?.seatId;
       this.refreshFloorPlan(this.selectedSeatKey(), {
         silent: true,
-        skipSessionReload: true,
+        skipSessionReload: !(seatChanged && viewingSeat),
+        forceSessionReload: seatChanged && viewingSeat,
       });
     };
 
@@ -1693,12 +1715,12 @@ export class OpenTablePageComponent implements OnInit {
 
     this.shopRealtime.floorPlanUpdated$
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
+      .subscribe((ev) => {
         if (this.anyModalOpen()) return;
         if (floorPlanDebounce != null) clearTimeout(floorPlanDebounce);
         floorPlanDebounce = setTimeout(() => {
           floorPlanDebounce = null;
-          refreshFloorSilent();
+          refreshFloorSilent(ev);
         }, FLOOR_DEBOUNCE_MS);
       });
 
@@ -1912,7 +1934,13 @@ export class OpenTablePageComponent implements OnInit {
 
   private refreshFloorPlan(
     selectKey?: string | null,
-    opts?: { silent?: boolean; skeleton?: boolean; onDone?: () => void; skipSessionReload?: boolean },
+    opts?: {
+      silent?: boolean;
+      skeleton?: boolean;
+      onDone?: () => void;
+      skipSessionReload?: boolean;
+      forceSessionReload?: boolean;
+    },
   ): void {
     if (opts?.skeleton) {
       this.floorPlanRefreshing.set(true);
@@ -2000,7 +2028,10 @@ export class OpenTablePageComponent implements OnInit {
           const sessionIdToLoad = focusedSessionId ?? seat?.sessionId ?? null;
           if (sessionIdToLoad != null) {
             // Already on this bill after add-items — don't reload primary (bill 1) and yank focus.
-            if (this.sessionDetail()?.sessionId === sessionIdToLoad) {
+            if (
+              !opts?.forceSessionReload &&
+              this.sessionDetail()?.sessionId === sessionIdToLoad
+            ) {
               return;
             }
             this.loadSessionDetail(sessionIdToLoad, { showLoading: false });
