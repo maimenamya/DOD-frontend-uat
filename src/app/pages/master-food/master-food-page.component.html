@@ -44,6 +44,17 @@
           />
           <app-field-error [control]="createForm.controls.price" [validated]="createFormValidated()" />
         </div>
+        <div class="app-form-group">
+          <span class="app-label">สำหรับพนักงาน</span>
+          <label class="app-toggle" aria-label="สำหรับพนักงาน — ไม่แสดงในหน้าสแกนสั่งอาหาร">
+            <input type="checkbox" class="app-toggle-input" formControlName="staffOnly" />
+            <span class="app-toggle-track"></span>
+            <span class="app-toggle-text">{{
+              createForm.controls.staffOnly.value ? 'เปิด — ไม่แสดงในหน้าสแกนสั่ง' : 'ปิด'
+            }}</span>
+          </label>
+          <p class="app-field-hint">เปิดแล้วลูกค้าที่สแกน QR จะไม่เห็นรายการนี้ — พนักงานลงบิลจากเปิดโต๊ะได้ตามปกติ</p>
+        </div>
         <div class="app-form-actions">
           <button type="button" class="app-btn-secondary" (click)="closeCreate()">ยกเลิก</button>
           <button type="submit" class="app-btn-primary" [disabled]="submitting()">
@@ -81,6 +92,17 @@
             (input)="sanitizeIntegerInput('edit', 'price', $event)"
           />
           <app-field-error [control]="editForm.controls.price" [validated]="editFormValidated()" />
+        </div>
+        <div class="app-form-group">
+          <span class="app-label">สำหรับพนักงาน</span>
+          <label class="app-toggle" aria-label="สำหรับพนักงาน — ไม่แสดงในหน้าสแกนสั่งอาหาร">
+            <input type="checkbox" class="app-toggle-input" formControlName="staffOnly" />
+            <span class="app-toggle-track"></span>
+            <span class="app-toggle-text">{{
+              editForm.controls.staffOnly.value ? 'เปิด — ไม่แสดงในหน้าสแกนสั่ง' : 'ปิด'
+            }}</span>
+          </label>
+          <p class="app-field-hint">เปิดแล้วลูกค้าที่สแกน QR จะไม่เห็นรายการนี้ — พนักงานลงบิลจากเปิดโต๊ะได้ตามปกติ</p>
         </div>
         <div class="app-form-group">
           <span class="app-label">รูปเมนู</span>
@@ -232,6 +254,9 @@
                             class="h-8 w-8 shrink-0 rounded bg-surface"
                           />
                           <span>{{ item.name }}</span>
+                          @if (item.staffOnly) {
+                            <span class="app-badge app-badge-default">พนักงาน</span>
+                          }
                         </span>
                       </td>
                       <td class="app-cell-right app-cell-highlight-violet">

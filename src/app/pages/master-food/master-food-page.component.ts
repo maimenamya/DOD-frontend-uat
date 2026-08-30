@@ -85,7 +85,7 @@ export class MasterFoodPageComponent implements OnInit {
 
   readonly listQuery = new MasterListQueryState();
   readonly listView = createMasterListView(this.filteredFoods, this.listQuery, (item) =>
-    `${item.name} ${item.category?.name ?? ''}`,
+    `${item.name} ${item.category?.name ?? ''} ${item.staffOnly ? 'พนักงาน' : ''}`,
   );
   readonly masterListRowNumber = masterListRowNumber;
 
@@ -98,11 +98,13 @@ export class MasterFoodPageComponent implements OnInit {
   readonly createForm = this.fb.group({
     name: ['', Validators.required],
     price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    staffOnly: [false],
   });
 
   readonly editForm = this.fb.group({
     name: ['', Validators.required],
     price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    staffOnly: [false],
     changeReason: ['', Validators.minLength(3)],
   });
 
@@ -164,7 +166,7 @@ export class MasterFoodPageComponent implements OnInit {
     
     resetFormValidationFlag(this.createFormValidated);
     if (this.loading() || !this.selectedCategory()) return;
-    this.createForm.reset({ name: '', price: '' });
+    this.createForm.reset({ name: '', price: '', staffOnly: false });
     this.showCreateModal.set(true);
   }
 
@@ -179,6 +181,7 @@ export class MasterFoodPageComponent implements OnInit {
     this.editForm.reset({
       name: item.name,
       price: String(item.price),
+      staffOnly: Boolean(item.staffOnly),
       changeReason: '',
     });
     this.editingItem.set(item);
@@ -242,9 +245,14 @@ export class MasterFoodPageComponent implements OnInit {
       return;
     }
     this.submitting.set(true);
-    const { name, price } = this.createForm.getRawValue();
+    const { name, price, staffOnly } = this.createForm.getRawValue();
     this.shopMaster
-      .createFood({ name, price: Number.parseInt(price, 10), categoryId: category.id })
+      .createFood({
+        name,
+        price: Number.parseInt(price, 10),
+        categoryId: category.id,
+        staffOnly,
+      })
       .subscribe({
       next: () => {
         this.submitting.set(false);
@@ -264,12 +272,13 @@ export class MasterFoodPageComponent implements OnInit {
     if (!item || this.submitting()) return;
     if (highlightInvalidForm(this.editForm, this.editFormValidated)) return;
     this.submitting.set(true);
-    const { name, price, changeReason } = this.editForm.getRawValue();
+    const { name, price, staffOnly, changeReason } = this.editForm.getRawValue();
     this.shopMaster
       .updateFood(item.id, {
         name,
         price: Number.parseInt(price, 10),
         categoryId: item.categoryId,
+        staffOnly,
         changeReason: changeReason.trim(),
       })
       .subscribe({

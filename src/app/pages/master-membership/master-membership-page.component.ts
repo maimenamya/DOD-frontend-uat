@@ -72,7 +72,7 @@ export class MasterMembershipPageComponent implements OnInit {
   readonly memberships = signal<MstMembership[]>([]);
   readonly listQuery = new MasterListQueryState();
   readonly listView = createMasterListView(this.memberships, this.listQuery, (item) =>
-    `${item.name} ${drinkPackageItemsSearchText(item.items)}`,
+    `${item.name} ${drinkPackageItemsSearchText(item.items)} ${item.staffOnly ? 'พนักงาน' : ''}`,
   );
   readonly masterListRowNumber = masterListRowNumber;
   readonly beverages = signal<MstBeverage[]>([]);
@@ -91,6 +91,7 @@ export class MasterMembershipPageComponent implements OnInit {
     items: this.fb.array<DrinkPackageLineForm>([]),
     isFreeMixer: [false],
     allowDeposit: [false],
+    staffOnly: [false],
     freeDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     changeReason: ['', Validators.minLength(3)],
   });
@@ -101,6 +102,7 @@ export class MasterMembershipPageComponent implements OnInit {
     items: this.fb.array<DrinkPackageLineForm>([]),
     isFreeMixer: [false],
     allowDeposit: [false],
+    staffOnly: [false],
     freeDrinks: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     changeReason: ['', Validators.minLength(3)],
   });
@@ -162,6 +164,7 @@ export class MasterMembershipPageComponent implements OnInit {
       packagePrice: '',
       isFreeMixer: false,
       allowDeposit: false,
+      staffOnly: false,
       freeDrinks: '',
     });
     this.showCreateModal.set(true);
@@ -182,6 +185,7 @@ export class MasterMembershipPageComponent implements OnInit {
       packagePrice: String(item.packagePrice),
       isFreeMixer: item.isFreeMixer,
       allowDeposit: item.allowDeposit ?? false,
+      staffOnly: Boolean(item.staffOnly),
       freeDrinks: String(item.freeDrinks ?? 0),
       changeReason: '',
     });
@@ -264,6 +268,7 @@ export class MasterMembershipPageComponent implements OnInit {
       items: drinkPackageItemsFromForm(this.createItems.controls),
       isFreeMixer: raw.isFreeMixer,
       allowDeposit: raw.allowDeposit,
+      staffOnly: raw.staffOnly,
       freeDrinks: Number.parseInt(raw.freeDrinks, 10),
     };
     this.shopMaster.createMembership(payload).subscribe({
@@ -292,6 +297,7 @@ export class MasterMembershipPageComponent implements OnInit {
       items: drinkPackageItemsFromForm(this.editItems.controls),
       isFreeMixer: raw.isFreeMixer,
       allowDeposit: raw.allowDeposit,
+      staffOnly: raw.staffOnly,
       freeDrinks: Number.parseInt(raw.freeDrinks, 10),
       changeReason: raw.changeReason.trim(),
     };

@@ -93,7 +93,7 @@ export class MasterDrinkPageComponent implements OnInit {
 
   readonly listQuery = new MasterListQueryState();
   readonly listView = createMasterListView(this.filteredBeverages, this.listQuery, (item) =>
-    `${item.name} ${item.unitLabelTh} ${item.category?.name ?? ''}`,
+    `${item.name} ${item.unitLabelTh} ${item.category?.name ?? ''} ${item.staffOnly ? 'พนักงาน' : ''}`,
   );
   readonly masterListRowNumber = masterListRowNumber;
 
@@ -121,6 +121,7 @@ export class MasterDrinkPageComponent implements OnInit {
     price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     unitLabelTh: ['', Validators.required],
     canReturn: [false],
+    staffOnly: [false],
     stockItemId: [0],
   });
 
@@ -129,6 +130,7 @@ export class MasterDrinkPageComponent implements OnInit {
     price: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     unitLabelTh: ['', Validators.required],
     canReturn: [false],
+    staffOnly: [false],
     stockItemId: [0],
     changeReason: ['', Validators.minLength(3)],
   });
@@ -193,7 +195,14 @@ export class MasterDrinkPageComponent implements OnInit {
     
     resetFormValidationFlag(this.createFormValidated);
     if (this.loading() || !this.selectedCategory()) return;
-    this.createForm.reset({ name: '', price: '', unitLabelTh: '', canReturn: false, stockItemId: 0 });
+    this.createForm.reset({
+      name: '',
+      price: '',
+      unitLabelTh: '',
+      canReturn: false,
+      staffOnly: false,
+      stockItemId: 0,
+    });
     this.showCreateModal.set(true);
   }
 
@@ -209,6 +218,7 @@ export class MasterDrinkPageComponent implements OnInit {
       price: String(item.price),
       unitLabelTh: item.unitLabelTh || '',
       canReturn: Boolean(item.canReturn),
+      staffOnly: Boolean(item.staffOnly),
       stockItemId: item.stockItemId ?? item.stockItem?.id ?? 0,
       changeReason: '',
     });
@@ -281,7 +291,8 @@ export class MasterDrinkPageComponent implements OnInit {
     if (categoryId == null || this.submitting()) return;
     if (highlightInvalidForm(this.createForm, this.createFormValidated)) return;
     this.submitting.set(true);
-    const { name, price, unitLabelTh, canReturn, stockItemId } = this.createForm.getRawValue();
+    const { name, price, unitLabelTh, canReturn, staffOnly, stockItemId } =
+      this.createForm.getRawValue();
     this.beverageService
       .createBeverage({
         name,
@@ -289,6 +300,7 @@ export class MasterDrinkPageComponent implements OnInit {
         categoryId,
         unitLabelTh: unitLabelTh.trim(),
         canReturn,
+        staffOnly,
         stockItemId: this.resolveStockItemId(stockItemId),
       })
       .subscribe({
@@ -310,13 +322,15 @@ export class MasterDrinkPageComponent implements OnInit {
     if (!item || this.submitting()) return;
     if (highlightInvalidForm(this.editForm, this.editFormValidated)) return;
     this.submitting.set(true);
-    const { name, price, unitLabelTh, canReturn, stockItemId, changeReason } = this.editForm.getRawValue();
+    const { name, price, unitLabelTh, canReturn, staffOnly, stockItemId, changeReason } =
+      this.editForm.getRawValue();
     this.beverageService
       .updateBeverage(item.id, {
         name,
         price: Number.parseInt(price, 10),
         unitLabelTh: unitLabelTh.trim(),
         canReturn,
+        staffOnly,
         stockItemId: this.resolveStockItemId(stockItemId),
         changeReason: changeReason.trim(),
       })

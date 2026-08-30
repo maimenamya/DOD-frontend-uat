@@ -70,6 +70,17 @@
           </label>
         </div>
         <div class="app-form-group">
+          <span class="app-label">สำหรับพนักงาน</span>
+          <label class="app-toggle" aria-label="สำหรับพนักงาน — ไม่แสดงในหน้าสแกนสั่งอาหาร">
+            <input type="checkbox" class="app-toggle-input" formControlName="staffOnly" />
+            <span class="app-toggle-track"></span>
+            <span class="app-toggle-text">{{
+              createForm.controls.staffOnly.value ? 'เปิด — ไม่แสดงในหน้าสแกนสั่ง' : 'ปิด'
+            }}</span>
+          </label>
+          <p class="app-field-hint">เปิดแล้วลูกค้าที่สแกน QR จะไม่เห็นรายการนี้ — พนักงานลงบิลจากเปิดโต๊ะได้ตามปกติ</p>
+        </div>
+        <div class="app-form-group">
           <label class="app-label" for="master-drink-สินค้าสต็อก-5">สินค้าสต็อก</label>
           <app-custom-dropdown inputId="master-drink-สินค้าสต็อก-5"
             formControlName="stockItemId"
@@ -137,6 +148,17 @@
               editForm.controls.canReturn.value ? 'เปิดใช้งาน' : 'ปิดใช้งาน'
             }}</span>
           </label>
+        </div>
+        <div class="app-form-group">
+          <span class="app-label">สำหรับพนักงาน</span>
+          <label class="app-toggle" aria-label="สำหรับพนักงาน — ไม่แสดงในหน้าสแกนสั่งอาหาร">
+            <input type="checkbox" class="app-toggle-input" formControlName="staffOnly" />
+            <span class="app-toggle-track"></span>
+            <span class="app-toggle-text">{{
+              editForm.controls.staffOnly.value ? 'เปิด — ไม่แสดงในหน้าสแกนสั่ง' : 'ปิด'
+            }}</span>
+          </label>
+          <p class="app-field-hint">เปิดแล้วลูกค้าที่สแกน QR จะไม่เห็นรายการนี้ — พนักงานลงบิลจากเปิดโต๊ะได้ตามปกติ</p>
         </div>
         <div class="app-form-group">
           <label class="app-label" for="master-drink-สินค้าสต็อก-10">สินค้าสต็อก</label>
@@ -311,6 +333,9 @@
                             class="h-8 w-8 shrink-0 rounded bg-surface"
                           />
                           <span class="drink-name-cell__label">{{ item.name }}</span>
+                          @if (item.staffOnly) {
+                            <span class="app-badge app-badge-default shrink-0">พนักงาน</span>
+                          }
                         </span>
                       </td>
                       <td class="app-cell-center text-text-secondary">{{ item.unitLabelTh }}</td>

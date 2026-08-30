@@ -72,7 +72,7 @@ export class MasterPromotionPageComponent implements OnInit {
   readonly promotions = signal<MstPromotion[]>([]);
   readonly listQuery = new MasterListQueryState();
   readonly listView = createMasterListView(this.promotions, this.listQuery, (item) =>
-    `${item.name} ${drinkPackageItemsSearchText(item.items)}`,
+    `${item.name} ${drinkPackageItemsSearchText(item.items)} ${item.staffOnly ? 'พนักงาน' : ''}`,
   );
   readonly masterListRowNumber = masterListRowNumber;
   readonly beverages = signal<MstBeverage[]>([]);
@@ -91,6 +91,7 @@ export class MasterPromotionPageComponent implements OnInit {
     items: this.fb.array<DrinkPackageLineForm>([]),
     isFreeMixer: [false],
     allowDeposit: [false],
+    staffOnly: [false],
     freeDrinks: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
     changeReason: ['', Validators.minLength(3)],
   });
@@ -101,6 +102,7 @@ export class MasterPromotionPageComponent implements OnInit {
     items: this.fb.array<DrinkPackageLineForm>([]),
     isFreeMixer: [false],
     allowDeposit: [false],
+    staffOnly: [false],
     freeDrinks: ['0', [Validators.required, Validators.pattern(/^\d+$/)]],
     changeReason: ['', Validators.minLength(3)],
   });
@@ -167,6 +169,7 @@ export class MasterPromotionPageComponent implements OnInit {
       packagePrice: '',
       isFreeMixer: false,
       allowDeposit: false,
+      staffOnly: false,
       freeDrinks: '0',
     });
     this.showCreateModal.set(true);
@@ -187,6 +190,7 @@ export class MasterPromotionPageComponent implements OnInit {
       packagePrice: String(item.packagePrice),
       isFreeMixer: item.isFreeMixer,
       allowDeposit: item.allowDeposit ?? false,
+      staffOnly: Boolean(item.staffOnly),
       freeDrinks: String(item.freeDrinks ?? 0),
       changeReason: '',
     });
@@ -269,6 +273,7 @@ export class MasterPromotionPageComponent implements OnInit {
       items: drinkPackageItemsFromForm(this.createItems.controls),
       isFreeMixer: raw.isFreeMixer,
       allowDeposit: raw.allowDeposit,
+      staffOnly: raw.staffOnly,
       freeDrinks: Number.parseInt(raw.freeDrinks, 10),
     };
     this.shopMaster.createPromotion(payload).subscribe({
@@ -297,6 +302,7 @@ export class MasterPromotionPageComponent implements OnInit {
       items: drinkPackageItemsFromForm(this.editItems.controls),
       isFreeMixer: raw.isFreeMixer,
       allowDeposit: raw.allowDeposit,
+      staffOnly: raw.staffOnly,
       freeDrinks: Number.parseInt(raw.freeDrinks, 10),
       changeReason: raw.changeReason.trim(),
     };

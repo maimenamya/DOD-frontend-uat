@@ -21,6 +21,7 @@ export interface MstFood {
   price: number;
   categoryId: number;
   shopId: number;
+  staffOnly?: boolean;
   imageUrl?: string | null;
   createdAt: string;
   category?: MstFoodCategory;
@@ -59,6 +60,7 @@ export interface DrinkPackageRow {
   isFreeMixer: boolean;
   allowDeposit: boolean;
   freeDrinks?: number;
+  staffOnly?: boolean;
   imageUrl?: string | null;
   shopId: number;
   createdAt: string;
@@ -74,4 +76,5 @@ export interface DrinkPackagePayload {
   isFreeMixer: boolean;
   allowDeposit: boolean;
   freeDrinks?: number;
+  staffOnly?: boolean;
 }

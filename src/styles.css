@@ -3912,26 +3912,22 @@
 
   .open-table-mobile-sheet {
     position: fixed;
+    top: var(--app-visual-viewport-offset-top, 0px);
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: auto;
     z-index: 56;
-    max-height: min(
-      var(--app-bottom-sheet-max-height),
-      calc(var(--app-visual-viewport-height, 100dvh) * var(--app-bottom-sheet-max-ratio))
-    );
+    height: var(--app-visual-viewport-height, 100dvh);
+    max-height: var(--app-visual-viewport-height, 100dvh);
     overflow-x: hidden;
     overflow-y: auto;
-    border: 1px solid var(--border);
-    border-bottom: 0;
-    border-top-left-radius: 1.25rem;
-    border-top-right-radius: 1.25rem;
-    /* no sheet padding — the inner panel's own p-4 is the single padding source,
-       so the full-bleed footer reaches the sheet edges + bottom */
-    padding: 0;
+    border: 0;
+    border-radius: 0;
+    /* no horizontal/bottom padding — footer stays full-bleed; top inset keeps ✕ below notch */
+    padding: env(safe-area-inset-top, 0px) 0 0;
     background: var(--surface-strong);
-    box-shadow: var(--shadow-card);
-    transition: transform 300ms ease-in-out;
+    box-shadow: none;
+    transition: height 300ms ease-in-out, top 300ms ease-in-out;
   }
 
   /* No inner card frame on mobile — the panel blends into the sheet */
@@ -3947,10 +3943,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    height: min(
-      var(--app-bottom-sheet-max-height),
-      calc(var(--app-visual-viewport-height, 100dvh) * var(--app-bottom-sheet-max-ratio))
-    );
+    height: var(--app-visual-viewport-height, 100dvh);
   }
 
   .open-table-mobile-sheet:has(.open-table-session-panel__summary) .open-table-session-panel,
@@ -3973,37 +3966,6 @@
   .open-table-mobile-sheet:has(.open-table-session-panel__summary) .open-table-session-panel__header,
   .open-table-mobile-sheet:has(.open-table-session-panel__summary) .open-table-bill-tab-rail {
     flex-shrink: 0;
-  }
-
-  @media (max-width: 999px) and (orientation: landscape) {
-    .open-table-mobile-sheet {
-      max-height: min(
-        var(--app-bottom-sheet-landscape-max-height),
-        calc(var(--app-visual-viewport-height, 100dvh) * var(--app-bottom-sheet-landscape-max-ratio))
-      );
-    }
-
-    .open-table-mobile-sheet:has(.open-table-session-panel__summary) {
-      height: min(
-        var(--app-bottom-sheet-landscape-max-height),
-        calc(var(--app-visual-viewport-height, 100dvh) * var(--app-bottom-sheet-landscape-max-ratio))
-      );
-    }
-  }
-
-  html.app-keyboard-open .open-table-mobile-sheet {
-    bottom: var(--app-keyboard-overlap, 0px);
-    max-height: min(
-      calc(var(--app-visual-viewport-height, var(--app-bottom-sheet-max-height)) - 0.75rem),
-      calc(var(--app-visual-viewport-height, 100dvh) * var(--app-bottom-sheet-max-ratio))
-    );
-  }
-
-  html.app-keyboard-open .open-table-mobile-sheet:has(.open-table-session-panel__summary) {
-    height: min(
-      calc(var(--app-visual-viewport-height, var(--app-bottom-sheet-max-height)) - 0.75rem),
-      calc(var(--app-visual-viewport-height, 100dvh) * var(--app-bottom-sheet-max-ratio))
-    );
   }
 
   .app-modal-overlay--sheet {

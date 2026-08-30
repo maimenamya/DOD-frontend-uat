@@ -23,6 +23,7 @@ export interface MstBeverage {
   unitLabelTh: string;
   categoryId: number;
   canReturn: boolean;
+  staffOnly?: boolean;
   stockItemId?: number | null;
   imageUrl?: string | null;
   createdAt: string;
@@ -41,6 +42,7 @@ export interface MstBeverageCreatePayload {
   categoryId: number;
   unitLabelTh?: string;
   canReturn?: boolean;
+  staffOnly?: boolean;
   stockItemId?: number | null;
 }
 
@@ -50,6 +52,7 @@ export interface MstBeverageUpdatePayload {
   categoryId?: number;
   unitLabelTh?: string;
   canReturn?: boolean;
+  staffOnly?: boolean;
   stockItemId?: number | null;
   changeReason?: string;
 }

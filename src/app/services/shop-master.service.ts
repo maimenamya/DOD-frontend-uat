@@ -107,13 +107,24 @@ export class ShopMasterService {
     return this.http.get<MstFood[]>(this.api.resource('foods'));
   }
 
-  createFood(payload: { name: string; price: number; categoryId: number }): Observable<MstFood> {
+  createFood(payload: {
+    name: string;
+    price: number;
+    categoryId: number;
+    staffOnly?: boolean;
+  }): Observable<MstFood> {
     return this.http.post<MstFood>(this.api.resource('foods'), payload);
   }
 
   updateFood(
     id: number,
-    payload: Partial<{ name: string; price: number; categoryId: number; changeReason: string }>,
+    payload: Partial<{
+      name: string;
+      price: number;
+      categoryId: number;
+      staffOnly: boolean;
+      changeReason: string;
+    }>,
   ): Observable<MstFood> {
     return this.http.put<MstFood>(this.api.resource(`foods/${id}`), payload);
   }
