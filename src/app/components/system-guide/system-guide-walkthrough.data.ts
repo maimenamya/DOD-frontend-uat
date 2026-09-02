@@ -103,6 +103,19 @@ export type GuideSidebarPreview = {
   groups?: GuideSidebarGroup[];
 };
 
+export type GuidePhoneRow = {
+  pin: number;
+  label: string;
+  slot: 'toolbar' | 'sheet' | 'menu' | 'home';
+};
+
+export type GuidePhonePreview = {
+  os: 'ios' | 'android' | 'home' | 'notify';
+  browser: string;
+  caption?: string;
+  rows: GuidePhoneRow[];
+};
+
 export type GuideWalkthroughBeat = {
   title: string;
   pathLabel?: string;
@@ -113,6 +126,7 @@ export type GuideWalkthroughBeat = {
   posPreview?: GuidePosPreview;
   sidebarPreview?: GuideSidebarPreview;
   swipeDemo?: GuideSwipeDemo;
+  phonePreview?: GuidePhonePreview;
   warn?: string;
   image?: {
     src: string;
@@ -157,9 +171,96 @@ const PACKAGE_TOGGLE_FIELDS: GuideMockField[] = [
   { pin: 4, label: 'จำนวนฟรี PR ดริ้งก์', sample: 'เช่น 0 หรือ 4', kind: 'input' },
 ];
 
+const HOMESCREEN_CHAPTER: GuideWalkthroughChapter = {
+  n: 1,
+  title: 'ไอคอนมือถือและแจ้งเตือน',
+    blurb:
+    'ไม่บังคับถ้าแค่เปิดเว็บ — แต่ถ้าอยากให้เครื่องดังเมื่อมีออเดอร์หรือถูกเรียก ไอโฟนต้องติดไอคอนแล้วเปิดจากไอคอนนั้น',
+  optional: true,
+  beats: [
+    {
+      title: 'ทำไมถึงติดไอคอน — และเมื่อไหร่ไม่ต้องทำ',
+      doThis: [
+        'ติดไอคอนที่หน้าจอโฮมแล้ว กดเข้า D-rink ได้ทันที ไม่ต้องหาลิงก์ร้านทุกครั้งที่เริ่มงาน',
+        'เปิดเต็มจอ ถือมือถือลงบิลสะดวกกว่าเปิดแท็บเบราว์เซอร์',
+        'ไอโฟนถ้าอยากให้เครื่องดังเมื่อมีออเดอร์ ต้องติดไอคอนแล้วเปิดจากไอคอนนั้น — เปิดแท็บ Safari อย่างเดียวรับแจ้งเตือนเครื่องไม่ได้',
+        'ไม่จำเป็นต้องทำ ถ้าเปิดลิงก์ร้านในเว็บได้ปกติ และไม่ต้องให้เครื่องดังตอนพับจอ',
+        'ต้องเปิดลิงก์จากเจ้าของร้านก่อน (มี ?shop= ในลิงก์) แล้วค่อยเพิ่มไอคอน — อย่าล้างข้อมูลเว็บก่อนติดตั้ง',
+      ],
+      phonePreview: {
+        os: 'home',
+        browser: 'หน้าจอโฮม',
+        caption: 'กดไอคอน D-rink บนหน้าจอโฮม — เหมือนเปิดแอพ',
+        rows: [{ pin: 1, label: 'D-rink', slot: 'home' }],
+      },
+    },
+    {
+      title: 'iPhone / iPad — ใช้ Safari เท่านั้น',
+      doThis: [
+        'เปิดลิงก์ร้านใน Safari — อย่าใช้ Chrome บนไอโฟน ติดไอคอนจาก Chrome แล้วเข้า POS ไม่ครบ',
+        'กดปุ่มแชร์ด้านล่าง (สี่เหลี่ยมมีลูกศรขึ้น)',
+        'เลื่อนหา เพิ่มไปยังหน้าจอโฮม แล้วกด เพิ่ม',
+        'กลับไปหน้าจอโฮม จะมีไอคอน D-rink — กดอันนั้นตอนเข้างาน แล้วค่อยเปิดแจ้งเตือนเครื่อง (ขั้น 1.4)',
+      ],
+      phonePreview: {
+        os: 'ios',
+        browser: 'Safari',
+        caption: 'iPhone ต้องใช้ Safari — กดแชร์ แล้วเลือกเพิ่มไปยังหน้าจอโฮม',
+        rows: [
+          { pin: 1, label: 'แชร์', slot: 'toolbar' },
+          { pin: 2, label: 'เพิ่มไปยังหน้าจอโฮม', slot: 'sheet' },
+          { pin: 3, label: 'เพิ่ม', slot: 'sheet' },
+        ],
+      },
+      warn: 'ยังไม่มีลิงก์ร้าน — ขอจากเจ้าของร้านก่อน เปิดใน Safari ให้ขึ้นหน้าเข้าสู่ระบบ แล้วค่อยติดไอคอน',
+    },
+    {
+      title: 'Android — ใช้ Chrome',
+      doThis: [
+        'เปิดลิงก์ร้านใน Chrome — อย่าเปิดจากไลน์ แจ้งเตือนเครื่องใช้ไม่ได้',
+        'กดจุดสามจุด ⋮ มุมขวาบน',
+        'เลือก เพิ่มไปยังหน้าจอหลัก หรือ ติดตั้งแอป แล้วกด เพิ่ม / ติดตั้ง',
+        'กลับไปหน้าจอโฮม กดไอคอน D-rink ตอนเข้างาน แล้วค่อยเปิดแจ้งเตือนเครื่อง (ขั้น 1.4)',
+      ],
+      phonePreview: {
+        os: 'android',
+        browser: 'Chrome',
+        caption: 'Android ใช้ Chrome — กด ⋮ แล้วเลือกเพิ่มไปยังหน้าจอหลัก',
+        rows: [
+          { pin: 1, label: '⋮', slot: 'menu' },
+          { pin: 2, label: 'เพิ่มไปยังหน้าจอหลัก', slot: 'sheet' },
+          { pin: 3, label: 'ติดตั้ง', slot: 'sheet' },
+        ],
+      },
+    },
+    {
+      title: 'เปิดแจ้งเตือนเครื่อง — คนที่มีกระดิ่งมุมบน',
+      doThis: [
+        'ครัว บาร์ เซอร์วิส ได้ยินออเดอร์ใหม่แม้พับจอ — เซลล์กับ PR ถูกเรียกจากโต๊ะก็ดังได้ ไม่ต้องเปิดหน้า POS ค้าง',
+        'เจ้าของกับผู้จัดการไม่มีกระดิ่งนี้ — ดูงานตอนอยู่ในระบบอยู่แล้ว',
+        'เข้าสู่ระบบแล้วกดกระดิ่งมุมบน → กด เปิดแจ้งเตือนเครื่อง → กดอนุญาตเมื่อเครื่องถาม',
+        'ไอโฟนต้องเปิดจากไอคอนหน้าจอโฮม (Safari) และ iOS 16.4 ขึ้นไป — เปิดแท็บ Safari อย่างเดียวเครื่องไม่ดัง',
+        'Android เปิด Chrome หรือไอคอนหน้าจอหลัก แล้วอนุญาตการแจ้งเตือน',
+        'ไม่กดเปิดแจ้งเตือนเครื่องก็ดูรายการในกระดิ่งได้ตอนเปิดแอปอยู่ แต่เครื่องจะไม่ดังถ้าพับจอ',
+      ],
+      phonePreview: {
+        os: 'notify',
+        browser: 'D-rink',
+        caption: 'กดกระดิ่งมุมบน แล้วกดเปิดแจ้งเตือนเครื่อง',
+        rows: [
+          { pin: 1, label: 'กระดิ่ง', slot: 'menu' },
+          { pin: 2, label: 'เปิดแจ้งเตือนเครื่อง', slot: 'sheet' },
+        ],
+      },
+      warn: 'ไม่ดัง = ไอโฟนยังเปิดจากแท็บ Safari / ยังไม่กดอนุญาต / เปิดจากไลน์ / iOS ต่ำกว่า 16.4',
+    },
+  ],
+};
+
 export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
+  HOMESCREEN_CHAPTER,
   {
-    n: 1,
+    n: 2,
     title: 'ตั้งกฎร้าน',
     blurb: 'กติกาทั้งร้าน — รหัสเข้างานรอบแรก, ตัดกะ, on floor, เศษนาทีดื่ม',
     beats: [
@@ -193,12 +294,12 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
     ],
   },
   {
-    n: 2,
+    n: 3,
     title: 'ตั้งเครื่องดื่ม',
     blurb: 'ต้องทำตามลำดับนี้เท่านั้น: สต็อก → ประเภท → เครื่องดื่ม — สลับแล้วสั่งใน POS ไม่ได้',
     beats: [
       {
-        title: 'ขั้น 2.1 สร้างสต็อกในคลังก่อน',
+        title: 'ขั้น 3.1 สร้างสต็อกในคลังก่อน',
         pathLabel: 'แถบซ้าย → การจัดการ → คลังสินค้า → สต็อกเครื่องดื่ม',
         route: '/dashboard/stock',
         doThis: [
@@ -225,7 +326,7 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
         },
       },
       {
-        title: 'ขั้น 2.2 สร้างประเภทเครื่องดื่ม',
+        title: 'ขั้น 3.2 สร้างประเภทเครื่องดื่ม',
         pathLabel: 'แถบซ้าย → การจัดการ → เครื่องดื่ม → ประเภทเครื่องดื่ม',
         route: '/dashboard/master-beverage-categories',
         doThis: [
@@ -254,7 +355,7 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
         warn: 'โซดา น้ำแข็ง น้ำอัดลม ต้องอยู่กลุ่มมิกซ์เซอร์ — ถ้าใส่กลุ่มเหล้า ระบบจะคิดว่าเป็นเหล้าขาย ลงฟรีมิกซ์ไม่ได้',
       },
       {
-        title: 'ขั้น 2.3 เพิ่มเมนูเครื่องดื่ม (ถึงจะสั่งใน POS ได้)',
+        title: 'ขั้น 3.3 เพิ่มเมนูเครื่องดื่ม (ถึงจะสั่งใน POS ได้)',
         pathLabel: 'แถบซ้าย → การจัดการ → เครื่องดื่ม → เครื่องดื่ม',
         route: '/dashboard/master-drinks',
         doThis: [
@@ -283,10 +384,10 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
           ],
           primaryAction: 'บันทึก',
         },
-        warn: 'ยังไม่มีสต็อกหรือประเภท จะเพิ่มเครื่องดื่มไม่ได้ — กลับไปขั้น 2.1 และ 2.2 ก่อน',
+        warn: 'ยังไม่มีสต็อกหรือประเภท จะเพิ่มเครื่องดื่มไม่ได้ — กลับไปขั้น 3.1 และ 3.2 ก่อน',
       },
       {
-        title: 'ขั้น 2.4 ค็อกเทล (ร้านไหนขายค็อกเทลค่อยทำ)',
+        title: 'ขั้น 3.4 ค็อกเทล (ร้านไหนขายค็อกเทลค่อยทำ)',
         pathLabel: 'แถบซ้าย → การจัดการ → เครื่องดื่ม → ค็อกเทล',
         route: '/dashboard/master-cocktails',
         doThis: [
@@ -315,13 +416,13 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
     ],
   },
   {
-    n: 3,
+    n: 4,
     title: 'ตั้งอาหาร',
     blurb: 'สร้างประเภทก่อน แล้วค่อยเพิ่มเมนู — สั่งแล้วครัวเห็นในเมนูออเดอร์',
     optional: true,
     beats: [
       {
-        title: 'ขั้น 3.1 สร้างประเภทอาหาร',
+        title: 'ขั้น 4.1 สร้างประเภทอาหาร',
         pathLabel: 'แถบซ้าย → การจัดการ → อาหาร → ประเภทอาหาร',
         route: '/dashboard/master-food-categories',
         doThis: [
@@ -344,7 +445,7 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
         },
       },
       {
-        title: 'ขั้น 3.2 เพิ่มเมนูอาหาร',
+        title: 'ขั้น 4.2 เพิ่มเมนูอาหาร',
         pathLabel: 'แถบซ้าย → การจัดการ → อาหาร → อาหาร',
         route: '/dashboard/master-foods',
         doThis: [
@@ -374,7 +475,7 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
     ],
   },
   {
-    n: 4,
+    n: 5,
     title: 'เบ็ดเตล็ด',
     blurb: 'ของนอกเมนูหลัก เช่น สแน็ค ผ้าเย็น — และค่าเปิดโต๊ะถ้ามี',
     optional: true,
@@ -434,7 +535,7 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
     ],
   },
   {
-    n: 5,
+    n: 6,
     title: 'โปรโมชั่น',
     blurb: 'แพ็กเกจโปร ที่ลงบิลและฝาก–เบิกได้ — ต้องมีเครื่องดื่มในระบบก่อน',
     optional: true,
@@ -487,7 +588,7 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
     ],
   },
   {
-    n: 6,
+    n: 7,
     title: 'เมมเบอร์',
     blurb: 'แพ็กเกจเมม วิธีตั้งเหมือนโปร — ลงบิลและฝาก–เบิกได้',
     optional: true,
@@ -540,12 +641,12 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
     ],
   },
   {
-    n: 7,
+    n: 8,
     title: 'พนักงาน',
     blurb: 'สร้างตำแหน่งก่อน แล้วค่อยเพิ่มคน — ต้องมีเซลล์อย่างน้อย 1 คน ถึงจะเปิดโต๊ะใน POS ได้',
     beats: [
       {
-        title: 'ขั้น 7.1 สร้างตำแหน่ง — ชื่อและสิทธิ์',
+        title: 'ขั้น 8.1 สร้างตำแหน่ง — ชื่อและสิทธิ์',
         pathLabel: 'แถบซ้าย → การจัดการ → จัดการพนักงาน → ตำแหน่ง',
         route: '/dashboard/master-roles',
         doThis: [
@@ -575,7 +676,7 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
         },
       },
       {
-        title: 'ขั้น 7.2 ตั้งเวลากะและยอดดื่มของตำแหน่ง',
+        title: 'ขั้น 8.2 ตั้งเวลากะและยอดดื่มของตำแหน่ง',
         pathLabel: 'แถบซ้าย → การจัดการ → จัดการพนักงาน → ตำแหน่ง',
         route: '/dashboard/master-roles',
         doThis: [
@@ -603,7 +704,7 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
         },
       },
       {
-        title: 'ขั้น 7.3 เพิ่มพนักงาน — ต้องมีเซลล์อย่างน้อย 1 คน',
+        title: 'ขั้น 8.3 เพิ่มพนักงาน — ต้องมีเซลล์อย่างน้อย 1 คน',
         pathLabel: 'แถบซ้าย → การจัดการ → จัดการพนักงาน → พนักงาน',
         route: '/dashboard/employees',
         doThis: [
@@ -636,12 +737,12 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
     ],
   },
   {
-    n: 8,
+    n: 9,
     title: 'โต๊ะ',
     blurb: 'สร้างประเภทโซนก่อน แล้วค่อยเพิ่มโต๊ะ — ไม่มีโต๊ะเปิด POS ไม่ได้',
     beats: [
       {
-        title: 'ขั้น 8.1 สร้างประเภทโซนที่นั่ง',
+        title: 'ขั้น 9.1 สร้างประเภทโซนที่นั่ง',
         pathLabel: 'แถบซ้าย → การจัดการ → จัดการที่นั่ง → ประเภทโซนที่นั่ง',
         route: '/dashboard/master-seating-types',
         doThis: [
@@ -667,7 +768,7 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
         },
       },
       {
-        title: 'ขั้น 8.2 สร้างโต๊ะ',
+        title: 'ขั้น 9.2 สร้างโต๊ะ',
         pathLabel: 'แถบซ้าย → การจัดการ → จัดการที่นั่ง → โซนที่นั่ง',
         route: '/dashboard/master-seatings',
         doThis: [
@@ -695,18 +796,18 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
           ],
           primaryAction: 'บันทึก',
         },
-        warn: 'ยังไม่มีประเภทโซน — กลับไปขั้น 8.1 ก่อน เพิ่มโต๊ะไม่ได้',
+        warn: 'ยังไม่มีประเภทโซน — กลับไปขั้น 9.1 ก่อน เพิ่มโต๊ะไม่ได้',
       },
     ],
   },
   {
-    n: 9,
+    n: 10,
     title: 'แท็ก PR',
     blurb: 'สร้างแพ็กเกจก่อน แล้วค่อยลงแท็กให้เด็กนั่งดริ้งที่เมนูจัดการ tag',
     optional: true,
     beats: [
       {
-        title: 'ขั้น 9.1 สร้างแพ็กเกจแท็ก',
+        title: 'ขั้น 10.1 สร้างแพ็กเกจแท็ก',
         pathLabel: 'แถบซ้าย → การจัดการ → แพ็กเกจแท็ก → แพ็กเกจแท็ก PR',
         route: '/dashboard/master-pr-tags',
         doThis: [
@@ -732,7 +833,7 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
         },
       },
       {
-        title: 'ขั้น 9.2 ลงแท็กให้คน (เมนูจัดการ tag)',
+        title: 'ขั้น 10.2 ลงแท็กให้คน (เมนูจัดการ tag)',
         pathLabel: 'แถบซ้าย → จัดการ tag',
         route: '/dashboard/pr-tag-operations',
         doThis: [
@@ -755,19 +856,19 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
           ],
           primaryAction: 'ยืนยันลงแท็ก',
         },
-        warn: 'ยังไม่มีแพ็กเกจแท็ก — กลับไปขั้น 9.1 ก่อน ลงแท็กไม่ได้',
+        warn: 'ยังไม่มีแพ็กเกจแท็ก — กลับไปขั้น 10.1 ก่อน ลงแท็กไม่ได้',
       },
     ],
   },
   {
-    n: 10,
+    n: 11,
     title: 'เครื่องพิมพ์ใบเสร็จ',
     blurb:
       'D-rink เป็นเว็บ ไม่ใช่แอพมือถือ — พิมพ์จากมือถือต้องโหลดแอพช่วยส่งงานไปเครื่องปริ้น เช็กบิลได้แม้ยังไม่ตั้งพิมพ์',
     optional: true,
     beats: [
       {
-        title: 'ขั้น 10.1 Android — โหลดแอพ RawBT',
+        title: 'ขั้น 11.1 Android — โหลดแอพ RawBT',
         doThis: [
           'เปิด Play Store บนมือถือหรือแท็บเล็ต Android',
           'ค้นหา RawBT — เลือกแอพที่ไอคอนเป็นเครื่องปริ้นสีน้ำเงินเข้ม มีกระดาษเขียน RAWBT (ตามรูปด้านข้าง)',
@@ -787,7 +888,7 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
         warn: 'D-rink เปิดใน Chrome/เบราว์เซอร์ พิมพ์บลูทูธตรงไม่ได้ ต้องให้ RawBT เป็นตัวส่งงานไปเครื่องปริ้น',
       },
       {
-        title: 'ขั้น 10.2 iPhone — โหลดแอพ AHAS Print Service',
+        title: 'ขั้น 11.2 iPhone — โหลดแอพ AHAS Print Service',
         doThis: [
           'เปิด App Store บนไอโฟนหรือไอแพด ค้นหา AHAS Print Service (ฟรี)',
           'เลือกแอพไอคอนเครื่องปริ้นพื้นเขียว ตามรูปด้านข้าง แล้วกดรับ/ติดตั้ง',
@@ -806,7 +907,7 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
         warn: 'ไอโฟนพิมพ์บลูทูธจากเว็บตรงไม่ได้ — ข้อจำกัดของ iOS ไม่ใช่ข้อจำกัดของร้าน ต้องเปิดแอพช่วยค้างไว้ ใช้ได้ตั้งแต่ iOS 12',
       },
       {
-        title: 'ขั้น 10.3 ตั้งโหมดพิมพ์ใน D-rink',
+        title: 'ขั้น 11.3 ตั้งโหมดพิมพ์ใน D-rink',
         pathLabel: 'แถบซ้าย → การจัดการ → ตั้งค่าร้าน → เครื่องพิมพ์ใบเสร็จ',
         route: '/dashboard/receipt-printer',
         doThis: [
@@ -833,7 +934,7 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
         },
       },
       {
-        title: 'ขั้น 10.4 คอมพิวเตอร์',
+        title: 'ขั้น 11.4 คอมพิวเตอร์',
         doThis: [
           'คอมพิวเตอร์ (Windows) — ไม่ต้องโหลดแอพ เลือกโหมด อัตโนมัติ หรือ เบราว์เซอร์ แล้วติดตั้งไดรเวอร์ USB ของเครื่องปริ้น',
           'พิมพ์จากหน้าต่าง Print ของเบราว์เซอร์ เลือกเครื่อง POS-58',
@@ -843,7 +944,7 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
     ],
   },
   {
-    n: 11,
+    n: 12,
     title: 'ลองในหน้า POS',
     blurb: 'ตั้งครบแล้ว ลองเปิดโต๊ะ ลงของ เช็กบิล หนึ่งรอบก่อนเปิดร้านจริง',
     beats: [
@@ -875,7 +976,7 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
           ],
           primaryAction: 'เปิดโต๊ะ',
         },
-        warn: 'เปิดโต๊ะไม่ได้ = ยังไม่มีเซลล์ (ขั้นที่ 7) หรือยังไม่มีโต๊ะ (ขั้นที่ 8) · สั่งของไม่ได้ = ยังไม่ได้ตั้งเครื่องดื่มให้ครบขั้นที่ 2',
+        warn: 'เปิดโต๊ะไม่ได้ = ยังไม่มีเซลล์ (ขั้นที่ 8) หรือยังไม่มีโต๊ะ (ขั้นที่ 9) · สั่งของไม่ได้ = ยังไม่ได้ตั้งเครื่องดื่มให้ครบขั้นที่ 3',
       },
     ],
   },

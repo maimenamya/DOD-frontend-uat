@@ -39,7 +39,8 @@ export class SystemGuideWalkthroughComponent {
       (beat.screen && beat.nav) ||
       beat.posPreview ||
       beat.sidebarPreview ||
-      beat.swipeDemo
+      beat.swipeDemo ||
+      beat.phonePreview
     );
   }
 
