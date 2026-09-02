@@ -17,6 +17,7 @@ import { catchError, finalize, firstValueFrom, forkJoin, of } from 'rxjs';
 
 import { AppModalComponent, type AppModalLayout } from '../../components/app-modal/app-modal.component';
 import { AppThumbImageComponent } from '../../components/app-thumb-image/app-thumb-image.component';
+import { PrintIconButtonComponent } from '../../components/print-icon-button/print-icon-button.component';
 import { SwipeRevealRowComponent } from '../../components/swipe-reveal-row/swipe-reveal-row.component';
 import { PortalToBodyDirective } from '../../directives/portal-to-body.directive';
 import {
@@ -196,6 +197,7 @@ const ORDER_PICKER_MODE_KEY = 'dod.openTable.orderPickerMode';
     DecimalPipe,
     FormsModule,
     AppModalComponent,
+    PrintIconButtonComponent,
     AppThumbImageComponent,
     CustomDropdownComponent,
     FieldErrorComponent,
@@ -5367,6 +5369,12 @@ export class OpenTablePageComponent implements OnInit {
     const outcome = this.billReceiptService.printReceipt(receiptResponse.receipt, {
       printFrame,
     });
+    if (outcome.ok && outcome.method === 'ahas') {
+      this.toast.showSuccess(
+        outcome.message ?? 'กำลังส่งใบเสร็จไป AHAS Print Service — เปิดแอพค้างไว้',
+      );
+      return;
+    }
     if (outcome.ok && outcome.method === 'thermer') {
       this.toast.showSuccess(
         outcome.message ?? 'กำลังส่งใบเสร็จไป Thermer...',
@@ -5412,6 +5420,12 @@ export class OpenTablePageComponent implements OnInit {
         const outcome = this.billReceiptService.printReceipt(response.receipt, {
           printFrame,
         });
+        if (outcome.ok && outcome.method === 'ahas') {
+          this.toast.showSuccess(
+            outcome.message ?? 'กำลังส่งใบเสร็จไป AHAS Print Service — เปิดแอพค้างไว้',
+          );
+          return;
+        }
         if (outcome.ok && outcome.method === 'thermer') {
       this.toast.showSuccess(
         outcome.message ?? 'กำลังส่งใบเสร็จไป Thermer...',

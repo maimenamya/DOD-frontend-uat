@@ -184,7 +184,14 @@
 @if (selectedRow(); as row) {
   <app-modal layout="center" (dismiss)="closeDetail()">
     <div class="app-modal-header">
-      <h2 class="app-modal-title">บิล {{ row.billReference }}</h2>
+      <div class="app-modal-title-row">
+        <h2 class="app-modal-title">บิล {{ row.billReference }}</h2>
+        <app-print-icon-button
+          [disabled]="printing() || !row.hasReceipt"
+          [label]="printing() ? 'กำลังพิมพ์...' : 'พิมพ์บิล'"
+          (pressed)="printSelected()"
+        />
+      </div>
       <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeDetail()">✕</button>
     </div>
 
@@ -244,14 +251,6 @@
 
         <div class="app-form-actions bill-history-detail-actions">
           <button type="button" class="app-btn-secondary" (click)="closeDetail()">ปิด</button>
-          <button
-            type="button"
-            class="app-btn-primary"
-            [disabled]="printing()"
-            (click)="printSelected()"
-          >
-            {{ printing() ? 'กำลังพิมพ์...' : 'พิมพ์ใบเสร็จ' }}
-          </button>
         </div>
       </div>
       }

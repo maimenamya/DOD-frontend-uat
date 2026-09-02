@@ -1,0 +1,531 @@
+<div class="guide-walkthrough">
+  <ol class="guide-walkthrough-toc app-scroll-region">
+    @for (chapter of chapters(); track chapter.n; let i = $index) {
+      <li>
+        <button
+          type="button"
+          class="guide-walkthrough-toc-btn"
+          [class.guide-walkthrough-toc-btn--active]="isChapterOpen(i)"
+          (click)="openChapter(i)"
+        >
+          <span class="guide-walkthrough-toc-n">{{ chapter.n }}</span>
+          <span class="guide-walkthrough-toc-label">{{ chapter.title }}</span>
+        </button>
+      </li>
+    }
+  </ol>
+
+  <div class="guide-walkthrough-chapters">
+    @for (chapter of chapters(); track chapter.n; let i = $index) {
+      <section
+        class="guide-walkthrough-chapter"
+        [class.guide-walkthrough-chapter--open]="isChapterOpen(i)"
+        [id]="chapterElementId(i)"
+      >
+        <button
+          type="button"
+          class="guide-walkthrough-chapter-toggle"
+          [attr.aria-expanded]="isChapterOpen(i)"
+          (click)="toggleChapter(i)"
+        >
+          <span class="guide-walkthrough-chapter-n">ขั้นที่ {{ chapter.n }}</span>
+          <span class="guide-walkthrough-chapter-head">
+            <span class="guide-walkthrough-chapter-title">{{ chapter.title }}</span>
+            @if (chapter.optional) {
+              <span class="guide-walkthrough-optional">ไม่บังคับ</span>
+            }
+          </span>
+          <span class="guide-walkthrough-chapter-blurb">{{ chapter.blurb }}</span>
+          <span class="guide-walkthrough-chapter-chevron" aria-hidden="true">▾</span>
+        </button>
+
+        @if (isChapterOpen(i)) {
+          <div class="guide-walkthrough-beats">
+            @for (beat of chapter.beats; track beat.title; let b = $index) {
+              <article class="guide-walkthrough-beat">
+                <header class="guide-walkthrough-beat-head">
+                  @if (chapter.beats.length > 1) {
+                    <p class="guide-walkthrough-beat-seq">
+                      {{ chapter.n }}.{{ b + 1 }} / {{ chapter.beats.length }}
+                    </p>
+                  }
+                  <h3 class="guide-walkthrough-beat-title">{{ beat.title }}</h3>
+                  @if (beat.pathLabel) {
+                    <p class="guide-walkthrough-path">
+                      กดเมนู:
+                      <span class="guide-walkthrough-path-text">{{ beat.pathLabel }}</span>
+                    </p>
+                  }
+                  @if (beat.route) {
+                    <a [routerLink]="beat.route" class="app-btn-primary guide-walkthrough-open">
+                      เปิดหน้านี้
+                    </a>
+                  }
+                  @if (beat.storeLink; as store) {
+                    <a
+                      [href]="store.href"
+                      class="app-btn-primary guide-walkthrough-open"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {{ store.label }}
+                    </a>
+                  }
+                </header>
+
+                <div
+                  class="guide-walkthrough-beat-body"
+                  [class.guide-walkthrough-beat-body--text-only]="!beatHasVisual(beat)"
+                >
+                  @if (beat.image; as img) {
+                    <figure class="guide-app-shot">
+                      <img [src]="img.src" [alt]="img.alt" width="240" height="240" />
+                      <figcaption>{{ img.caption }}</figcaption>
+                    </figure>
+                  }
+                  @if (beat.sidebarPreview; as preview) {
+                    <figure class="guide-sidebar-shot" aria-hidden="true">
+                      <div class="guide-shot-chrome">
+                        <span></span><span></span><span></span>
+                        <em>แถบซ้าย</em>
+                      </div>
+                      <nav class="guide-sidebar-nav app-scroll-region">
+                        @if (preview.links; as links) {
+                          @for (item of links; track item.label) {
+                            <div class="guide-sidebar-row">
+                              @if (item.pin) {
+                                <span class="guide-pin">{{ item.pin }}</span>
+                              }
+                              <div class="app-sidebar-link">
+                                <span class="app-sidebar-icon-slot">
+                                  <app-sidebar-icon [name]="item.icon" />
+                                </span>
+                                <span class="app-sidebar-label">{{ item.label }}</span>
+                              </div>
+                            </div>
+                          }
+                        }
+                        @if (preview.sectionLabel) {
+                          <div class="app-sidebar-section-label">{{ preview.sectionLabel }}</div>
+                        }
+                        @if (preview.groups; as groups) {
+                          @for (group of groups; track group.label) {
+                            <div class="app-sidebar-group app-sidebar-group--active">
+                              <div class="guide-sidebar-row">
+                                @if (group.pin) {
+                                  <span class="guide-pin">{{ group.pin }}</span>
+                                }
+                                <div class="app-sidebar-group-toggle app-sidebar-group-toggle-active">
+                                  <span class="app-sidebar-icon-slot">
+                                    <app-sidebar-icon [name]="group.icon" />
+                                  </span>
+                                  <span class="app-sidebar-label app-sidebar-group-label">{{
+                                    group.label
+                                  }}</span>
+                                  <app-sidebar-icon
+                                    class="app-sidebar-group-chevron app-sidebar-label"
+                                    name="chevron-down"
+                                  />
+                                </div>
+                              </div>
+                              <div class="app-sidebar-subnav">
+                                @for (child of group.children; track child.label) {
+                                  <div class="guide-sidebar-row">
+                                    @if (child.pin) {
+                                      <span class="guide-pin">{{ child.pin }}</span>
+                                    }
+                                    <div class="app-sidebar-link app-sidebar-sublink">
+                                      <span class="app-sidebar-sublink-dot"></span>
+                                      <span class="app-sidebar-label">{{ child.label }}</span>
+                                    </div>
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                          }
+                        }
+                      </nav>
+                    </figure>
+                  }
+                  @if (beat.posPreview; as preview) {
+                    <figure class="guide-pos-shot" aria-hidden="true">
+                      <div class="guide-shot-chrome">
+                        <span></span><span></span><span></span>
+                        <em>{{ preview.modalTitle ? 'POS' : preview.pageTitle }}</em>
+                      </div>
+                      @if (preview.modalTitle) {
+                        <div class="guide-pos-modal-head">
+                          <span class="app-modal-title">{{ preview.modalTitle }}</span>
+                          <span class="guide-pos-modal-close" aria-hidden="true">×</span>
+                        </div>
+                      }
+                      <div class="guide-pos-shot-body">
+                        @if (preview.chips; as chips) {
+                          <div class="app-filter-bar guide-pos-filters">
+                            @for (chip of chips; track chip) {
+                              <span
+                                class="app-filter-chip"
+                                [class.app-filter-chip-active]="chip === preview.activeChip"
+                              >
+                                @if (statusFilterKey(chip); as statusKey) {
+                                  <span
+                                    class="guide-pos-status-dot"
+                                    [class.guide-pos-status-dot--empty]="statusKey === 'empty'"
+                                    [class.guide-pos-status-dot--reserved]="statusKey === 'reserved'"
+                                    [class.guide-pos-status-dot--open]="statusKey === 'open'"
+                                    [class.guide-pos-status-dot--wait]="statusKey === 'wait'"
+                                  ></span>
+                                }
+                                {{ chip }}
+                              </span>
+                            }
+                          </div>
+                        }
+                        @if (preview.segments; as segs) {
+                          <div class="app-segmented-control">
+                            @for (opt of segs.options; track opt) {
+                              <span
+                                class="app-segmented-chip"
+                                [class.app-segmented-chip-active]="opt === segs.active"
+                              >
+                                {{ opt }}
+                              </span>
+                            }
+                          </div>
+                        }
+                        @if (preview.kind === 'floor' && preview.seats; as seats) {
+                          <div class="guide-pos-seats">
+                            @for (seat of seats; track seat.code) {
+                              <div
+                                class="guide-pos-seat"
+                                [class.guide-pos-seat--empty]="seat.status === 'empty'"
+                                [class.guide-pos-seat--reserved]="seat.status === 'reserved'"
+                                [class.guide-pos-seat--open]="seat.status === 'open'"
+                                [class.guide-pos-seat--wait]="seat.status === 'wait'"
+                              >
+                                @if (seat.pin) {
+                                  <span class="guide-pin">{{ seat.pin }}</span>
+                                }
+                                <span class="guide-pos-seat-status">
+                                  <span class="guide-pos-seat-dot" aria-hidden="true"></span>
+                                  @switch (seat.status) {
+                                    @case ('empty') { ว่าง }
+                                    @case ('reserved') { จอง }
+                                    @case ('open') { ใช้งาน }
+                                    @case ('wait') { รอลูกค้ากลับ }
+                                  }
+                                </span>
+                                <span class="guide-pos-seat-code">{{ seat.code }}</span>
+                              </div>
+                            }
+                          </div>
+                        }
+                        @if (preview.billLines; as lines) {
+                          <div class="guide-pos-bill">
+                            @for (line of lines; track line.title) {
+                              <div class="guide-pos-bill-line">
+                                <div>
+                                  <span class="guide-pos-bill-title">{{ line.title }}</span>
+                                  <span class="guide-pos-bill-meta">{{ line.meta }}</span>
+                                </div>
+                                <span class="guide-pos-bill-price">{{ line.price }}</span>
+                              </div>
+                            }
+                          </div>
+                        }
+                        @if (preview.fields; as fields) {
+                          <div class="app-form-stack guide-pos-form">
+                            @for (field of fields; track field.pin) {
+                              <div class="guide-shot-field">
+                                <span class="guide-pin">{{ field.pin }}</span>
+                                <div class="app-form-group guide-pos-field">
+                                  @switch (field.kind) {
+                                    @case ('toggle') {
+                                      <label class="app-toggle">
+                                        <input
+                                          type="checkbox"
+                                          class="app-toggle-input"
+                                          [checked]="!!field.on"
+                                          tabindex="-1"
+                                        />
+                                        <span class="app-toggle-track"></span>
+                                        <span class="app-toggle-text text-sm">{{ field.label }}</span>
+                                      </label>
+                                    }
+                                    @case ('input') {
+                                      <span class="app-label">{{ field.label }}</span>
+                                      <span class="app-input">{{ field.sample }}</span>
+                                    }
+                                    @default {
+                                      <span class="app-label">{{ field.label }}</span>
+                                      <span class="app-dropdown-trigger">
+                                        <span class="app-dropdown-trigger-label">{{ field.sample }}</span>
+                                        <svg
+                                          class="app-dropdown-chevron"
+                                          viewBox="0 0 20 20"
+                                          fill="currentColor"
+                                        >
+                                          <path
+                                            fill-rule="evenodd"
+                                            d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z"
+                                            clip-rule="evenodd"
+                                          />
+                                        </svg>
+                                      </span>
+                                    }
+                                  }
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        }
+                        @if (preview.primaryAction) {
+                          <div class="app-form-actions app-form-actions-top">
+                            @if (preview.secondaryAction) {
+                              <span class="app-btn-secondary">{{ preview.secondaryAction }}</span>
+                            }
+                            <span class="app-btn-primary">{{ preview.primaryAction }}</span>
+                          </div>
+                        }
+                      </div>
+                    </figure>
+                  }
+                  @if (beat.swipeDemo; as swipe) {
+                    <figure class="guide-swipe-demo">
+                      <p class="guide-swipe-caption">{{ swipe.caption }}</p>
+                      <ul class="guide-swipe-legend">
+                        @for (action of swipe.legend; track action.kind) {
+                          <li>
+                            <span
+                              class="guide-swipe-btn"
+                              [class.guide-swipe-btn--accent]="action.tone === 'accent'"
+                              [class.guide-swipe-btn--warning]="action.tone === 'warning'"
+                              [class.guide-swipe-btn--danger]="action.tone === 'danger'"
+                            >
+                              <ng-container
+                                *ngTemplateOutlet="swipeIcon; context: { $implicit: action.kind }"
+                              />
+                            </span>
+                            <span>{{ action.label }}</span>
+                          </li>
+                        }
+                      </ul>
+                      @for (row of swipe.rows; track row.hint) {
+                        <p class="guide-swipe-hint">{{ row.hint }}</p>
+                        <div
+                          class="guide-swipe-row"
+                          [class.guide-swipe-row--right]="row.reveal === 'right'"
+                          [class.guide-swipe-row--left]="row.reveal === 'left'"
+                        >
+                          @if (row.reveal === 'right') {
+                            <div class="guide-swipe-actions">
+                              @for (action of row.actions; track action.label) {
+                                <span
+                                  class="guide-swipe-btn"
+                                  [class.guide-swipe-btn--accent]="action.tone === 'accent'"
+                                  [class.guide-swipe-btn--warning]="action.tone === 'warning'"
+                                  [class.guide-swipe-btn--danger]="action.tone === 'danger'"
+                                  [attr.title]="action.label"
+                                >
+                                  <ng-container
+                                    *ngTemplateOutlet="swipeIcon; context: { $implicit: action.kind }"
+                                  />
+                                </span>
+                              }
+                            </div>
+                          }
+                          <div class="guide-swipe-item">
+                            <div>
+                              <span class="guide-pos-bill-title">{{ row.title }}</span>
+                              <span class="guide-pos-bill-meta">{{ row.meta }}</span>
+                            </div>
+                            @if (row.price) {
+                              <span class="guide-pos-bill-price">{{ row.price }}</span>
+                            }
+                          </div>
+                          @if (row.reveal === 'left') {
+                            <div class="guide-swipe-actions">
+                              @for (action of row.actions; track action.label) {
+                                <span
+                                  class="guide-swipe-btn"
+                                  [class.guide-swipe-btn--accent]="action.tone === 'accent'"
+                                  [class.guide-swipe-btn--warning]="action.tone === 'warning'"
+                                  [class.guide-swipe-btn--danger]="action.tone === 'danger'"
+                                  [attr.title]="action.label"
+                                >
+                                  <ng-container
+                                    *ngTemplateOutlet="swipeIcon; context: { $implicit: action.kind }"
+                                  />
+                                </span>
+                              }
+                            </div>
+                          }
+                        </div>
+                      }
+                    </figure>
+                  }
+                  @if (beat.screen && beat.nav) {
+                    <figure class="guide-shot" aria-hidden="true">
+                      <div class="guide-shot-chrome">
+                        <span></span><span></span><span></span>
+                        <em>{{ beat.screen.pageTitle }}</em>
+                      </div>
+                      <div class="guide-shot-body">
+                        <aside class="guide-shot-nav">
+                          <p class="guide-shot-brand">D-rink</p>
+                          @for (line of beat.nav; track $index) {
+                            <p
+                              class="guide-shot-nav-line"
+                              [class.guide-shot-nav-line--section]="line.kind === 'section'"
+                              [class.guide-shot-nav-line--group]="line.kind === 'group'"
+                              [class.guide-shot-nav-line--child]="line.kind === 'child'"
+                              [class.guide-shot-nav-line--active]="line.active"
+                            >
+                              {{ line.label }}
+                            </p>
+                          }
+                        </aside>
+                        <div class="guide-shot-main">
+                          <div class="guide-shot-header">
+                            <p class="guide-shot-title">{{ beat.screen.pageTitle }}</p>
+                            @if (beat.screen.addButton) {
+                              <span class="guide-shot-add">
+                                @if (beat.screen.addButtonPin) {
+                                  <span class="guide-pin">{{ beat.screen.addButtonPin }}</span>
+                                }
+                                {{ beat.screen.addButton }}
+                              </span>
+                            }
+                          </div>
+                          @if (beat.screen.chips; as chips) {
+                            <div class="guide-shot-chips">
+                              @for (chip of chips; track chip) {
+                                <span
+                                  class="guide-shot-chip"
+                                  [class.guide-shot-chip--active]="chip === beat.screen.activeChip"
+                                >
+                                  {{ chip }}
+                                </span>
+                              }
+                            </div>
+                          }
+                          <div class="guide-shot-fields">
+                            @for (field of beat.screen.fields; track field.pin) {
+                              <div class="guide-shot-field">
+                                <span class="guide-pin">{{ field.pin }}</span>
+                                <div class="guide-shot-field-box">
+                                  @if (field.kind === 'toggle') {
+                                    <span class="guide-shot-field-label">{{ field.label }}</span>
+                                    <label class="app-toggle">
+                                      <input
+                                        type="checkbox"
+                                        class="app-toggle-input"
+                                        [checked]="!!field.on"
+                                        tabindex="-1"
+                                      />
+                                      <span class="app-toggle-track"></span>
+                                      <span class="app-toggle-text text-sm">{{ field.sample }}</span>
+                                    </label>
+                                  } @else {
+                                    <span class="guide-shot-field-label">{{ field.label }}</span>
+                                    <span class="guide-shot-field-sample">{{ field.sample }}</span>
+                                  }
+                                </div>
+                              </div>
+                            }
+                          </div>
+                          <span class="guide-shot-submit">{{ beat.screen.primaryAction }}</span>
+                        </div>
+                      </div>
+                    </figure>
+                  }
+
+                  @if (beat.doThis.length) {
+                    <ol class="guide-walkthrough-do">
+                      @for (step of beat.doThis; track step; let s = $index) {
+                        <li>
+                          <span class="guide-pin">{{ s + 1 }}</span>
+                          <span>{{ step }}</span>
+                        </li>
+                      }
+                    </ol>
+                  }
+                </div>
+
+                @if (beat.warn) {
+                  <p class="guide-walkthrough-warn">{{ beat.warn }}</p>
+                }
+              </article>
+            }
+
+            @if (hasNextChapter(i)) {
+              <button
+                type="button"
+                class="app-btn-secondary guide-walkthrough-next"
+                (click)="openNextChapter(i)"
+              >
+                ทำเสร็จแล้ว → ไปขั้นที่ {{ chapter.n + 1 }}
+              </button>
+            }
+          </div>
+        }
+      </section>
+    }
+  </div>
+
+  <ng-template #swipeIcon let-kind>
+    @switch (kind) {
+      @case ('stop') {
+        <svg class="guide-swipe-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path
+            d="M5.25 3A2.25 2.25 0 003 5.25v9.5A2.25 2.25 0 005.25 17h9.5A2.25 2.25 0 0017 14.75v-9.5A2.25 2.25 0 0014.75 3h-9.5z"
+          />
+        </svg>
+      }
+      @case ('edit') {
+        <svg
+          class="guide-swipe-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.75"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 3H6a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3v-6" />
+          <path
+            d="M16.2 3.6a1.9 1.9 0 0 1 2.7 2.7L11.1 14.1a1.5 1.5 0 0 1-.7.4l-2.7.7a.4.4 0 0 1-.5-.5l.7-2.7a1.5 1.5 0 0 1 .4-.7L16.2 3.6Z"
+          />
+        </svg>
+      }
+      @case ('return') {
+        <svg class="guide-swipe-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path
+            d="M8.7 4.3a1 1 0 0 0-1.4 0l-4 4a1 1 0 0 0 0 1.4l4 4a1 1 0 0 0 1.4-1.4L6.42 10H15a5 5 0 1 1 0 10h-3a1 1 0 1 0 0 2h3a7 7 0 1 0 0-14H6.42l2.28-2.3a1 1 0 0 0 0-1.4Z"
+          />
+        </svg>
+      }
+      @case ('withdraw') {
+        <svg class="guide-swipe-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M4 14.5A1.5 1.5 0 0 1 5.5 13h13a1.5 1.5 0 0 1 0 3h-13A1.5 1.5 0 0 1 4 14.5Z" />
+          <path
+            d="M11 4a1 1 0 0 1 2 0v7.17l1.88-1.88a1 1 0 1 1 1.42 1.42l-3.59 3.58a1 1 0 0 1-1.42 0L7.7 10.71a1 1 0 0 1 1.42-1.42L11 11.17V4Z"
+          />
+        </svg>
+      }
+      @case ('trash') {
+        <svg class="guide-swipe-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path
+            d="M9.5 2.25h5a.85.85 0 0 1 .85.85V4.5h4.4a.75.75 0 0 1 0 1.5H4.25a.75.75 0 0 1 0-1.5h4.4V3.1a.85.85 0 0 1 .85-.85Z"
+          />
+          <path
+            fill-rule="evenodd"
+            d="M6.1 8.25h11.8l-.95 11.9A2.1 2.1 0 0 1 14.86 22.1H9.14a2.1 2.1 0 0 1-2.09-1.95l-.95-11.9Zm3.15 2.4a.7.7 0 0 1 .7.7v6.7a.7.7 0 0 1-1.4 0v-6.7a.7.7 0 0 1 .7-.7Zm2.75 0a.7.7 0 0 1 .7.7v6.7a.7.7 0 0 1-1.4 0v-6.7a.7.7 0 0 1 .7-.7Zm2.75 0a.7.7 0 0 1 .7.7v6.7a.7.7 0 0 1-1.4 0v-6.7a.7.7 0 0 1 .7-.7Z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      }
+    }
+  </ng-template>
+</div>

@@ -80,6 +80,11 @@
   color: var(--text-secondary);
 }
 
+.system-guide-section-body app-system-guide-walkthrough {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
 .system-guide-topics {
   margin: 0;
   padding: 0;

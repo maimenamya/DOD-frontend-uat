@@ -18,6 +18,7 @@ import { AuthService } from '../../services/auth.service';
 import { EmployeeService } from '../../services/employee.service';
 import { ToastService } from '../../services/toast.service';
 import { parseAttendanceMonthValue } from '../../utils/attendance-month.util';
+import { compareEmployeeIdAsc } from '../../utils/employee-option.util';
 import { attendanceStatusLabel } from '../../utils/employee-status-label.util';
 import { roleDisplayNameTh } from '../../utils/employee-team.util';
 import {
@@ -28,6 +29,13 @@ import {
 import { shopCalendarTodayInput } from '../open-table/open-table-ledger.util';
 
 type RosterCategoryTab = 'STAFF' | 'ENTERTAINER';
+
+function compareRosterByDutyThenCode(a: MstEmployee, b: MstEmployee): number {
+  const aOnDuty = a.attendanceStatus === 'ON_DUTY' ? 0 : 1;
+  const bOnDuty = b.attendanceStatus === 'ON_DUTY' ? 0 : 1;
+  if (aOnDuty !== bOnDuty) return aOnDuty - bOnDuty;
+  return compareEmployeeIdAsc(a.employeeId, b.employeeId);
+}
 
 @Component({
   selector: 'app-attendance-roster-page',
@@ -71,13 +79,15 @@ export class AttendanceRosterPageComponent implements OnInit {
 
   readonly filteredEmployees = computed(() => {
     const tab = this.categoryTab();
-    return this.employees().filter((employee) => {
-      if (employee.role?.name === 'OWNER') return false;
-      const category: RoleCategory =
-        employee.role?.category ??
-        (employee.role?.name?.toUpperCase() === 'PR' ? 'ENTERTAINER' : 'STAFF');
-      return category === tab;
-    });
+    return this.employees()
+      .filter((employee) => {
+        if (employee.role?.name === 'OWNER') return false;
+        const category: RoleCategory =
+          employee.role?.category ??
+          (employee.role?.name?.toUpperCase() === 'PR' ? 'ENTERTAINER' : 'STAFF');
+        return category === tab;
+      })
+      .sort(compareRosterByDutyThenCode);
   });
 
   readonly listView = createMasterListView(

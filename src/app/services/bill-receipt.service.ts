@@ -9,7 +9,7 @@ import { detectReceiptPrintPlatform } from '../utils/receipt-print-platform.util
 
 export type ReceiptPrintOutcome = {
   ok: boolean;
-  method: 'browser' | 'rawbt' | 'thermer' | 'none';
+  method: 'browser' | 'rawbt' | 'thermer' | 'ahas' | 'none';
   message?: string;
 };
 
@@ -23,6 +23,9 @@ const PC_USB_PRINT_WIDTH_SCALE = 0.9;
 const RAWBT_PACKAGE = 'ru.a402d.rawbtprinter';
 /** iOS Safari truncates very long custom-scheme URLs — keep Thermer payload under this. */
 const THERMER_MAX_URL_LEN = 180_000;
+/** AHAS Print Service local HTTP bridge — port is public; request body is not documented. */
+const AHAS_PRINT_ORIGINS = ['http://127.0.0.1:8765', 'http://localhost:8765'] as const;
+const AHAS_PRINT_TIMEOUT_MS = 1500;
 
 @Injectable({ providedIn: 'root' })
 export class BillReceiptService {
@@ -136,15 +139,13 @@ export class BillReceiptService {
       return this.browserPrintOutcome(receipt, options?.printFrame);
     }
 
-    // auto on mobile — Android: RawBT; iPhone/iPad: Thermer (html2canvas receipt, not server PNG).
+    // auto on mobile — Android: RawBT; iPhone/iPad: AHAS Print Service (Thai App Store, free).
     if (platform === 'android') {
       this.removePrintFrame(options?.printFrame);
       return this.printViaBridgingApp(receipt, 'android');
     }
     this.removePrintFrame(options?.printFrame);
-    const thermer = this.printViaThermer(receipt);
-    if (thermer.ok) return thermer;
-    return this.browserPrintOutcome(receipt, options?.printFrame);
+    return this.printViaAhasPrintService(receipt);
   }
 
   private browserPrintOutcome(
@@ -180,6 +181,124 @@ export class BillReceiptService {
       method: 'thermer',
       message: 'กำลังส่งใบเสร็จไป Thermer...',
     };
+  }
+
+  /** iOS helper — keep AHAS Print Service open; talks to http://127.0.0.1:8765. */
+  printViaAhasPrintService(receipt: BillReceiptResponse['receipt']): ReceiptPrintOutcome {
+    void this.dispatchAhasPrint(receipt);
+    return {
+      ok: true,
+      method: 'ahas',
+      message: 'กำลังส่งใบเสร็จไป AHAS Print Service — เปิดแอพค้างไว้',
+    };
+  }
+
+  /**
+   * AHAS did not publish the HTTP body. Probe the documented port, send ESC/POS,
+   * and fall back to the on-screen receipt sheet if the app is not reachable.
+   */
+  private async dispatchAhasPrint(receipt: BillReceiptResponse['receipt']): Promise<void> {
+    const base64 = receipt.escPosBase64.replace(/\s/g, '');
+    if (!base64) {
+      this.showMobileReceiptPrintSheet(receipt);
+      return;
+    }
+
+    const sent = await this.sendAhasPrintPayload(base64);
+    if (!sent) {
+      this.showMobileReceiptPrintSheet(receipt);
+    }
+  }
+
+  private async sendAhasPrintPayload(escPosBase64: string): Promise<boolean> {
+    const bytes = decodeEscPosBase64(escPosBase64);
+    if (!bytes.byteLength) {
+      return false;
+    }
+
+    for (const origin of AHAS_PRINT_ORIGINS) {
+      if (await this.postAhasEscPos(origin, escPosBase64, bytes)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private async postAhasEscPos(
+    origin: string,
+    escPosBase64: string,
+    bytes: Uint8Array,
+  ): Promise<boolean> {
+    const jsonInit: RequestInit = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ type: 'print', format: 'escpos', data: escPosBase64 }),
+    };
+    const first = await this.fetchLocalPrintStatus(`${origin}/print`, jsonInit);
+    if (first == null) {
+      return this.fetchLocalPrintOpaque(`${origin}/print`, bytes);
+    }
+    if (first >= 200 && first < 300) {
+      return true;
+    }
+
+    const fallbacks: Array<{ path: string; init: RequestInit }> = [
+      {
+        path: '/api/print',
+        init: {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ content: escPosBase64, content_type: 'escpos' }),
+        },
+      },
+      {
+        path: '/print',
+        init: {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/octet-stream' },
+          body: bytes,
+        },
+      },
+    ];
+    for (const fallback of fallbacks) {
+      const status = await this.fetchLocalPrintStatus(`${origin}${fallback.path}`, fallback.init);
+      if (status != null && status >= 200 && status < 300) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private async fetchLocalPrintStatus(url: string, init: RequestInit): Promise<number | null> {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), AHAS_PRINT_TIMEOUT_MS);
+    try {
+      const response = await fetch(url, { ...init, signal: controller.signal, mode: 'cors' });
+      return response.status;
+    } catch {
+      return null;
+    } finally {
+      window.clearTimeout(timer);
+    }
+  }
+
+  private async fetchLocalPrintOpaque(url: string, bytes: Uint8Array): Promise<boolean> {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), AHAS_PRINT_TIMEOUT_MS);
+    try {
+      await fetch(url, {
+        method: 'POST',
+        mode: 'no-cors',
+        signal: controller.signal,
+        headers: { 'Content-Type': 'text/plain' },
+        body: bytes,
+      });
+      return true;
+    } catch {
+      return false;
+    } finally {
+      window.clearTimeout(timer);
+    }
   }
 
   /** Same html2canvas receipt as PC → JPEG → thermer:// (not backend PNG — avoids stretch). */
@@ -224,6 +343,8 @@ export class BillReceiptService {
       if (this.navigatePrintUrl(intentUrl)) {
         return { ok: true, method: 'rawbt' };
       }
+    } else {
+      return this.printViaAhasPrintService(receipt);
     }
 
     const rawbtUrl = `rawbt:base64,${base64}`;
@@ -234,10 +355,7 @@ export class BillReceiptService {
     return {
       ok: false,
       method: 'rawbt',
-      message:
-        platform === 'ios'
-          ? 'ส่งไปแอปพิมพ์ไม่ได้ — ติดตั้งแอปตัวกลาง (เช่น TSP-Print) แล้วจับคู่ BT'
-          : 'ส่งไป RawBT ไม่ได้ — ติดตั้งแอป RawBT แล้วจับคู่เครื่องปริ้น',
+      message: 'ส่งไป RawBT ไม่ได้ — ติดตั้งแอป RawBT แล้วจับคู่เครื่องปริ้น',
     };
   }
 
@@ -1086,6 +1204,19 @@ export class BillReceiptService {
     anchor.download = `receipt-${receipt.billReference}.bin`;
     anchor.click();
     URL.revokeObjectURL(url);
+  }
+}
+
+function decodeEscPosBase64(escPosBase64: string): Uint8Array {
+  try {
+    const binary = atob(escPosBase64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+  } catch {
+    return new Uint8Array();
   }
 }
 

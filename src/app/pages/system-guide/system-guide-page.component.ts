@@ -5,9 +5,11 @@ import {
   SYSTEM_GUIDE_SECTIONS,
   SYSTEM_GUIDE_TITLE,
 } from '../../components/system-guide/system-guide.data';
+import { SystemGuideWalkthroughComponent } from '../../components/system-guide/system-guide-walkthrough.component';
 
 @Component({
   selector: 'app-system-guide-page',
+  imports: [SystemGuideWalkthroughComponent],
   templateUrl: './system-guide-page.component.html',
   styleUrl: './system-guide-page.component.css',
 })
@@ -16,8 +18,8 @@ export class SystemGuidePageComponent {
   readonly intro = SYSTEM_GUIDE_INTRO;
   readonly sections = SYSTEM_GUIDE_SECTIONS;
 
-  /** Section indexes currently expanded — start closed so shops pick what to read. */
-  private readonly openSections = signal<ReadonlySet<number>>(new Set());
+  /** Section indexes currently expanded — open ส่วนที่ 2 (รูปเมนู) ให้เห็นทันที */
+  private readonly openSections = signal<ReadonlySet<number>>(new Set([1]));
 
   isSectionOpen(index: number): boolean {
     return this.openSections().has(index);

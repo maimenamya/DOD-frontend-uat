@@ -7,6 +7,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { finalize } from 'rxjs';
 
 import { AppModalComponent } from '../../components/app-modal/app-modal.component';
+import { PrintIconButtonComponent } from '../../components/print-icon-button/print-icon-button.component';
 import { ListPaginatorComponent } from '../../components/list-paginator/list-paginator.component';
 import { MasterListToolbarComponent } from '../../components/master-list-toolbar/master-list-toolbar.component';
 import { ShopDateInputComponent } from '../../components/shop-date-input/shop-date-input.component';
@@ -34,6 +35,7 @@ function shopCalendarMonthStartInput(): string {
     FormsModule,
     ShopDateInputComponent,
     AppModalComponent,
+    PrintIconButtonComponent,
     MasterListToolbarComponent,
     ListPaginatorComponent,
   ],

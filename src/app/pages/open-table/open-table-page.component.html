@@ -3132,7 +3132,14 @@
   <app-modal [layout]="actionModalLayout()" (dismiss)="closeCheckoutModal()">
     <div class="checkout-modal-panel">
       <div class="app-modal-header">
-        <h2 class="app-modal-title">เช็กบิล</h2>
+        <div class="app-modal-title-row">
+          <h2 class="app-modal-title">เช็กบิล</h2>
+          <app-print-icon-button
+            [disabled]="actionBusy() || checkoutPreviewLoading() || checkoutPrintBusy() || !checkoutPreview()"
+            [label]="checkoutPrintBusy() ? 'กำลังพิมพ์...' : 'พิมพ์บิล'"
+            (pressed)="printPreCheckoutBill()"
+          />
+        </div>
         <button type="button" class="app-btn-ghost" aria-label="ปิด" (click)="closeCheckoutModal()">✕</button>
       </div>
       <div class="app-form-group">
@@ -3213,14 +3220,6 @@
       </div>
 
       <div class="app-form-actions app-form-actions-top checkout-modal-actions">
-        <button
-          type="button"
-          class="app-btn-secondary"
-          [disabled]="actionBusy() || checkoutPreviewLoading() || checkoutPrintBusy() || !checkoutPreview()"
-          (click)="printPreCheckoutBill()"
-        >
-          {{ checkoutPrintBusy() ? 'กำลังพิมพ์...' : 'พิมพ์บิล' }}
-        </button>
         <div class="checkout-modal-actions-main">
           <button type="button" class="app-btn-secondary" (click)="closeCheckoutModal()">ยกเลิก</button>
           <button

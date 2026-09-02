@@ -33,18 +33,26 @@
             @if (section.intro) {
               <p class="system-guide-section-intro">{{ section.intro }}</p>
             }
-            <ul class="system-guide-topics">
-              @for (item of section.items; track item.label) {
-                <li class="system-guide-topic">
-                  <p class="system-guide-topic-label">{{ item.label }}</p>
-                  <ul class="system-guide-points">
-                    @for (point of item.points; track point) {
-                      <li>{{ point }}</li>
-                    }
-                  </ul>
-                </li>
-              }
-            </ul>
+            @if (section.walkthrough; as chapters) {
+              <app-system-guide-walkthrough
+                [chapters]="chapters"
+                [chapterDomId]="'guide-section-' + i"
+              />
+            }
+            @if (section.items.length > 0) {
+              <ul class="system-guide-topics">
+                @for (item of section.items; track item.label) {
+                  <li class="system-guide-topic">
+                    <p class="system-guide-topic-label">{{ item.label }}</p>
+                    <ul class="system-guide-points">
+                      @for (point of item.points; track point) {
+                        <li>{{ point }}</li>
+                      }
+                    </ul>
+                  </li>
+                }
+              </ul>
+            }
           </div>
         }
       </section>
