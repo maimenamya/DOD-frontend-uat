@@ -10,23 +10,20 @@
 
   <section class="app-card accept-privacy-card">
     <div
-      #policyBody
-      class="accept-privacy-card__body app-scroll-region"
-      (scroll)="onPolicyScroll()"
+      class="accept-privacy-card__body"
     >
       @for (section of sections; track section.heading) {
         <div class="accept-privacy-section">
           <h2 class="accept-privacy-section__heading">{{ section.heading }}</h2>
-          <p class="accept-privacy-section__body">{{ section.body }}</p>
+          @for (para of section.body; track para) {
+            <p class="accept-privacy-section__body">{{ para }}</p>
+          }
         </div>
       }
     </div>
 
     <form class="accept-privacy-card__footer" (ngSubmit)="submit()">
-      <label
-        class="accept-privacy-consent"
-        [class.accept-privacy-consent--locked]="!scrolledToEnd()"
-      >
+      <label class="accept-privacy-consent">
         <span class="accept-privacy-check-control">
           <input
             type="checkbox"
@@ -34,7 +31,6 @@
             [ngModel]="agreed()"
             (ngModelChange)="agreed.set($event)"
             name="agreed"
-            [disabled]="!scrolledToEnd()"
           />
           <span class="accept-privacy-check-indicator" aria-hidden="true"></span>
         </span>
@@ -44,10 +40,7 @@
         <p class="app-field-error">กรุณาติ๊กยอมรับนโยบายก่อนดำเนินการต่อ</p>
       }
 
-      <label
-        class="accept-privacy-consent accept-privacy-consent--optional"
-        [class.accept-privacy-consent--locked]="!scrolledToEnd()"
-      >
+      <label class="accept-privacy-consent accept-privacy-consent--optional">
         <span class="accept-privacy-check-control">
           <input
             type="checkbox"
@@ -55,7 +48,6 @@
             [ngModel]="partnerShare()"
             (ngModelChange)="partnerShare.set($event)"
             name="partnerShare"
-            [disabled]="!scrolledToEnd()"
           />
           <span class="accept-privacy-check-indicator" aria-hidden="true"></span>
         </span>
@@ -65,7 +57,7 @@
       <button
         type="submit"
         class="app-btn app-btn-primary"
-        [disabled]="submitting() || !scrolledToEnd()"
+        [disabled]="submitting()"
       >
         @if (submitting()) {
           กำลังบันทึก…

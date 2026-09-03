@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnInit, inject, signal, viewChild } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -12,20 +12,15 @@ import {
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
 
-/** px tolerance when comparing scroll position to bottom */
-const SCROLL_END_THRESHOLD_PX = 12;
-
 @Component({
   selector: 'app-accept-privacy-page',
   imports: [FormsModule],
   templateUrl: './accept-privacy-page.component.html',
 })
-export class AcceptPrivacyPageComponent implements OnInit, AfterViewInit {
+export class AcceptPrivacyPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
-
-  private readonly policyBody = viewChild<ElementRef<HTMLElement>>('policyBody');
 
   readonly policyTitle = PRIVACY_POLICY_TITLE;
   readonly policyVersion = PRIVACY_POLICY_VERSION;
@@ -36,8 +31,6 @@ export class AcceptPrivacyPageComponent implements OnInit, AfterViewInit {
   readonly agreed = signal(false);
   readonly partnerShare = signal(this.auth.allowBusinessDataPartnerShare());
   readonly submitting = signal(false);
-  /** Unlocks checkbox after user scrolls policy text to the bottom (or content fits without scroll). */
-  readonly scrolledToEnd = signal(false);
   readonly consentValidated = signal(false);
 
   ngOnInit(): void {
@@ -46,18 +39,7 @@ export class AcceptPrivacyPageComponent implements OnInit, AfterViewInit {
     }
   }
 
-  ngAfterViewInit(): void {
-    queueMicrotask(() => this.syncScrollGate());
-  }
-
-  onPolicyScroll(): void {
-    this.syncScrollGate();
-  }
-
   submit(): void {
-    if (!this.scrolledToEnd()) {
-      return;
-    }
     if (!this.agreed()) {
       this.consentValidated.set(true);
       return;
@@ -75,16 +57,5 @@ export class AcceptPrivacyPageComponent implements OnInit, AfterViewInit {
         this.toast.showError(err.error?.error ?? 'ไม่สามารถบันทึกความยินยอมได้');
       },
     });
-  }
-
-  private syncScrollGate(): void {
-    const el = this.policyBody()?.nativeElement;
-    if (!el) {
-      return;
-    }
-    const remaining = el.scrollHeight - el.scrollTop - el.clientHeight;
-    if (remaining <= SCROLL_END_THRESHOLD_PX) {
-      this.scrolledToEnd.set(true);
-    }
   }
 }
