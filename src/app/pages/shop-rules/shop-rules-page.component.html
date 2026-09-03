@@ -232,8 +232,9 @@
         <section class="app-card shop-rules-section">
           <h2 class="shop-rules-section-title">PR freelance สาย → หักเงินจากยอดที่ PR ได้</h2>
           <p class="app-field-hint shop-rules-section-hint">
-            แยกจากเวลา on floor ของแท็กด้านบน — ตั้งได้หลายรอบ เช่น เข้าหลัง 21:00 หัก 20 บาทต่อดื่ม / เข้าหลัง 22:00 หัก 40 บาทต่อดื่ม
-            ระบบใช้รอบที่สายที่สุดที่ตรง ไม่บวกซ้อน — หักจากเงินค่าดื่มที่ PR จะได้ ไม่ไปเพิ่มหักดื่มเข้าร้านตามตำแหน่ง — ไม่มีรอบ = ปิดฟีเจอร์
+            แยกจากเวลา on floor ของแท็กด้านบน — ตั้งได้หลายรอบ เช่น เข้าหลัง 22:00 หัก 20 บาทต่อดื่ม / เข้าหลัง 00:00 หัก 40 บาทต่อดื่ม
+            เวลา 00:00 คือหลังเที่ยงคืนของคืนนั้น (ไม่ใช่เช้าวันเปิดร้าน) — ระบบใช้รอบที่สายที่สุดที่ตรง ไม่บวกซ้อน
+            หักจากเงินค่าดื่มที่ PR จะได้ ไม่ไปเพิ่มหักดื่มเข้าร้านตามตำแหน่ง — ไม่มีรอบ = ปิดฟีเจอร์
           </p>
           <div class="app-form-group-header">
             <span class="app-label">รอบหักสาย</span>
@@ -273,7 +274,7 @@
                       type="text"
                       class="app-input"
                       formControlName="cutoffTime"
-                      placeholder="เช่น 21:00"
+                      placeholder="เช่น 22:00 หรือ 00:00"
                       inputmode="numeric"
                       maxlength="5"
                       autocomplete="off"

@@ -14,18 +14,10 @@
         <button
           type="button"
           class="dashboard-date-btn"
-          [class.dashboard-date-btn-active]="datePreset() === 'today'"
-          (click)="selectPreset('today')"
+          [class.dashboard-date-btn-active]="datePreset() === 'lastNight'"
+          (click)="selectPreset('lastNight')"
         >
-          วันนี้
-        </button>
-        <button
-          type="button"
-          class="dashboard-date-btn"
-          [class.dashboard-date-btn-active]="datePreset() === 'yesterday'"
-          (click)="selectPreset('yesterday')"
-        >
-          เมื่อวาน
+          คืนก่อนหน้า
         </button>
         <button
           type="button"
@@ -33,7 +25,7 @@
           [class.dashboard-date-btn-active]="datePreset() === 'custom'"
           (click)="selectPreset('custom')"
         >
-          กำหนดเอง
+          กำหนดช่วง
         </button>
       </div>
       @if (datePreset() === 'custom') {
@@ -66,6 +58,7 @@
         @if (customRangeOrderInvalid()) {
           <p class="app-field-error">วันเริ่มต้องไม่หลังวันสิ้นสุด</p>
         }
+        <p class="app-field-hint mt-2">เลือกตามปฏิทิน — แต่ละวันนับ 00:00–23:59 ไม่ใช่กะร้าน</p>
       }
     </div>
   </header>

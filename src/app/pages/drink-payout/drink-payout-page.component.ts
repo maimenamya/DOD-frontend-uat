@@ -36,7 +36,7 @@ export class DrinkPayoutPageComponent implements OnInit {
   private readonly confirmDialog = inject(ConfirmDialogService);
 
   readonly canPay = computed(() => this.auth.canWriteOnPage('drink_payout'));
-  readonly datePreset = signal<DashboardPreset>('today');
+  readonly datePreset = signal<DashboardPreset>('tonight');
   readonly customFrom = signal('');
   readonly customTo = signal('');
   readonly customRangeValidated = signal(false);

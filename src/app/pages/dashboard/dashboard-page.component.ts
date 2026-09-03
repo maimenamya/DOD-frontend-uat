@@ -76,7 +76,7 @@ export class DashboardPageComponent implements OnInit {
   readonly billStatus = signal<DashboardBillStatus | null>(null);
   readonly saleStaff = signal<MstEmployee[]>([]);
 
-  readonly datePreset = signal<DashboardPreset>('today');
+  readonly datePreset = signal<DashboardPreset>('tonight');
   readonly customFrom = signal('');
   readonly customTo = signal('');
   readonly customRangeValidated = signal(false);
