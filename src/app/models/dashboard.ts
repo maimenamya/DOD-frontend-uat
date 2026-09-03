@@ -26,6 +26,8 @@ export interface DashboardSummary {
   totalDrinks: number;
   totalStaffDrinks: number;
   totalEntertainerDrinks: number;
+  /** ยอดบิลรวมทั้งร้าน — แสดงเฉพาะ OWNER/MANAGER */
+  totalShopBillAmount: number;
   topStaff: EmployeePerformanceRank[];
   topEntertainers: EmployeePerformanceRank[];
   billStatus: DashboardBillStatus | null;

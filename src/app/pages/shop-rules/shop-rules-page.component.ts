@@ -1,5 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import {
+  FormArray,
+  FormGroup,
   NonNullableFormBuilder,
   ReactiveFormsModule,
   Validators,
@@ -33,6 +35,13 @@ type TierField =
   | 'seatDrinkTier30Drinks'
   | 'seatDrinkTier45Drinks';
 
+type LateDrinkTierForm = FormGroup<{
+  cutoffTime: ReturnType<NonNullableFormBuilder['control']<string>>;
+  extraShopPortionBaht: ReturnType<NonNullableFormBuilder['control']<number>>;
+}>;
+
+const MAX_FREELANCE_LATE_TIERS = 10;
+
 @Component({
   selector: 'app-shop-rules-page',
   imports: [
@@ -64,8 +73,7 @@ export class ShopRulesPageComponent implements OnInit {
     absenceDeductionBaht: [500, [Validators.required, Validators.min(0)]],
     expectedCheckInTime: [''],
     expectedOnFloorTime: [''],
-    freelanceLateDrinkCutoffTime: [''],
-    freelanceLateDrinkExtraShopPortionBaht: [0, [Validators.required, Validators.min(0)]],
+    freelanceLateDrinkTiers: this.fb.array<LateDrinkTierForm>([]),
     expectedCheckOutNextDay: [true],
     autoCloseCutoffTime: [''],
     forgotCheckOutDeductionBaht: [0, [Validators.required, Validators.min(0)]],
@@ -77,6 +85,38 @@ export class ShopRulesPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.reload();
+  }
+
+  get lateTiers(): FormArray<LateDrinkTierForm> {
+    return this.form.controls.freelanceLateDrinkTiers;
+  }
+
+  addLateTier(): void {
+    if (!this.canManage() || this.submitting()) return;
+    if (this.lateTiers.length >= MAX_FREELANCE_LATE_TIERS) {
+      this.toast.showError(`ตั้งรอบหักสายได้ไม่เกิน ${MAX_FREELANCE_LATE_TIERS} รอบ`);
+      return;
+    }
+    this.lateTiers.push(this.buildLateTierGroup());
+    this.lateTiers.markAsDirty();
+  }
+
+  removeLateTier(index: number): void {
+    if (!this.canManage() || this.submitting()) return;
+    this.lateTiers.removeAt(index);
+    this.lateTiers.markAsDirty();
+  }
+
+  stepLateExtra(index: number, delta: number): void {
+    if (!this.canManage()) return;
+    const control = this.lateTiers.at(index).controls.extraShopPortionBaht;
+    control.setValue(Math.max(0, control.value + delta));
+    control.markAsDirty();
+  }
+
+  normalizeLateTime(index: number): void {
+    const control = this.lateTiers.at(index).controls.cutoffTime;
+    control.setValue(normalizeShopTimeHm(control.value));
   }
 
   reload(): void {
@@ -105,8 +145,7 @@ export class ShopRulesPageComponent implements OnInit {
     field:
       | 'lateFinePerMinuteBaht'
       | 'absenceDeductionBaht'
-      | 'forgotCheckOutDeductionBaht'
-      | 'freelanceLateDrinkExtraShopPortionBaht',
+      | 'forgotCheckOutDeductionBaht',
     delta: number,
   ): void {
     if (!this.canManage()) return;
@@ -120,8 +159,7 @@ export class ShopRulesPageComponent implements OnInit {
     field:
       | 'expectedCheckInTime'
       | 'expectedOnFloorTime'
-      | 'autoCloseCutoffTime'
-      | 'freelanceLateDrinkCutoffTime',
+      | 'autoCloseCutoffTime',
   ): void {
     const control = this.form.controls[field];
     control.setValue(normalizeShopTimeHm(control.value));
@@ -133,12 +171,10 @@ export class ShopRulesPageComponent implements OnInit {
     this.normalizeTime('expectedCheckInTime');
     this.normalizeTime('expectedOnFloorTime');
     this.normalizeTime('autoCloseCutoffTime');
-    this.normalizeTime('freelanceLateDrinkCutoffTime');
 
     const checkIn = this.form.controls.expectedCheckInTime.value.trim();
     const onFloor = this.form.controls.expectedOnFloorTime.value.trim();
     const autoClose = this.form.controls.autoCloseCutoffTime.value.trim();
-    const freelanceLateCutoff = this.form.controls.freelanceLateDrinkCutoffTime.value.trim();
     if (checkIn && !isValidShopTimeHm(checkIn)) {
       this.form.controls.expectedCheckInTime.setErrors({ timeFormat: true });
       this.form.controls.expectedCheckInTime.markAsTouched();
@@ -157,11 +193,27 @@ export class ShopRulesPageComponent implements OnInit {
       this.formValidated.set(true);
       return;
     }
-    if (freelanceLateCutoff && !isValidShopTimeHm(freelanceLateCutoff)) {
-      this.form.controls.freelanceLateDrinkCutoffTime.setErrors({ timeFormat: true });
-      this.form.controls.freelanceLateDrinkCutoffTime.markAsTouched();
-      this.formValidated.set(true);
-      return;
+
+    const lateTiers = this.lateTiers.controls;
+    const seenCutoffs = new Set<string>();
+    for (const row of lateTiers) {
+      const cutoff = normalizeShopTimeHm(row.controls.cutoffTime.value);
+      row.controls.cutoffTime.setValue(cutoff);
+      if (!cutoff) continue;
+      if (!isValidShopTimeHm(cutoff)) {
+        row.controls.cutoffTime.setErrors({ timeFormat: true });
+        row.controls.cutoffTime.markAsTouched();
+        this.formValidated.set(true);
+        return;
+      }
+      if (seenCutoffs.has(cutoff)) {
+        row.controls.cutoffTime.setErrors({ duplicate: true });
+        row.controls.cutoffTime.markAsTouched();
+        this.formValidated.set(true);
+        this.toast.showError('เวลาหักสาย freelance ซ้ำกันไม่ได้');
+        return;
+      }
+      seenCutoffs.add(cutoff);
     }
 
     if (highlightInvalidForm(this.form, this.formValidated)) return;
@@ -190,8 +242,14 @@ export class ShopRulesPageComponent implements OnInit {
       expectedCheckOutNextDay: raw.expectedCheckOutNextDay,
       autoCloseCutoffTime: raw.autoCloseCutoffTime.trim() || null,
       forgotCheckOutDeductionBaht: raw.forgotCheckOutDeductionBaht,
-      freelanceLateDrinkCutoffTime: raw.freelanceLateDrinkCutoffTime.trim() || null,
-      freelanceLateDrinkExtraShopPortionBaht: raw.freelanceLateDrinkExtraShopPortionBaht,
+      freelanceLateDrinkTiers: raw.freelanceLateDrinkTiers
+        .map((row) => ({
+          cutoffTime: row.cutoffTime.trim(),
+          extraShopPortionBaht: row.extraShopPortionBaht,
+        }))
+        .filter((row) => row.cutoffTime && row.extraShopPortionBaht > 0),
+      freelanceLateDrinkCutoffTime: null,
+      freelanceLateDrinkExtraShopPortionBaht: 0,
       employeeInitialPassword: initialPassword,
     };
     this.policyService.save(value).subscribe({
@@ -235,14 +293,12 @@ export class ShopRulesPageComponent implements OnInit {
       absenceDeductionBaht: config.absenceDeductionBaht,
       expectedCheckInTime: config.expectedCheckInTime ?? '',
       expectedOnFloorTime: config.expectedOnFloorTime ?? '',
-      freelanceLateDrinkCutoffTime: config.freelanceLateDrinkCutoffTime ?? '',
-      freelanceLateDrinkExtraShopPortionBaht:
-        config.freelanceLateDrinkExtraShopPortionBaht ?? 0,
       expectedCheckOutNextDay: config.expectedCheckOutNextDay ?? true,
       autoCloseCutoffTime: config.autoCloseCutoffTime ?? '',
       forgotCheckOutDeductionBaht: config.forgotCheckOutDeductionBaht ?? 0,
       employeeInitialPassword: initialPassword,
     });
+    this.replaceLateTiers(config);
     if (!savedPassword && this.canManage()) {
       this.form.controls.employeeInitialPassword.markAsDirty();
       this.showInitialPassword.set(true);
@@ -251,6 +307,35 @@ export class ShopRulesPageComponent implements OnInit {
       this.form.disable();
     } else {
       this.form.enable();
+    }
+  }
+
+  private buildLateTierGroup(
+    cutoffTime = '',
+    extraShopPortionBaht = 0,
+  ): LateDrinkTierForm {
+    return this.fb.group({
+      cutoffTime: [cutoffTime],
+      extraShopPortionBaht: [extraShopPortionBaht, [Validators.required, Validators.min(0)]],
+    });
+  }
+
+  private replaceLateTiers(config: ShopPolicyConfig): void {
+    const fromApi = config.freelanceLateDrinkTiers ?? [];
+    const tiers =
+      fromApi.length > 0
+        ? fromApi
+        : config.freelanceLateDrinkCutoffTime && config.freelanceLateDrinkExtraShopPortionBaht > 0
+          ? [
+              {
+                cutoffTime: config.freelanceLateDrinkCutoffTime,
+                extraShopPortionBaht: config.freelanceLateDrinkExtraShopPortionBaht,
+              },
+            ]
+          : [];
+    this.lateTiers.clear();
+    for (const tier of tiers) {
+      this.lateTiers.push(this.buildLateTierGroup(tier.cutoffTime, tier.extraShopPortionBaht));
     }
   }
 }

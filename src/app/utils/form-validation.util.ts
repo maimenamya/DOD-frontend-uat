@@ -82,6 +82,7 @@ export function controlErrorMessage(
   }
   if (errors['email']) return 'รูปแบบอีเมลไม่ถูกต้อง';
   if (errors['timeFormat']) return 'ต้องเป็นรูปแบบ 24 ชม. เช่น 20:00';
+  if (errors['duplicate']) return 'เวลาซ้ำกับรอบอื่น';
   if (errors['pattern']) return 'รูปแบบไม่ถูกต้อง';
   return 'ข้อมูลไม่ถูกต้อง';
 }

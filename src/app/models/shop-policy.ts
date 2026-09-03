@@ -12,6 +12,7 @@ export interface ShopPolicyConfig {
   expectedOnFloorTime: string | null;
   freelanceLateDrinkCutoffTime: string | null;
   freelanceLateDrinkExtraShopPortionBaht: number;
+  freelanceLateDrinkTiers: { cutoffTime: string; extraShopPortionBaht: number }[];
   expectedCheckOutTime: string | null;
   expectedCheckOutNextDay: boolean;
   autoCloseCutoffTime: string | null;

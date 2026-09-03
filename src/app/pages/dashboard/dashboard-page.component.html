@@ -84,7 +84,13 @@
         <div class="app-skeleton ml-auto h-10 w-32 rounded"></div>
       </div>
     </div>
-    @if (showTripleStatCards()) {
+    @if (showBillTotalCard()) {
+      <div class="app-grid-stats-quad">
+        @for (_ of [1, 2, 3, 4]; track $index) {
+          <div class="app-skeleton app-skeleton-stat"></div>
+        }
+      </div>
+    } @else if (showTripleStatCards()) {
       <div class="app-grid-stats-triple">
         @for (_ of [1, 2, 3]; track $index) {
           <div class="app-skeleton app-skeleton-stat"></div>
@@ -153,7 +159,32 @@
     </div>
     @let s = summary()!;
 
-    @if (showTripleStatCards()) {
+    @if (showBillTotalCard()) {
+      <div class="app-grid-stats-quad">
+        <div class="app-stat-card app-stat-card-bill-total">
+          <p class="app-stat-label app-stat-label-bill-total">ยอดบิลรวมทั้งร้าน</p>
+          <p class="app-stat-value">
+            <span class="app-stat-value-symbol">฿</span>{{ s.totalShopBillAmount | number: '1.0-0' }}
+          </p>
+          <p class="app-stat-hint">ทุกบิลที่เช็กเอาต์แล้ว</p>
+        </div>
+        <div class="app-stat-card app-stat-card-drinks-total">
+          <p class="app-stat-label app-stat-label-drinks-total">ยอดดื่มรวม</p>
+          <p class="app-stat-value">{{ s.totalDrinks | number: '1.0-0' }}</p>
+          <p class="app-stat-hint">รวมทั้งพนักงานและเด็กนั่งดริ๊งค์</p>
+        </div>
+        <div class="app-stat-card app-stat-card-drinks">
+          <p class="app-stat-label app-stat-label-staff">ยอดดื่มพนักงาน</p>
+          <p class="app-stat-value">{{ s.totalStaffDrinks | number: '1.0-0' }}</p>
+          <p class="app-stat-hint">Sale, Admin, Manager</p>
+        </div>
+        <div class="app-stat-card app-stat-card-drinks-pr">
+          <p class="app-stat-label app-stat-label-drinks-pr">ยอดดื่มพีอาร์</p>
+          <p class="app-stat-value">{{ s.totalEntertainerDrinks | number: '1.0-0' }}</p>
+          <p class="app-stat-hint">เด็กนั่งดริ๊งค์ / PR</p>
+        </div>
+      </div>
+    } @else if (showTripleStatCards()) {
       <div class="app-grid-stats-triple">
         <div class="app-stat-card app-stat-card-drinks-total">
           <p class="app-stat-label app-stat-label-drinks-total">ยอดดื่มรวม</p>

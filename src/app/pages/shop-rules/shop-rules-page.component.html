@@ -230,65 +230,95 @@
         </section>
 
         <section class="app-card shop-rules-section">
-          <h2 class="shop-rules-section-title">PR freelance สาย → หักดื่มเข้าร้านเพิ่ม</h2>
+          <h2 class="shop-rules-section-title">PR freelance สาย → หักเงินจากยอดที่ PR ได้</h2>
           <p class="app-field-hint shop-rules-section-hint">
-            แยกจากเวลา on floor ของแท็กด้านบน — ถ้าเข้างานหลังเวลาที่ตั้ง ระบบหักดื่มเข้าร้านเพิ่มต่อดื่มตอนจ่ายค่าดื่ม freelance
-            (เช่น หักปกติ 60 + เพิ่ม 20 = ร้านหัก 80) — ว่างเวลา = ปิดฟีเจอร์
+            แยกจากเวลา on floor ของแท็กด้านบน — ตั้งได้หลายรอบ เช่น เข้าหลัง 21:00 หัก 20 บาทต่อดื่ม / เข้าหลัง 22:00 หัก 40 บาทต่อดื่ม
+            ระบบใช้รอบที่สายที่สุดที่ตรง ไม่บวกซ้อน — หักจากเงินค่าดื่มที่ PR จะได้ ไม่ไปเพิ่มหักดื่มเข้าร้านตามตำแหน่ง — ไม่มีรอบ = ปิดฟีเจอร์
           </p>
-          <div class="shop-rules-attendance-grid shop-rules-work-hours-grid">
-            <div class="app-form-group">
-              <label class="app-label" for="freelance-late-drink-cutoff">เวลาเริ่มนับสาย (freelance)</label>
-              <input
-                id="freelance-late-drink-cutoff"
-                type="text"
-                class="app-input"
-                formControlName="freelanceLateDrinkCutoffTime"
-                placeholder="เช่น 21:00"
-                inputmode="numeric"
-                maxlength="5"
-                autocomplete="off"
-                (blur)="normalizeTime('freelanceLateDrinkCutoffTime')"
-                [readonly]="!canManage()"
-              />
-              <app-field-error [control]="form.controls.freelanceLateDrinkCutoffTime" [validated]="formValidated()" />
-            </div>
-            <div class="app-form-group">
-              <label class="app-label" for="shop-rules-freelance-extra">หักเพิ่มต่อดื่ม</label>
-              <div class="app-number-stepper">
-                <button
-                  type="button"
-                  class="app-number-stepper-btn"
-                  [disabled]="!canManage() || submitting()"
-                  (click)="stepMoney('freelanceLateDrinkExtraShopPortionBaht', -10)"
-                  aria-label="ลดหักดื่มเพิ่มเมื่อ freelance สาย"
-                >
-                  −
-                </button>
-                <input
-                id="shop-rules-freelance-extra"
-                  type="number"
-                  min="0"
-                  step="1"
-                  class="app-input app-input-number app-number-stepper-input"
-                  formControlName="freelanceLateDrinkExtraShopPortionBaht"
-                  [readonly]="!canManage()"
-                />
-                <button
-                  type="button"
-                  class="app-number-stepper-btn"
-                  [disabled]="!canManage() || submitting()"
-                  (click)="stepMoney('freelanceLateDrinkExtraShopPortionBaht', 10)"
-                  aria-label="เพิ่มหักดื่มเพิ่มเมื่อ freelance สาย"
-                >
-                  +
-                </button>
+          <div class="app-form-group-header">
+            <span class="app-label">รอบหักสาย</span>
+            @if (canManage()) {
+              <button
+                type="button"
+                class="app-btn-secondary-sm"
+                [disabled]="submitting() || lateTiers.length >= 10"
+                (click)="addLateTier()"
+              >
+                + เพิ่มรอบ
+              </button>
+            }
+          </div>
+          @if (lateTiers.length === 0) {
+            <p class="app-field-hint">ยังไม่มีรอบหักสาย — กด + เพิ่มรอบ เพื่อเปิดฟีเจอร์</p>
+          }
+          <div class="shop-rules-late-tiers" formArrayName="freelanceLateDrinkTiers">
+            @for (row of lateTiers.controls; track $index; let i = $index) {
+              <div class="shop-rules-late-tier" [formGroupName]="i">
+                @if (canManage()) {
+                  <button
+                    type="button"
+                    class="shop-rules-late-tier-remove"
+                    [disabled]="submitting()"
+                    (click)="removeLateTier(i)"
+                    aria-label="ลบรอบหักสาย"
+                  >
+                    ✕
+                  </button>
+                }
+                <div class="shop-rules-late-tier-body">
+                  <div class="app-form-group">
+                    <label class="app-label" [attr.for]="'freelance-late-cutoff-' + i">เข้าหลังเวลานี้</label>
+                    <input
+                      [id]="'freelance-late-cutoff-' + i"
+                      type="text"
+                      class="app-input"
+                      formControlName="cutoffTime"
+                      placeholder="เช่น 21:00"
+                      inputmode="numeric"
+                      maxlength="5"
+                      autocomplete="off"
+                      (blur)="normalizeLateTime(i)"
+                      [readonly]="!canManage()"
+                    />
+                    <app-field-error [control]="row.controls.cutoffTime" [validated]="formValidated()" />
+                  </div>
+                  <div class="app-form-group">
+                    <label class="app-label" [attr.for]="'freelance-late-extra-' + i">หักเงินต่อดื่ม</label>
+                    <div class="app-number-stepper">
+                      <button
+                        type="button"
+                        class="app-number-stepper-btn"
+                        [disabled]="!canManage() || submitting()"
+                        (click)="stepLateExtra(i, -10)"
+                        aria-label="ลดหักเงินเมื่อ freelance สาย"
+                      >
+                        −
+                      </button>
+                      <input
+                        [id]="'freelance-late-extra-' + i"
+                        type="number"
+                        min="0"
+                        step="1"
+                        class="app-input app-input-number app-number-stepper-input"
+                        formControlName="extraShopPortionBaht"
+                        [readonly]="!canManage()"
+                      />
+                      <button
+                        type="button"
+                        class="app-number-stepper-btn"
+                        [disabled]="!canManage() || submitting()"
+                        (click)="stepLateExtra(i, 10)"
+                        aria-label="เพิ่มหักเงินเมื่อ freelance สาย"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <app-field-error [control]="row.controls.extraShopPortionBaht" [validated]="formValidated()" />
+                    <p class="app-field-hint">บาท / ดื่ม หักจากยอดที่ PR ได้ (หักดื่มเข้าร้านตามตำแหน่งคงเดิม)</p>
+                  </div>
+                </div>
               </div>
-              <app-field-error
-                [control]="form.controls.freelanceLateDrinkExtraShopPortionBaht"
-                [validated]="formValidated()"
-              />
-              <p class="app-field-hint">บาท / ดื่ม (บวกทับหักร้านตามตำแหน่ง)</p>
-            </div>
+            }
           </div>
         </section>
 

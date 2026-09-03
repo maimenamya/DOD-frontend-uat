@@ -18,8 +18,8 @@ export class SystemGuidePageComponent {
   readonly intro = SYSTEM_GUIDE_INTRO;
   readonly sections = SYSTEM_GUIDE_SECTIONS;
 
-  /** Section indexes currently expanded — open ส่วนที่ 2 (รูปเมนู) ให้เห็นทันที */
-  private readonly openSections = signal<ReadonlySet<number>>(new Set([1]));
+  /** Section indexes currently expanded — ปิดทุกส่วนตอนเปิดหน้า */
+  private readonly openSections = signal<ReadonlySet<number>>(new Set());
 
   isSectionOpen(index: number): boolean {
     return this.openSections().has(index);

@@ -1822,6 +1822,31 @@
     box-shadow: var(--shadow-card);
   }
 
+  /* ยอดบิลรวมทั้งร้าน — hero green card (OWNER/MANAGER only) */
+  .app-stat-card-bill-total {
+    border-color: color-mix(in srgb, var(--color-emerald-400, #34d399) 34%, var(--border));
+    background: linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--color-emerald-400, #34d399) 10%, var(--surface-strong)) 0%,
+      var(--surface-strong) 100%
+    );
+  }
+
+  .app-stat-card-bill-total .app-stat-value {
+    @apply mb-0;
+    color: var(--color-emerald-400, #34d399);
+  }
+
+  .app-stat-label-bill-total {
+    color: var(--color-emerald-400, #34d399);
+  }
+
+  .app-stat-value-symbol {
+    font-size: 0.7em;
+    opacity: 0.75;
+    margin-right: 0.1em;
+  }
+
   /* The ONE hero KPI (ยอดดื่มรวม) — subtle amber lift so the eye lands here first */
   .app-stat-card-drinks-total {
     border-color: color-mix(in srgb, var(--primary) 34%, var(--border));
@@ -2866,6 +2891,72 @@
 
   .shop-rules-section-hint {
     margin: 0;
+  }
+
+  .shop-rules-section .app-form-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .shop-rules-late-tiers {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .shop-rules-late-tier {
+    position: relative;
+    border: 1px solid var(--border, rgba(148, 163, 184, 0.35));
+    border-radius: 0.625rem;
+    padding: 0.75rem;
+    padding-right: 2.85rem;
+    background: color-mix(in srgb, var(--surface, #1e293b) 92%, transparent);
+  }
+
+  .shop-rules-late-tier-remove {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--border, rgba(148, 163, 184, 0.45));
+    border-radius: 0.5rem;
+    background: var(--surface, #0f172a);
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.875rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .shop-rules-late-tier-remove:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--danger, #f87171) 55%, var(--border, #475569));
+    color: var(--danger, #f87171);
+  }
+
+  .shop-rules-late-tier-remove:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .shop-rules-late-tier-body {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 640px) {
+    .shop-rules-late-tier-body {
+      grid-template-columns: minmax(8rem, 1fr) minmax(10rem, 1fr);
+      align-items: start;
+    }
   }
 
   .shop-rules-tier-grid,
@@ -4260,6 +4351,10 @@
 
   .app-grid-stats-triple {
     @apply grid gap-4 sm:grid-cols-2 desktop:grid-cols-3;
+  }
+
+  .app-grid-stats-quad {
+    @apply grid gap-4 grid-cols-2;
   }
 
   .dashboard-date-filter {

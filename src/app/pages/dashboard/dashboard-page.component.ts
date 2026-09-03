@@ -57,6 +57,8 @@ export class DashboardPageComponent implements OnInit {
   readonly isSaleTeamView = computed(() => this.isSaleRole() && !this.canPickBillSale());
   /** PR — one PR total card + PR table; top bar = own drink count. */
   readonly isPrTeamView = computed(() => this.isPrRole() && !this.canPickBillSale());
+  /** OWNER/MANAGER เท่านั้นที่เห็น card ยอดบิลรวมทั้งร้าน */
+  readonly showBillTotalCard = computed(() => this.isManagerView());
   readonly showTripleStatCards = computed(
     () => this.isManagerView() || this.isSaleTeamView(),
   );
