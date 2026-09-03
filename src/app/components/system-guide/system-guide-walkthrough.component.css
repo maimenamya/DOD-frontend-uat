@@ -292,10 +292,39 @@
 .guide-phone-status {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 0.45rem 0.75rem 0.25rem;
   font-size: 0.65rem;
   font-weight: 700;
   color: var(--text-secondary);
+}
+
+.guide-phone-safari-brand {
+  display: flex;
+  align-items: center;
+}
+
+.guide-safari-mark {
+  display: block;
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.guide-safari-tile {
+  width: 2.55rem;
+  height: 2.55rem;
+  border-radius: 0.7rem;
+  overflow: hidden;
+  background: #0b1220;
+}
+
+.guide-phone-app--safari {
+  color: var(--text-primary);
+}
+
+.guide-safari-tile .guide-safari-mark {
+  width: 2.55rem;
+  height: 2.55rem;
 }
 
 .guide-phone-homescreen {
