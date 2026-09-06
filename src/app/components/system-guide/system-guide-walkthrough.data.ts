@@ -888,12 +888,14 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
         warn: 'D-rink เปิดใน Chrome/เบราว์เซอร์ พิมพ์บลูทูธตรงไม่ได้ ต้องให้ RawBT เป็นตัวส่งงานไปเครื่องปริ้น',
       },
       {
-        title: 'ขั้น 11.2 iPhone — โหลดแอพ AHAS Print Service',
+        title: 'ขั้น 11.2 iPhone / iPad — โหลดแอพ AHAS Print Service',
         doThis: [
-          'เปิด App Store บนไอโฟนหรือไอแพด ค้นหา AHAS Print Service (ฟรี)',
-          'เลือกแอพไอคอนเครื่องปริ้นพื้นเขียว ตามรูปด้านข้าง แล้วกดรับ/ติดตั้ง',
-          'เปิดแอพ AHAS Print Service แล้วจับคู่เครื่องปริ้นบลูทูธ เช่น POS-58',
-          'พิมพ์ทดสอบในแอพให้กระดาษออกก่อน แล้วเปิดแอพค้างไว้ตอนใช้ POS',
+          'เปิด App Store ค้นหา AHAS Print Service (ฟรี) — ไอคอนเครื่องปริ้นพื้นเขียว',
+          'เปิดแอพค้างไว้ — ต้องเห็น HTTP Server เป็น RUNNING (สีเขียว)',
+          'กด Skanna (= สแกน) ที่ Bluetoothskrivare แล้วเลือกเครื่องปริ้น — จนกว่าไม่ขึ้น FRÅNKOPPLAD (= ยังไม่เชื่อม)',
+          'พิมพ์ทดสอบในแอพให้กระดาษออกก่อน แล้วค่อยเช็กบิลใน D-rink',
+          'ไม่ต้องใส่ API token — อันนั้นเป็นของแดชบอร์ด AHAS ไม่ใช่ของ D-rink',
+          'ตอนเช็กบิล Safari อาจเปิดหน้าต่างสั้นๆ ส่งงานไปแอพ — อนุญาตป๊อปอัปของเว็บ D-rink',
         ],
         image: {
           src: '/guide/ahas-print-service-icon.png',
@@ -904,7 +906,7 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
           href: 'https://apps.apple.com/th/app/ahas-print-service/id6758015388',
           label: 'เปิด App Store — AHAS Print Service',
         },
-        warn: 'ไอโฟนพิมพ์บลูทูธจากเว็บตรงไม่ได้ — ข้อจำกัดของ iOS ไม่ใช่ข้อจำกัดของร้าน ต้องเปิดแอพช่วยค้างไว้ ใช้ได้ตั้งแต่ iOS 12',
+        warn: 'แอพเป็นภาษาสวีเดน: Skanna=สแกน, FRÅNKOPPLAD=ยังไม่เชื่อม, Utskriftshistorik=ประวัติพิมพ์ (ถ้าเช็กบิลแล้วตรงนี้ว่าง = ยังส่งไม่ถึงแอพ). ใช้เครื่องพิมพ์บลูทูธ ไม่ใช่แค่ Wi‑Fi',
       },
       {
         title: 'ขั้น 11.3 ตั้งโหมดพิมพ์ใน D-rink',

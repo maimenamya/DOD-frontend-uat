@@ -112,11 +112,32 @@
             </li>
             <li>
               <strong>iPhone / iPad</strong> — โหลดแอพ
-              <strong>AHAS Print Service</strong> (ฟรี) จับคู่เครื่องปริ้นในแอพ
-              แล้วเปิดแอพค้างไว้ตอนใช้ POS — โหมด อัตโนมัติ หรือ แอปตัวกลาง
+              <strong>AHAS Print Service</strong> (ฟรี) เปิดค้างไว้ให้เห็น
+              <strong>RUNNING</strong> จับคู่บลูทูธด้วยปุ่ม
+              <strong>Skanna</strong> (= สแกน) จนไม่ขึ้น
+              <strong>FRÅNKOPPLAD</strong> (= ยังไม่เชื่อม) — โหมด อัตโนมัติ หรือ แอปตัวกลาง
+              (อนุญาตป๊อปอัปของเว็บเมื่อเช็กบิล)
             </li>
             <li>หลังเช็กบิลพิมพ์ซ้ำได้จากไอคอนเครื่องพิมพ์หลังเลขบิลในประวัติบิล หรือที่โต๊ะที่รอลูกค้ากลับ</li>
           </ul>
+          <div class="mt-3 rounded-lg border border-theme-border bg-surface p-3 text-sm text-text-secondary">
+            <p class="font-semibold text-text-primary mb-1">คำในแอพ AHAS (สวีเดน → ไทย)</p>
+            <ul class="list-disc space-y-0.5 pl-5">
+              <li><strong>Skanna</strong> = สแกนหาเครื่องพิมพ์</li>
+              <li><strong>FRÅNKOPPLAD</strong> = ยังไม่เชื่อมเครื่องพิมพ์</li>
+              <li><strong>RUNNING</strong> = เซิร์ฟเวอร์ในเครื่องเปิดแล้ว (ต้องเห็นก่อนพิมพ์จาก D-rink)</li>
+              <li><strong>Utskriftshistorik</strong> = ประวัติพิมพ์ — เช็กบิลแล้วตรงนี้ว่าง = ส่งไม่ถึงแอพ</li>
+            </ul>
+            <p class="mt-2">ไม่ต้องใส่ API token</p>
+            <button
+              type="button"
+              class="app-btn-secondary mt-3"
+              [disabled]="ahasTestBusy()"
+              (click)="testAhasBridge()"
+            >
+              {{ ahasTestBusy() ? 'กำลังทดสอบ…' : 'ทดสอบส่งไป AHAS (iPhone/iPad)' }}
+            </button>
+          </div>
         </div>
       </section>
 

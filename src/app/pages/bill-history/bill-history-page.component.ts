@@ -141,7 +141,7 @@ export class BillHistoryPageComponent implements OnInit {
     }
 
     this.printing.set(true);
-    const printFrame = this.billReceiptService.createPrintFrame();
+    const printBridge = this.billReceiptService.preparePrintBridge();
     this.billReceiptService
       .getBillReceipt(row.id)
       .pipe(
@@ -151,10 +151,10 @@ export class BillHistoryPageComponent implements OnInit {
       .subscribe({
         next: (response) => {
           this.receipt.set(response.receipt);
-          this.runPrint(response.receipt, printFrame);
+          this.runPrint(response.receipt, printBridge);
         },
         error: (err: HttpErrorResponse) => {
-          this.billReceiptService.removePrintFrame(printFrame);
+          this.billReceiptService.discardPrintBridge(printBridge);
           this.toast.showError(this.apiError(err, 'พิมพ์บิลไม่สำเร็จ'));
         },
       });
@@ -162,9 +162,16 @@ export class BillHistoryPageComponent implements OnInit {
 
   private runPrint(
     receipt: BillReceiptPayload,
-    printFrame?: HTMLIFrameElement | null,
+    printBridge?: ReturnType<BillReceiptService['preparePrintBridge']> | null,
   ): void {
-    const outcome = this.billReceiptService.printReceipt(receipt, { printFrame });
+    const outcome = this.billReceiptService.printReceipt(receipt, {
+      printFrame: printBridge?.printFrame,
+      ahasBridgeWindow: printBridge?.ahasBridgeWindow,
+    });
+    if (outcome.ok && outcome.method === 'ahas') {
+      // Final toast from BillReceiptService.dispatchAhasPrint.
+      return;
+    }
     if (!outcome.ok && outcome.message) {
       this.toast.showError(outcome.message);
     }

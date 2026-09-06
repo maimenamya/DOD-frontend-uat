@@ -1480,8 +1480,18 @@
   margin-top: 0.9rem;
 }
 
-.open-table-bill-summary-actions .open-table-checkout-btn {
+.open-table-bill-summary-actions--split {
+  grid-template-columns: 1fr 1fr;
+}
+
+.open-table-bill-summary-actions .open-table-checkout-btn,
+.open-table-bill-summary-actions .open-table-cancel-bill-btn {
+  display: inline-flex;
+  width: 100%;
   margin-top: 0;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
 }
 
 .open-table-seat-card__head {

@@ -5,7 +5,15 @@ import { Observable } from 'rxjs';
 import { ApiConfig } from '../core/api-config';
 import type { BillReceiptResponse } from '../models/bill-receipt';
 import type { ReceiptPrintChannel } from '../models/shop-receipt-printer';
+import {
+  closeAhasBridgeWindow,
+  createAhasBridgeWindow,
+  detectNeedsAhasBridgeWindow,
+  sendEscPosToAhasPrintService,
+  type AhasPrintDetail,
+} from '../utils/ahas-print-bridge.util';
 import { detectReceiptPrintPlatform } from '../utils/receipt-print-platform.util';
+import { ToastService } from './toast.service';
 
 export type ReceiptPrintOutcome = {
   ok: boolean;
@@ -16,6 +24,16 @@ export type ReceiptPrintOutcome = {
 export type PrintReceiptOptions = {
   /** Create with createPrintFrame() on the same user click — before async API. */
   printFrame?: HTMLIFrameElement | null;
+  /**
+   * iOS: window opened on the same user click (about:blank) so AHAS can be reached
+   * without Safari mixed-content blocking HTTPS → localhost.
+   */
+  ahasBridgeWindow?: Window | null;
+};
+
+export type ReceiptPrintBridge = {
+  printFrame: HTMLIFrameElement | null;
+  ahasBridgeWindow: Window | null;
 };
 
 /** PC USB browser print — 10% narrower than nominal paper (driver variance). */
@@ -23,14 +41,12 @@ const PC_USB_PRINT_WIDTH_SCALE = 0.9;
 const RAWBT_PACKAGE = 'ru.a402d.rawbtprinter';
 /** iOS Safari truncates very long custom-scheme URLs — keep Thermer payload under this. */
 const THERMER_MAX_URL_LEN = 180_000;
-/** AHAS Print Service local HTTP bridge — port is public; request body is not documented. */
-const AHAS_PRINT_ORIGINS = ['http://127.0.0.1:8765', 'http://localhost:8765'] as const;
-const AHAS_PRINT_TIMEOUT_MS = 1500;
 
 @Injectable({ providedIn: 'root' })
 export class BillReceiptService {
   private readonly http = inject(HttpClient);
   private readonly api = inject(ApiConfig);
+  private readonly toast = inject(ToastService);
 
   getBillReceipt(
     billId: number,
@@ -85,6 +101,26 @@ export class BillReceiptService {
     return detectReceiptPrintPlatform() === 'desktop';
   }
 
+  /**
+   * Call synchronously on the print / checkout button click (before await HTTP).
+   * Desktop → hidden iframe; iOS → AHAS about:blank bridge; Android → none.
+   */
+  preparePrintBridge(): ReceiptPrintBridge {
+    const platform = detectReceiptPrintPlatform();
+    if (platform === 'desktop') {
+      return { printFrame: this.createPrintFrame(), ahasBridgeWindow: null };
+    }
+    if (platform === 'ios' || detectNeedsAhasBridgeWindow()) {
+      return { printFrame: null, ahasBridgeWindow: createAhasBridgeWindow() };
+    }
+    return { printFrame: null, ahasBridgeWindow: null };
+  }
+
+  discardPrintBridge(bridge?: ReceiptPrintBridge | null): void {
+    this.removePrintFrame(bridge?.printFrame);
+    closeAhasBridgeWindow(bridge?.ahasBridgeWindow);
+  }
+
   /** @deprecated use shouldPreparePrintFrame */
   shouldUseBrowserPrintOnDesktop(channel?: ReceiptPrintChannel): boolean {
     void channel;
@@ -108,6 +144,7 @@ export class BillReceiptService {
   ): ReceiptPrintOutcome {
     if (channel === 'off') {
       this.removePrintFrame(options?.printFrame);
+      closeAhasBridgeWindow(options?.ahasBridgeWindow);
       return {
         ok: true,
         method: 'none',
@@ -115,37 +152,50 @@ export class BillReceiptService {
       };
     }
     if (channel === 'browser_pdf') {
+      closeAhasBridgeWindow(options?.ahasBridgeWindow);
       return this.browserPrintOutcome(receipt, options?.printFrame);
     }
     if (channel === 'bridging_app') {
       this.removePrintFrame(options?.printFrame);
-      return this.printViaBridgingApp(receipt, this.detectBridgingPlatform());
+      return this.printViaBridgingApp(
+        receipt,
+        this.detectBridgingPlatform(),
+        options?.ahasBridgeWindow,
+      );
     }
     if (channel === 'thermer') {
       this.removePrintFrame(options?.printFrame);
+      closeAhasBridgeWindow(options?.ahasBridgeWindow);
       return this.printViaThermer(receipt);
     }
     if (channel === 'wifi_raw') {
-      const bridged = this.printViaBridgingApp(receipt, this.detectBridgingPlatform());
+      const bridged = this.printViaBridgingApp(
+        receipt,
+        this.detectBridgingPlatform(),
+        options?.ahasBridgeWindow,
+      );
       if (bridged.ok) {
         this.removePrintFrame(options?.printFrame);
         return bridged;
       }
+      closeAhasBridgeWindow(options?.ahasBridgeWindow);
       return this.browserPrintOutcome(receipt, options?.printFrame);
     }
 
     const platform = detectReceiptPrintPlatform();
     if (platform === 'desktop') {
+      closeAhasBridgeWindow(options?.ahasBridgeWindow);
       return this.browserPrintOutcome(receipt, options?.printFrame);
     }
 
     // auto on mobile — Android: RawBT; iPhone/iPad: AHAS Print Service (Thai App Store, free).
     if (platform === 'android') {
       this.removePrintFrame(options?.printFrame);
+      closeAhasBridgeWindow(options?.ahasBridgeWindow);
       return this.printViaBridgingApp(receipt, 'android');
     }
     this.removePrintFrame(options?.printFrame);
-    return this.printViaAhasPrintService(receipt);
+    return this.printViaAhasPrintService(receipt, options?.ahasBridgeWindow);
   }
 
   private browserPrintOutcome(
@@ -183,122 +233,53 @@ export class BillReceiptService {
     };
   }
 
-  /** iOS helper — keep AHAS Print Service open; talks to http://127.0.0.1:8765. */
-  printViaAhasPrintService(receipt: BillReceiptResponse['receipt']): ReceiptPrintOutcome {
-    void this.dispatchAhasPrint(receipt);
+  /**
+   * iOS — AHAS Print Service on localhost:8765.
+   * Pass ahasBridgeWindow from preparePrintBridge() (opened on the same tap).
+   */
+  printViaAhasPrintService(
+    receipt: BillReceiptResponse['receipt'],
+    ahasBridgeWindow?: Window | null,
+  ): ReceiptPrintOutcome {
+    void this.dispatchAhasPrint(receipt, ahasBridgeWindow);
     return {
       ok: true,
       method: 'ahas',
-      message: 'กำลังส่งใบเสร็จไป AHAS Print Service — เปิดแอพค้างไว้',
+      message: 'กำลังส่งใบเสร็จไป AHAS…',
     };
   }
 
-  /**
-   * AHAS did not publish the HTTP body. Probe the documented port, send ESC/POS,
-   * and fall back to the on-screen receipt sheet if the app is not reachable.
-   */
-  private async dispatchAhasPrint(receipt: BillReceiptResponse['receipt']): Promise<void> {
+  private async dispatchAhasPrint(
+    receipt: BillReceiptResponse['receipt'],
+    ahasBridgeWindow?: Window | null,
+  ): Promise<void> {
     const base64 = receipt.escPosBase64.replace(/\s/g, '');
     if (!base64) {
+      closeAhasBridgeWindow(ahasBridgeWindow);
+      this.toast.showError('ไม่มีข้อมูลใบเสร็จสำหรับพิมพ์');
       this.showMobileReceiptPrintSheet(receipt);
       return;
     }
 
-    const sent = await this.sendAhasPrintPayload(base64);
-    if (!sent) {
-      this.showMobileReceiptPrintSheet(receipt);
+    const result = await sendEscPosToAhasPrintService(base64, ahasBridgeWindow);
+    if (result.ok) {
+      this.toast.showSuccess(ahasResultMessage(result.detail));
+      return;
     }
+    this.toast.showError(ahasResultMessage(result.detail));
+    this.showMobileReceiptPrintSheet(receipt);
   }
 
-  private async sendAhasPrintPayload(escPosBase64: string): Promise<boolean> {
-    const bytes = decodeEscPosBase64(escPosBase64);
-    if (!bytes.byteLength) {
-      return false;
-    }
-
-    for (const origin of AHAS_PRINT_ORIGINS) {
-      if (await this.postAhasEscPos(origin, escPosBase64, bytes)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private async postAhasEscPos(
-    origin: string,
-    escPosBase64: string,
-    bytes: Uint8Array,
-  ): Promise<boolean> {
-    const jsonInit: RequestInit = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ type: 'print', format: 'escpos', data: escPosBase64 }),
+  /** Public helper for ทดสอบเชื่อม on receipt-printer settings. */
+  async testAhasPrint(escPosBase64: string, ahasBridgeWindow?: Window | null): Promise<{
+    ok: boolean;
+    message: string;
+  }> {
+    const result = await sendEscPosToAhasPrintService(escPosBase64, ahasBridgeWindow);
+    return {
+      ok: result.ok,
+      message: ahasResultMessage(result.detail),
     };
-    const first = await this.fetchLocalPrintStatus(`${origin}/print`, jsonInit);
-    if (first == null) {
-      return this.fetchLocalPrintOpaque(`${origin}/print`, bytes);
-    }
-    if (first >= 200 && first < 300) {
-      return true;
-    }
-
-    const fallbacks: Array<{ path: string; init: RequestInit }> = [
-      {
-        path: '/api/print',
-        init: {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({ content: escPosBase64, content_type: 'escpos' }),
-        },
-      },
-      {
-        path: '/print',
-        init: {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/octet-stream' },
-          body: bytes,
-        },
-      },
-    ];
-    for (const fallback of fallbacks) {
-      const status = await this.fetchLocalPrintStatus(`${origin}${fallback.path}`, fallback.init);
-      if (status != null && status >= 200 && status < 300) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private async fetchLocalPrintStatus(url: string, init: RequestInit): Promise<number | null> {
-    const controller = new AbortController();
-    const timer = window.setTimeout(() => controller.abort(), AHAS_PRINT_TIMEOUT_MS);
-    try {
-      const response = await fetch(url, { ...init, signal: controller.signal, mode: 'cors' });
-      return response.status;
-    } catch {
-      return null;
-    } finally {
-      window.clearTimeout(timer);
-    }
-  }
-
-  private async fetchLocalPrintOpaque(url: string, bytes: Uint8Array): Promise<boolean> {
-    const controller = new AbortController();
-    const timer = window.setTimeout(() => controller.abort(), AHAS_PRINT_TIMEOUT_MS);
-    try {
-      await fetch(url, {
-        method: 'POST',
-        mode: 'no-cors',
-        signal: controller.signal,
-        headers: { 'Content-Type': 'text/plain' },
-        body: bytes,
-      });
-      return true;
-    } catch {
-      return false;
-    } finally {
-      window.clearTimeout(timer);
-    }
   }
 
   /** Same html2canvas receipt as PC → JPEG → thermer:// (not backend PNG — avoids stretch). */
@@ -332,19 +313,22 @@ export class BillReceiptService {
   printViaBridgingApp(
     receipt: BillReceiptResponse['receipt'],
     platform: 'android' | 'ios',
+    ahasBridgeWindow?: Window | null,
   ): ReceiptPrintOutcome {
     const base64 = receipt.escPosBase64.replace(/\s/g, '');
     if (!base64) {
+      closeAhasBridgeWindow(ahasBridgeWindow);
       return { ok: false, method: 'rawbt', message: 'ไม่มีข้อมูลใบเสร็จสำหรับพิมพ์' };
     }
 
     if (platform === 'android') {
+      closeAhasBridgeWindow(ahasBridgeWindow);
       const intentUrl = `intent:base64,${base64}#Intent;scheme=rawbt;package=${RAWBT_PACKAGE};end;`;
       if (this.navigatePrintUrl(intentUrl)) {
         return { ok: true, method: 'rawbt' };
       }
     } else {
-      return this.printViaAhasPrintService(receipt);
+      return this.printViaAhasPrintService(receipt, ahasBridgeWindow);
     }
 
     const rawbtUrl = `rawbt:base64,${base64}`;
@@ -1204,6 +1188,24 @@ export class BillReceiptService {
     anchor.download = `receipt-${receipt.billReference}.bin`;
     anchor.click();
     URL.revokeObjectURL(url);
+  }
+}
+
+function ahasResultMessage(detail: AhasPrintDetail): string {
+  switch (detail) {
+    case 'sent_fetch':
+    case 'sent_opaque':
+    case 'sent_form':
+      return 'ส่งไป AHAS แล้ว — เปิดแอพดู Utskriftshistorik ถ้ามีรายการแสดงว่าถึงแอพแล้ว ถ้าว่างแปลว่ารูปแบบข้อมูลยังไม่ตรง';
+    case 'popup_blocked':
+      return 'Safari บล็อกหน้าต่างพิมพ์ — ตั้งค่าเว็บนี้ให้อนุญาตป๊อปอัป แล้วลองใหม่';
+    case 'timeout':
+      return 'รอ AHAS นานเกินไป — เปิดแอพค้างไว้ให้เห็น RUNNING อนุญาตป๊อปอัป แล้วลองใหม่';
+    case 'no_payload':
+      return 'ไม่มีข้อมูลใบเสร็จสำหรับพิมพ์';
+    case 'unreachable':
+    default:
+      return 'เว็บส่งไม่ถึง AHAS — เปิดแอพค้างไว้ (RUNNING) อนุญาตป๊อปอัป แล้วลองปุ่มทดสอบที่หน้าเครื่องพิมพ์ใบเสร็จ';
   }
 }
 

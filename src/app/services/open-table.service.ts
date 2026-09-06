@@ -61,11 +61,14 @@ export class OpenTableService {
     );
   }
 
-  cancelBill(payload: CancelBillPayload): Observable<{ ok: boolean }> {
-    return this.http.post<{ ok: boolean }>(
-      this.api.resource('open-table', 'cancel-bill'),
-      payload,
-    );
+  cancelBill(
+    payload: CancelBillPayload,
+  ): Observable<{ ok: boolean; seatingId?: number | null; sessionClosed?: boolean }> {
+    return this.http.post<{
+      ok: boolean;
+      seatingId?: number | null;
+      sessionClosed?: boolean;
+    }>(this.api.resource('open-table', 'cancel-bill'), payload);
   }
 
   reserveSeat(payload: ReserveSeatPayload): Observable<{ ok: boolean; saleName: string }> {

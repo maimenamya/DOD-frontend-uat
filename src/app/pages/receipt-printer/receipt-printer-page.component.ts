@@ -13,8 +13,10 @@ import {
   type ShopReceiptPrinterConfig,
 } from '../../models/shop-receipt-printer';
 import { AuthService } from '../../services/auth.service';
+import { BillReceiptService } from '../../services/bill-receipt.service';
 import { ShopReceiptPrinterService } from '../../services/shop-receipt-printer.service';
 import { ToastService } from '../../services/toast.service';
+import { buildAhasTestEscPosBase64 } from '../../utils/ahas-print-bridge.util';
 import {
   highlightInvalidForm,
   resetFormValidationFlag,
@@ -31,6 +33,7 @@ import { FieldErrorComponent } from '../../components/field-error/field-error.co
 export class ReceiptPrinterPageComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly printerService = inject(ShopReceiptPrinterService);
+  private readonly billReceiptService = inject(BillReceiptService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
 
@@ -38,6 +41,7 @@ export class ReceiptPrinterPageComponent implements OnInit {
   readonly loading = signal(true);
   readonly submitting = signal(false);
   readonly formValidated = signal(false);
+  readonly ahasTestBusy = signal(false);
 
   readonly printModeOptions = RECEIPT_PRINT_MODE_OPTIONS.map((o) => ({
     value: o.value,
@@ -78,6 +82,26 @@ export class ReceiptPrinterPageComponent implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  async testAhasBridge(): Promise<void> {
+    if (this.ahasTestBusy()) return;
+    this.ahasTestBusy.set(true);
+    const bridge = this.billReceiptService.preparePrintBridge();
+    try {
+      const result = await this.billReceiptService.testAhasPrint(
+        buildAhasTestEscPosBase64(),
+        bridge.ahasBridgeWindow,
+      );
+      if (result.ok) {
+        this.toast.showSuccess(result.message);
+      } else {
+        this.billReceiptService.discardPrintBridge(bridge);
+        this.toast.showError(result.message);
+      }
+    } finally {
+      this.ahasTestBusy.set(false);
+    }
   }
 
   submit(): void {

@@ -99,7 +99,10 @@ import { BeverageService } from '../../services/beverage.service';
 import { EmployeeService } from '../../services/employee.service';
 import { OpenTableService } from '../../services/open-table.service';
 import { ShopRealtimeService } from '../../services/shop-realtime.service';
-import { BillReceiptService } from '../../services/bill-receipt.service';
+import {
+  BillReceiptService,
+  type ReceiptPrintBridge,
+} from '../../services/bill-receipt.service';
 import { GuestOrderService } from '../../services/guest-order.service';
 import { APP_MOBILE_MEDIA_QUERY } from '../../utils/app-viewport.util';
 import { detectReceiptPrintPlatform } from '../../utils/receipt-print-platform.util';
@@ -717,6 +720,18 @@ export class OpenTablePageComponent implements OnInit {
     if (detail?.canMutateLedger === false) return false;
     if (detail?.sessionStatus === 'BILLED') return false;
     return true;
+  });
+
+  /** Empty OPEN bill — ยกเลิก beside เช็กบิล; hide ยกเลิก when the bill has lines. */
+  readonly canCancelEmptyBill = computed(() => {
+    if (!this.ledgerCanMutate()) return false;
+    const detail = this.sessionDetail();
+    if (!detail || detail.sessionStatus === 'BILLED') return false;
+    return (
+      detail.items.length === 0 &&
+      detail.staffDrinks.length === 0 &&
+      (detail.roomCharges?.length ?? 0) === 0
+    );
   });
 
   readonly packageBottleBillItems = computed(() =>
@@ -1526,51 +1541,80 @@ export class OpenTablePageComponent implements OnInit {
       this.toast.showError(
         tab.status !== 'OPEN'
           ? 'บิลนี้เช็กแล้ว — ใช้ลูกค้ากลับแล้วถ้าต้องการเคลียร์'
-          : 'ลบได้เฉพาะบิลว่าง และต้องเหลืออย่างน้อย 1 บิล',
+          : 'ลบได้เฉพาะบิลว่าง',
       );
       return;
     }
+    this.runCancelEmptyBill(tab.sessionId, tab.revision, 'ลบบิลแล้ว');
+  }
+
+  async cancelEmptyOpenBill(): Promise<void> {
+    if (!this.canCancelEmptyBill()) return;
+    const detail = this.sessionDetail();
+    if (!detail) return;
+    const lastOpen =
+      this.seatBillTabs().filter((t) => t.status === 'OPEN').length <= 1;
+    const ok = await this.confirmDialog.confirm({
+      title: 'ยกเลิกบิล',
+      message: lastOpen
+        ? 'บิลนี้ยังไม่มีรายการ — ยกเลิกแล้วปล่อยโต๊ะใช่หรือไม่?'
+        : 'บิลนี้ยังไม่มีรายการ — ยกเลิกบิลนี้ใช่หรือไม่?',
+      confirmLabel: 'ยกเลิก',
+    });
+    if (!ok) return;
+    this.runCancelEmptyBill(detail.sessionId, detail.revision, 'ยกเลิกบิลแล้ว');
+  }
+
+  private runCancelEmptyBill(
+    sessionId: number,
+    expectedRevision: number,
+    successMessage: string,
+  ): void {
     this.actionBusy.set(true);
     this.openTableService
       .cancelBill({
         shopId: this.shopId,
-        sessionId: tab.sessionId,
-        expectedRevision: tab.revision,
+        sessionId,
+        expectedRevision,
       })
       .subscribe({
-        next: () => {
+        next: (result) => {
           this.actionBusy.set(false);
-          const remaining = this.seatBillTabs().filter((t) => t.id !== tabId);
-          const next =
-            this.activeSeatBillTabId() === tabId
-              ? remaining[0]
-              : remaining.find((t) => t.id === this.activeSeatBillTabId()) ?? remaining[0];
-          this.toast.showSuccess('ลบบิลแล้ว');
-          if (next) {
-            this.activeSeatBillTabId.set(next.id);
-            const seatKey = this.selectedSeatKey();
-            if (seatKey) {
-              this.seats.update((tiles) =>
-                tiles.map((s) =>
-                  s.key === seatKey
-                    ? {
-                        ...s,
-                        sessionId: next.sessionId,
-                        sessionRevision: next.revision,
-                        saleName: next.saleName ?? s.saleName,
-                      }
-                    : s,
-                ),
-              );
-            }
-            this.loadSessionDetail(next.sessionId, { showLoading: true });
+          const remaining = this.seatBillTabs().filter(
+            (t) => t.sessionId !== sessionId && t.status === 'OPEN',
+          );
+          this.toast.showSuccess(successMessage);
+          if (result.sessionClosed || remaining.length === 0) {
+            this.closeDrawer();
+            this.refreshFloorPlan();
+            return;
           }
+          const next =
+            remaining.find((t) => t.id === this.activeSeatBillTabId()) ?? remaining[0]!;
+          this.seatBillTabs.set(remaining);
+          this.activeSeatBillTabId.set(next.id);
+          const seatKey = this.selectedSeatKey();
+          if (seatKey) {
+            this.seats.update((tiles) =>
+              tiles.map((s) =>
+                s.key === seatKey
+                  ? {
+                      ...s,
+                      sessionId: next.sessionId,
+                      sessionRevision: next.revision,
+                      saleName: next.saleName ?? s.saleName,
+                    }
+                  : s,
+              ),
+            );
+          }
+          this.loadSessionDetail(next.sessionId, { showLoading: true });
           this.refreshFloorPlan();
         },
         error: (err: HttpErrorResponse) => {
           this.actionBusy.set(false);
           this.toast.showError(
-            typeof err.error?.error === 'string' ? err.error.error : 'ลบบิลไม่สำเร็จ',
+            typeof err.error?.error === 'string' ? err.error.error : 'ยกเลิกบิลไม่สำเร็จ',
           );
         },
       });
@@ -5211,9 +5255,7 @@ export class OpenTablePageComponent implements OnInit {
     }
     if (this.guestQrPrintBusy() || this.actionBusy()) return;
 
-    const printFrame = this.billReceiptService.shouldPreparePrintFrame()
-      ? this.billReceiptService.createPrintFrame()
-      : null;
+    const printBridge = this.billReceiptService.preparePrintBridge();
 
     this.guestQrPrintBusy.set(true);
     this.guestOrderService
@@ -5224,13 +5266,13 @@ export class OpenTablePageComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          this.tryPrintCheckoutReceipt(response, printFrame);
+          this.tryPrintCheckoutReceipt(response, printBridge);
           if ((response.receipt.printChannel ?? 'auto') === 'off') {
             this.toast.showSuccess('สร้าง QR แล้ว — เปิดการพิมพ์ใบเสร็จที่ตั้งค่าเครื่องพิมพ์');
           }
         },
         error: (err: { error?: { error?: string } }) => {
-          this.billReceiptService.removePrintFrame(printFrame);
+          this.billReceiptService.discardPrintBridge(printBridge);
           this.toast.showError(err.error?.error ?? 'พิมพ์ QR สั่งอาหารไม่สำเร็จ');
         },
       });
@@ -5253,9 +5295,7 @@ export class OpenTablePageComponent implements OnInit {
     }
     if (this.checkoutPrintBusy()) return;
 
-    const printFrame = this.billReceiptService.shouldPreparePrintFrame()
-      ? this.billReceiptService.createPrintFrame()
-      : null;
+    const printBridge = this.billReceiptService.preparePrintBridge();
 
     this.checkoutPrintBusy.set(true);
     this.openTableService
@@ -5271,10 +5311,10 @@ export class OpenTablePageComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          this.tryPrintCheckoutReceipt(response, printFrame);
+          this.tryPrintCheckoutReceipt(response, printBridge);
         },
         error: (err: { error?: { error?: string } }) => {
-          this.billReceiptService.removePrintFrame(printFrame);
+          this.billReceiptService.discardPrintBridge(printBridge);
           this.toast.showError(err.error?.error ?? 'ไม่สามารถพิมพ์ใบแจ้งยอดได้');
         },
       });
@@ -5300,16 +5340,18 @@ export class OpenTablePageComponent implements OnInit {
     }
 
     const paymentLabel = billPaymentMethodLabel(this.checkoutPaymentMethod());
+    // iOS: open AHAS bridge before await — Safari drops user-gesture after confirm dialog.
+    const printBridge = this.billReceiptService.preparePrintBridge();
+
     const ok = await this.confirmDialog.confirm({
       title: 'ยืนยันเช็กบิล',
       message: `เช็กบิลเวลา ${this.formatShopDatetimeLabel(checkedOutAt)} · ${paymentLabel} · ยอดรวม ${preview.billAmount.toLocaleString('th-TH')} บาท ใช่หรือไม่?`,
       confirmLabel: 'เช็กบิล',
     });
-    if (!ok) return;
-
-    const printFrame = this.billReceiptService.shouldPreparePrintFrame()
-      ? this.billReceiptService.createPrintFrame()
-      : null;
+    if (!ok) {
+      this.billReceiptService.discardPrintBridge(printBridge);
+      return;
+    }
 
     this.runAction(
       this.openTableService.checkoutBill({
@@ -5325,7 +5367,7 @@ export class OpenTablePageComponent implements OnInit {
       (result) => {
         this.closeCheckoutModal();
         this.lastCheckoutBillId.set(result.billId);
-        this.tryPrintCheckoutReceipt(result.receipt, printFrame);
+        this.tryPrintCheckoutReceipt(result.receipt, printBridge);
         const seatKey = this.selectedSeatKey();
         if (result.sessionClosed) {
           this.closeAddModal();
@@ -5343,7 +5385,7 @@ export class OpenTablePageComponent implements OnInit {
         }
       },
       () => {
-        this.billReceiptService.removePrintFrame(printFrame);
+        this.billReceiptService.discardPrintBridge(printBridge);
         this.closeCheckoutModal();
         this.closeAddModal();
       },
@@ -5353,26 +5395,25 @@ export class OpenTablePageComponent implements OnInit {
   /** Railway/cloud API cannot reach printers — print on the device at the shop. */
   private tryPrintCheckoutReceipt(
     receiptResponse: BillReceiptResponse | undefined,
-    printFrame?: HTMLIFrameElement | null,
+    printBridge?: ReceiptPrintBridge | null,
   ): void {
     if (!receiptResponse) {
-      this.billReceiptService.removePrintFrame(printFrame);
+      this.billReceiptService.discardPrintBridge(printBridge);
       return;
     }
 
     const channel = receiptResponse.receipt.printChannel ?? 'auto';
     if (channel === 'off') {
-      this.billReceiptService.removePrintFrame(printFrame);
+      this.billReceiptService.discardPrintBridge(printBridge);
       return;
     }
 
     const outcome = this.billReceiptService.printReceipt(receiptResponse.receipt, {
-      printFrame,
+      printFrame: printBridge?.printFrame,
+      ahasBridgeWindow: printBridge?.ahasBridgeWindow,
     });
     if (outcome.ok && outcome.method === 'ahas') {
-      this.toast.showSuccess(
-        outcome.message ?? 'กำลังส่งใบเสร็จไป AHAS Print Service — เปิดแอพค้างไว้',
-      );
+      // Final success/error toast comes from BillReceiptService.dispatchAhasPrint.
       return;
     }
     if (outcome.ok && outcome.method === 'thermer') {
@@ -5411,46 +5452,14 @@ export class OpenTablePageComponent implements OnInit {
       return;
     }
 
-    const printFrame = this.billReceiptService.shouldPreparePrintFrame()
-      ? this.billReceiptService.createPrintFrame()
-      : null;
+    const printBridge = this.billReceiptService.preparePrintBridge();
 
     this.billReceiptService.getBillReceipt(billId).subscribe({
       next: (response) => {
-        const outcome = this.billReceiptService.printReceipt(response.receipt, {
-          printFrame,
-        });
-        if (outcome.ok && outcome.method === 'ahas') {
-          this.toast.showSuccess(
-            outcome.message ?? 'กำลังส่งใบเสร็จไป AHAS Print Service — เปิดแอพค้างไว้',
-          );
-          return;
-        }
-        if (outcome.ok && outcome.method === 'thermer') {
-      this.toast.showSuccess(
-        outcome.message ?? 'กำลังส่งใบเสร็จไป Thermer...',
-      );
-      return;
-    }
-    if (outcome.ok && outcome.method === 'rawbt') {
-          this.toast.showSuccess('ส่งไป RawBT แล้ว');
-          return;
-        }
-        if (outcome.ok && outcome.method === 'browser') {
-          this.toast.showSuccess(
-            outcome.message ??
-              (detectReceiptPrintPlatform() !== 'desktop'
-                ? 'แสดงใบเสร็จแล้ว — กดปุ่ม พิมพ์ ด้านล่าง'
-                : 'เปิดหน้าพิมพ์แล้ว — เลือกเครื่องพิมพ์ POS-58'),
-          );
-          return;
-        }
-        if (!outcome.ok) {
-          this.toast.showError(outcome.message ?? 'พิมพ์ใบเสร็จไม่สำเร็จ');
-        }
+        this.tryPrintCheckoutReceipt(response, printBridge);
       },
       error: () => {
-        this.billReceiptService.removePrintFrame(printFrame);
+        this.billReceiptService.discardPrintBridge(printBridge);
         this.toast.showError('โหลดใบเสร็จไม่สำเร็จ');
       },
     });
