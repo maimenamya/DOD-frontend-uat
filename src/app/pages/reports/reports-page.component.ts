@@ -156,21 +156,27 @@ export class ReportsPageComponent implements OnInit {
     return [...staff, ...entertainers].sort((a, b) => b.totalDrinks - a.totalDrinks);
   }
 
-  /** Card 8 — dish count only, one row per sale. */
+  /** Card 10 — dish count + sold amount, one row per sale. */
   foodDishTotalsBySale(preview: ReportPreview): Array<{
     saleEmployeeId: string;
     saleNickname: string;
     quantity: number;
+    totalAmount: number;
   }> {
-    const map = new Map<string, { saleNickname: string; quantity: number }>();
+    const map = new Map<
+      string,
+      { saleNickname: string; quantity: number; totalAmount: number }
+    >();
     for (const row of preview.food?.bySale ?? []) {
       const existing = map.get(row.saleEmployeeId);
       if (existing) {
         existing.quantity += row.quantity;
+        existing.totalAmount += row.totalAmount;
       } else {
         map.set(row.saleEmployeeId, {
           saleNickname: row.saleNickname,
           quantity: row.quantity,
+          totalAmount: row.totalAmount,
         });
       }
     }
@@ -179,6 +185,7 @@ export class ReportsPageComponent implements OnInit {
         saleEmployeeId,
         saleNickname: v.saleNickname,
         quantity: v.quantity,
+        totalAmount: v.totalAmount,
       }))
       .sort((a, b) => b.quantity - a.quantity || a.saleNickname.localeCompare(b.saleNickname, 'th'));
   }

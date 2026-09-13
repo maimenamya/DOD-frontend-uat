@@ -67,6 +67,16 @@ export interface ReportSaleProductRow {
   stockItemId: number;
   stockItemLabel: string;
   quantity: number;
+  soldAmount: number;
+}
+
+export interface ReportSalePackageRow {
+  saleEmployeeId: string;
+  saleNickname: string;
+  packageId: number;
+  packageName: string;
+  quantity: number;
+  soldAmount: number;
 }
 
 export interface ReportFoodByItem {
@@ -106,6 +116,7 @@ export interface ReportPreview {
     totalAmount: number;
     billCount: number;
     bySale: ReportBillBySale[];
+    toShop: { billCount: number; totalAmount: number };
     rows: ReportBillRow[];
   } | null;
   drinks: {
@@ -126,6 +137,8 @@ export interface ReportPreview {
     summaries: ReportSaleSummaryRow[];
     entertainerRows: ReportSaleEntertainerRow[];
     productRows: ReportSaleProductRow[];
+    promotionRows: ReportSalePackageRow[];
+    membershipRows: ReportSalePackageRow[];
   } | null;
   food: {
     totalDishes: number;

@@ -2,7 +2,7 @@
   <header class="app-page-header">
     <div>
       <h1 class="app-page-title">กฎร้าน</h1>
-      <p class="app-page-subtitle">ตั้งค่ากฎธุรกิจเฉพาะสาขา — ดื่มตามเวลานั่ง และค่าปรับมาสาย/ขาด (เตรียมไว้สำหรับระบบตอกบัตร)</p>
+      <p class="app-page-subtitle">ตั้งค่ากฎธุรกิจเฉพาะสาขา — ที่อยู่ร้าน ดื่มตามเวลานั่ง และค่าปรับมาสาย/ขาด</p>
     </div>
   </header>
 
@@ -431,6 +431,93 @@
             <p class="app-field-hint">บาท / ครั้ง (เมื่อระบบปิดกะอัตโนมัติ)</p>
           </div>
         </div>
+        </section>
+
+        <section class="app-card shop-rules-section">
+          <h2 class="shop-rules-section-title">ที่อยู่ร้าน</h2>
+          <p class="app-field-hint shop-rules-section-hint">
+            ใช้แสดงที่อยู่สาขา — พิกัด GPS เก็บไว้สำหรับเช็คตำแหน่งตอนลงงานในอนาคต (ยังไม่บังคับ)
+          </p>
+
+          <div class="app-form-group">
+            <label class="app-label" for="shop-rules-address-line">ที่อยู่ (บ้านเลขที่ / ถนน)</label>
+            <input
+              id="shop-rules-address-line"
+              type="text"
+              class="app-input"
+              formControlName="addressLine"
+              maxlength="255"
+              [readonly]="!canManage()"
+              placeholder="เช่น 123 ถนนสุขุมวิท"
+            />
+          </div>
+
+          <div class="shop-rules-tier-grid">
+            <div class="app-form-group">
+              <label class="app-label" for="shop-rules-province">จังหวัด</label>
+              <app-custom-dropdown
+                inputId="shop-rules-province"
+                formControlName="provinceId"
+                [options]="provinceOptions()"
+                placeholder="เลือกจังหวัด"
+              />
+            </div>
+            <div class="app-form-group">
+              <label class="app-label" for="shop-rules-district">อำเภอ / เขต</label>
+              <app-custom-dropdown
+                inputId="shop-rules-district"
+                formControlName="districtId"
+                [options]="districtOptions()"
+                placeholder="เลือกอำเภอ"
+              />
+            </div>
+            <div class="app-form-group">
+              <label class="app-label" for="shop-rules-subdistrict">ตำบล / แขวง</label>
+              <app-custom-dropdown
+                inputId="shop-rules-subdistrict"
+                formControlName="subdistrictId"
+                [options]="subdistrictOptions()"
+                placeholder="เลือกตำบล"
+              />
+            </div>
+            <div class="app-form-group">
+              <label class="app-label" for="shop-rules-postal">รหัสไปรษณีย์</label>
+              <input
+                id="shop-rules-postal"
+                type="text"
+                class="app-input"
+                formControlName="postalCode"
+                readonly
+              />
+            </div>
+          </div>
+
+          <div class="shop-rules-tier-grid">
+            <div class="app-form-group">
+              <label class="app-label" for="shop-rules-lat">ละติจูด (latitude)</label>
+              <input
+                id="shop-rules-lat"
+                type="text"
+                class="app-input"
+                formControlName="latitude"
+                inputmode="decimal"
+                [readonly]="!canManage()"
+                placeholder="เช่น 13.7563"
+              />
+            </div>
+            <div class="app-form-group">
+              <label class="app-label" for="shop-rules-lng">ลองจิจูด (longitude)</label>
+              <input
+                id="shop-rules-lng"
+                type="text"
+                class="app-input"
+                formControlName="longitude"
+                inputmode="decimal"
+                [readonly]="!canManage()"
+                placeholder="เช่น 100.5018"
+              />
+            </div>
+          </div>
         </section>
 
         <section class="app-card shop-rules-section">

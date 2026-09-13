@@ -276,7 +276,7 @@ export class RecordDrinksPageComponent implements OnInit {
     this.transactionService
       .createBatchDrinks({
         billReference,
-        saleEmployeeId: raw.saleEmployeeId.trim().toLowerCase(),
+        saleEmployeeId: raw.saleEmployeeId.trim(),
         billAmount: Number(raw.billAmount),
         businessDate: raw.businessDate,
         transactions,

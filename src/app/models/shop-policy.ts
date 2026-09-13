@@ -19,6 +19,13 @@ export interface ShopPolicyConfig {
   forgotCheckOutDeductionBaht: number;
   /** Shared first-login / reset password for employees at this shop. */
   employeeInitialPassword: string | null;
+  addressLine: string | null;
+  provinceId: number | null;
+  districtId: number | null;
+  subdistrictId: number | null;
+  postalCode: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export type ShopPolicyInput = Omit<

@@ -102,6 +102,27 @@
   color: var(--text-secondary);
 }
 
+.reports-card-meta--inline {
+  margin: 0 0 0.5rem;
+}
+
+.reports-card-subhead {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.reports-card-subhead--spaced {
+  margin-top: 1rem;
+}
+
+.reports-card-empty-inline {
+  margin: 0 0 0.25rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
 .reports-card-body {
   flex: 1;
   min-height: 0;

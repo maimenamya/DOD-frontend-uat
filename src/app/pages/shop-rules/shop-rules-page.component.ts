@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import {
   FormArray,
   FormControl,
@@ -7,12 +7,16 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 
 import { CustomDropdownComponent } from '../../components/custom-dropdown/custom-dropdown.component';
+import type { DropdownOption } from '../../components/custom-dropdown/custom-dropdown.component';
 import type { ShopPolicyConfig } from '../../models/shop-policy';
 import { AuthService } from '../../services/auth.service';
 import { ShopPolicyService } from '../../services/shop-policy.service';
+import { ThaiAddressService } from '../../services/thai-address.service';
 import { ToastService } from '../../services/toast.service';
 import {
   DRINK_ACCRUAL_ROUNDING_OPTIONS,
@@ -53,8 +57,10 @@ const MAX_FREELANCE_LATE_TIERS = 10;
 export class ShopRulesPageComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly policyService = inject(ShopPolicyService);
+  private readonly thaiAddress = inject(ThaiAddressService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly canManage = computed(() => this.auth.canWriteOnPage('master_data'));
   readonly loading = signal(true);
@@ -64,6 +70,13 @@ export class ShopRulesPageComponent implements OnInit {
 
   readonly roundingOptions = DRINK_ACCRUAL_ROUNDING_OPTIONS;
   readonly minPasswordLength = MIN_PASSWORD_LENGTH;
+
+  readonly provinceOptions = signal<DropdownOption[]>([]);
+  readonly districtOptions = signal<DropdownOption[]>([]);
+  readonly subdistrictOptions = signal<DropdownOption[]>([]);
+  private subdistrictPostalById = new Map<number, string | null>();
+
+  private addressHydrating = false;
 
   readonly form = this.fb.group({
     seatDrinkTier15Drinks: [1, [Validators.required, Validators.min(0)]],
@@ -82,9 +95,34 @@ export class ShopRulesPageComponent implements OnInit {
       '',
       [Validators.required, Validators.minLength(MIN_PASSWORD_LENGTH)],
     ],
+    addressLine: [''],
+    provinceId: this.fb.control<number | null>(null),
+    districtId: this.fb.control<number | null>(null),
+    subdistrictId: this.fb.control<number | null>(null),
+    postalCode: [{ value: '', disabled: true }],
+    latitude: [''],
+    longitude: [''],
   });
 
   ngOnInit(): void {
+    this.form.controls.provinceId.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((provinceId) => {
+        if (this.addressHydrating) return;
+        this.onProvinceChanged(provinceId);
+      });
+    this.form.controls.districtId.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((districtId) => {
+        if (this.addressHydrating) return;
+        this.onDistrictChanged(districtId);
+      });
+    this.form.controls.subdistrictId.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((subdistrictId) => {
+        if (this.addressHydrating) return;
+        this.onSubdistrictChanged(subdistrictId);
+      });
     this.reload();
   }
 
@@ -231,6 +269,24 @@ export class ShopRulesPageComponent implements OnInit {
 
     this.submitting.set(true);
     const raw = this.form.getRawValue();
+    const provinceId = raw.provinceId;
+    const districtId = raw.districtId;
+    const subdistrictId = raw.subdistrictId;
+    const latitude = this.parseOptionalCoordinate(raw.latitude);
+    const longitude = this.parseOptionalCoordinate(raw.longitude);
+    if (latitude === 'INVALID' || longitude === 'INVALID') {
+      this.toast.showError('พิกัด GPS ไม่ถูกต้อง');
+      this.formValidated.set(true);
+      this.submitting.set(false);
+      return;
+    }
+    if ((latitude == null) !== (longitude == null)) {
+      this.toast.showError('กรุณาระบุละติจูดและลองจิจูดคู่กัน หรือเว้นว่างทั้งคู่');
+      this.formValidated.set(true);
+      this.submitting.set(false);
+      return;
+    }
+
     const value: import('../../models/shop-policy').ShopPolicyInput = {
       seatDrinkTier15Drinks: raw.seatDrinkTier15Drinks,
       seatDrinkTier30Drinks: raw.seatDrinkTier30Drinks,
@@ -252,6 +308,13 @@ export class ShopRulesPageComponent implements OnInit {
       freelanceLateDrinkCutoffTime: null,
       freelanceLateDrinkExtraShopPortionBaht: 0,
       employeeInitialPassword: initialPassword,
+      addressLine: raw.addressLine.trim() || null,
+      provinceId,
+      districtId,
+      subdistrictId,
+      postalCode: raw.postalCode.trim() || null,
+      latitude,
+      longitude,
     };
     this.policyService.save(value).subscribe({
       next: (config) => {
@@ -285,6 +348,7 @@ export class ShopRulesPageComponent implements OnInit {
   private patchForm(config: ShopPolicyConfig): void {
     const savedPassword = config.employeeInitialPassword?.trim() ?? '';
     const initialPassword = savedPassword || generateShopInitialPassword();
+    this.addressHydrating = true;
     this.form.patchValue({
       seatDrinkTier15Drinks: config.seatDrinkTier15Drinks,
       seatDrinkTier30Drinks: config.seatDrinkTier30Drinks,
@@ -298,8 +362,18 @@ export class ShopRulesPageComponent implements OnInit {
       autoCloseCutoffTime: config.autoCloseCutoffTime ?? '',
       forgotCheckOutDeductionBaht: config.forgotCheckOutDeductionBaht ?? 0,
       employeeInitialPassword: initialPassword,
+      addressLine: config.addressLine ?? '',
+      provinceId: config.provinceId,
+      districtId: config.districtId,
+      subdistrictId: config.subdistrictId,
+      postalCode: config.postalCode ?? '',
+      latitude: config.latitude != null ? String(config.latitude) : '',
+      longitude: config.longitude != null ? String(config.longitude) : '',
     });
     this.replaceLateTiers(config);
+    void this.hydrateAddressOptions(config).finally(() => {
+      this.addressHydrating = false;
+    });
     if (!savedPassword && this.canManage()) {
       this.form.controls.employeeInitialPassword.markAsDirty();
       this.showInitialPassword.set(true);
@@ -308,7 +382,101 @@ export class ShopRulesPageComponent implements OnInit {
       this.form.disable();
     } else {
       this.form.enable();
+      this.form.controls.postalCode.disable({ emitEvent: false });
     }
+  }
+
+  private async hydrateAddressOptions(config: ShopPolicyConfig): Promise<void> {
+    await this.loadProvinces();
+    if (config.provinceId != null) {
+      await this.loadDistricts(config.provinceId);
+    } else {
+      this.districtOptions.set([]);
+    }
+    if (config.districtId != null) {
+      await this.loadSubdistricts(config.districtId);
+    } else {
+      this.subdistrictOptions.set([]);
+    }
+  }
+
+  private async loadProvinces(): Promise<void> {
+    try {
+      const rows = await firstValueFrom(this.thaiAddress.listProvinces());
+      this.provinceOptions.set(rows.map((row) => ({ value: row.id, label: row.nameTh })));
+    } catch {
+      this.toast.showError('โหลดจังหวัดไม่สำเร็จ');
+    }
+  }
+
+  private async loadDistricts(provinceId: number): Promise<void> {
+    try {
+      const rows = await firstValueFrom(this.thaiAddress.listDistricts(provinceId));
+      this.districtOptions.set(rows.map((row) => ({ value: row.id, label: row.nameTh })));
+    } catch {
+      this.toast.showError('โหลดอำเภอไม่สำเร็จ');
+      this.districtOptions.set([]);
+    }
+  }
+
+  private async loadSubdistricts(districtId: number): Promise<void> {
+    try {
+      const rows = await firstValueFrom(this.thaiAddress.listSubdistricts(districtId));
+      this.subdistrictPostalById = new Map(rows.map((row) => [row.id, row.postalCode]));
+      this.subdistrictOptions.set(
+        rows.map((row) => ({
+          value: row.id,
+          label: row.postalCode ? `${row.nameTh} (${row.postalCode})` : row.nameTh,
+        })),
+      );
+    } catch {
+      this.toast.showError('โหลดตำบลไม่สำเร็จ');
+      this.subdistrictPostalById = new Map();
+      this.subdistrictOptions.set([]);
+    }
+  }
+
+  private onProvinceChanged(provinceId: number | null): void {
+    this.form.controls.districtId.setValue(null, { emitEvent: false });
+    this.form.controls.subdistrictId.setValue(null, { emitEvent: false });
+    this.form.controls.postalCode.setValue('', { emitEvent: false });
+    this.subdistrictOptions.set([]);
+    this.subdistrictPostalById = new Map();
+    if (provinceId == null) {
+      this.districtOptions.set([]);
+      return;
+    }
+    void this.loadDistricts(provinceId);
+  }
+
+  private onDistrictChanged(districtId: number | null): void {
+    this.form.controls.subdistrictId.setValue(null, { emitEvent: false });
+    this.form.controls.postalCode.setValue('', { emitEvent: false });
+    this.subdistrictPostalById = new Map();
+    if (districtId == null) {
+      this.subdistrictOptions.set([]);
+      return;
+    }
+    void this.loadSubdistricts(districtId);
+  }
+
+  private onSubdistrictChanged(subdistrictId: number | null): void {
+    if (subdistrictId == null) {
+      this.form.controls.postalCode.setValue('', { emitEvent: false });
+      return;
+    }
+    this.form.controls.postalCode.setValue(
+      this.subdistrictPostalById.get(subdistrictId) ?? '',
+      { emitEvent: false },
+    );
+  }
+
+  private parseOptionalCoordinate(raw: string): number | null | 'INVALID' {
+    const text = raw.trim();
+    if (!text) return null;
+    const n = Number(text);
+    if (!Number.isFinite(n)) return 'INVALID';
+    return Math.round(n * 1e7) / 1e7;
   }
 
   private buildLateTierGroup(

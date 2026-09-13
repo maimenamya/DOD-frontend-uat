@@ -50,7 +50,7 @@
 
   @if (previewLoading()) {
     <div class="reports-cards" aria-hidden="true">
-      @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
+      @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track i) {
         <section class="reports-card app-card">
           <div class="app-skeleton h-4 w-36 rounded"></div>
           <div class="app-skeleton mt-3 h-8 w-24 rounded"></div>
@@ -77,29 +77,59 @@
           <h2 class="reports-card-title">1. ยอดบิลรวม</h2>
           @if (p.bills) {
             <p class="reports-card-total">{{ formatMoney(p.bills.totalAmount) }} บาท</p>
-            <p class="reports-card-meta">{{ p.bills.billCount }} บิล</p>
+            <p class="reports-card-meta">{{ p.bills.billCount }} บิลทั้งร้าน</p>
           }
         </header>
-        @if (p.bills && p.bills.bySale.length > 0) {
+        @if (p.bills) {
           <div class="reports-card-body app-scroll-region">
-            <table class="reports-table">
-              <thead>
-                <tr>
-                  <th>เซลล์</th>
-                  <th class="reports-num">บิล</th>
-                  <th class="reports-num">ยอด</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (row of p.bills.bySale; track row.saleEmployeeId) {
+            <h3 class="reports-card-subhead">ยอดตามเซลล์</h3>
+            @if (p.bills.bySale.length > 0) {
+              <table class="reports-table">
+                <thead>
                   <tr>
-                    <td>{{ row.nickname }}</td>
-                    <td class="reports-num">{{ row.billCount }}</td>
-                    <td class="reports-num">{{ formatMoney(row.totalAmount) }}</td>
+                    <th>เซลล์</th>
+                    <th class="reports-num">บิล</th>
+                    <th class="reports-num">ยอด</th>
                   </tr>
-                }
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  @for (row of p.bills.bySale; track row.saleEmployeeId) {
+                    <tr>
+                      <td>{{ row.nickname }}</td>
+                      <td class="reports-num">{{ row.billCount }}</td>
+                      <td class="reports-num">{{ formatMoney(row.totalAmount) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            } @else {
+              <p class="reports-card-empty-inline">ไม่มีบิลตามเซลล์ในช่วงนี้</p>
+            }
+
+            <h3 class="reports-card-subhead reports-card-subhead--spaced">ยอดเข้าร้าน</h3>
+            <p class="reports-card-meta reports-card-meta--inline">
+              บิลที่เครดิตยอดเข้าร้าน (ไม่นับเป็นยอดเซลล์)
+            </p>
+            @if (p.bills.toShop.billCount > 0) {
+              <table class="reports-table">
+                <thead>
+                  <tr>
+                    <th>ประเภท</th>
+                    <th class="reports-num">บิล</th>
+                    <th class="reports-num">ยอด</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>ยอดเข้าร้าน</td>
+                    <td class="reports-num">{{ p.bills.toShop.billCount }}</td>
+                    <td class="reports-num">{{ formatMoney(p.bills.toShop.totalAmount) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            } @else {
+              <p class="reports-card-empty-inline">ไม่มีบิลยอดเข้าร้านในช่วงนี้</p>
+            }
           </div>
         } @else {
           <p class="app-empty-state">ไม่มีบิลในช่วงนี้</p>
@@ -251,11 +281,11 @@
         }
       </section>
 
-      <!-- 6 เซล × เครื่องดื่มจากสต๊อก -->
+      <!-- 6 เซล × เครื่องดื่มเดี่ยวจากสต๊อก -->
       <section class="reports-card app-card">
         <header class="reports-card-head">
           <h2 class="reports-card-title">6. เซลล์ × เครื่องดื่ม</h2>
-          <p class="reports-card-meta">นับจากสต๊อกในบิลที่เช็กเอาต์แล้ว</p>
+          <p class="reports-card-meta">ขายเดี่ยวจากสต๊อก — ไม่รวมขวดในโปร/เมม</p>
         </header>
         @if (p.saleBreakdown && p.saleBreakdown.productRows.length > 0) {
           <div class="reports-card-body app-scroll-region">
@@ -265,28 +295,107 @@
                   <th>เซลล์</th>
                   <th>สต๊อก</th>
                   <th class="reports-num">จำนวน</th>
+                  <th class="reports-num">ราคาที่ขายได้</th>
                 </tr>
               </thead>
               <tbody>
-                @for (row of p.saleBreakdown.productRows; track row.saleEmployeeId + row.stockItemLabel) {
+                @for (
+                  row of p.saleBreakdown.productRows;
+                  track row.saleEmployeeId + '-' + row.stockItemId
+                ) {
                   <tr>
                     <td>{{ row.saleNickname }}</td>
                     <td>{{ row.stockItemLabel }}</td>
                     <td class="reports-num">{{ row.quantity | number }}</td>
+                    <td class="reports-num">{{ formatMoney(row.soldAmount) }}</td>
                   </tr>
                 }
               </tbody>
             </table>
           </div>
         } @else {
-          <p class="app-empty-state">ไม่มีขายเครื่องดื่มจากสต๊อกในช่วงนี้</p>
+          <p class="app-empty-state">ไม่มีขายเครื่องดื่มเดี่ยวในช่วงนี้</p>
         }
       </section>
 
-      <!-- 7 เซล × พีอาร์ -->
+      <!-- 7 เซล × โปร -->
       <section class="reports-card app-card">
         <header class="reports-card-head">
-          <h2 class="reports-card-title">7. เซลล์ × ดื่มพีอาร์</h2>
+          <h2 class="reports-card-title">7. เซลล์ × โปรโมชั่น</h2>
+          <p class="reports-card-meta">นับเป็นชุดโปร — ไม่บวกขวดลงเครื่องดื่มเดี่ยว</p>
+        </header>
+        @if (p.saleBreakdown && p.saleBreakdown.promotionRows.length > 0) {
+          <div class="reports-card-body app-scroll-region">
+            <table class="reports-table">
+              <thead>
+                <tr>
+                  <th>เซลล์</th>
+                  <th>โปร</th>
+                  <th class="reports-num">จำนวนชุด</th>
+                  <th class="reports-num">ราคาที่ขายได้</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (
+                  row of p.saleBreakdown.promotionRows;
+                  track row.saleEmployeeId + '-' + row.packageId + '-' + row.packageName
+                ) {
+                  <tr>
+                    <td>{{ row.saleNickname }}</td>
+                    <td>{{ row.packageName }}</td>
+                    <td class="reports-num">{{ row.quantity | number }}</td>
+                    <td class="reports-num">{{ formatMoney(row.soldAmount) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="app-empty-state">ไม่มีขายโปรในช่วงนี้</p>
+        }
+      </section>
+
+      <!-- 8 เซล × เมม -->
+      <section class="reports-card app-card">
+        <header class="reports-card-head">
+          <h2 class="reports-card-title">8. เซลล์ × เมมเบอร์</h2>
+          <p class="reports-card-meta">นับเป็นชุดเมม — ไม่บวกขวดลงเครื่องดื่มเดี่ยว</p>
+        </header>
+        @if (p.saleBreakdown && p.saleBreakdown.membershipRows.length > 0) {
+          <div class="reports-card-body app-scroll-region">
+            <table class="reports-table">
+              <thead>
+                <tr>
+                  <th>เซลล์</th>
+                  <th>เมมเบอร์</th>
+                  <th class="reports-num">จำนวนชุด</th>
+                  <th class="reports-num">ราคาที่ขายได้</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (
+                  row of p.saleBreakdown.membershipRows;
+                  track row.saleEmployeeId + '-' + row.packageId + '-' + row.packageName
+                ) {
+                  <tr>
+                    <td>{{ row.saleNickname }}</td>
+                    <td>{{ row.packageName }}</td>
+                    <td class="reports-num">{{ row.quantity | number }}</td>
+                    <td class="reports-num">{{ formatMoney(row.soldAmount) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="app-empty-state">ไม่มีขายเมมในช่วงนี้</p>
+        }
+      </section>
+
+      <!-- 9 เซล × พีอาร์ -->
+      <section class="reports-card app-card">
+        <header class="reports-card-head">
+          <h2 class="reports-card-title">9. เซลล์ × ดื่มพีอาร์</h2>
           <p class="reports-card-meta">เด็กพีอาร์ที่นั่งโต๊ะของแต่ละเซลล์</p>
         </header>
         @if (p.saleBreakdown && p.saleBreakdown.entertainerRows.length > 0) {
@@ -320,11 +429,11 @@
         }
       </section>
 
-      <!-- 8 เซล × อาหาร -->
+      <!-- 10 เซล × อาหาร -->
       <section class="reports-card app-card">
         <header class="reports-card-head">
-          <h2 class="reports-card-title">8. เซลล์ × อาหาร</h2>
-          <p class="reports-card-meta">จำนวนจานตามเซลล์</p>
+          <h2 class="reports-card-title">10. เซลล์ × อาหาร</h2>
+          <p class="reports-card-meta">จำนวนจานและยอดตามเซลล์</p>
         </header>
         @if (foodDishTotalsBySale(p).length > 0) {
           <div class="reports-card-body app-scroll-region">
@@ -333,6 +442,7 @@
                 <tr>
                   <th>เซลล์</th>
                   <th class="reports-num">จำนวนจาน</th>
+                  <th class="reports-num">ยอด (บาท)</th>
                 </tr>
               </thead>
               <tbody>
@@ -340,6 +450,7 @@
                   <tr>
                     <td>{{ row.saleNickname }}</td>
                     <td class="reports-num">{{ row.quantity | number }}</td>
+                    <td class="reports-num">{{ formatMoney(row.totalAmount) }}</td>
                   </tr>
                 }
               </tbody>

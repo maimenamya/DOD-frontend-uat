@@ -8,11 +8,11 @@ export function trimLocalCodeInput(value: string): string {
 }
 
 export function normalizeLocalCodeForSubmit(value: string): string | null {
-  const normalized = trimLocalCodeInput(value).toLowerCase();
+  const normalized = trimLocalCodeInput(value);
   if (
     normalized.length < LOCAL_CODE_MIN_LENGTH ||
     normalized.length > LOCAL_CODE_MAX_LENGTH ||
-    !/^[a-z0-9][a-z0-9_-]*$/.test(normalized)
+    !LOCAL_CODE_PATTERN.test(normalized)
   ) {
     return null;
   }
@@ -20,4 +20,4 @@ export function normalizeLocalCodeForSubmit(value: string): string | null {
 }
 
 export const LOCAL_CODE_VALIDATORS_HINT =
-  'ใช้ตัวอักษรภาษาอังกฤษ ตัวเลข ขีด (-) หรือขีดล่าง (_) ความยาว 1–10 ตัว';
+  'ใช้ตัวอักษรภาษาอังกฤษ ตัวเลข ขีด (-) หรือขีดล่าง (_) ความยาว 1–10 ตัว — ตัวพิมพ์ใหญ่/เล็กต้องตรงตอนล็อกอิน';
