@@ -891,11 +891,12 @@ export const SYSTEM_GUIDE_SETUP_WALKTHROUGH: GuideWalkthroughChapter[] = [
         title: 'ขั้น 11.2 iPhone / iPad — โหลดแอพ AHAS Print Service',
         doThis: [
           'เปิด App Store ค้นหา AHAS Print Service (ฟรี) — ไอคอนเครื่องปริ้นพื้นเขียว',
+          'เปิด D-rink ใน Safari เท่านั้น (ไม่ใช่ไอคอนหน้าจอโฮม — โหมดนั้นป๊อปอัปไป AHAS ไม่ได้)',
           'เปิดแอพค้างไว้ — ต้องเห็น HTTP Server เป็น RUNNING (สีเขียว)',
           'กด Skanna (= สแกน) ที่ Bluetoothskrivare แล้วเลือกเครื่องปริ้น — จนกว่าไม่ขึ้น FRÅNKOPPLAD (= ยังไม่เชื่อม)',
           'พิมพ์ทดสอบในแอพให้กระดาษออกก่อน แล้วค่อยเช็กบิลใน D-rink',
           'ไม่ต้องใส่ API token — อันนั้นเป็นของแดชบอร์ด AHAS ไม่ใช่ของ D-rink',
-          'ตอนเช็กบิล Safari อาจเปิดหน้าต่างสั้นๆ ส่งงานไปแอพ — อนุญาตป๊อปอัปของเว็บ D-rink',
+          'ตอนพิมพ์จะเด้งหน้าต่างดำ 「กำลังเชื่อม AHAS」— อนุญาตป๊อปอัป อย่าปิดจนกว่าส่งเสร็จ',
         ],
         image: {
           src: '/guide/ahas-print-service-icon.png',

@@ -9,6 +9,7 @@ import {
   closeAhasBridgeWindow,
   createAhasBridgeWindow,
   detectNeedsAhasBridgeWindow,
+  isIosStandaloneDisplay,
   sendEscPosToAhasPrintService,
   type AhasPrintDetail,
 } from '../utils/ahas-print-bridge.util';
@@ -34,6 +35,9 @@ export type PrintReceiptOptions = {
 export type ReceiptPrintBridge = {
   printFrame: HTMLIFrameElement | null;
   ahasBridgeWindow: Window | null;
+  /** iOS: window.open failed (popup blocked or Home Screen PWA). */
+  ahasPopupBlocked?: boolean;
+  ahasStandaloneBlocked?: boolean;
 };
 
 /** PC USB browser print — 10% narrower than nominal paper (driver variance). */
@@ -111,7 +115,28 @@ export class BillReceiptService {
       return { printFrame: this.createPrintFrame(), ahasBridgeWindow: null };
     }
     if (platform === 'ios' || detectNeedsAhasBridgeWindow()) {
-      return { printFrame: null, ahasBridgeWindow: createAhasBridgeWindow() };
+      if (isIosStandaloneDisplay()) {
+        this.toast.showError(
+          'พิมพ์ผ่าน AHAS ต้องเปิด D-rink ใน Safari (ไม่ใช่ไอคอนหน้าจอโฮม) — แล้วอนุญาตป๊อปอัป',
+        );
+        return {
+          printFrame: null,
+          ahasBridgeWindow: null,
+          ahasStandaloneBlocked: true,
+        };
+      }
+      const ahasBridgeWindow = createAhasBridgeWindow();
+      if (!ahasBridgeWindow) {
+        this.toast.showError(
+          'Safari บล็อกหน้าต่างไป AHAS — ตั้งค่าเว็บไซต์นี้ → อนุญาตป๊อปอัป แล้วลองใหม่',
+        );
+        return {
+          printFrame: null,
+          ahasBridgeWindow: null,
+          ahasPopupBlocked: true,
+        };
+      }
+      return { printFrame: null, ahasBridgeWindow };
     }
     return { printFrame: null, ahasBridgeWindow: null };
   }
@@ -257,7 +282,6 @@ export class BillReceiptService {
     if (!base64) {
       closeAhasBridgeWindow(ahasBridgeWindow);
       this.toast.showError('ไม่มีข้อมูลใบเสร็จสำหรับพิมพ์');
-      this.showMobileReceiptPrintSheet(receipt);
       return;
     }
 
@@ -266,8 +290,9 @@ export class BillReceiptService {
       this.toast.showSuccess(ahasResultMessage(result.detail));
       return;
     }
+    // Do not open the AirPrint preview sheet — it looks like "print worked" but
+    // never reaches the Bluetooth ESC/POS printer via AHAS.
     this.toast.showError(ahasResultMessage(result.detail));
-    this.showMobileReceiptPrintSheet(receipt);
   }
 
   /** Public helper for ทดสอบเชื่อม on receipt-printer settings. */
@@ -1198,14 +1223,16 @@ function ahasResultMessage(detail: AhasPrintDetail): string {
     case 'sent_form':
       return 'ส่งไป AHAS แล้ว — เปิดแอพดู Utskriftshistorik ถ้ามีรายการแสดงว่าถึงแอพแล้ว ถ้าว่างแปลว่ารูปแบบข้อมูลยังไม่ตรง';
     case 'popup_blocked':
-      return 'Safari บล็อกหน้าต่างพิมพ์ — ตั้งค่าเว็บนี้ให้อนุญาตป๊อปอัป แล้วลองใหม่';
+      return 'Safari บล็อกหน้าต่างไป AHAS — ตั้งค่าเว็บไซต์นี้ → อนุญาตป๊อปอัป แล้วลองใหม่';
+    case 'standalone_blocked':
+      return 'เปิด D-rink ใน Safari (แถบด้านล่าง) ไม่ใช่ไอคอนหน้าจอโฮม — แล้วเปิด AHAS ค้างไว้ก่อนพิมพ์';
     case 'timeout':
-      return 'รอ AHAS นานเกินไป — เปิดแอพค้างไว้ให้เห็น RUNNING อนุญาตป๊อปอัป แล้วลองใหม่';
+      return 'รอ AHAS นานเกินไป — เปิดแอพค้างไว้ให้เห็น RUNNING อย่าปิดหน้าต่างเชื่อม แล้วลองใหม่';
     case 'no_payload':
       return 'ไม่มีข้อมูลใบเสร็จสำหรับพิมพ์';
     case 'unreachable':
     default:
-      return 'เว็บส่งไม่ถึง AHAS — เปิดแอพค้างไว้ (RUNNING) อนุญาตป๊อปอัป แล้วลองปุ่มทดสอบที่หน้าเครื่องพิมพ์ใบเสร็จ';
+      return 'เว็บยังส่งไม่ถึง AHAS — เปิดแอพค้างไว้ (RUNNING) ใช้ Safari อนุญาตป๊อปอัป แล้วลองปุ่มทดสอบที่หน้าเครื่องพิมพ์ใบเสร็จ';
   }
 }
 

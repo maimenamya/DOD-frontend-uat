@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import {
   FormArray,
+  FormControl,
   FormGroup,
   NonNullableFormBuilder,
   ReactiveFormsModule,
@@ -36,8 +37,8 @@ type TierField =
   | 'seatDrinkTier45Drinks';
 
 type LateDrinkTierForm = FormGroup<{
-  cutoffTime: ReturnType<NonNullableFormBuilder['control']<string>>;
-  extraShopPortionBaht: ReturnType<NonNullableFormBuilder['control']<number>>;
+  cutoffTime: FormControl<string>;
+  extraShopPortionBaht: FormControl<number>;
 }>;
 
 const MAX_FREELANCE_LATE_TIERS = 10;

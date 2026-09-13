@@ -1,18 +1,19 @@
 /**
  * AHAS Print Service (iOS) — local HTTP on 127.0.0.1:8765.
  *
- * Safari blocks fetch() from an HTTPS POS page → http://127.0.0.1 (mixed content).
- * Fix: open about:blank on the user click, run fetch/form from that window, report via postMessage.
- *
- * From about:blank, no-cors POST can still deliver bytes (unlike from HTTPS).
- * AHAS did not publish the body — we probe common ESC/POS shapes + no-cors.
+ * Safari blocks fetch() from HTTPS POS → http://127.0.0.1 (mixed content).
+ * Fix: on the user tap, open about:blank and install a message listener there;
+ * when the receipt arrives, postMessage the ESC/POS payload into that window
+ * (still not HTTPS, so localhost fetch can proceed).
  */
 
 export const AHAS_PRINT_ORIGINS = ['http://127.0.0.1:8765', 'http://localhost:8765'] as const;
 export const AHAS_BRIDGE_WINDOW_NAME = 'drink-ahas-print';
 export const AHAS_RESULT_MESSAGE_TYPE = 'drink-ahas-print-result';
+export const AHAS_JOB_MESSAGE_TYPE = 'drink-ahas-print-job';
+export const AHAS_READY_MESSAGE_TYPE = 'drink-ahas-print-ready';
 
-const AHAS_BRIDGE_WAIT_MS = 12_000;
+const AHAS_BRIDGE_WAIT_MS = 15_000;
 
 export type AhasPrintDetail =
   | 'sent_fetch'
@@ -21,7 +22,8 @@ export type AhasPrintDetail =
   | 'unreachable'
   | 'no_payload'
   | 'popup_blocked'
-  | 'timeout';
+  | 'timeout'
+  | 'standalone_blocked';
 
 export type AhasPrintResult = {
   ok: boolean;
@@ -35,17 +37,35 @@ type AhasBridgeMessage = {
   hint?: string;
 };
 
-/** Open on the same user gesture as เช็กบิล / พิมพ์ — before awaiting the receipt API. */
+/** iOS Home Screen / PWA — window.open is usually blocked. */
+export function isIosStandaloneDisplay(): boolean {
+  if (typeof window === 'undefined') return false;
+  const nav = window.navigator as Navigator & { standalone?: boolean };
+  if (nav.standalone === true) return true;
+  return window.matchMedia?.('(display-mode: standalone)')?.matches === true;
+}
+
+export function detectNeedsAhasBridgeWindow(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  if (/iPad|iPhone|iPod/i.test(navigator.userAgent)) return true;
+  return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+}
+
+/**
+ * Must run synchronously on the print/checkout tap (before await HTTP).
+ * Installs a long-lived listener in about:blank — do not rewrite later.
+ */
 export function createAhasBridgeWindow(): Window | null {
   try {
     const win = window.open('about:blank', AHAS_BRIDGE_WINDOW_NAME);
     if (!win) return null;
-    try {
-      win.document.title = 'D-rink → AHAS';
-      win.document.body.innerHTML =
-        '<p style="font-family:sans-serif;padding:1rem;color:#333">รอใบเสร็จจาก D-rink…</p>';
-    } catch {
-      // ignore
+    if (!installAhasBridgeListener(win)) {
+      try {
+        win.close();
+      } catch {
+        // ignore
+      }
+      return null;
     }
     return win;
   } catch {
@@ -60,12 +80,6 @@ export function closeAhasBridgeWindow(win: Window | null | undefined): void {
   } catch {
     // ignore
   }
-}
-
-export function detectNeedsAhasBridgeWindow(): boolean {
-  if (typeof navigator === 'undefined') return false;
-  if (/iPad|iPhone|iPod/i.test(navigator.userAgent)) return true;
-  return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
 }
 
 /** Tiny ESC/POS for ทดสอบเชื่อม on the receipt-printer page. */
@@ -84,6 +98,10 @@ export async function sendEscPosToAhasPrintService(
     return { ok: false, detail: 'no_payload' };
   }
 
+  if (isIosStandaloneDisplay() && (!bridgeWin || bridgeWin.closed)) {
+    return { ok: false, detail: 'standalone_blocked' };
+  }
+
   let win = bridgeWin && !bridgeWin.closed ? bridgeWin : null;
   if (!win) {
     win = createAhasBridgeWindow();
@@ -91,12 +109,18 @@ export async function sendEscPosToAhasPrintService(
   if (!win) {
     return {
       ok: false,
-      detail: detectNeedsAhasBridgeWindow() ? 'popup_blocked' : 'unreachable',
+      detail: isIosStandaloneDisplay()
+        ? 'standalone_blocked'
+        : detectNeedsAhasBridgeWindow()
+          ? 'popup_blocked'
+          : 'unreachable',
     };
   }
 
   const resultPromise = waitForAhasBridgeResult(win);
-  if (!injectAhasPrintRunner(win, base64)) {
+  try {
+    win.postMessage({ type: AHAS_JOB_MESSAGE_TYPE, base64 }, '*');
+  } catch {
     closeAhasBridgeWindow(win);
     return { ok: false, detail: 'unreachable' };
   }
@@ -148,40 +172,47 @@ function waitForAhasBridgeResult(win: Window): Promise<AhasPrintResult> {
 }
 
 /**
- * Runs inside about:blank (not HTTPS) so localhost is not mixed-content-blocked.
- * Order: CORS 2xx → no-cors POST (deliver) → form navigation.
+ * Listener page in about:blank — receives ESC/POS via postMessage, talks to AHAS.
  */
-function injectAhasPrintRunner(win: Window, base64: string): boolean {
+function installAhasBridgeListener(win: Window): boolean {
   const originsJson = JSON.stringify([...AHAS_PRINT_ORIGINS]);
-  const base64Json = JSON.stringify(base64);
-  const messageTypeJson = JSON.stringify(AHAS_RESULT_MESSAGE_TYPE);
+  const jobTypeJson = JSON.stringify(AHAS_JOB_MESSAGE_TYPE);
+  const resultTypeJson = JSON.stringify(AHAS_RESULT_MESSAGE_TYPE);
+  const readyTypeJson = JSON.stringify(AHAS_READY_MESSAGE_TYPE);
 
   try {
     const doc = win.document;
     doc.open();
     doc.write(`<!DOCTYPE html>
 <html lang="th">
-<head><meta charset="utf-8"><title>D-rink → AHAS</title></head>
-<body>
-<p id="msg" style="font-family:sans-serif;padding:1rem;color:#333">กำลังส่งใบเสร็จไป AHAS Print Service…</p>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>D-rink → AHAS</title></head>
+<body style="margin:0;font-family:sans-serif;background:#111;color:#f5f5f5">
+<div style="padding:1.25rem;max-width:28rem">
+  <p style="font-size:1.1rem;font-weight:700;margin:0 0 0.5rem">กำลังเชื่อม AHAS Print Service</p>
+  <p id="msg" style="margin:0;line-height:1.45;color:#ccc">รอใบเสร็จจาก D-rink… อย่าปิดหน้าต่างนี้</p>
+</div>
 <script>
 (function () {
   var origins = ${originsJson};
-  var base64 = ${base64Json};
-  var messageType = ${messageTypeJson};
+  var jobType = ${jobTypeJson};
+  var resultType = ${resultTypeJson};
+  var readyType = ${readyTypeJson};
   var msg = document.getElementById('msg');
+  var busy = false;
+
+  function setMsg(text) {
+    if (msg) msg.textContent = text;
+  }
 
   function report(ok, via, hint) {
     try {
       if (window.opener) {
-        window.opener.postMessage({ type: messageType, ok: ok, via: via, hint: hint || '' }, '*');
+        window.opener.postMessage({ type: resultType, ok: ok, via: via, hint: hint || '' }, '*');
       }
     } catch (e) {}
-    if (msg) {
-      msg.textContent = ok
-        ? 'ส่งแล้ว — ดู Utskriftshistorik ในแอพ AHAS ถ้ามีรายการแสดงว่าถึงแอพแล้ว'
-        : (hint || 'ส่งไม่ถึง AHAS — เปิดแอพค้างไว้ให้เห็น RUNNING แล้วอนุญาตป๊อปอัป');
-    }
+    setMsg(ok
+      ? 'ส่งแล้ว — ดู Utskriftshistorik ในแอพ AHAS แล้วกลับไป D-rink ได้'
+      : (hint || 'ส่งไม่ถึง AHAS'));
   }
 
   function decodeBytes(b64) {
@@ -224,7 +255,7 @@ function injectAhasPrintRunner(win: Window, base64: string): boolean {
       .finally(function () { clearTimeout(timer); });
   }
 
-  function buildCorsBodies(bytes) {
+  function buildCorsBodies(base64, bytes) {
     return [
       {
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -243,15 +274,7 @@ function injectAhasPrintRunner(win: Window, base64: string): boolean {
         body: JSON.stringify({ escpos: base64 })
       },
       {
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ payload: base64, type: 'escpos' })
-      },
-      {
         headers: { 'Content-Type': 'application/octet-stream' },
-        body: bytes
-      },
-      {
-        headers: { 'Content-Type': 'application/vnd.escpos' },
         body: bytes
       },
       {
@@ -267,7 +290,6 @@ function injectAhasPrintRunner(win: Window, base64: string): boolean {
       if (status != null) return origins[o];
       status = await fetchCors(origins[o] + '/health', { method: 'GET' });
       if (status != null) return origins[o];
-      // no-cors GET — if it resolves, something answered on the port
       try {
         var controller = new AbortController();
         var timer = setTimeout(function () { controller.abort(); }, 2000);
@@ -281,9 +303,9 @@ function injectAhasPrintRunner(win: Window, base64: string): boolean {
     return null;
   }
 
-  async function tryCorsPrint(origin, bytes) {
+  async function tryCorsPrint(origin, base64, bytes) {
     var paths = ['/api/print', '/print', '/escpos', '/raw', '/api/v1/print', '/'];
-    var bodies = buildCorsBodies(bytes);
+    var bodies = buildCorsBodies(base64, bytes);
     for (var p = 0; p < paths.length; p++) {
       for (var b = 0; b < bodies.length; b++) {
         var status = await fetchCors(origin + paths[p], {
@@ -297,15 +319,14 @@ function injectAhasPrintRunner(win: Window, base64: string): boolean {
     return false;
   }
 
-  async function tryOpaquePrint(origin, bytes) {
+  async function tryOpaquePrint(origin, base64, bytes) {
     var paths = ['/print', '/api/print', '/escpos', '/raw', '/'];
     var attempts = [
       { body: bytes, type: 'application/octet-stream' },
       { body: bytes, type: 'application/vnd.escpos' },
       { body: base64, type: 'text/plain' },
       { body: JSON.stringify({ content: base64, content_type: 'escpos' }), type: 'application/json' },
-      { body: JSON.stringify({ type: 'print', format: 'escpos', data: base64 }), type: 'application/json' },
-      { body: JSON.stringify({ data: base64 }), type: 'application/json' }
+      { body: JSON.stringify({ type: 'print', format: 'escpos', data: base64 }), type: 'application/json' }
     ];
     var anySent = false;
     for (var p = 0; p < paths.length; p++) {
@@ -318,58 +339,71 @@ function injectAhasPrintRunner(win: Window, base64: string): boolean {
     return anySent;
   }
 
-  function tryForm(origin) {
-    var attempts = [
-      { path: '/api/print', fields: { content: base64, content_type: 'escpos', copies: '1' } },
-      { path: '/print', fields: { data: base64, format: 'escpos', type: 'print' } },
-      { path: '/print', fields: { content: base64 } },
-      { path: '/', fields: { data: base64 } }
-    ];
-    var attempt = attempts[0];
+  function tryForm(origin, base64) {
     var form = document.createElement('form');
     form.method = 'POST';
-    form.action = origin + attempt.path;
+    form.action = origin + '/api/print';
     form.acceptCharset = 'UTF-8';
-    Object.keys(attempt.fields).forEach(function (name) {
+    var fields = { content: base64, content_type: 'escpos', copies: '1' };
+    Object.keys(fields).forEach(function (name) {
       var input = document.createElement('input');
       input.type = 'hidden';
       input.name = name;
-      input.value = attempt.fields[name];
+      input.value = fields[name];
       form.appendChild(input);
     });
     document.body.appendChild(form);
     report(true, 'form');
     form.submit();
-    return true;
   }
 
-  (async function run() {
+  async function handleJob(base64) {
+    if (busy) return;
+    busy = true;
+    setMsg('กำลังส่งไป AHAS (localhost:8765)…');
     var bytes = decodeBytes(base64);
     if (!bytes.byteLength) {
       report(false, null, 'ข้อมูลใบเสร็จว่าง');
+      busy = false;
       return;
     }
-
-    var origin = await pingServer();
-    if (!origin) {
-      report(false, null, 'เปิดไม่ถึง localhost:8765 — เปิดแอพ AHAS ค้างไว้ให้เห็น RUNNING');
-      return;
+    try {
+      var origin = await pingServer();
+      if (!origin) {
+        report(false, null, 'เปิดไม่ถึง localhost:8765 — สลับไปเปิดแอพ AHAS ให้เห็น RUNNING แล้วลองใหม่');
+        busy = false;
+        return;
+      }
+      setMsg('เจอ AHAS แล้ว กำลังส่งใบเสร็จ…');
+      if (await tryCorsPrint(origin, base64, bytes)) {
+        report(true, 'fetch');
+        busy = false;
+        return;
+      }
+      if (await tryOpaquePrint(origin, base64, bytes)) {
+        report(true, 'opaque');
+        busy = false;
+        return;
+      }
+      tryForm(origin, base64);
+    } catch (e) {
+      report(false, null, 'ส่งไม่สำเร็จ');
     }
+    busy = false;
+  }
 
-    if (await tryCorsPrint(origin, bytes)) {
-      report(true, 'fetch');
-      return;
-    }
-
-    if (await tryOpaquePrint(origin, bytes)) {
-      report(true, 'opaque');
-      return;
-    }
-
-    tryForm(origin);
-  })().catch(function () {
-    report(false, null, 'ส่งไม่สำเร็จ');
+  window.addEventListener('message', function (event) {
+    var data = event.data;
+    if (!data || data.type !== jobType) return;
+    if (typeof data.base64 !== 'string') return;
+    handleJob(data.base64);
   });
+
+  try {
+    if (window.opener) {
+      window.opener.postMessage({ type: readyType }, '*');
+    }
+  } catch (e) {}
 })();
 </script>
 </body>
