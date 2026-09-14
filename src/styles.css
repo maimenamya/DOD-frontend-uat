@@ -2808,6 +2808,10 @@
     font-size: 1rem;
     line-height: 1.5;
     font-variant-numeric: tabular-nums;
+    color: var(--text-primary);
+    -webkit-text-fill-color: var(--text-primary);
+    caret-color: var(--text-primary);
+    opacity: 1;
   }
 
   .app-number-stepper {
@@ -2835,8 +2839,20 @@
 
   .app-number-stepper-input {
     flex: 1 1 auto;
-    min-width: 0;
+    min-width: 3.25rem;
+    width: 100%;
+    color: var(--text-primary);
+    -webkit-text-fill-color: var(--text-primary);
+    caret-color: var(--text-primary);
     -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  .app-number-stepper-input:disabled,
+  .app-number-stepper-input:read-only {
+    color: var(--text-primary);
+    -webkit-text-fill-color: var(--text-primary);
+    opacity: 1;
   }
 
   .app-number-stepper-input::-webkit-outer-spin-button,
@@ -2975,6 +2991,24 @@
   .shop-rules-section .app-input[type='text'] {
     max-width: 9rem;
     width: 100%;
+  }
+
+  .shop-rules-section .shop-rules-address-input.app-input[type='text'],
+  .shop-rules-section .shop-rules-coord-input.app-input[type='text'] {
+    max-width: none;
+  }
+
+  .shop-rules-map-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.25rem 0 0.75rem;
+  }
+
+  .shop-rules-map-hint {
+    margin: 0;
+    flex: 1 1 12rem;
   }
 
   .shop-rules-password-row {

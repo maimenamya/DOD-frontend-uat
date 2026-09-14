@@ -34,6 +34,7 @@ import {
   passwordPolicyErrorMessage,
 } from '../../utils/password-policy.util';
 import { FieldErrorComponent } from '../../components/field-error/field-error.component';
+import { ShopLocationMapPickerComponent } from '../../components/shop-location-map-picker/shop-location-map-picker.component';
 
 type TierField =
   | 'seatDrinkTier15Drinks'
@@ -51,7 +52,11 @@ const MAX_FREELANCE_LATE_TIERS = 10;
   selector: 'app-shop-rules-page',
   imports: [
     FieldErrorComponent,
-    ReactiveFormsModule, CustomDropdownComponent, RouterLink],
+    ReactiveFormsModule,
+    CustomDropdownComponent,
+    RouterLink,
+    ShopLocationMapPickerComponent,
+  ],
   templateUrl: './shop-rules-page.component.html',
 })
 export class ShopRulesPageComponent implements OnInit {
@@ -67,6 +72,7 @@ export class ShopRulesPageComponent implements OnInit {
   readonly submitting = signal(false);
   readonly formValidated = signal(false);
   readonly showInitialPassword = signal(false);
+  readonly mapPickerOpen = signal(false);
 
   readonly roundingOptions = DRINK_ACCRUAL_ROUNDING_OPTIONS;
   readonly minPasswordLength = MIN_PASSWORD_LENGTH;
@@ -345,6 +351,23 @@ export class ShopRulesPageComponent implements OnInit {
     this.showInitialPassword.update((v) => !v);
   }
 
+  openMapPicker(): void {
+    if (!this.canManage() || this.submitting()) return;
+    this.mapPickerOpen.set(true);
+  }
+
+  closeMapPicker(): void {
+    this.mapPickerOpen.set(false);
+  }
+
+  applyMapCoordinates(coords: { latitude: string; longitude: string }): void {
+    this.form.controls.latitude.setValue(coords.latitude);
+    this.form.controls.longitude.setValue(coords.longitude);
+    this.form.controls.latitude.markAsDirty();
+    this.form.controls.longitude.markAsDirty();
+    this.mapPickerOpen.set(false);
+  }
+
   private patchForm(config: ShopPolicyConfig): void {
     const savedPassword = config.employeeInitialPassword?.trim() ?? '';
     const initialPassword = savedPassword || generateShopInitialPassword();
@@ -404,6 +427,9 @@ export class ShopRulesPageComponent implements OnInit {
     try {
       const rows = await firstValueFrom(this.thaiAddress.listProvinces());
       this.provinceOptions.set(rows.map((row) => ({ value: row.id, label: row.nameTh })));
+      if (rows.length === 0) {
+        this.toast.showError('ยังไม่มีข้อมูลจังหวัดในระบบ — แจ้งทีมงานให้ seed ที่อยู่ไทย');
+      }
     } catch {
       this.toast.showError('โหลดจังหวัดไม่สำเร็จ');
     }

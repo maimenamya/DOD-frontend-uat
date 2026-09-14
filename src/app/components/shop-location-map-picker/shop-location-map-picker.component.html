@@ -1,0 +1,19 @@
+<app-modal layout="center" [mobileFullscreen]="true" (dismiss)="onDismiss()">
+  <div class="app-modal-header">
+    <h2 class="app-modal-title">เลือกตำแหน่งร้านบนแผนที่</h2>
+    <button type="button" class="app-modal-close" (click)="onDismiss()" aria-label="ปิด">
+      ×
+    </button>
+  </div>
+
+  <p class="shop-map-picker-hint">
+    แตะหรือลากหมุดบนแผนที่เพื่อตั้งพิกัด — ไม่ต้องจำเลขละติจูด/ลองจิจูด
+  </p>
+
+  <div #mapHost class="shop-map-picker-map" role="application" aria-label="แผนที่เลือกพิกัดร้าน"></div>
+
+  <div class="app-form-actions shop-map-picker-actions">
+    <button type="button" class="app-btn-secondary" (click)="onDismiss()">ยกเลิก</button>
+    <button type="button" class="app-btn-primary" (click)="onConfirm()">ใช้พิกัดนี้</button>
+  </div>
+</app-modal>

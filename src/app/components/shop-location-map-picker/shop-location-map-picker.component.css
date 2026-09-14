@@ -1,0 +1,39 @@
+:host {
+  display: block;
+}
+
+.shop-map-picker-hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.shop-map-picker-map {
+  width: 100%;
+  height: min(55vh, 22rem);
+  border-radius: var(--radius-input, 0.5rem);
+  border: 1px solid var(--theme-border);
+  overflow: hidden;
+  background: var(--surface);
+  z-index: 0;
+}
+
+.shop-map-picker-actions {
+  margin-top: 1rem;
+}
+
+:host ::ng-deep .shop-map-pin {
+  background: transparent;
+  border: none;
+}
+
+:host ::ng-deep .shop-map-pin__dot {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--primary);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+}

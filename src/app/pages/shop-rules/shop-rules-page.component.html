@@ -444,7 +444,7 @@
             <input
               id="shop-rules-address-line"
               type="text"
-              class="app-input"
+              class="app-input shop-rules-address-input"
               formControlName="addressLine"
               maxlength="255"
               [readonly]="!canManage()"
@@ -492,13 +492,29 @@
             </div>
           </div>
 
+          <div class="shop-rules-map-row">
+            @if (canManage()) {
+              <button
+                type="button"
+                class="app-btn-secondary"
+                [disabled]="submitting()"
+                (click)="openMapPicker()"
+              >
+                เลือกตำแหน่งบนแผนที่
+              </button>
+            }
+            <p class="app-field-hint shop-rules-map-hint">
+              กดปุ่มแล้วแตะแผนที่ / ลากหมุด — ระบบจะใส่ละติจูดและลองจิจูดให้เอง
+            </p>
+          </div>
+
           <div class="shop-rules-tier-grid">
             <div class="app-form-group">
               <label class="app-label" for="shop-rules-lat">ละติจูด (latitude)</label>
               <input
                 id="shop-rules-lat"
                 type="text"
-                class="app-input"
+                class="app-input shop-rules-coord-input"
                 formControlName="latitude"
                 inputmode="decimal"
                 [readonly]="!canManage()"
@@ -510,7 +526,7 @@
               <input
                 id="shop-rules-lng"
                 type="text"
-                class="app-input"
+                class="app-input shop-rules-coord-input"
                 formControlName="longitude"
                 inputmode="decimal"
                 [readonly]="!canManage()"
@@ -577,3 +593,12 @@
     </form>
   }
 </div>
+
+@if (mapPickerOpen()) {
+  <app-shop-location-map-picker
+    [latitude]="form.controls.latitude.value"
+    [longitude]="form.controls.longitude.value"
+    (confirm)="applyMapCoordinates($event)"
+    (dismiss)="closeMapPicker()"
+  />
+}
