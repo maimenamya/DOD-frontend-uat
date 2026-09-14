@@ -43,7 +43,9 @@ export class NotificationBellComponent implements OnInit {
   readonly visible = computed(() => {
     const user = this.auth.session()?.user;
     if (!user) return false;
-    return receivesShopNotifications(user);
+    return (
+      receivesShopNotifications(user) && this.auth.allowsStationNoti()
+    );
   });
 
   readonly menuOpen = signal(false);

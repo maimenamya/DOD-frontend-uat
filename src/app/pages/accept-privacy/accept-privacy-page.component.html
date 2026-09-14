@@ -1,70 +1,140 @@
 <div class="app-page accept-privacy-page">
   <div class="app-page-header">
     <div>
-      <h1 class="app-page-title">{{ policyTitle }}</h1>
+      <h1 class="app-page-title">
+        @if (step() === 1) {
+          {{ termsTitle }}
+        } @else {
+          {{ privacyTitle }}
+        }
+      </h1>
       <p class="app-page-subtitle">
-        กรุณาอ่านและยอมรับก่อนใช้งานระบบ D-rink (เวอร์ชัน {{ policyVersion }})
+        กรุณายอมรับเงื่อนไขการใช้บริการและนโยบายความเป็นส่วนตัวก่อนใช้งานระบบ D-rink
+        (เวอร์ชัน {{ policyVersion }})
       </p>
     </div>
   </div>
 
-  <section class="app-card accept-privacy-card">
+  <nav class="accept-privacy-steps" aria-label="ขั้นตอนการยินยอม">
     <div
-      class="accept-privacy-card__body"
+      class="accept-privacy-steps__item"
+      [class.accept-privacy-steps__item--active]="step() === 1"
+      [class.accept-privacy-steps__item--done]="step() === 2"
     >
-      @for (section of sections; track section.heading) {
-        <div class="accept-privacy-section">
-          <h2 class="accept-privacy-section__heading">{{ section.heading }}</h2>
-          @for (para of section.body; track para) {
-            <p class="accept-privacy-section__body">{{ para }}</p>
-          }
-        </div>
+      <span class="accept-privacy-steps__num">1</span>
+      <span class="accept-privacy-steps__label">เงื่อนไขการใช้บริการ</span>
+    </div>
+    <div class="accept-privacy-steps__divider" aria-hidden="true"></div>
+    <div
+      class="accept-privacy-steps__item"
+      [class.accept-privacy-steps__item--active]="step() === 2"
+    >
+      <span class="accept-privacy-steps__num">2</span>
+      <span class="accept-privacy-steps__label">นโยบายความเป็นส่วนตัว</span>
+    </div>
+  </nav>
+
+  <section class="app-card accept-privacy-card">
+    <div class="accept-privacy-card__body app-scroll-region">
+      @if (step() === 1) {
+        @for (section of termsSections; track section.heading) {
+          <div class="accept-privacy-section">
+            <h2 class="accept-privacy-section__heading">{{ section.heading }}</h2>
+            @for (para of section.body; track para) {
+              <p class="accept-privacy-section__body">{{ para }}</p>
+            }
+          </div>
+        }
+      } @else {
+        @for (section of privacySections; track section.heading) {
+          <div class="accept-privacy-section">
+            <h2 class="accept-privacy-section__heading">{{ section.heading }}</h2>
+            @for (para of section.body; track para) {
+              <p class="accept-privacy-section__body">{{ para }}</p>
+            }
+          </div>
+        }
       }
     </div>
 
-    <form class="accept-privacy-card__footer" (ngSubmit)="submit()">
-      <label class="accept-privacy-consent">
-        <span class="accept-privacy-check-control">
-          <input
-            type="checkbox"
-            class="accept-privacy-check-input"
-            [ngModel]="agreed()"
-            (ngModelChange)="agreed.set($event)"
-            name="agreed"
-          />
-          <span class="accept-privacy-check-indicator" aria-hidden="true"></span>
-        </span>
-        <span class="accept-privacy-check-label">{{ checkboxLabel }}</span>
-      </label>
-      @if (consentValidated() && !agreed()) {
-        <p class="app-field-error">กรุณาติ๊กยอมรับนโยบายก่อนดำเนินการต่อ</p>
-      }
-
-      <label class="accept-privacy-consent accept-privacy-consent--optional">
-        <span class="accept-privacy-check-control">
-          <input
-            type="checkbox"
-            class="accept-privacy-check-input"
-            [ngModel]="partnerShare()"
-            (ngModelChange)="partnerShare.set($event)"
-            name="partnerShare"
-          />
-          <span class="accept-privacy-check-indicator" aria-hidden="true"></span>
-        </span>
-        <span class="accept-privacy-check-label">{{ partnerShareLabel }}</span>
-      </label>
-
-      <button
-        type="submit"
-        class="app-btn app-btn-primary"
-        [disabled]="submitting()"
-      >
-        @if (submitting()) {
-          กำลังบันทึก…
-        } @else {
-          ยอมรับและเริ่มใช้งาน
+    @if (step() === 1) {
+      <form class="accept-privacy-card__footer" (ngSubmit)="goNext()">
+        <label class="accept-privacy-consent">
+          <span class="accept-privacy-check-control">
+            <input
+              type="checkbox"
+              class="accept-privacy-check-input"
+              [ngModel]="termsAgreed()"
+              (ngModelChange)="termsAgreed.set($event)"
+              name="termsAgreed"
+            />
+            <span class="accept-privacy-check-indicator" aria-hidden="true"></span>
+          </span>
+          <span class="accept-privacy-check-label">{{ termsCheckboxLabel }}</span>
+        </label>
+        @if (consentValidated() && !termsAgreed()) {
+          <p class="app-field-error">กรุณาติ๊กยอมรับเงื่อนไขการใช้บริการก่อนดำเนินการต่อ</p>
         }
-      </button>
-    </form>
+
+        <button type="submit" class="app-btn app-btn-primary">
+          ถัดไป — นโยบายความเป็นส่วนตัว
+        </button>
+      </form>
+    } @else {
+      <form class="accept-privacy-card__footer" (ngSubmit)="submit()">
+        <label class="accept-privacy-consent">
+          <span class="accept-privacy-check-control">
+            <input
+              type="checkbox"
+              class="accept-privacy-check-input"
+              [ngModel]="privacyAgreed()"
+              (ngModelChange)="privacyAgreed.set($event)"
+              name="privacyAgreed"
+            />
+            <span class="accept-privacy-check-indicator" aria-hidden="true"></span>
+          </span>
+          <span class="accept-privacy-check-label">{{ privacyCheckboxLabel }}</span>
+        </label>
+        @if (consentValidated() && !privacyAgreed()) {
+          <p class="app-field-error">กรุณาติ๊กยอมรับนโยบายความเป็นส่วนตัวก่อนดำเนินการต่อ</p>
+        }
+
+        <label class="accept-privacy-consent accept-privacy-consent--optional">
+          <span class="accept-privacy-check-control">
+            <input
+              type="checkbox"
+              class="accept-privacy-check-input"
+              [ngModel]="partnerShare()"
+              (ngModelChange)="partnerShare.set($event)"
+              name="partnerShare"
+            />
+            <span class="accept-privacy-check-indicator" aria-hidden="true"></span>
+          </span>
+          <span class="accept-privacy-check-label">{{ partnerShareLabel }}</span>
+        </label>
+
+        <div class="accept-privacy-card__actions">
+          <button
+            type="button"
+            class="app-btn app-btn-secondary"
+            [disabled]="submitting()"
+            (click)="goBack()"
+          >
+            ย้อนกลับ
+          </button>
+          <button
+            type="submit"
+            class="app-btn app-btn-primary"
+            [disabled]="submitting()"
+          >
+            @if (submitting()) {
+              กำลังบันทึก…
+            } @else {
+              ยอมรับและเริ่มใช้งาน
+            }
+          </button>
+        </div>
+      </form>
+    }
   </section>
 </div>

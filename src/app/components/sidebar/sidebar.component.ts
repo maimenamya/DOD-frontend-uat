@@ -133,18 +133,49 @@ export class SidebarComponent implements OnInit {
   });
   readonly showFullOpenTableNav = computed(() => this.auth.hasFeature('open_table'));
   readonly showBillHistoryNav = computed(() => this.auth.hasFeature('open_table'));
-  readonly showPackageDepositsNav = computed(() => this.auth.hasFeature('open_table'));
-  readonly showPrTagOps = computed(() => this.auth.hasFeature('pr_tag_operations'));
-  readonly showDrinkPayout = computed(() => this.auth.hasFeature('drink_payout'));
+  readonly showAttendanceNav = computed(() => {
+    this.auth.session();
+    return this.auth.allowsAttendance();
+  });
+  readonly showPackageDepositsNav = computed(
+    () => this.auth.hasFeature('open_table') && this.auth.allowsPackageDeposits(),
+  );
+  readonly showPrTagOps = computed(
+    () => this.auth.hasFeature('pr_tag_operations') && this.auth.allowsPrTag(),
+  );
+  readonly showDrinkPayout = computed(
+    () => this.auth.hasFeature('drink_payout') && this.auth.allowsDrinkPayout(),
+  );
   readonly showReports = computed(() => this.auth.hasFeature('reports'));
   readonly showDailyExpenses = computed(() => this.auth.hasFeature('daily_expenses'));
   readonly showMasterNav = computed(() => this.auth.hasFeature('master_data'));
   readonly showStationWork = computed(() => {
     this.auth.session();
-    return hasStationWorkMenu(this.auth.getUser());
+    return hasStationWorkMenu(this.auth.getUser()) && this.auth.allowsStationNoti();
   });
 
-  readonly navGroups = MANAGEMENT_NAV_GROUPS;
+  readonly navGroups = computed(() => {
+    this.auth.session();
+    return MANAGEMENT_NAV_GROUPS.map((group) => {
+      if (group.id === 'employees') {
+        return {
+          ...group,
+          children: group.children.filter(
+            (child) =>
+              child.path !== '/dashboard/attendance-roster' ||
+              this.auth.allowsAttendance(),
+          ),
+        };
+      }
+      if (group.id === 'pr-tag-master') {
+        return this.auth.allowsPrTag() ? group : null;
+      }
+      if (group.id === 'stock') {
+        return this.auth.allowsStock() ? group : null;
+      }
+      return group;
+    }).filter((group): group is SidebarNavGroup => group != null);
+  });
   readonly activeSubmenu = signal<string | null>(this.getGroupIdByCurrentRoute());
 
   ngOnInit(): void {
@@ -166,7 +197,7 @@ export class SidebarComponent implements OnInit {
     if (this.isGroupExpanded(id)) {
       return true;
     }
-    const group = this.navGroups.find((g) => g.id === id);
+    const group = this.navGroups().find((g) => g.id === id);
     return group ? this.isGroupActive(group) : false;
   }
 
@@ -199,7 +230,7 @@ export class SidebarComponent implements OnInit {
     if (this.routeMatches('/dashboard/daily-expenses')) {
       return null;
     }
-    const group = MANAGEMENT_NAV_GROUPS.find((g) =>
+    const group = this.navGroups().find((g) =>
       g.children.some((c) => this.routeMatches(c.path)),
     );
     return group?.id ?? null;

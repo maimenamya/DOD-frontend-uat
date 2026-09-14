@@ -35,6 +35,19 @@ import { isJwtExpired } from '../utils/jwt-expiry.util';
 import { ToastService } from './toast.service';
 import { WebPushClientService } from './web-push-client.service';
 import { receivesShopNotifications } from '../models/work-duty';
+import {
+  normalizeShopSubscriptionPlan,
+  shopPlanAllowsAttendance,
+  shopPlanAllowsDrinkPayout,
+  shopPlanAllowsGuestOrder,
+  shopPlanAllowsPackageDeposits,
+  shopPlanAllowsPrTag,
+  shopPlanAllowsStationNoti,
+  shopPlanAllowsStock,
+  shopPlanHasFeature,
+  type ShopPlanFeature,
+  type ShopSubscriptionPlan,
+} from '../utils/shop-plan.util';
 
 const STORAGE_KEY = 'dod_auth_session';
 
@@ -301,6 +314,43 @@ export class AuthService {
     return hasFeature(group, feature);
   }
 
+  getSubscriptionPlan(): ShopSubscriptionPlan {
+    this.sessionSignal();
+    return normalizeShopSubscriptionPlan(this.getUser()?.shop?.subscriptionPlan);
+  }
+
+  hasShopPlanFeature(feature: ShopPlanFeature): boolean {
+    return shopPlanHasFeature(this.getSubscriptionPlan(), feature);
+  }
+
+  allowsStock(): boolean {
+    return shopPlanAllowsStock(this.getSubscriptionPlan());
+  }
+
+  allowsPackageDeposits(): boolean {
+    return shopPlanAllowsPackageDeposits(this.getSubscriptionPlan());
+  }
+
+  allowsAttendance(): boolean {
+    return shopPlanAllowsAttendance(this.getSubscriptionPlan());
+  }
+
+  allowsPrTag(): boolean {
+    return shopPlanAllowsPrTag(this.getSubscriptionPlan());
+  }
+
+  allowsDrinkPayout(): boolean {
+    return shopPlanAllowsDrinkPayout(this.getSubscriptionPlan());
+  }
+
+  allowsGuestOrder(): boolean {
+    return shopPlanAllowsGuestOrder(this.getSubscriptionPlan());
+  }
+
+  allowsStationNoti(): boolean {
+    return shopPlanAllowsStationNoti(this.getSubscriptionPlan());
+  }
+
   /** Sale read-only: own open bills on open-table page. */
   openTableSelfBillOnly(): boolean {
     return showMyBillsNav(this.getUser());
@@ -475,6 +525,10 @@ export class AuthService {
     }
     const pendingRoleSetup = employee.pendingRoleSetup;
     const mustChangePassword = employee.mustChangePassword === true;
+    const shop: AuthUser['shop'] = {
+      ...employee.shop,
+      subscriptionPlan: normalizeShopSubscriptionPlan(employee.shop.subscriptionPlan),
+    };
     const user = pendingRoleSetup
       ? this.normalizeUser({
           id: employee.id,
@@ -493,7 +547,7 @@ export class AuthService {
           roleDisplayNameTh: 'กำลังตั้งค่าตำแหน่ง',
           roleCategory: 'STAFF',
           permissionGroup: 'EMPLOYEE',
-          shop: employee.shop,
+          shop,
         })
       : this.normalizeUser({
           id: employee.id,
@@ -520,7 +574,7 @@ export class AuthService {
           roleCategory: employee.role!.category,
           permissionGroup: employee.role!.permissionGroup,
           workDuties: employee.role!.workDuties ?? [],
-          shop: employee.shop,
+          shop,
         });
     return { token, user };
   }
@@ -531,6 +585,25 @@ export class AuthService {
     const nickname =
       user.nickname?.trim() || user.name?.trim() || username || '';
     const organizationId = user.organizationId ?? user.shop?.organizationId ?? 0;
+    const normalizeShop = (
+      shop: AuthUser['shop'] | undefined,
+      shopId: number,
+    ): AuthUser['shop'] => {
+      if (shop) {
+        return {
+          ...shop,
+          subscriptionPlan: normalizeShopSubscriptionPlan(shop.subscriptionPlan),
+        };
+      }
+      return {
+        id: shopId,
+        name:
+          (user as AuthUser & { shopName?: string }).shopName?.trim() || '',
+        branchCode: 'main',
+        organizationId,
+        subscriptionPlan: 'BASIC',
+      };
+    };
     if (user.pendingRoleSetup) {
       return {
         id: user.id,
@@ -550,14 +623,7 @@ export class AuthService {
         roleCategory: 'STAFF',
         permissionGroup: 'EMPLOYEE',
         workDuties: [],
-        shop:
-          user.shop ??
-          ({
-            id: user.shopId,
-            name: '',
-            branchCode: 'main',
-            organizationId,
-          } satisfies AuthUser['shop']),
+        shop: normalizeShop(user.shop, user.shopId),
       };
     }
     const role =
@@ -600,23 +666,7 @@ export class AuthService {
       roleCategory,
       permissionGroup,
       workDuties: user.workDuties ?? [],
-      shop:
-        user.shop ??
-        (user.shopId
-          ? {
-              id: user.shopId,
-              name:
-                (user as AuthUser & { shopName?: string }).shopName?.trim() ||
-                '',
-              branchCode: 'main',
-              organizationId,
-            }
-          : {
-              id: 0,
-              name: '',
-              branchCode: 'main',
-              organizationId: 0,
-            }),
+      shop: normalizeShop(user.shop, user.shopId),
     };
   }
 

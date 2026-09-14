@@ -7,6 +7,7 @@ import { mustChangePasswordChildGuard } from './guards/must-change-password.guar
 import { pendingRoleSetupChildGuard } from './guards/pending-role-setup.guard';
 import { privacyConsentChildGuard } from './guards/privacy-consent.guard';
 import { permissionGuard } from './guards/permission.guard';
+import { shopPlanGuard } from './guards/shop-plan.guard';
 import { openTableGuard } from './guards/open-table.guard';
 import { saleSelfBillGuard } from './guards/sale-self-bill.guard';
 import { billHistoryGuard } from './guards/bill-history.guard';
@@ -102,6 +103,7 @@ export const routes: Routes = [
           import('./pages/attendance-check-in/attendance-check-in-page.component').then(
             (m) => m.AttendanceCheckInPageComponent,
           ),
+        canActivate: [shopPlanGuard('attendance')],
       },
       {
         path: 'my-bills',
@@ -127,7 +129,7 @@ export const routes: Routes = [
           import('./pages/station-work/station-work-page.component').then(
             (m) => m.StationWorkPageComponent,
           ),
-        canActivate: [stationWorkGuard],
+        canActivate: [stationWorkGuard, shopPlanGuard('station_noti')],
       },
       {
         path: 'station-work/:tab',
@@ -135,7 +137,7 @@ export const routes: Routes = [
           import('./pages/station-work/station-work-page.component').then(
             (m) => m.StationWorkPageComponent,
           ),
-        canActivate: [stationWorkGuard, stationWorkTabGuard],
+        canActivate: [stationWorkGuard, stationWorkTabGuard, shopPlanGuard('station_noti')],
       },
       { path: 'kitchen-queue', redirectTo: 'station-work/food', pathMatch: 'full' },
       { path: 'bar-queue', redirectTo: 'station-work/drink', pathMatch: 'full' },
@@ -151,7 +153,7 @@ export const routes: Routes = [
           import('./pages/attendance-roster/attendance-roster-page.component').then(
             (m) => m.AttendanceRosterPageComponent,
           ),
-        canActivate: [permissionGuard('manage_employees')],
+        canActivate: [permissionGuard('manage_employees'), shopPlanGuard('attendance')],
       },
       {
         path: 'master-roles',
@@ -221,7 +223,7 @@ export const routes: Routes = [
       {
         path: 'package-deposits',
         component: PackageDepositPageComponent,
-        canActivate: [permissionGuard('open_table')],
+        canActivate: [permissionGuard('open_table'), shopPlanGuard('package_deposits')],
       },
       {
         path: 'master-other-charges',
@@ -238,12 +240,12 @@ export const routes: Routes = [
       {
         path: 'master-pr-tags',
         component: MasterPrTagPageComponent,
-        canActivate: [permissionGuard('master_data')],
+        canActivate: [permissionGuard('master_data'), shopPlanGuard('pr_tag')],
       },
       {
         path: 'pr-tag-operations',
         component: PrTagOperationsPageComponent,
-        canActivate: [permissionGuard('pr_tag_operations')],
+        canActivate: [permissionGuard('pr_tag_operations'), shopPlanGuard('pr_tag')],
       },
       {
         path: 'drink-payout',
@@ -251,7 +253,7 @@ export const routes: Routes = [
           import('./pages/drink-payout/drink-payout-page.component').then(
             (m) => m.DrinkPayoutPageComponent,
           ),
-        canActivate: [permissionGuard('drink_payout')],
+        canActivate: [permissionGuard('drink_payout'), shopPlanGuard('drink_payout')],
       },
       {
         path: 'reports',
@@ -266,7 +268,7 @@ export const routes: Routes = [
       {
         path: 'stock',
         component: StockPageComponent,
-        canActivate: [permissionGuard('master_data')],
+        canActivate: [permissionGuard('master_data'), shopPlanGuard('stock')],
       },
       {
         path: 'shop-rules',

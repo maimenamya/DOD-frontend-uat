@@ -3630,7 +3630,8 @@ export class OpenTablePageComponent implements OnInit {
       !!seat?.sessionId &&
       this.ledgerCanMutate() &&
       this.seatLedgerOpen() &&
-      !this.seatAwaitingClear()
+      !this.seatAwaitingClear() &&
+      this.auth.allowsGuestOrder()
     );
   }
 

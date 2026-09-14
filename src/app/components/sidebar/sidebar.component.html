@@ -26,17 +26,19 @@
       </a>
     }
 
-    <a
-      routerLink="/dashboard/attendance"
-      routerLinkActive="app-sidebar-link-active"
-      (click)="collapseAllSubmenus(); mobileClose.emit()"
-      class="app-sidebar-link"
-    >
-      <span class="app-sidebar-icon-slot">
-        <app-sidebar-icon name="attendance" />
-      </span>
-      <span class="app-sidebar-label">ลงเวลา</span>
-    </a>
+    @if (showAttendanceNav()) {
+      <a
+        routerLink="/dashboard/attendance"
+        routerLinkActive="app-sidebar-link-active"
+        (click)="collapseAllSubmenus(); mobileClose.emit()"
+        class="app-sidebar-link"
+      >
+        <span class="app-sidebar-icon-slot">
+          <app-sidebar-icon name="attendance" />
+        </span>
+        <span class="app-sidebar-label">ลงเวลา</span>
+      </a>
+    }
 
     @if (showSaleSelfBillNav()) {
       <a
@@ -170,7 +172,7 @@
 
     @if (showMasterNav()) {
       <div class="app-sidebar-section-label app-sidebar-label">การจัดการ</div>
-      @for (group of navGroups; track group.id) {
+      @for (group of navGroups(); track group.id) {
         <div class="app-sidebar-group" [class.app-sidebar-group--active]="isGroupActive(group)">
           <button
             type="button"

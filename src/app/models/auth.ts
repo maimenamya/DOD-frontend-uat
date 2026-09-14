@@ -24,6 +24,8 @@ export interface AuthBranchOption {
   isDefault: boolean;
 }
 
+export type ShopSubscriptionPlan = 'BASIC' | 'STANDARD' | 'PRO';
+
 export interface AuthUser {
   id: number;
   employeeId: string;
@@ -59,6 +61,8 @@ export interface AuthUser {
     branchCode: string;
     organizationId: number;
     publicId?: string;
+    /** SaaS package — gates stock / attendance / Pro features. */
+    subscriptionPlan: ShopSubscriptionPlan;
   };
 }
 
@@ -95,6 +99,8 @@ export interface AuthResponse {
       name: string;
       branchCode: string;
       organizationId: number;
+      publicId?: string;
+      subscriptionPlan?: ShopSubscriptionPlan;
     };
   };
 }
