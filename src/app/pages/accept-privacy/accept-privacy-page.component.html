@@ -35,7 +35,11 @@
   </nav>
 
   <section class="app-card accept-privacy-card">
-    <div class="accept-privacy-card__body app-scroll-region">
+    <div
+      #docScroll
+      class="accept-privacy-card__body app-scroll-region"
+      (scroll)="onDocScroll()"
+    >
       @if (step() === 1) {
         @for (section of termsSections; track section.heading) {
           <div class="accept-privacy-section">
@@ -59,13 +63,22 @@
 
     @if (step() === 1) {
       <form class="accept-privacy-card__footer" (ngSubmit)="goNext()">
-        <label class="accept-privacy-consent">
+        @if (!docReadToEnd()) {
+          <p class="accept-privacy-scroll-hint" role="status">
+            เลื่อนอ่านเอกสารจนสุดด้านล่างก่อน จึงจะติ๊กยอมรับได้
+          </p>
+        }
+        <label
+          class="accept-privacy-consent"
+          [class.accept-privacy-consent--locked]="!docReadToEnd()"
+        >
           <span class="accept-privacy-check-control">
             <input
               type="checkbox"
               class="accept-privacy-check-input"
               [ngModel]="termsAgreed()"
-              (ngModelChange)="termsAgreed.set($event)"
+              (ngModelChange)="setTermsAgreed($event)"
+              [disabled]="!docReadToEnd()"
               name="termsAgreed"
             />
             <span class="accept-privacy-check-indicator" aria-hidden="true"></span>
@@ -82,13 +95,22 @@
       </form>
     } @else {
       <form class="accept-privacy-card__footer" (ngSubmit)="submit()">
-        <label class="accept-privacy-consent">
+        @if (!docReadToEnd()) {
+          <p class="accept-privacy-scroll-hint" role="status">
+            เลื่อนอ่านเอกสารจนสุดด้านล่างก่อน จึงจะติ๊กยอมรับได้
+          </p>
+        }
+        <label
+          class="accept-privacy-consent"
+          [class.accept-privacy-consent--locked]="!docReadToEnd()"
+        >
           <span class="accept-privacy-check-control">
             <input
               type="checkbox"
               class="accept-privacy-check-input"
               [ngModel]="privacyAgreed()"
-              (ngModelChange)="privacyAgreed.set($event)"
+              (ngModelChange)="setPrivacyAgreed($event)"
+              [disabled]="!docReadToEnd()"
               name="privacyAgreed"
             />
             <span class="accept-privacy-check-indicator" aria-hidden="true"></span>
@@ -99,13 +121,17 @@
           <p class="app-field-error">กรุณาติ๊กยอมรับนโยบายความเป็นส่วนตัวก่อนดำเนินการต่อ</p>
         }
 
-        <label class="accept-privacy-consent accept-privacy-consent--optional">
+        <label
+          class="accept-privacy-consent accept-privacy-consent--optional"
+          [class.accept-privacy-consent--locked]="!docReadToEnd()"
+        >
           <span class="accept-privacy-check-control">
             <input
               type="checkbox"
               class="accept-privacy-check-input"
               [ngModel]="partnerShare()"
-              (ngModelChange)="partnerShare.set($event)"
+              (ngModelChange)="setPartnerShare($event)"
+              [disabled]="!docReadToEnd()"
               name="partnerShare"
             />
             <span class="accept-privacy-check-indicator" aria-hidden="true"></span>

@@ -1,7 +1,7 @@
 <app-toast />
 <app-confirm-dialog-host />
 
-<div class="app-layout" [class.app-layout--privacy-banner]="showPrivacyConsentBanner()">
+<div class="app-layout" [class.app-layout--privacy-banner]="showPrivacyConsentBanner() || showSubscriptionGraceBanner()">
   @if (showPrivacyConsentBanner()) {
     <div class="app-privacy-consent-banner" role="status">
       <p class="app-privacy-consent-banner__text">
@@ -28,6 +28,24 @@
       >
         ✕
       </button>
+    </div>
+  }
+
+  @if (showSubscriptionGraceBanner()) {
+    <div class="app-privacy-consent-banner app-subscription-grace-banner" role="status">
+      <p class="app-privacy-consent-banner__text">
+        <svg
+          class="app-privacy-consent-banner__icon"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
+        </svg>
+        <span>{{ subscriptionGraceBannerText() }}</span>
+      </p>
     </div>
   }
 

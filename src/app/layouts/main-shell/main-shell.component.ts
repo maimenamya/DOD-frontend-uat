@@ -35,10 +35,30 @@ export class MainShellComponent {
     this.bannerDismissTick();
     this.auth.session();
     if (this.auth.needsPrivacyConsent()) return false;
+    if (this.auth.isSubscriptionLocked()) return false;
     if (!this.auth.orgPrivacyConsentPending()) return false;
     const user = this.auth.getUser();
     if (!user) return false;
     return !isPrivacyConsentBannerDismissed(user.organizationId, PRIVACY_POLICY_VERSION);
+  });
+
+  readonly showSubscriptionGraceBanner = computed(() => {
+    this.auth.session();
+    if (this.auth.needsPrivacyConsent() || this.auth.isSubscriptionLocked()) {
+      return false;
+    }
+    return this.auth.isSubscriptionInGrace();
+  });
+
+  readonly subscriptionGraceBannerText = computed(() => {
+    this.auth.session();
+    const shop = this.auth.getUser()?.shop;
+    const days = shop?.subscriptionGraceDaysRemaining;
+    const ends = shop?.subscriptionGraceEndsOn;
+    const daysPart =
+      typeof days === 'number' ? `เหลืออีก ${days} วัน` : 'อยู่ในช่วงผ่อน';
+    const endsPart = ends ? ` (ถึง ${ends})` : '';
+    return `แพ็กเกจหมดอายุแล้ว — ${daysPart}${endsPart} ยังใช้ระบบได้ชั่วคราว กรุณาต่ออายุก่อนถูกล็อก`;
   });
 
   @HostListener('document:keydown.escape')

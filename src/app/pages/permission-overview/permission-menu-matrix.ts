@@ -60,7 +60,7 @@ export const PERMISSION_MENU_SECTIONS: PermissionMenuSection[] = [
       { label: 'ฝาก', access: OPS },
       { label: 'จัดการ tag', access: OPS },
       { label: 'จ่ายค่าดื่ม PR', access: OPS },
-      { label: 'บิลย้อนหลัง', access: OPS },
+      { label: 'บิลย้อนหลัง', access: { ...OPS, EMPLOYEE: 'sale' } },
       { label: 'รายงาน', access: OPS },
       { label: 'บันทึกค่าใช้จ่าย', access: OPS },
       { label: 'คู่มือใช้งาน', access: ALL },

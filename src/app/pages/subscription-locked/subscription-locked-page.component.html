@@ -1,0 +1,43 @@
+<div class="app-page accept-privacy-page">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">แพ็กเกจหมดอายุแล้ว</h1>
+      <p class="app-page-subtitle">
+        สาขานี้เลยช่วงผ่อนชำระแล้ว — ระบบล็อกการใช้งานจนกว่าจะต่ออายุ
+      </p>
+    </div>
+  </div>
+
+  <section class="app-card accept-privacy-card">
+    <div class="accept-privacy-card__body">
+      <p class="accept-privacy-section__body">
+        ไม่สามารถเปิดโต๊ะ สั่งรายการ หรือใช้เมนูหลักได้ในขณะนี้
+      </p>
+      @if (expiresOn()) {
+        <p class="accept-privacy-section__body">
+          วันหมดอายุแพ็กเกจ: <strong>{{ expiresOn() }}</strong>
+        </p>
+      }
+      @if (graceEndedOn()) {
+        <p class="accept-privacy-section__body">
+          สิ้นสุดช่วงผ่อน: <strong>{{ graceEndedOn() }}</strong>
+        </p>
+      }
+      @if (isOwner()) {
+        <p class="accept-privacy-section__body">
+          กรุณาติดต่อทีม D-rink เพื่อชำระและต่ออายุ จากนั้นผู้ดูแลจะอัปเดตวันหมดอายุในระบบให้
+        </p>
+      } @else {
+        <p class="accept-privacy-section__body">
+          กรุณาแจ้งเจ้าของร้านให้ติดต่อต่ออายุแพ็กเกจ
+        </p>
+      }
+    </div>
+    <div class="accept-privacy-card__footer accept-privacy-card__actions">
+      <a routerLink="/dashboard/my-profile" class="app-btn app-btn-secondary">โปรไฟล์</a>
+      <button type="button" class="app-btn app-btn-primary" (click)="logout()">
+        ออกจากระบบ
+      </button>
+    </div>
+  </section>
+</div>

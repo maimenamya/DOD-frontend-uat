@@ -4612,12 +4612,21 @@
     accent-color: var(--primary, #f59e0b);
   }
 
+  .accept-privacy-scroll-hint {
+    @apply text-sm text-text-secondary;
+    line-height: var(--leading-normal);
+  }
+
   .accept-privacy-consent--locked {
     @apply cursor-not-allowed opacity-60;
   }
 
   .accept-privacy-consent--locked .accept-privacy-check-input {
     cursor: not-allowed;
+  }
+
+  .accept-privacy-check-input:disabled + .accept-privacy-check-indicator {
+    opacity: 0.75;
   }
 
   /* Global `input { appearance: none }` hides native checkboxes */

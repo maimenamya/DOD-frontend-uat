@@ -13,6 +13,12 @@
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 
+.app-subscription-grace-banner {
+  background: #ef4444;
+  color: #fff;
+  border-bottom-color: rgba(0, 0, 0, 0.18);
+}
+
 .app-privacy-consent-banner__text {
   display: inline-flex;
   align-items: center;

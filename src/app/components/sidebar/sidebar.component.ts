@@ -132,7 +132,10 @@ export class SidebarComponent implements OnInit {
     return this.auth.openTableSelfBillOnly();
   });
   readonly showFullOpenTableNav = computed(() => this.auth.hasFeature('open_table'));
-  readonly showBillHistoryNav = computed(() => this.auth.hasFeature('open_table'));
+  readonly showBillHistoryNav = computed(() => {
+    this.auth.session();
+    return this.auth.canAccessBillHistory();
+  });
   readonly showAttendanceNav = computed(() => {
     this.auth.session();
     return this.auth.allowsAttendance();

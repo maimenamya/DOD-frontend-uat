@@ -6,6 +6,7 @@ import { stationWorkGuard, stationWorkTabGuard } from './guards/station-work.gua
 import { mustChangePasswordChildGuard } from './guards/must-change-password.guard';
 import { pendingRoleSetupChildGuard } from './guards/pending-role-setup.guard';
 import { privacyConsentChildGuard } from './guards/privacy-consent.guard';
+import { subscriptionLockedChildGuard } from './guards/subscription-locked.guard';
 import { permissionGuard } from './guards/permission.guard';
 import { shopPlanGuard } from './guards/shop-plan.guard';
 import { openTableGuard } from './guards/open-table.guard';
@@ -31,6 +32,7 @@ import { MasterSeatingListPageComponent } from './pages/master-seating-list/mast
 import { MasterSeatingTypePageComponent } from './pages/master-seating-type/master-seating-type-page.component';
 import { MasterSeatingFloorLayoutPageComponent } from './pages/master-seating-floor-layout/master-seating-floor-layout-page.component';
 import { AcceptPrivacyPageComponent } from './pages/accept-privacy/accept-privacy-page.component';
+import { SubscriptionLockedPageComponent } from './pages/subscription-locked/subscription-locked-page.component';
 import { CompleteRoleSetupPageComponent } from './pages/complete-role-setup/complete-role-setup-page.component';
 import { MyProfileComponent } from './pages/my-profile/my-profile.component';
 import { OpenTablePageComponent } from './pages/open-table/open-table-page.component';
@@ -94,6 +96,7 @@ export const routes: Routes = [
       pendingRoleSetupChildGuard,
       mustChangePasswordChildGuard,
       privacyConsentChildGuard,
+      subscriptionLockedChildGuard,
     ],
     children: [
       { path: '', component: DashboardPageComponent, canActivate: [dashboardHomeGuard] },
@@ -283,6 +286,7 @@ export const routes: Routes = [
       { path: 'my-profile', component: MyProfileComponent },
       { path: 'complete-role-setup', component: CompleteRoleSetupPageComponent },
       { path: 'accept-privacy', component: AcceptPrivacyPageComponent },
+      { path: 'subscription-locked', component: SubscriptionLockedPageComponent },
       {
         path: 'guide',
         loadComponent: () =>

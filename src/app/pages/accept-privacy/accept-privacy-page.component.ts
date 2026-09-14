@@ -1,4 +1,11 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -17,6 +24,9 @@ import { ToastService } from '../../services/toast.service';
 
 type ConsentStep = 1 | 2;
 
+/** Pixels from bottom that still count as “read to end” (mobile scrollbar slack). */
+const DOC_SCROLL_END_SLACK_PX = 32;
+
 @Component({
   selector: 'app-accept-privacy-page',
   imports: [FormsModule],
@@ -26,6 +36,8 @@ export class AcceptPrivacyPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
+
+  private readonly docScroll = viewChild<ElementRef<HTMLElement>>('docScroll');
 
   readonly policyVersion = PRIVACY_POLICY_VERSION;
   readonly termsTitle = TERMS_OF_SERVICE_TITLE;
@@ -42,11 +54,38 @@ export class AcceptPrivacyPageComponent implements OnInit {
   readonly partnerShare = signal(this.auth.allowBusinessDataPartnerShare());
   readonly submitting = signal(false);
   readonly consentValidated = signal(false);
+  /** Checkbox unlocked only after scrolling the document to the bottom. */
+  readonly docReadToEnd = signal(false);
 
   ngOnInit(): void {
     if (!this.auth.needsPrivacyConsent()) {
       void this.router.navigate([this.auth.homePathAfterLogin()]);
+      return;
     }
+    this.resetDocScrollGate();
+  }
+
+  onDocScroll(): void {
+    const el = this.docScroll()?.nativeElement;
+    if (!el || this.docReadToEnd()) return;
+    if (this.isScrolledToEnd(el)) {
+      this.docReadToEnd.set(true);
+    }
+  }
+
+  setTermsAgreed(value: boolean): void {
+    if (!this.docReadToEnd()) return;
+    this.termsAgreed.set(value);
+  }
+
+  setPrivacyAgreed(value: boolean): void {
+    if (!this.docReadToEnd()) return;
+    this.privacyAgreed.set(value);
+  }
+
+  setPartnerShare(value: boolean): void {
+    if (!this.docReadToEnd()) return;
+    this.partnerShare.set(value);
   }
 
   goNext(): void {
@@ -56,13 +95,13 @@ export class AcceptPrivacyPageComponent implements OnInit {
     }
     this.consentValidated.set(false);
     this.step.set(2);
-    this.scrollDocToTop();
+    this.resetDocScrollGate();
   }
 
   goBack(): void {
     this.consentValidated.set(false);
     this.step.set(1);
-    this.scrollDocToTop();
+    this.resetDocScrollGate();
   }
 
   submit(): void {
@@ -70,7 +109,7 @@ export class AcceptPrivacyPageComponent implements OnInit {
       this.consentValidated.set(true);
       if (!this.termsAgreed()) {
         this.step.set(1);
-        this.scrollDocToTop();
+        this.resetDocScrollGate();
       }
       return;
     }
@@ -89,11 +128,25 @@ export class AcceptPrivacyPageComponent implements OnInit {
     });
   }
 
-  private scrollDocToTop(): void {
+  private resetDocScrollGate(): void {
+    const alreadyAgreedForStep =
+      (this.step() === 1 && this.termsAgreed()) ||
+      (this.step() === 2 && this.privacyAgreed());
+    this.docReadToEnd.set(alreadyAgreedForStep);
     queueMicrotask(() => {
-      const el = document.querySelector('.accept-privacy-card__body');
-      el?.scrollTo({ top: 0, behavior: 'smooth' });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const el = this.docScroll()?.nativeElement;
+      if (!el) return;
+      el.scrollTo({ top: 0 });
+      window.scrollTo({ top: 0 });
+      if (this.docReadToEnd()) return;
+      // Short content (no overflow) counts as already readable.
+      if (el.scrollHeight <= el.clientHeight + 4 || this.isScrolledToEnd(el)) {
+        this.docReadToEnd.set(true);
+      }
     });
+  }
+
+  private isScrolledToEnd(el: HTMLElement): boolean {
+    return el.scrollTop + el.clientHeight >= el.scrollHeight - DOC_SCROLL_END_SLACK_PX;
   }
 }

@@ -63,6 +63,11 @@ export interface AuthUser {
     publicId?: string;
     /** SaaS package — gates stock / attendance / Pro features. */
     subscriptionPlan: ShopSubscriptionPlan;
+    /** Last paid day YYYY-MM-DD, or null when expiry not enforced. */
+    subscriptionExpiresOn: string | null;
+    subscriptionAccess: 'unlimited' | 'active' | 'grace' | 'locked';
+    subscriptionGraceEndsOn: string | null;
+    subscriptionGraceDaysRemaining: number | null;
   };
 }
 
@@ -101,6 +106,10 @@ export interface AuthResponse {
       organizationId: number;
       publicId?: string;
       subscriptionPlan?: ShopSubscriptionPlan;
+      subscriptionExpiresOn?: string | null;
+      subscriptionAccess?: 'unlimited' | 'active' | 'grace' | 'locked';
+      subscriptionGraceEndsOn?: string | null;
+      subscriptionGraceDaysRemaining?: number | null;
     };
   };
 }

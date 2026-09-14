@@ -48,6 +48,12 @@ import {
   type ShopPlanFeature,
   type ShopSubscriptionPlan,
 } from '../utils/shop-plan.util';
+import {
+  emptySubscriptionFields,
+  isShopSubscriptionInGrace,
+  isShopSubscriptionLocked,
+  normalizeSubscriptionFields,
+} from '../utils/shop-subscription.util';
 
 const STORAGE_KEY = 'dod_auth_session';
 
@@ -167,6 +173,9 @@ export class AuthService {
     }
     if (this.needsPrivacyConsent()) {
       return ['/dashboard/accept-privacy'];
+    }
+    if (this.isSubscriptionLocked()) {
+      return ['/dashboard/subscription-locked'];
     }
     return [this.homePathAfterLogin()];
   }
@@ -351,9 +360,24 @@ export class AuthService {
     return shopPlanAllowsStationNoti(this.getSubscriptionPlan());
   }
 
+  isSubscriptionLocked(): boolean {
+    this.sessionSignal();
+    return isShopSubscriptionLocked(this.getUser()?.shop?.subscriptionAccess);
+  }
+
+  isSubscriptionInGrace(): boolean {
+    this.sessionSignal();
+    return isShopSubscriptionInGrace(this.getUser()?.shop?.subscriptionAccess);
+  }
+
   /** Sale read-only: own open bills on open-table page. */
   openTableSelfBillOnly(): boolean {
     return showMyBillsNav(this.getUser());
+  }
+
+  /** Bill history: ops see all; sale sees own checked-out bills only. */
+  canAccessBillHistory(): boolean {
+    return this.hasFeature('open_table') || this.openTableSelfBillOnly();
   }
 
   canAccessOpenTable(): boolean {
@@ -528,6 +552,7 @@ export class AuthService {
     const shop: AuthUser['shop'] = {
       ...employee.shop,
       subscriptionPlan: normalizeShopSubscriptionPlan(employee.shop.subscriptionPlan),
+      ...normalizeSubscriptionFields(employee.shop),
     };
     const user = pendingRoleSetup
       ? this.normalizeUser({
@@ -593,6 +618,7 @@ export class AuthService {
         return {
           ...shop,
           subscriptionPlan: normalizeShopSubscriptionPlan(shop.subscriptionPlan),
+          ...normalizeSubscriptionFields(shop),
         };
       }
       return {
@@ -602,6 +628,7 @@ export class AuthService {
         branchCode: 'main',
         organizationId,
         subscriptionPlan: 'BASIC',
+        ...emptySubscriptionFields(),
       };
     };
     if (user.pendingRoleSetup) {
