@@ -102,6 +102,14 @@ export class BillHistoryPageComponent implements OnInit {
     this.loadList();
   }
 
+  onRowActivate(row: BillHistoryRow): void {
+    if (!row.hasReceipt) {
+      this.toast.showError('บิลนี้ไม่มีรายละเอียดเก็บไว้ (บิลแบบอื่น)');
+      return;
+    }
+    this.openDetail(row);
+  }
+
   openDetail(row: BillHistoryRow): void {
     if (!row.hasReceipt) {
       this.toast.showError('บิลนี้ไม่มีรายละเอียดเก็บไว้ (บิลแบบอื่น)');

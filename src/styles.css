@@ -2817,6 +2817,7 @@
   .app-number-stepper {
     display: flex;
     align-items: stretch;
+    width: 100%;
     max-width: 11rem;
     gap: 0.25rem;
   }
@@ -2979,13 +2980,8 @@
   .shop-rules-attendance-grid {
     display: grid;
     gap: 1rem;
-    grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
-  }
-
-  @media (min-width: 900px) {
-    .shop-rules-attendance-grid:not(.shop-rules-work-hours-grid) {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+    /* Same wrap as เวลานั่งดื่ม — don’t force 3 skinny columns that crush steppers */
+    grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
   }
 
   .shop-rules-section .app-input[type='text'] {

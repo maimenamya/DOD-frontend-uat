@@ -247,7 +247,7 @@ export type StopStaffDrinkPreview = {
   detail: string;
 };
 
-export type TxnActiveSessionStatus = 'OPEN' | 'BILLED';
+export type TxnActiveSessionStatus = 'OPEN' | 'AWAITING_PAYMENT' | 'BILLED';
 
 export type SeatBillTab = {
   sessionId: number;
@@ -265,6 +265,10 @@ export type OpenTableSessionDetail = {
   seatBills?: SeatBillTab[];
   sessionStatus?: TxnActiveSessionStatus;
   lastCheckedOutLabel?: string;
+  /** Frozen checkout wall-clock label while awaiting payment. */
+  checkoutFrozenLabel?: string;
+  checkoutFrozenAt?: string;
+  checkoutSnapshot?: CheckoutPreview;
   /** Bill from latest checkout — for reprint while awaiting customer release. */
   billId?: number;
   canReleaseCustomer?: boolean;
@@ -396,6 +400,19 @@ export type CheckoutPreviewPayload = {
 
 export type BillPaymentMethod = 'CASH' | 'PROMPTPAY' | 'CREDIT_CARD' | 'PENDING_PAYMENT';
 
+export type FreezeCheckoutPayload = SessionMutationBase & {
+  checkedOutAt: string;
+  paymentMethod?: BillPaymentMethod;
+};
+
+export type FreezeCheckoutResult = {
+  preview: CheckoutPreview;
+  checkedOutAt: string;
+  checkedOutLabel: string;
+  session: OpenTableSessionDetail;
+  revision?: number;
+};
+
 export type CheckoutPayload = SessionMutationBase & {
   checkedOutAt: string;
   paymentMethod?: BillPaymentMethod;
@@ -419,6 +436,7 @@ export type CheckoutPreview = {
   drinksSubtotal: number;
   billAmount: number;
   totalDrinks: number;
+  paymentMethod?: BillPaymentMethod;
 };
 
 export type CheckoutResult = {

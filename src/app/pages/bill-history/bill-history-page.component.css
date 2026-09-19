@@ -72,11 +72,20 @@
 }
 
 .bill-history-table col.bill-history-col-pay {
-  width: 8%;
+  width: 14%;
 }
 
-.bill-history-table col.bill-history-col-actions {
-  width: 14%;
+.bill-history-row--clickable {
+  cursor: pointer;
+}
+
+.bill-history-row--clickable:hover > td {
+  background: var(--table-row-hover-bg, var(--fill-tertiary));
+}
+
+.bill-history-row--clickable:focus-visible {
+  outline: 2px solid var(--accent-primary, #599ce7);
+  outline-offset: -2px;
 }
 
 .bill-history-page .bill-history-table th,

@@ -503,6 +503,14 @@
               </p>
             }
             @if (
+              seatAwaitingPayment() &&
+              sessionDetail()?.checkoutFrozenLabel
+            ) {
+              <p class="mt-1 text-xs font-medium text-theme-accent">
+                รอชำระเงิน · ยอดตรึงที่ {{ sessionDetail()!.checkoutFrozenLabel }}
+              </p>
+            }
+            @if (
               !seatAwaitingClear() &&
               sessionDetail()?.sessionStatus === 'BILLED' &&
               sessionDetail()?.lastCheckedOutLabel
@@ -1252,7 +1260,26 @@
               <span class="open-table-bill-summary-label">ยอดบิลรวม</span>
               <span class="open-table-bill-summary-net">฿{{ totalAmount() | number: '1.0-0' }}</span>
             </div>
-            @if (ledgerCanMutate()) {
+            @if (seatAwaitingPayment()) {
+              <div class="open-table-bill-summary-actions open-table-bill-summary-actions--split">
+                <button
+                  type="button"
+                  class="app-btn-secondary open-table-cancel-bill-btn"
+                  [disabled]="actionBusy()"
+                  (click)="cancelAwaitingPayment()"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="button"
+                  class="app-btn-primary open-table-checkout-btn"
+                  [disabled]="actionBusy()"
+                  (click)="confirmAwaitingPayment()"
+                >
+                  ยืนยันชำระเงิน
+                </button>
+              </div>
+            } @else if (ledgerCanMutate()) {
               <div
                 class="open-table-bill-summary-actions"
                 [class.open-table-bill-summary-actions--split]="canCancelEmptyBill()"

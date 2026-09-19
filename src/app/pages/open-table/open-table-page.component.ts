@@ -719,8 +719,13 @@ export class OpenTablePageComponent implements OnInit {
     const detail = this.sessionDetail();
     if (detail?.canMutateLedger === false) return false;
     if (detail?.sessionStatus === 'BILLED') return false;
+    if (detail?.sessionStatus === 'AWAITING_PAYMENT') return false;
     return true;
   });
+
+  readonly seatAwaitingPayment = computed(
+    () => this.sessionDetail()?.sessionStatus === 'AWAITING_PAYMENT',
+  );
 
   /** Empty OPEN bill — ยกเลิก beside เช็กบิล; hide ยกเลิก when the bill has lines. */
   readonly canCancelEmptyBill = computed(() => {
@@ -4043,7 +4048,9 @@ export class OpenTablePageComponent implements OnInit {
     }
     if (!this.ledgerCanMutate()) {
       this.toast.showError(
-        'โต๊ะนี้ถูกเช็กบิลแล้ว ไม่สามารถเพิ่มรายการได้ — ถ้าลูกค้าออกจากโต๊ะแล้วให้กดลูกค้ากลับ',
+        this.seatAwaitingPayment()
+          ? 'บิลนี้อยู่ในขั้นรอชำระเงิน — ยืนยันจ่ายหรือยกเลิกก่อนเพิ่มรายการ'
+          : 'โต๊ะนี้ถูกเช็กบิลแล้ว ไม่สามารถเพิ่มรายการได้ — ถ้าลูกค้าออกจากโต๊ะแล้วให้กดลูกค้ากลับ',
       );
       return;
     }
@@ -5174,6 +5181,10 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   openCheckoutModal(): void {
+    if (this.seatAwaitingPayment()) {
+      this.toast.showError('บิลนี้อยู่ในขั้นรอชำระเงิน — กดยืนยันชำระเงินหรือยกเลิก');
+      return;
+    }
     this.checkoutAt.set(currentDatetimeLocalValue());
     this.checkoutPaymentMethod.set('CASH');
     this.checkoutPreview.set(null);
@@ -5346,8 +5357,113 @@ export class OpenTablePageComponent implements OnInit {
 
     const ok = await this.confirmDialog.confirm({
       title: 'ยืนยันเช็กบิล',
-      message: `เช็กบิลเวลา ${this.formatShopDatetimeLabel(checkedOutAt)} · ${paymentLabel} · ยอดรวม ${preview.billAmount.toLocaleString('th-TH')} บาท ใช่หรือไม่?`,
+      message: `เช็กบิลเวลา ${this.formatShopDatetimeLabel(checkedOutAt)} · ${paymentLabel} · ยอดรวม ${preview.billAmount.toLocaleString('th-TH')} บาท — ตรึงยอดรอชำระเงินและพิมพ์บิลใช่หรือไม่?`,
       confirmLabel: 'เช็กบิล',
+    });
+    if (!ok) {
+      this.billReceiptService.discardPrintBridge(printBridge);
+      return;
+    }
+
+    this.runAction(
+      this.openTableService.freezeCheckout({
+        shopId: this.shopId,
+        sessionId,
+        expectedRevision,
+        checkedOutAt,
+        paymentMethod: this.checkoutPaymentMethod(),
+      }),
+      'ตรึงยอดรอชำระเงินแล้ว',
+      (result) => {
+        this.closeCheckoutModal();
+        this.applyBillDetailAfterMutation(result.session, sessionId);
+        this.refreshFloorPlan(this.selectedSeatKey(), { silent: true });
+        this.printFrozenCheckoutBill(sessionId, result.checkedOutAt, printBridge);
+      },
+      () => {
+        this.billReceiptService.discardPrintBridge(printBridge);
+      },
+    );
+  }
+
+  /** Print guest bill after freeze (ใบแจ้งยอด) — modal already closed so floor stays usable. */
+  private printFrozenCheckoutBill(
+    sessionId: number,
+    checkedOutAt: string,
+    printBridge: ReceiptPrintBridge | null,
+  ): void {
+    this.openTableService
+      .previewCheckoutReceipt({
+        shopId: this.shopId,
+        sessionId,
+        checkedOutAt,
+        browserPng: this.billReceiptService.shouldPreparePrintFrame(),
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.tryPrintCheckoutReceipt(response, printBridge);
+        },
+        error: (err: { error?: { error?: string } }) => {
+          this.billReceiptService.discardPrintBridge(printBridge);
+          this.toast.showError(err.error?.error ?? 'ไม่สามารถพิมพ์บิลได้');
+        },
+      });
+  }
+
+  cancelAwaitingPayment(): void {
+    const sessionId = this.selectedSeat()?.sessionId;
+    const expectedRevision = this.requireExpectedRevision();
+    if (!sessionId || expectedRevision == null) {
+      this.toast.showError('ไม่พบบิลที่เปิดอยู่');
+      return;
+    }
+    this.runAction(
+      this.openTableService.cancelCheckoutFreeze({
+        shopId: this.shopId,
+        sessionId,
+        expectedRevision,
+      }),
+      'ยกเลิกการรอชำระเงินแล้ว — นั่งต่อได้',
+      (detail) => {
+        this.applyBillDetailAfterMutation(detail, sessionId);
+        this.refreshFloorPlan(this.selectedSeatKey(), { silent: true });
+      },
+    );
+  }
+
+  confirmAwaitingPayment(): void {
+    void this.confirmAwaitingPaymentAsync();
+  }
+
+  private async confirmAwaitingPaymentAsync(): Promise<void> {
+    const sessionId = this.selectedSeat()?.sessionId;
+    const expectedRevision = this.requireExpectedRevision();
+    const detail = this.sessionDetail();
+    if (!sessionId || expectedRevision == null || !detail) {
+      this.toast.showError('ไม่พบบิลที่เปิดอยู่');
+      return;
+    }
+    const checkedOutAt =
+      detail.checkoutFrozenAt?.trim() || currentDatetimeLocalValue();
+    if (!isValidShopDatetimeLocal(checkedOutAt)) {
+      this.toast.showError('เวลาเช็กบิลไม่ถูกต้อง');
+      return;
+    }
+
+    const snap = detail.checkoutSnapshot;
+    const paymentMethod =
+      snap?.paymentMethod && isBillPaymentMethod(snap.paymentMethod)
+        ? snap.paymentMethod
+        : 'CASH';
+    const amount = snap?.billAmount ?? detail.totalAmount;
+    const paymentLabel = billPaymentMethodLabel(paymentMethod);
+    const printBridge = this.billReceiptService.preparePrintBridge();
+
+    const ok = await this.confirmDialog.confirm({
+      title: 'ยืนยันชำระเงิน',
+      message: `รับชำระ ${paymentLabel} · ยอด ${amount.toLocaleString('th-TH')} บาท แล้วเปลี่ยนเป็นรอคืนใช่หรือไม่?`,
+      confirmLabel: 'ยืนยันชำระเงิน',
     });
     if (!ok) {
       this.billReceiptService.discardPrintBridge(printBridge);
@@ -5360,13 +5476,12 @@ export class OpenTablePageComponent implements OnInit {
         sessionId,
         expectedRevision,
         checkedOutAt,
-        paymentMethod: this.checkoutPaymentMethod(),
+        paymentMethod,
         releaseSeat: false,
         browserPng: this.billReceiptService.shouldPreparePrintFrame(),
       }),
-      'เช็กบิลสำเร็จ',
+      'รับชำระเงินสำเร็จ',
       (result) => {
-        this.closeCheckoutModal();
         this.lastCheckoutBillId.set(result.billId);
         this.tryPrintCheckoutReceipt(result.receipt, printBridge);
         const seatKey = this.selectedSeatKey();
@@ -5387,8 +5502,6 @@ export class OpenTablePageComponent implements OnInit {
       },
       () => {
         this.billReceiptService.discardPrintBridge(printBridge);
-        this.closeCheckoutModal();
-        this.closeAddModal();
       },
     );
   }

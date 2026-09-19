@@ -16,6 +16,8 @@ import type {
   CheckoutPreviewPayload,
   CheckoutPreview,
   CheckoutResult,
+  FreezeCheckoutPayload,
+  FreezeCheckoutResult,
   ReleaseCustomerPayload,
   UpdateSessionInfoPayload,
   OpenTableFloorPlan,
@@ -188,6 +190,24 @@ export class OpenTableService {
   previewCheckout(payload: CheckoutPreviewPayload): Observable<CheckoutPreview> {
     return this.http.post<CheckoutPreview>(
       this.api.resource('open-table', 'checkout-preview'),
+      payload,
+    );
+  }
+
+  freezeCheckout(payload: FreezeCheckoutPayload): Observable<FreezeCheckoutResult> {
+    return this.http.post<FreezeCheckoutResult>(
+      this.api.resource('open-table', 'checkout-freeze'),
+      payload,
+    );
+  }
+
+  cancelCheckoutFreeze(payload: {
+    shopId: number;
+    sessionId: number;
+    expectedRevision: number;
+  }): Observable<OpenTableSessionDetail> {
+    return this.http.post<OpenTableSessionDetail>(
+      this.api.resource('open-table', 'checkout-cancel-freeze'),
       payload,
     );
   }

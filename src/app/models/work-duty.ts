@@ -156,15 +156,21 @@ export function showDashboardNav(user: WorkDutyNavUser | null | undefined): bool
   return group === 'EMPLOYEE';
 }
 
-/** บิลของฉัน — เซลล์เท่านั้น; ไม่ให้เด็กนั่งดริ้งและทีมครัว/บาร์/เซอร์วิส */
+/**
+ * บิลของฉัน / บิลย้อนหลังของเซลล์ — ตรง backend `isSaleTeamAuth` สำหรับ EMPLOYEE
+ * แต่ยังตัดทีมครัว/บาร์/เซอร์วิสล้วน และเด็กนั่งดริ้งที่ไม่มี FLOOR_SALE
+ */
 export function showMyBillsNav(user: WorkDutyNavUser | null | undefined): boolean {
   if (!user || user.permissionGroup !== 'EMPLOYEE' || user.pendingRoleSetup) return false;
   if (isStationOpsOnlyUser(user)) return false;
+  if (user.roleCategory === 'ENTERTAINER') return false;
 
   const duties = effectiveWorkDuties(user);
   if (duties.includes('PR_FLOOR') && !duties.includes('FLOOR_SALE')) return false;
   if (duties.includes('FLOOR_SALE')) return true;
   if (normalizeRoleName(user.role) === 'SALE') return true;
+  // STAFF ที่ไม่ใช่ station/PR — เช่น role ชื่อไทยที่ไม่มี duty FLOOR_SALE
+  if (user.roleCategory === 'STAFF') return true;
 
   return false;
 }

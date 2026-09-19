@@ -80,7 +80,6 @@
                   <col class="bill-history-col-sale" />
                   <col class="bill-history-col-amount" />
                   <col class="bill-history-col-pay" />
-                  <col class="bill-history-col-actions" />
                 </colgroup>
                 <thead>
                   <tr>
@@ -92,7 +91,6 @@
                     <th>เซลล์</th>
                     <th class="app-cell-right">ยอด</th>
                     <th>ชำระ</th>
-                    <th class="app-cell-right">จัดการ</th>
                   </tr>
                 </thead>
               </table>
@@ -108,7 +106,6 @@
                   <col class="bill-history-col-sale" />
                   <col class="bill-history-col-amount" />
                   <col class="bill-history-col-pay" />
-                  <col class="bill-history-col-actions" />
                 </colgroup>
                 <thead class="sr-only">
                   <tr>
@@ -120,12 +117,19 @@
                     <th>เซลล์</th>
                     <th class="app-cell-right">ยอด</th>
                     <th>ชำระ</th>
-                    <th class="app-cell-right">จัดการ</th>
                   </tr>
                 </thead>
               <tbody>
                   @for (row of listView().items; track row.id; let i = $index) {
-                    <tr>
+                    <tr
+                      class="bill-history-row"
+                      [class.bill-history-row--clickable]="row.hasReceipt"
+                      [attr.tabindex]="row.hasReceipt ? 0 : null"
+                      [attr.role]="row.hasReceipt ? 'button' : null"
+                      (click)="onRowActivate(row)"
+                      (keydown.enter)="onRowActivate(row)"
+                      (keydown.space)="$event.preventDefault(); onRowActivate(row)"
+                    >
                       <td class="bill-history-cell-no app-cell-mono">
                         {{ masterListRowNumber(listView(), i) }}
                       </td>
@@ -146,18 +150,6 @@
                         {{ row.billAmount | number: '1.0-0' }}
                       </td>
                       <td class="whitespace-nowrap">{{ row.paymentMethodLabel }}</td>
-                      <td class="app-cell-right">
-                        <div class="app-table-actions">
-                          <button
-                            type="button"
-                            class="app-btn-secondary-sm"
-                            [disabled]="!row.hasReceipt"
-                            (click)="openDetail(row)"
-                          >
-                            ดูบิล
-                          </button>
-                        </div>
-                      </td>
                     </tr>
                   }
                 </tbody>
