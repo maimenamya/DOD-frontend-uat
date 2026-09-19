@@ -646,6 +646,13 @@ export class OpenTablePageComponent implements OnInit {
     if (!detail) {
       return { totalDrinks: 0, totalAmount: 0 };
     }
+    // รอชำระเงิน: ใช้ยอดที่ตรึงในป๊อปอัพเช็กบิล — ห้ามบวกรายการสด (ดื่มยังไม่สต็อปจะเป็น 0)
+    if (detail.sessionStatus === 'AWAITING_PAYMENT' && detail.checkoutSnapshot) {
+      return {
+        totalDrinks: detail.checkoutSnapshot.totalDrinks,
+        totalAmount: detail.checkoutSnapshot.billAmount,
+      };
+    }
     const totalAmount =
       detail.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0) +
       (detail.roomCharges ?? []).reduce((sum, row) => sum + row.lineAmount, 0) +
