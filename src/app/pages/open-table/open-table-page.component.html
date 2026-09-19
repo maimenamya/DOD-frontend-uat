@@ -166,6 +166,18 @@
             type="button"
             role="tab"
             class="app-filter-chip open-table-filter-status"
+            [class.app-filter-chip-active]="statusFilter() === 'AWAITING_PAYMENT'"
+            [attr.aria-selected]="statusFilter() === 'AWAITING_PAYMENT'"
+            (click)="setStatusFilter('AWAITING_PAYMENT')"
+          >
+            <span class="open-table-status-dot open-table-status-dot--awaiting-payment" aria-hidden="true"></span>
+            รอชำระเงิน
+            <span class="open-table-filter-count">{{ statusCounts().AWAITING_PAYMENT }}</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            class="app-filter-chip open-table-filter-status"
             [class.app-filter-chip-active]="statusFilter() === 'AWAITING_CLEAR'"
             [attr.aria-selected]="statusFilter() === 'AWAITING_CLEAR'"
             (click)="setStatusFilter('AWAITING_CLEAR')"
@@ -368,7 +380,8 @@
           ledgerCanMutate() &&
           seat.sessionId &&
           seatLedgerOpen() &&
-          !seatAwaitingClear()
+          !seatAwaitingClear() &&
+          !seatAwaitingPayment()
         ) {
           <nav
             class="open-table-session-panel__nav app-scroll-region"
@@ -507,7 +520,7 @@
               sessionDetail()?.checkoutFrozenLabel
             ) {
               <p class="mt-1 text-xs font-medium text-theme-accent">
-                รอชำระเงิน · ยอดตรึงที่ {{ sessionDetail()!.checkoutFrozenLabel }}
+                รอชำระเงิน
               </p>
             }
             @if (

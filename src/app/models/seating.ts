@@ -24,7 +24,7 @@ export interface MstSeating {
   id: number;
   shopId: number;
   code: string;
-  status: 'AVAILABLE' | 'OCCUPIED' | 'AWAITING_CLEAR';
+  status: 'AVAILABLE' | 'OCCUPIED' | 'AWAITING_PAYMENT' | 'AWAITING_CLEAR';
   seatingTypeId: number;
   chargesRoomFee: boolean;
   imageUrl?: string | null;

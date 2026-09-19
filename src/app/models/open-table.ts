@@ -2,7 +2,12 @@ import type { SeatingRateType } from './seating';
 import type { BillReceiptResponse } from './bill-receipt';
 import type { FloorLayoutShape } from './seating-floor-layout';
 
-export type SeatStatus = 'AVAILABLE' | 'RESERVED' | 'OCCUPIED' | 'AWAITING_CLEAR';
+export type SeatStatus =
+  | 'AVAILABLE'
+  | 'RESERVED'
+  | 'OCCUPIED'
+  | 'AWAITING_PAYMENT'
+  | 'AWAITING_CLEAR';
 
 export type FloorPlanSeatLayout = {
   posX: number;

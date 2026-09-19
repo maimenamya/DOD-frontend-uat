@@ -164,6 +164,10 @@ export class MasterSeatingListPageComponent implements OnInit {
   statusLabel(status: string): string {
     if (status === 'OCCUPIED') return 'มีลูกค้า';
     if (status === 'AWAITING_CLEAR') return 'รอเคลียโต๊ะ';
+    if (status === 'AWAITING_PAYMENT') return 'รอชำระเงิน';
+    if (status === 'OCCUPIED') return 'ใช้งาน';
+    if (status === 'RESERVED') return 'จอง';
+    return 'ว่าง';
     return 'ว่าง';
   }
 

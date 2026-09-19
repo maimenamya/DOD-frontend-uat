@@ -134,7 +134,13 @@ import {
   sanitizeDigitsOnly,
 } from '../../utils/numeric-input.util';
 
-type SeatStatusFilter = 'ALL' | 'AVAILABLE' | 'RESERVED' | 'OCCUPIED' | 'AWAITING_CLEAR';
+type SeatStatusFilter =
+  | 'ALL'
+  | 'AVAILABLE'
+  | 'RESERVED'
+  | 'OCCUPIED'
+  | 'AWAITING_PAYMENT'
+  | 'AWAITING_CLEAR';
 type CheckInMode = 'OPEN' | 'RESERVE';
 type AddModalMode = 'ORDER_LEDGER' | 'STAFF_LEDGER' | 'ROOM_CHARGE';
 
@@ -478,6 +484,12 @@ export class OpenTablePageComponent implements OnInit {
       if (this.statusFilter() === 'AVAILABLE' && seat.status !== 'AVAILABLE') return false;
       if (this.statusFilter() === 'RESERVED' && seat.status !== 'RESERVED') return false;
       if (this.statusFilter() === 'OCCUPIED' && seat.status !== 'OCCUPIED') return false;
+      if (
+        this.statusFilter() === 'AWAITING_PAYMENT' &&
+        seat.status !== 'AWAITING_PAYMENT'
+      ) {
+        return false;
+      }
       if (this.statusFilter() === 'AWAITING_CLEAR' && seat.status !== 'AWAITING_CLEAR') {
         return false;
       }
@@ -544,11 +556,13 @@ export class OpenTablePageComponent implements OnInit {
     let available = 0;
     let reserved = 0;
     let occupied = 0;
+    let awaitingPayment = 0;
     let awaitingClear = 0;
     for (const seat of seats) {
       if (seat.status === 'AVAILABLE') available += 1;
       else if (seat.status === 'RESERVED') reserved += 1;
       else if (seat.status === 'OCCUPIED') occupied += 1;
+      else if (seat.status === 'AWAITING_PAYMENT') awaitingPayment += 1;
       else if (seat.status === 'AWAITING_CLEAR') awaitingClear += 1;
     }
     return {
@@ -556,6 +570,7 @@ export class OpenTablePageComponent implements OnInit {
       AVAILABLE: available,
       RESERVED: reserved,
       OCCUPIED: occupied,
+      AWAITING_PAYMENT: awaitingPayment,
       AWAITING_CLEAR: awaitingClear,
     };
   });
@@ -704,8 +719,11 @@ export class OpenTablePageComponent implements OnInit {
       this.showNewBillSaleModal(),
   );
 
-  /** มีลูกค้า = ยังเปิดบิลอยู่ (ไม่อิง API flag อย่างเดียว) */
-  readonly seatLedgerOpen = computed(() => this.selectedSeat()?.status === 'OCCUPIED');
+  /** มีลูกค้า = เปิดบิลอยู่ หรือรอชำระเงิน (ยังไม่ปล่อยโต๊ะ) */
+  readonly seatLedgerOpen = computed(() => {
+    const status = this.selectedSeat()?.status;
+    return status === 'OCCUPIED' || status === 'AWAITING_PAYMENT';
+  });
 
   readonly seatAwaitingClear = computed(
     () => this.selectedSeat()?.status === 'AWAITING_CLEAR',
@@ -723,15 +741,20 @@ export class OpenTablePageComponent implements OnInit {
   readonly ledgerCanMutate = computed(() => {
     if (this.openTableSelfBillOnly()) return false;
     if (!this.seatLedgerOpen()) return false;
+    if (this.selectedSeat()?.status === 'AWAITING_PAYMENT') return false;
     const detail = this.sessionDetail();
-    if (detail?.canMutateLedger === false) return false;
-    if (detail?.sessionStatus === 'BILLED') return false;
-    if (detail?.sessionStatus === 'AWAITING_PAYMENT') return false;
+    // While loading, don't open PC add rail (avoids flash on awaiting-payment tables).
+    if (!detail) return false;
+    if (detail.canMutateLedger === false) return false;
+    if (detail.sessionStatus === 'BILLED') return false;
+    if (detail.sessionStatus === 'AWAITING_PAYMENT') return false;
     return true;
   });
 
   readonly seatAwaitingPayment = computed(
-    () => this.sessionDetail()?.sessionStatus === 'AWAITING_PAYMENT',
+    () =>
+      this.selectedSeat()?.status === 'AWAITING_PAYMENT' ||
+      this.sessionDetail()?.sessionStatus === 'AWAITING_PAYMENT',
   );
 
   /** Empty OPEN bill — ยกเลิก beside เช็กบิล; hide ยกเลิก when the bill has lines. */
@@ -2216,6 +2239,13 @@ export class OpenTablePageComponent implements OnInit {
         if (normalized) {
           this.syncSeatRevisionFromDetail(normalized);
           this.syncSeatBillTabsFromDetail(normalized);
+          if (
+            !this.mobileDrawerViewport() &&
+            normalized.sessionStatus === 'OPEN' &&
+            this.selectedSeat()?.status === 'OCCUPIED'
+          ) {
+            this.preparePcAddPanel({ preserveNav: true });
+          }
         }
       });
   }
@@ -2255,6 +2285,12 @@ export class OpenTablePageComponent implements OnInit {
               saleName: detail.saleName ?? s.saleName,
               operatorSaleName: detail.operatorSaleName ?? s.operatorSaleName ?? null,
               previewTotalAmount: detail.totalAmount,
+              status:
+                detail.sessionStatus === 'AWAITING_PAYMENT'
+                  ? 'AWAITING_PAYMENT'
+                  : detail.sessionStatus === 'OPEN' && s.status === 'AWAITING_PAYMENT'
+                    ? 'OCCUPIED'
+                    : s.status,
             }
           : s,
       ),
@@ -3489,6 +3525,7 @@ export class OpenTablePageComponent implements OnInit {
     this.showMobileSheet.set(true);
     if (seat.sessionId) {
       this.loadSessionDetail(seat.sessionId, { showLoading: true });
+      // Only open PC add rail for live OCCUPIED — not awaiting payment (compact bill only).
       if (!this.mobileDrawerViewport() && seat.status === 'OCCUPIED') {
         this.preparePcAddPanel();
       }
@@ -3614,6 +3651,7 @@ export class OpenTablePageComponent implements OnInit {
   statusText(status: SeatStatus): string {
     if (status === 'AVAILABLE') return 'ว่าง';
     if (status === 'RESERVED') return 'จอง';
+    if (status === 'AWAITING_PAYMENT') return 'รอชำระเงิน';
     if (status === 'AWAITING_CLEAR') return 'รอลูกค้ากลับ';
     return 'ใช้งาน';
   }
@@ -3902,6 +3940,7 @@ export class OpenTablePageComponent implements OnInit {
       'open-table-status-dot--available': status === 'AVAILABLE',
       'open-table-status-dot--reserved': status === 'RESERVED',
       'open-table-status-dot--occupied': status === 'OCCUPIED',
+      'open-table-status-dot--awaiting-payment': status === 'AWAITING_PAYMENT',
       'open-table-status-dot--awaiting-clear': status === 'AWAITING_CLEAR',
     };
   }
