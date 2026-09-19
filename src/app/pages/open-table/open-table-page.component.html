@@ -1026,9 +1026,10 @@
                 ) {
                   <div class="open-table-ledger-item-wrap">
                     <app-swipe-reveal-row
-                      [disabled]="actionBusy()"
+                      [disabled]="actionBusy() || !ledgerCanMutate()"
                       [enableStart]="
-                        (ledgerCanMutate() && item.canWithdrawPackageBottle) || item.canReturn
+                        ledgerCanMutate() &&
+                        (item.canWithdrawPackageBottle || item.canReturn)
                       "
                       [enableEnd]="ledgerCanMutate() && item.canVoid"
                     >
@@ -1045,7 +1046,7 @@
                           <ng-container *ngTemplateOutlet="swipeIconWithdraw" />
                         </button>
                       }
-                      @if (item.canReturn) {
+                      @if (ledgerCanMutate() && item.canReturn) {
                         <button
                           swipeStart
                           type="button"
@@ -1110,11 +1111,13 @@
               <div class="open-table-ledger-list">
                 @for (row of sessionDetail()?.roomCharges ?? []; track row.roomChargeId) {
                   <app-swipe-reveal-row
-                    [disabled]="actionBusy()"
-                    [enableStart]="row.canStop || (ledgerCanMutate() && row.canEditRoomCharge)"
+                    [disabled]="actionBusy() || !ledgerCanMutate()"
+                    [enableStart]="
+                      ledgerCanMutate() && (row.canStop || row.canEditRoomCharge)
+                    "
                     [enableEnd]="ledgerCanMutate() && row.canDeleteRoomCharge"
                   >
-                    @if (row.canStop) {
+                    @if (ledgerCanMutate() && row.canStop) {
                       <button
                         swipeStart
                         type="button"
@@ -1185,11 +1188,13 @@
               <div class="open-table-ledger-list">
                 @for (row of sessionDetail()?.staffDrinks ?? []; track row.staffDrinkId) {
                   <app-swipe-reveal-row
-                    [disabled]="actionBusy()"
-                    [enableStart]="row.canStopDrinks || (ledgerCanMutate() && row.canEditStaffDrink)"
+                    [disabled]="actionBusy() || !ledgerCanMutate()"
+                    [enableStart]="
+                      ledgerCanMutate() && (row.canStopDrinks || row.canEditStaffDrink)
+                    "
                     [enableEnd]="ledgerCanMutate() && row.canDeleteStaffDrink"
                   >
-                    @if (row.canStopDrinks) {
+                    @if (ledgerCanMutate() && row.canStopDrinks) {
                       <button
                         swipeStart
                         type="button"
@@ -1238,7 +1243,7 @@
                           @if ((row.packageFreeDrinksCount ?? 0) > 0) {
                             <span>· ฟรีโปร {{ row.packageFreeDrinksCount }} ดื่ม</span>
                           }
-                          @if (row.canStopDrinks && row.seatStartedLabel) {
+                          @if (row.seatStartedLabel && !row.seatStoppedLabel) {
                             <span>· เริ่มนั่ง {{ row.seatStartedLabel }}</span>
                           } @else if (row.seatStoppedLabel) {
                             <span>· สต็อปแล้ว · {{ row.seatStoppedLabel }}</span>

@@ -3672,7 +3672,11 @@ export class OpenTablePageComponent implements OnInit {
   }
 
   seatCanEditSessionInfo(seat: SeatTile | null | undefined): boolean {
-    return seat?.status === 'OCCUPIED' && seat.sessionId != null;
+    return (
+      seat?.status === 'OCCUPIED' &&
+      seat.sessionId != null &&
+      !this.seatAwaitingPayment()
+    );
   }
 
   seatHasGuestQrAction(seat: SeatTile | null | undefined): boolean {
@@ -3681,12 +3685,13 @@ export class OpenTablePageComponent implements OnInit {
       this.ledgerCanMutate() &&
       this.seatLedgerOpen() &&
       !this.seatAwaitingClear() &&
+      !this.seatAwaitingPayment() &&
       this.auth.allowsGuestOrder()
     );
   }
 
   seatHasTransferAction(seat: SeatTile | null | undefined): boolean {
-    return this.ledgerCanMutate() && !!seat?.sessionId;
+    return this.ledgerCanMutate() && !!seat?.sessionId && !this.seatAwaitingPayment();
   }
 
   /** Mobile bill header — add items sits left of the ⋮ menu (PC uses the left panel). */
@@ -3696,7 +3701,8 @@ export class OpenTablePageComponent implements OnInit {
       this.ledgerCanMutate() &&
       !!seat?.sessionId &&
       this.seatLedgerOpen() &&
-      !this.seatAwaitingClear()
+      !this.seatAwaitingClear() &&
+      !this.seatAwaitingPayment()
     );
   }
 
